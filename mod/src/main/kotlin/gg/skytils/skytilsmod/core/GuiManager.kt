@@ -42,8 +42,7 @@ import java.io.Reader
 import java.io.Writer
 
 object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), EventSubscriber {
-    val elements = hashMapOf<Int, GuiElement>()
-    private val names = hashMapOf<String, GuiElement>()
+    val elements = hashMapOf<String, GuiElement>()
     val elementMetadata = hashMapOf<String, GuiElementMetadata>()
 
     @JvmField
@@ -58,12 +57,9 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         get() = ((UResolution.scaledHeight * 0.5) / 32).toInt()
     private val takenSlots = sortedSetOf<Int>()
 
-    private var counter = 0
     fun registerElement(e: GuiElement): Boolean {
         return try {
-            counter++
-            elements[counter] = e
-            names[e.name] = e
+            elements[e.name] = e
             true
         } catch (err: Exception) {
             err.printStackTrace()
@@ -89,16 +85,12 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         }
     }
 
-    fun getByID(id: Int): GuiElement? {
-        return elements[id]
-    }
-
     fun getByName(name: String?): GuiElement? {
-        return names[name]
+        return elements[name]
     }
 
     fun searchElements(query: String): Collection<GuiElement> {
-        return names.filter { it.key.contains(query) }.values
+        return elements.filter { it.key.contains(query) }.values
     }
 
     @JvmStatic
@@ -207,7 +199,7 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
     }
 
     override fun write(writer: Writer) {
-        names.entries.forEach { (n, e) ->
+        elements.entries.forEach { (n, e) ->
             elementMetadata[n] = e.asMetadata()
         }
         writer.write(json.encodeToString(elementMetadata))
