@@ -288,7 +288,6 @@ object Skytils : CoroutineScope, EventSubscriber {
 
         arrayOf(
             this,
-            DamageSplash,
             Funny,
             ScoreCalculation,
         ).forEach(MinecraftForge.EVENT_BUS::register)
@@ -477,7 +476,6 @@ object Skytils : CoroutineScope, EventSubscriber {
 
     fun onTick(event: TickEvent) {
         ScreenRenderer.refresh()
-        EntityManager.tickEntities()
 
         ScoreboardUtil.sidebarLines = ScoreboardUtil.fetchScoreboardLines().map { l -> ScoreboardUtil.cleanSB(l) }
         TabListUtils.tabEntries = TabListUtils.fetchTabEntries().map { e -> e to e.text }

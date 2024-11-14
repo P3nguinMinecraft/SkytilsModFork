@@ -707,16 +707,6 @@ object Config : Vigilant(
     var hideArcherBonePassive = false
 
     @Property(
-        type = PropertyType.SWITCH, name = "Hide Damage In Boss",
-        description = "Removes damage numbers while in a boss fight. Requires the custom damage splash to be enabled.",
-        category = "Dungeons", subcategory = "Quality of Life",
-        i18nName = "skytils.config.dungeons.quality_of_life.hide_damage_in_boss",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.quality_of_life"
-    )
-    var hideDamageInBoss = false
-
-    @Property(
         type = PropertyType.SWITCH, name = "Hide Wither King Dragon Death",
         description = "Removes the dragon death animation from the Master Mode 7 boss fight.",
         category = "Dungeons", subcategory = "Quality of Life",
@@ -2748,17 +2738,6 @@ object Config : Vigilant(
         i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
     )
     var containerSellValueMaxItems = 20
-
-    @Property(
-        type = PropertyType.SELECTOR, name = "Custom Damage Splash Style",
-        description = "§b[WIP] §rReplaces Skyblock damage splashes with custom rendered ones.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        options = ["Off", "Comma", "Truncate"],
-        i18nName = "skytils.config.miscellaneous.quality_of_life.custom_damage_splash_style",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
-    )
-    var customDamageSplash = 0
 
     @Property(
         type = PropertyType.SWITCH, name = "Disable Enderman Teleportation",
