@@ -18,7 +18,9 @@
 
 package gg.skytils.skytilsws.client
 
+import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
+import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.C2SPacketConnect
 import gg.skytils.skytilsws.shared.packet.Packet
@@ -85,6 +87,7 @@ object WSClient {
                     e.printStackTrace()
                     closeExceptionally(e)
                 } finally {
+                    if (mc.theWorld != null) UChat.chat("${Skytils.failPrefix} §cConnection to SkytilsWS lost")
                     session = null
                 }
             }
