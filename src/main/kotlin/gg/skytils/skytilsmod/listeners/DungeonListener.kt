@@ -123,24 +123,28 @@ object DungeonListener {
 
     @SubscribeEvent
     fun onWorldLoad(event: WorldEvent.Unload) {
-        team.clear()
-        deads.clear()
-        disconnected.clear()
-        missingPuzzles.clear()
-        completedPuzzles.clear()
-        teamCached.clear()
-        printDevMessage("closed room queue world load", "dungeonws")
-        outboundRoomQueue.cancel()
-        isSoloDungeon = false
+        if (event.world == mc.theWorld) {
+            team.clear()
+            deads.clear()
+            disconnected.clear()
+            missingPuzzles.clear()
+            completedPuzzles.clear()
+            teamCached.clear()
+            printDevMessage("closed room queue world load", "dungeonws")
+            outboundRoomQueue.cancel()
+            isSoloDungeon = false
+        }
     }
 
     @SubscribeEvent
     fun onLocationUpdate(event: LocationChangeEvent) {
         if (event.packet.mode.getOrNull() == "dungeon") {
             printDevMessage("closed room queue", "dungeonws")
-            outboundRoomQueue.cancel()
-            outboundRoomQueue = Channel(UNLIMITED) {
-                printDevMessage("failed to deliver $it", "dungeonws")
+            outboundRoomQueue.also {
+                outboundRoomQueue = Channel(UNLIMITED) {
+                    printDevMessage("failed to deliver $it", "dungeonws")
+                }
+                it.cancel()
             }
         }
     }
