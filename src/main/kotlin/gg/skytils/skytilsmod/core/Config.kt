@@ -3419,6 +3419,17 @@ object Config : Vigilant(
     var petItemConfirmation = false
 
     @Property(
+        type = PropertyType.SWITCH, name = "Quad Link Legacy Solver",
+        description = "§b[WIP]§r Solves the Quad Link Legacy (CONNECT4) puzzle.",
+        category = "Rift", subcategory = "Solvers",
+        i18nName = "skytils.config.rift.solvers.quad_link_legacy_solver",
+        i18nCategory = "skytils.config.rift",
+        i18nSubcategory = "skytils.config.rift.solvers",
+        searchTags = ["Wizardman", "Connect4", "ConnectFOUR"],
+    )
+    var quadLinkLegacySolver = false
+
+    @Property(
         type = PropertyType.DECIMAL_SLIDER, name = "Current Revenant RNG Meter",
         description = "Internal value to store current Revenant RNG meter",
         category = "Slayer",
