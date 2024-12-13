@@ -163,7 +163,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
             val secretText = when (CatlasConfig.foundRoomSecrets) {
                 0 -> secretCount.toString()
-                1 -> "${unq.foundSecrets ?: "?"}/${secretCount}"
+                1 -> if (secretCount == 0) "0" else "${unq.foundSecrets ?: "?"}/${secretCount}"
                 2 -> unq.foundSecrets?.toString() ?: "?"
                 else -> error("Invalid foundRoomSecrets value")
             }
