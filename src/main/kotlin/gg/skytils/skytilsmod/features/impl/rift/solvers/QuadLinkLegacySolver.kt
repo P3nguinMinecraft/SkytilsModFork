@@ -34,8 +34,8 @@ import java.awt.Color
 
 object QuadLinkLegacySolver {
     const val guiTitle = "Quad Link Legacy - Wizardman"
-    const val oppSlot = 17
-    const val ourSlot = 24
+    const val oppSlot = 18
+    const val ourSlot = 26
 
     // he takes up the middle 7 slots for each row of the chest
     // this is [row][column]
