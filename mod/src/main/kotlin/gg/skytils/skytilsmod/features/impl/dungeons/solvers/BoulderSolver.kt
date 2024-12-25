@@ -29,7 +29,6 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.successPrefix
 import gg.skytils.skytilsmod._event.DungeonPuzzleDiscoveredEvent
 import gg.skytils.skytilsmod.core.tickTimer
-import gg.skytils.skytilsmod.events.impl.skyblock.DungeonEvent
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.SuperSecretSettings

@@ -40,7 +40,6 @@ import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.commands.impl.RepartyCommand
 import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.core.tickTimer
-import gg.skytils.skytilsmod.events.impl.skyblock.DungeonEvent
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
@@ -282,15 +281,12 @@ object DungeonListener : EventSubscriber {
                 val resetPuzzles = localMissingPuzzles.filter { it in completedPuzzles }
 
                 resetPuzzles.forEach {
-                    DungeonEvent.PuzzleEvent.Reset(it).postAndCatch()
                     postSync(DungeonPuzzleResetEvent(it))
                 }
                 newPuzzles.forEach {
-                    DungeonEvent.PuzzleEvent.Discovered(it).postAndCatch()
                     postSync(DungeonPuzzleDiscoveredEvent(it))
                 }
                 localCompletedPuzzles.forEach {
-                    DungeonEvent.PuzzleEvent.Completed(it).postAndCatch()
                     postSync(DungeonPuzzleCompletedEvent(it))
                 }
                 missingPuzzles.clear()
