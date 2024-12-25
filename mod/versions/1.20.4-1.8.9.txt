@@ -8,3 +8,11 @@ net.minecraft.block.AbstractBlock.AbstractBlockState getBlock() net.minecraft.cl
 net.minecraft.world.World entities net.minecraft.world.World field_0_260
 
 net.minecraft.util.math.BlockPos down() net.minecraft.class_0_378 method_10074()
+
+net.minecraft.item.Items PLAYER_HEAD net.minecraft.item.Items SKULL
+
+net.minecraft.entity.Entity isRemoved net.minecraft.entity.Entity removed
+
+net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaX() net.minecraft.network.packet.s2c.play.EntityS2CPacket method_11648()
+net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaY() net.minecraft.network.packet.s2c.play.EntityS2CPacket method_11646()
+net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaZ() net.minecraft.network.packet.s2c.play.EntityS2CPacket method_11647()

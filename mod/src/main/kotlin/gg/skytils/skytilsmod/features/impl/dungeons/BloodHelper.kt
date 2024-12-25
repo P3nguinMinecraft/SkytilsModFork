@@ -31,6 +31,7 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import gg.skytils.skytilsmod.utils.printDevMessage
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityZombie
@@ -109,7 +110,7 @@ object BloodHelper : EventSubscriber {
         if (event.entity !is EntityZombie) return
         (event.entity as EntityZombie).apply {
             tickTimer(1) {
-                val helmet = getEquipmentInSlot(4)
+                val helmet = getEquipmentInSlot(EquipmentSlot.HEAD)
                 if (helmet == null || helmet.item != Items.skull) return@tickTimer
                 val texture = ItemUtil.getSkullTexture(helmet)
                 if (texture == null || (watcherSkins.contains(texture))) return@tickTimer
@@ -129,7 +130,7 @@ object BloodHelper : EventSubscriber {
         if (DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || watchers.isEmpty()) return
         if (event.packet !is S14PacketEntity.S17PacketEntityLookMove) return
         val entity = event.packet.getEntity(UMinecraft.getWorld()) ?: return
-        if (entity !is EntityArmorStand || entity.getEquipmentInSlot(4)?.item != Items.skull) return
+        if (entity !is EntityArmorStand || entity.getEquipmentInSlot(EquipmentSlot.HEAD)?.item != Items.skull) return
         mobs[entity]?.let { mob ->
             mob.deltas.add(
                 Vec3(
