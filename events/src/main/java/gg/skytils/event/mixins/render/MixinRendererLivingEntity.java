@@ -31,12 +31,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //#if MC>12000
+//$$ import net.minecraft.client.render.entity.model.EntityModel;
 //$$ import net.minecraft.client.render.VertexConsumerProvider;
 //$$ import net.minecraft.client.util.math.MatrixStack;
 //#endif
 
 @Mixin(RendererLivingEntity.class)
-public class MixinRendererLivingEntity<T extends EntityLivingBase> {
+public class MixinRendererLivingEntity
+        //#if MC<12000
+        <T extends EntityLivingBase>
+        //#else
+        //$$ <T extends LivingEntity, M extends EntityModel<T>>
+        //#endif
+{
     //#if MC<12000
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("HEAD"), cancellable = true)
     private void onRender(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
@@ -49,7 +56,19 @@ public class MixinRendererLivingEntity<T extends EntityLivingBase> {
         double renderY = entity.lastTickPosY + (entity.getPositionVector().yCoord - entity.lastTickPosY - viewEntity.getPositionVector().yCoord + viewEntity.lastTickPosY) * partialTicks - viewEntity.lastTickPosY;
         double renderZ = entity.lastTickPosZ + (entity.getPositionVector().zCoord - entity.lastTickPosZ - viewEntity.getPositionVector().zCoord + viewEntity.lastTickPosZ) * partialTicks - viewEntity.lastTickPosZ;
         @SuppressWarnings("unchecked")
-        LivingEntityPreRenderEvent<T> event = new LivingEntityPreRenderEvent<>(entity, (RendererLivingEntity<T>) (Object) this, renderX, renderY, renderZ, partialTicks);
+        //#if MC<12000
+        LivingEntityPreRenderEvent<T>
+        //#else
+        //$$ LivingEntityPreRenderEvent<T, M>
+        //#endif
+                event =
+                new LivingEntityPreRenderEvent<>(entity,
+                    //#if MC<12000
+                    (RendererLivingEntity<T>) (Object) this,
+                    //#else
+                    //$$ (LivingEntityRenderer<T, M>) (Object) this,
+                    //#endif
+                    renderX, renderY, renderZ, partialTicks);
         if (EventsKt.postCancellableSync(event)) {
             ci.cancel();
         }
