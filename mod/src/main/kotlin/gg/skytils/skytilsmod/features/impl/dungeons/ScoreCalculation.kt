@@ -19,8 +19,11 @@ package gg.skytils.skytilsmod.features.impl.dungeons
 
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.state.State
+import gg.skytils.event.EventSubscriber
+import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
+import gg.skytils.skytilsmod._event.DungeonPuzzleResetEvent
 import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.tickTimer
@@ -45,7 +48,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
-object ScoreCalculation {
+object ScoreCalculation: EventSubscriber {
 
     private val deathsTabPattern = Regex("§r§a§lTeam Deaths: §r§f(?<deaths>\\d+)§r")
     private val missingPuzzlePattern = Regex("§r§b§lPuzzles: §r§f\\((?<count>\\d)\\)§r")
@@ -453,8 +456,7 @@ object ScoreCalculation {
         }
     }
 
-    @SubscribeEvent
-    fun onPuzzleReset(event: DungeonEvent.PuzzleEvent.Reset) {
+    fun onPuzzleReset(event: DungeonPuzzleResetEvent) {
         missingPuzzles.set(missingPuzzles.get() + 1)
         failedPuzzles.set((failedPuzzles.get() - 1).coerceAtLeast(0))
     }
@@ -589,4 +591,8 @@ object ScoreCalculation {
     data class FloorRequirement(val secretPercentage: Double = 1.0, val speed: Int = 10 * 60)
 
     private fun Boolean.ifTrue(num: Int) = if (this) num else 0
+
+    override fun setup() {
+        register(::onPuzzleReset)
+    }
 }
