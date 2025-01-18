@@ -20,26 +20,30 @@ package gg.skytils.skytilsmod.gui.layout.modifier
 
 import gg.essential.elementa.UIComponent
 import gg.essential.elementa.constraints.MousePositionConstraint
-import gg.essential.elementa.dsl.minus
+import gg.essential.elementa.constraints.PositionConstraint
+import gg.essential.elementa.constraints.RelativeConstraint
+import gg.essential.elementa.dsl.plus
 import gg.essential.elementa.dsl.pixels
 import gg.essential.elementa.layoutdsl.*
 
-class MouseAlignment : Alignment {
-    override fun applyHorizontal(component: UIComponent): () -> Unit {
-        return BasicXModifier(::MousePositionConstraint).applyToComponent(component)
-    }
-
-    override fun applyVertical(component: UIComponent): () -> Unit {
-        return BasicYModifier(::MousePositionConstraint).applyToComponent(component)
-    }
-}
-
 class OffsetMouseAlignment(val x: Float = 0f, val y: Float = 0f) : Alignment {
     override fun applyHorizontal(component: UIComponent): () -> Unit {
-        return BasicXModifier { MousePositionConstraint() - x.pixels }.applyToComponent(component)
+        return BasicXModifier { MousePositionConstraint() + x.pixels }.applyToComponent(component)
     }
 
     override fun applyVertical(component: UIComponent): () -> Unit {
-        return BasicYModifier { MousePositionConstraint() - y.pixels }.applyToComponent(component)
+        return BasicYModifier { MousePositionConstraint() + y.pixels }.applyToComponent(component)
     }
 }
+
+private class BasicAlignment(private val constraintFactory: () -> PositionConstraint) : Alignment {
+    override fun applyHorizontal(component: UIComponent): () -> Unit {
+        return BasicXModifier(constraintFactory).applyToComponent(component)
+    }
+
+    override fun applyVertical(component: UIComponent): () -> Unit {
+        return BasicYModifier(constraintFactory).applyToComponent(component)
+    }
+}
+
+fun Alignment.Companion.Relative(percent: Float): Alignment = BasicAlignment { RelativeConstraint(percent) }
