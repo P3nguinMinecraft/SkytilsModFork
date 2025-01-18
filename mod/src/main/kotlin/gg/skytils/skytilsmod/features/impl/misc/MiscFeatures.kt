@@ -619,15 +619,13 @@ object MiscFeatures : EventSubscriber {
     }
 
     class WorldAgeHud : HudElement("World Age Display", 50f, 60f) {
-        @JvmField
         val dayState: State<String> = State {
-            val day = 100L// (mc.theWorld?.worldInfo as? AccessorWorldInfo)?.realWorldTime?.div(24000)
+            val day = (mc.theWorld?.worldInfo as? AccessorWorldInfo)?.realWorldTime?.div(24000)
             "Day ${day}"
         }
 
         override fun LayoutScope.render() {
             val text = UIText()()
-            println(dayState)
             effect(text) {
                 text.setText(dayState())
             }
