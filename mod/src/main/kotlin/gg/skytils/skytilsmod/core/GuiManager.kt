@@ -113,6 +113,7 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         if (Minecraft.getMinecraft().currentScreen is VanillaEditingGui) return
         mc.mcProfiler.startSection("SkytilsHUD")
         gui.draw(UMatrixStack.Compat.get())
+        hud.draw(UMatrixStack.Compat.get())
         for ((_, element) in elements) {
             mc.mcProfiler.startSection(element.name)
             try {
