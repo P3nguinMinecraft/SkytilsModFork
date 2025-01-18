@@ -20,7 +20,6 @@ package gg.skytils.skytilsmod.core.structure.v2
 
 import gg.essential.elementa.components.UIBlock
 import gg.essential.elementa.components.UIContainer
-import gg.essential.elementa.dsl.provideDelegate
 import gg.essential.elementa.layoutdsl.*
 import gg.essential.elementa.state.v2.MutableState
 import gg.essential.elementa.state.v2.memo
@@ -28,6 +27,7 @@ import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UResolution
 import gg.skytils.skytilsmod.gui.layout.modifier.OffsetMouseAlignment
+import gg.skytils.skytilsmod.gui.layout.modifier.Relative
 import gg.skytils.skytilsmod.gui.layout.modifier.onLeftClickEvent
 import gg.skytils.skytilsmod.gui.layout.modifier.onMouseRelease
 import java.awt.Color
@@ -38,22 +38,29 @@ abstract class HudElement(
     val y: MutableState<Float>,
 ) {
     constructor(name: String, x: Float, y: Float) :
-            this(name, mutableStateOf(x), mutableStateOf(y))
+            this(name, mutableStateOf(x / UResolution.scaledWidth), mutableStateOf(y / UResolution.scaledHeight))
 
     private val position = memo {
-        Modifier.alignHorizontal(Alignment.Start(x()))
-            .alignVertical(Alignment.Start(y()))
+        Modifier.alignHorizontal(Alignment.Relative(x()))
+            .alignVertical(Alignment.Relative(y()))
     }
 
     private val demoPosition = memo {
+        val mouseRelative: MutableState<Pair<Float, Float>?> = mutableStateOf(null)
+        val mouseConstraint = memo {
+            mouseRelative()?.let { (x, y) ->
+                Modifier.alignBoth(OffsetMouseAlignment(x, y))
+            } ?: position()
+        }
+
         Modifier
             .onLeftClickEvent { event ->
-                Modifier.alignBoth(OffsetMouseAlignment(event.relativeX, event.relativeY))
+                mouseRelative.set(-event.relativeX to -event.relativeY)
             }.onMouseRelease {
                 x.set(getLeft() / UResolution.scaledWidth)
                 y.set(getTop() / UResolution.scaledHeight)
-                position()
-            }
+                mouseRelative.set(null)
+            }.then(mouseConstraint)
     }
 
     val component
@@ -69,6 +76,7 @@ abstract class HudElement(
                     Modifier
                         .then(demoPosition)
                         .childBasedSize(2f)
+                        .hoverScope()
                         .hoverColor(Color.WHITE.withAlpha(100))
                     , block = { demoRender() }
                 )
