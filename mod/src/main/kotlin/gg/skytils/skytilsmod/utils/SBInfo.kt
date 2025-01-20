@@ -17,6 +17,9 @@
  */
 package gg.skytils.skytilsmod.utils
 
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.network.ClientDisconnectEvent
@@ -35,33 +38,40 @@ import net.hypixel.data.type.ServerType
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.inventory.ContainerChest
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.*
 
-/**
- * Adapted from NotEnoughUpdates under Creative Commons Attribution-NonCommercial 3.0
- * https://github.com/Moulberry/NotEnoughUpdates/blob/master/LICENSE
- *
- * @author Moulberry
- */
 object SBInfo : EventSubscriber {
 
-    private val timePattern = ".+(am|pm)".toRegex()
+    val location
+        get() = locationState.getUntracked()
+    val mode: String?
+        get() = modeState.getUntracked().ifEmpty { null }
+    val server: String?
+        get() = serverIdState.getUntracked().ifEmpty { null }
+    val serverType: ServerType?
+        get() = serverTypeState.getUntracked()
 
-    var location = ""
-    var date = ""
-    var time = ""
-    var objective: String? = null
-    var mode: String? = null
-    var server: String? = null
-    var serverType: ServerType? = null
-    var currentTimeDate: Date? = null
-    var lastLocationPacket: ClientboundLocationPacket? = null
+    private val _locationState: MutableState<String> = mutableStateOf("")
+    private val _modeState: MutableState<String> = mutableStateOf("")
+    private val _serverIdState: MutableState<String> = mutableStateOf("")
+    private val _serverTypeState: MutableState<ServerType?> = mutableStateOf(null)
 
-    @JvmField
-    var lastOpenContainerName: String? = null
+    val locationState: State<String>
+        get() = _locationState
+    val modeState: State<String>
+        get() = _modeState
+    val serverIdState: State<String>
+        get() = _serverIdState
+    val serverTypeState: State<ServerType?>
+        get() = _serverTypeState
+
+
+    val lastOpenContainerName: String?
+        get() = lastOpenContainerNameState.getUntracked()
     private val junkRegex = Regex("[^\u0020-\u0127û]")
+
+    private val _lastOpenContainerNameState: MutableState<String?> = mutableStateOf(null)
+    val lastOpenContainerNameState: State<String?>
+        get() = _lastOpenContainerNameState
 
     fun onGuiOpen(event: ScreenOpenEvent) {
         if (!Utils.inSkyblock) return
@@ -69,30 +79,27 @@ object SBInfo : EventSubscriber {
             val chest = event.screen as GuiChest
             val container = chest.inventorySlots as ContainerChest
             val containerName = container.lowerChestInventory.displayName.unformattedText
-            lastOpenContainerName = containerName
+            _lastOpenContainerNameState.set(containerName)
         }
     }
 
     fun onWorldChange(event: WorldUnloadEvent) {
-        lastOpenContainerName = null
+        _lastOpenContainerNameState.set(null)
     }
 
 
     fun onDisconnect(event: ClientDisconnectEvent)  {
-        mode = null
-        server = null
-        serverType = null
-        lastLocationPacket = null
+        _modeState.set("")
+        _serverIdState.set("")
+        _serverTypeState.set(null)
     }
 
     fun onHypixelPacket(event: HypixelPacketReceiveEvent) {
         if (event.packet is ClientboundLocationPacket) {
             Utils.checkThreadAndQueue {
-                mode = event.packet.mode.orElse(null)
-                server = event.packet.serverName
-                serverType = event.packet.serverType.orElse(null)
-                lastLocationPacket = event.packet
-                println(event.packet)
+                _modeState.set(event.packet.mode.orElse(""))
+                _serverIdState.set(event.packet.serverName)
+                _serverTypeState.set(event.packet.serverType.orElse(null))
                 postSync(LocationChangeEvent(event.packet))
             }
         }
@@ -104,28 +111,8 @@ object SBInfo : EventSubscriber {
         try {
             val lines = ScoreboardUtil.fetchScoreboardLines().map { it.stripControlCodes() }
             if (lines.size >= 5) {
-                //§707/14/20
-                date = lines[2].stripControlCodes().trim()
-                //§74:40am
-                val matcher = timePattern.find(lines[3])
-                if (matcher != null) {
-                    time = matcher.groupValues[0].stripControlCodes().trim()
-                    try {
-                        val timeSpace = time.replace("am", " am").replace("pm", " pm")
-                        val parseFormat = SimpleDateFormat("hh:mm a")
-                        currentTimeDate = parseFormat.parse(timeSpace)
-                    } catch (_: ParseException) {
-                    }
-                }
                 lines.find { it.contains('⏣') }?.replace(junkRegex, "")?.trim()?.let {
-                    location = it
-                }
-            }
-            objective = null
-            for ((i, line) in lines.withIndex()) {
-                if (line == "Objective") {
-                    objective = lines.elementAt(i + 1)
-                    break
+                    _locationState.set(it)
                 }
             }
         } catch (e: Exception) {
