@@ -102,12 +102,6 @@ import net.minecraft.inventory.ContainerPlayer
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.server.S01PacketJoinGame
 import net.minecraft.network.play.server.S1CPacketEntityMetadata
-import net.minecraft.network.play.server.S3DPacketDisplayScoreboard
-import net.minecraft.network.play.server.S3FPacketCustomPayload
-//#if MC>11400
-//$$ import net.minecraft.network.packet.BrandCustomPayload
-//$$ import net.minecraft.scoreboard.ScoreboardDisplaySlot
-//#endif
 import sun.misc.Unsafe
 import java.io.File
 import java.net.DatagramPacket
@@ -192,7 +186,7 @@ object Skytils : CoroutineScope, EventSubscriber {
     override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob() + CoroutineName("Skytils")
 
     val deobfEnvironment: Boolean
-        get() = isDeobfuscatedEnvironment
+        get() = isDeobfuscatedEnvironment.getUntracked()
 
     val unsafe by lazy {
         Unsafe::class.java.getDeclaredField("theUnsafe").apply {
@@ -529,11 +523,6 @@ object Skytils : CoroutineScope, EventSubscriber {
     init {
         tickTimer(20, repeats = true) {
             if (mc.thePlayer != null) {
-                if (deobfEnvironment) {
-                    if (DevTools.getToggle("forcehypixel")) Utils.isOnHypixel = true
-                    if (DevTools.getToggle("forceskyblock")) Utils.skyblock = true
-                    if (DevTools.getToggle("forcedungeons")) Utils.dungeons = true
-                }
                 if (DevTools.getToggle("sprint")) {
                     //#if MC<11400
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.keyCode, true)
@@ -553,22 +542,11 @@ object Skytils : CoroutineScope, EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (event.packet is S01PacketJoinGame) {
-            Utils.skyblock = false
-            Utils.dungeons = false
             IO.launch {
                 TrophyFish.loadFromApi()
             }
             if (config.connectToWS)
                 WSClient.openConnection()
-        }
-        //#if MC<11400
-        if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is S3DPacketDisplayScoreboard && event.packet.func_149371_c() == 1) {
-        //#else
-        //$$ if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is ScoreboardDisplayS2CPacket && event.packet.slot == ScoreboardDisplaySlot.SIDEBAR) {
-        //#endif
-            Utils.skyblock = event.packet.func_149370_d() == "SBScoreboard"
-            printDevMessage("score ${event.packet.func_149370_d()}", "utils")
-            printDevMessage("sb ${Utils.inSkyblock}", "utils")
         }
         if (event.packet is S1CPacketEntityMetadata && mc.thePlayer != null) {
             val nameObj = event.packet.func_149376_c()?.find { it.dataValueId == 2 }?.`object` ?: return
@@ -578,22 +556,10 @@ object Skytils : CoroutineScope, EventSubscriber {
                 entity.skytilsHook.onNewDisplayName(nameObj as String)
             }
         }
-        if (!Utils.isOnHypixel && event.packet is S3FPacketCustomPayload) {
-            //#if MC<11400
-            if (event.packet.channelName.toString() == "MC|Brand") {
-                Utils.isOnHypixel = event.packet.bufferData.readStringFromBuffer(Short.MAX_VALUE.toInt()).lowercase().contains("hypixel")
-            }
-            //#else
-            //$$ Utils.isOnHypixel = (event.packet.payload as? BrandCustomPayload)?.brand?.contains("hypixel") == true
-            //#endif
-        }
     }
 
     fun onDisconnect(event: ClientDisconnectEvent) {
         Utils.lastNHPC = null
-        Utils.isOnHypixel = false
-        Utils.skyblock = false
-        Utils.dungeons = false
 
         WSClient.closeConnection()
     }

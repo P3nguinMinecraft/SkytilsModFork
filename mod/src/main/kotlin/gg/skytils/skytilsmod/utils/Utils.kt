@@ -65,20 +65,14 @@ import kotlin.math.floor
 
 object Utils {
 
-    @JvmField
-    var skyblock = false
-
     val inSkyblock: Boolean
-        get() = skyblock || SBInfo.serverType == GameType.SKYBLOCK
-
-    @JvmField
-    var dungeons = false
+        get() = SBInfo.skyblockState.getUntracked()
 
     val inDungeons: Boolean
-        get() = dungeons || SBInfo.mode == "dungeon"
+        get() = SBInfo.dungeonsState.getUntracked()
 
-    @JvmField
-    var isOnHypixel = false
+    val isOnHypixel: Boolean
+        get() = SBInfo.hypixelState.getUntracked()
 
     @JvmField
     var shouldBypassVolume = false

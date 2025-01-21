@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.utils
 
+import gg.essential.elementa.state.v2.State
 import gg.essential.universal.wrappers.UPlayer
 
 //#if FORGE
@@ -32,7 +33,7 @@ import net.minecraftforge.fml.common.Loader
 //$$ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 //#endif
 
-val isDeobfuscatedEnvironment by lazy {
+val isDeobfuscatedEnvironment = State {
     //#if FORGE
     //#if MC<11400
     Launch.blackboard.getOrDefault("fml.deobfuscatedEnvironment", false) as Boolean

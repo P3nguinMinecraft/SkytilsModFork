@@ -19,6 +19,7 @@ package gg.skytils.skytilsmod.utils
 
 import gg.essential.elementa.state.v2.MutableState
 import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.memo
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -30,14 +31,23 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.HypixelPacketReceiveEvent
 import gg.skytils.skytilsmod._event.LocationChangeEvent
+import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import net.hypixel.data.type.GameType
 import net.hypixel.data.type.ServerType
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.inventory.ContainerChest
+
+import net.minecraft.network.play.server.S3DPacketDisplayScoreboard
+import net.minecraft.network.play.server.S3FPacketCustomPayload
+//#if MC>11400
+//$$ import net.minecraft.network.packet.BrandCustomPayload
+//$$ import net.minecraft.scoreboard.ScoreboardDisplaySlot
+//#endif
 
 object SBInfo : EventSubscriber {
 
@@ -50,11 +60,25 @@ object SBInfo : EventSubscriber {
     val serverType: ServerType?
         get() = serverTypeState.getUntracked()
 
+    private val _hypixelState: MutableState<Boolean> = mutableStateOf(false)
+    private val _skyblockState: MutableState<Boolean> = mutableStateOf(false)
     private val _locationState: MutableState<String> = mutableStateOf("")
     private val _modeState: MutableState<String> = mutableStateOf("")
     private val _serverIdState: MutableState<String> = mutableStateOf("")
     private val _serverTypeState: MutableState<ServerType?> = mutableStateOf(null)
 
+    val hypixelState: State<Boolean> = memo {
+        (isDeobfuscatedEnvironment() && DevTools["forcehypixel"]()) ||
+                _hypixelState()
+    }
+    val skyblockState: State<Boolean> = memo {
+        (isDeobfuscatedEnvironment() && DevTools["forceskyblock"]()) ||
+                _skyblockState() || _serverTypeState() == GameType.SKYBLOCK
+    }
+    val dungeonsState: State<Boolean> = memo {
+        (isDeobfuscatedEnvironment() && DevTools["forcedungeons"]()) ||
+                _modeState() == "dungeon"
+    }
     val locationState: State<String>
         get() = _locationState
     val modeState: State<String>
@@ -89,6 +113,8 @@ object SBInfo : EventSubscriber {
 
 
     fun onDisconnect(event: ClientDisconnectEvent)  {
+        _hypixelState.set(false)
+        _skyblockState.set(false)
         _modeState.set("")
         _serverIdState.set("")
         _serverTypeState.set(null)
@@ -105,6 +131,26 @@ object SBInfo : EventSubscriber {
         }
     }
 
+    fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
+        if (!Utils.isOnHypixel && event.packet is S3FPacketCustomPayload) {
+            //#if MC<11400
+            if (event.packet.channelName.toString() == "MC|Brand") {
+                _hypixelState.set(event.packet.bufferData.readStringFromBuffer(Short.MAX_VALUE.toInt()).lowercase().contains("hypixel"))
+            }
+            //#else
+            //$$ _hypixelState.set((event.packet.payload as? BrandCustomPayload)?.brand?.contains("hypixel") == true)
+            //#endif
+        }
+        //#if MC<11400
+        if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is S3DPacketDisplayScoreboard && event.packet.func_149371_c() == 1) {
+        //#else
+        //$$ if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is ScoreboardDisplayS2CPacket && event.packet.slot == ScoreboardDisplaySlot.SIDEBAR) {
+        //#endif
+            _skyblockState.set(event.packet.func_149370_d() == "SBScoreboard")
+            printDevMessage("score ${event.packet.func_149370_d()}", "utils")
+            printDevMessage("sb ${Utils.inSkyblock}", "utils")
+        }
+    }
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
         if (mc.thePlayer == null || mc.theWorld == null || !Utils.inSkyblock) return
@@ -126,6 +172,7 @@ object SBInfo : EventSubscriber {
         register(::onDisconnect)
         register(::onTick)
         register(::onHypixelPacket, EventPriority.High)
+        register(::onPacket, EventPriority.Highest)
     }
 }
 
