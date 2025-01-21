@@ -530,9 +530,9 @@ object Skytils : CoroutineScope, EventSubscriber {
         tickTimer(20, repeats = true) {
             if (mc.thePlayer != null) {
                 if (deobfEnvironment) {
-                    if (DevTools.toggles.getOrDefault("forcehypixel", false)) Utils.isOnHypixel = true
-                    if (DevTools.toggles.getOrDefault("forceskyblock", false)) Utils.skyblock = true
-                    if (DevTools.toggles.getOrDefault("forcedungeons", false)) Utils.dungeons = true
+                    if (DevTools.getToggle("forcehypixel")) Utils.isOnHypixel = true
+                    if (DevTools.getToggle("forceskyblock")) Utils.skyblock = true
+                    if (DevTools.getToggle("forcedungeons")) Utils.dungeons = true
                 }
                 if (DevTools.getToggle("sprint")) {
                     //#if MC<11400
