@@ -18,28 +18,37 @@
 
 package gg.skytils.skytilsmod.utils
 
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.memo
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 
 object DevTools {
-    private val toggles = HashMap<String, Boolean>()
-    var allToggle = false
-        private set
+    private val toggles = mutableStateOf(mapOf<String, Boolean>())
+    private val _allToggleState: MutableState<Boolean> = mutableStateOf(false)
+    val allToggleState: State<Boolean>
+        get() = _allToggleState
+    val allToggle : Boolean
+        get() = allToggleState.getUntracked()
 
+    fun getToggle(toggle: String): Boolean =
+        getToggleState(toggle).getUntracked()
 
-    fun getToggle(toggle: String): Boolean {
-        return if (allToggle) allToggle else toggles.getOrDefault(toggle.lowercase(), false)
+    fun getToggleState(toggle: String) = memo {
+        if (allToggleState()) {
+            true
+        } else {
+            toggles()[toggle] ?: false
+        }
     }
 
     fun toggle(toggle: String) {
-        if (toggle.lowercase() == "all") {
-            allToggle = !allToggle
+        if (toggle == "all") {
+            _allToggleState.set(_allToggleState.getUntracked())
             return
         }
-        toggles[toggle.lowercase()]?.let {
-            toggles[toggle.lowercase()] = !it
-        } ?: kotlin.run {
-            toggles[toggle.lowercase()] = true
-        }
+        toggles.set { it + (toggle to (it[toggle]?.not() ?: false)) }
     }
 
 }
