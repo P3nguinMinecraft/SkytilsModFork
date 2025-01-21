@@ -43,6 +43,10 @@ object DevTools {
         }
     }
 
+    operator fun get(toggle: String) = memo {
+        allToggleState() || toggles()[toggle] ?: false
+    }
+
     fun toggle(toggle: String) {
         if (toggle == "all") {
             _allToggleState.set(_allToggleState.getUntracked())
