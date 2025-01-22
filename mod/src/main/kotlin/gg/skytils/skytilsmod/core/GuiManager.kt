@@ -110,7 +110,10 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
     }
 
     fun onRenderHUD(event: RenderHUDEvent) {
-        if (Minecraft.getMinecraft().currentScreen is VanillaEditingGui) return
+        if (
+            Minecraft.getMinecraft().currentScreen is VanillaEditingGui ||
+            Minecraft.getMinecraft().currentScreen == demoHud
+            ) return
         mc.mcProfiler.startSection("SkytilsHUD")
         gui.draw(UMatrixStack.Compat.get())
         hud.draw(UMatrixStack.Compat.get())
