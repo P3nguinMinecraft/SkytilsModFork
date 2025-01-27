@@ -324,6 +324,7 @@ skytils.config.pets.quality_of_life.active_pet_highlight_color=Active Pet Highli
 skytils.config.pets.quality_of_life.highlight_favorite_pets=Highlight Favorite Pets
 skytils.config.pets.quality_of_life.favorite_pet_highlight_color=Favorite Pet Highlight Color
 skytils.config.pets.quality_of_life.pet_item_confirmation=Pet Item Confirmation
+skytils.config.rift.solvers.quad_link_legacy_solver=Quad Link Legacy Solver
 skytils.config.slayer..current_revenant_rng_meter=Current Revenant RNG Meter
 skytils.config.slayer..current_tarantula_rng_meter=Current Tarantula RNG Meter
 skytils.config.slayer..current_sven_rng_meter=Current Sven RNG Meter
