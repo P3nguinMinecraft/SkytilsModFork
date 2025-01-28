@@ -52,6 +52,7 @@ import gg.skytils.skytilsmod.core.GuiManager.createTitle
 import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorEntityArmorstand
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.*
@@ -624,10 +625,17 @@ object MiscFeatures : EventSubscriber {
             "Day ${day}"
         }
 
+        val isUsingBaldTimeChanger = State {
+            isTimechangerLoaded()
+        }
+
         override fun LayoutScope.render() {
-            val text = UIText()()
-            effect(text) {
-                text.setText(dayState())
+            if_(Skytils.config.showWorldAgeState) {
+                if_(isUsingBaldTimeChanger) {
+                    text("Incompatible Time Changer detected.")
+                } `else` {
+                    text(dayState)
+                }
             }
         }
 

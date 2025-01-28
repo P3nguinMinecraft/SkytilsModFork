@@ -18,14 +18,14 @@
 package gg.skytils.skytilsmod.core
 
 import gg.essential.api.EssentialAPI
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.ReferenceHolderImpl
+import gg.essential.elementa.state.v2.onChange
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
 import gg.essential.vigilance.Vigilant
-import gg.essential.vigilance.data.Category
-import gg.essential.vigilance.data.Property
-import gg.essential.vigilance.data.PropertyType
-import gg.essential.vigilance.data.SortingBehavior
+import gg.essential.vigilance.data.*
 import gg.skytils.skytilsmod.Reference
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
@@ -39,6 +39,7 @@ import gg.skytils.skytilsmod.utils.ModChecker
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsws.client.WSClient
+import gg.skytils.vigilance.property
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.ClientCommandHandler
 import net.minecraftforge.fml.common.Loader
@@ -2648,15 +2649,19 @@ object Config : Vigilant(
     )
     var showSelectedArrowDisplay = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Show World Age",
-        description = "Displays the day count of the current server.",
-        category = "Miscellaneous", subcategory = "Other",
-        i18nName = "skytils.config.miscellaneous.other.show_world_age",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.other"
+    val showWorldAgeState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Show World Age",
+            description = "Displays the day count of the current server.",
+            category = "Miscellaneous", subcategory = "Other",
+            i18nName = "skytils.config.miscellaneous.other.show_world_age",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.other"
+        ),
+        false
     )
-    var showWorldAge = false
+    val showWorldAge: Boolean
+        get() = showWorldAgeState.getUntracked()
 
     @Property(
         type = PropertyType.PERCENT_SLIDER, name = "Transparent Armor Layer",
