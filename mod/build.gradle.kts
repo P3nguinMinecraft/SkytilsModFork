@@ -158,6 +158,7 @@ dependencies {
     shadowMe("com.aayushatharva.brotli4j:brotli4j:1.16.0")
 
     shadowMe(project(":events:$platform"))
+    shadowMe(project(":vigilance"))
     shadowMe("gg.skytils.hypixel.types:types")
     shadowMe("gg.skytils.skytilsws.shared:ws-shared")
 

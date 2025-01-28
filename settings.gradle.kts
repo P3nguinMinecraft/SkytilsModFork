@@ -83,3 +83,4 @@ listOf(
 // misc
 includeBuild("hypixel-api/types")
 includeBuild("ws-shared")
+include(":vigilance")
