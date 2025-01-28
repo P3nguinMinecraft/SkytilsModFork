@@ -620,6 +620,7 @@ object MiscFeatures : EventSubscriber {
     }
 
     class WorldAgeHud : HudElement("World Age Display", 50f, 60f) {
+        //TODO: Properly update state using mixin
         val dayState: State<String> = State {
             val day = (mc.theWorld?.worldInfo as? AccessorWorldInfo)?.realWorldTime?.div(24000)
             "Day ${day}"
