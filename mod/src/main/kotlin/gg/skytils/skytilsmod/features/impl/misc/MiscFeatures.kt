@@ -640,7 +640,11 @@ object MiscFeatures : EventSubscriber {
         }
 
         override fun LayoutScope.demoRender() {
-            UIText("Day 0")()
+            if_(isUsingBaldTimeChanger) {
+                text("Incompatible Time Changer detected.")
+            } `else` {
+                text("Day 0")
+            }
         }
 
     }
