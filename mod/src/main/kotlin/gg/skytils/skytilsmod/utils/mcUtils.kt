@@ -20,6 +20,7 @@ package gg.skytils.skytilsmod.utils
 
 import gg.essential.elementa.state.v2.State
 import gg.essential.universal.wrappers.UPlayer
+import net.minecraft.client.entity.EntityPlayerSP
 
 //#if FORGE
 import net.minecraft.launchwrapper.Launch
@@ -69,3 +70,7 @@ fun isTimechangerLoaded() =
     //#else
     //$$ false
     //#endif
+
+operator fun EntityPlayerSP.component1() = this.posX
+operator fun EntityPlayerSP.component2() = this.posY
+operator fun EntityPlayerSP.component3() = this.posZ
