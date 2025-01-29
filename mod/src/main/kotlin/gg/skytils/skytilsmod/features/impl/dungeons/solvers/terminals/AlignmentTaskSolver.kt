@@ -73,16 +73,25 @@ object AlignmentTaskSolver : EventSubscriber {
 
     fun computeLayout() {
         if (!isSolverActive()) return
-        if (mc.thePlayer.getDistanceSqToCenter(topLeft) <= 25 * 25) {
+        val (x, y, z) = mc.thePlayer ?: return
+        if (topLeft.distanceSqToCenter(x, y, z) <= 25 * 25) {
             if (grid.size < 25) {
                 @Suppress("UNCHECKED_CAST")
-                val frames = mc.theWorld.loadedEntityList.filter {
-                    it is EntityItemFrame && box.contains(it.position) && it.displayedItem != null && Utils.equalsOneOf(
-                        it.displayedItem.item,
-                        Items.arrow,
-                        Item.getItemFromBlock(Blocks.wool)
-                    )
-                } as List<EntityItemFrame>
+                val frames = mc.theWorld?.loadedEntityList?.filter {
+                    it is EntityItemFrame &&
+                            box.contains(it.position) &&
+                            it.displayedItem != null &&
+                            Utils.equalsOneOf(
+                                it.displayedItem.item,
+                                Items.arrow,
+                                //#if MC<11300
+                                Item.getItemFromBlock(Blocks.wool)
+                                //#else
+                                //$$ Items.RED_WOOL,
+                                //$$ Items.LIME_WOOL
+                                //#endif
+                            )
+                } as List<EntityItemFrame> ?: return
                 if (frames.isNotEmpty()) {
                     for ((i, pos) in box.withIndex()) {
                         val coords = Point(i % 5, i / 5)
@@ -90,11 +99,16 @@ object AlignmentTaskSolver : EventSubscriber {
                         val type = frame?.displayedItem?.let {
                             when (it.item) {
                                 Items.arrow -> SpaceType.PATH
-                                Item.getItemFromBlock(Blocks.wool) -> when (it.itemDamage) {
+                                //#if MC<11300
+                                Item.getItemById(35) -> when (it.itemDamage) {
                                     5 -> SpaceType.STARTER
                                     14 -> SpaceType.END
                                     else -> SpaceType.PATH
                                 }
+                                //#else
+                                //$$ Items.RED_WOOL -> SpaceType.END
+                                //$$ Items.LIME_WOOL -> SpaceType.STARTER
+                                //#endif
                                 else -> SpaceType.EMPTY
                             }
                         } ?: SpaceType.EMPTY
@@ -123,7 +137,7 @@ object AlignmentTaskSolver : EventSubscriber {
         for (space in grid) {
             if (space.type != SpaceType.PATH || space.framePos == null) continue
             val frame =
-                (mc.theWorld.loadedEntityList.find { it is EntityItemFrame && it.hangingPosition == space.framePos }
+                (mc.theWorld?.loadedEntityList?.find { it is EntityItemFrame && it.hangingPosition == space.framePos }
                     ?: continue) as EntityItemFrame
             val neededClicks = if (!SuperSecretSettings.bennettArthur) getTurnsNeeded(frame.rotation, directionSet.getOrElse(space.coords) { 0 }) else Random.nextInt(8)
             clicks[space.framePos] = neededClicks
@@ -132,8 +146,11 @@ object AlignmentTaskSolver : EventSubscriber {
 
     fun onPacketSend(event: PacketSendEvent<*>) {
         if (directionSet.isNotEmpty() && Skytils.config.alignmentTerminalSolver && isSolverActive()) {
+            // TODO: preprocess getting entity being interacted and packet action
+            // Probably want to intercept interact before packet is sent when interaction action is being determined
+            // [EntityInteractEvent]
             if ((Skytils.config.blockIncorrectTerminalClicks || Skytils.config.predictAlignmentClicks) && event.packet is C02PacketUseEntity && event.packet.action == C02PacketUseEntity.Action.INTERACT) {
-                val entity = event.packet.getEntityFromWorld(mc.theWorld) ?: return
+                val entity = mc.theWorld?.let(event.packet::getEntityFromWorld) ?: return
                 if (entity !is EntityItemFrame) return
                 val pos = entity.hangingPosition
                 val clicks = clicks[pos]
@@ -144,8 +161,8 @@ object AlignmentTaskSolver : EventSubscriber {
                         printDevMessage("Click packet on $pos was cancelled, rot: ${entity.rotation}, clicks: ${clicks}, pending: $pending", "predictalignment")
                         event.cancelled = true
                     } else {
-                        val blockBehind = mc.theWorld.getBlockState(pos.offset(entity.facingDirection.opposite))
-                        if (blockBehind.block == Blocks.sea_lantern) {
+                        val blockBehind = mc.theWorld?.getBlockState(pos.offset(entity.horizontalFacing.opposite))
+                        if (blockBehind?.block == Blocks.sea_lantern) {
                             printDevMessage("Click packet on $pos was cancelled, reason: lantern", "predictalignment")
                             event.cancelled = true
                         }
@@ -168,7 +185,7 @@ object AlignmentTaskSolver : EventSubscriber {
                 val pos = entity.hangingPosition
                 val pending = pendingClicks[pos]
                 if (pending != null) {
-                    val newRot = (event.packet.func_149376_c().find { it.dataValueId == 9 && it.objectType == 0 }?.`object` as? Byte ?: return).toInt()
+                    val newRot = (event.packet.func_149376_c().find { it.dataValueId == 9 }?.`object` as? Byte ?: return).toInt()
                     val currentRot = entity.rotation
                     val delta = getTurnsNeeded(currentRot, newRot)
                     val newPending = pending - delta
@@ -232,7 +249,7 @@ object AlignmentTaskSolver : EventSubscriber {
         return solution.asReversed().zipWithNext { current, next ->
             val diffX = current.x - next.x
             val diffY = current.y - next.y
-            val dir = EnumFacing.HORIZONTALS.find {
+            val dir = directions.find {
                 it.directionVec.x == diffX && it.directionVec.z == diffY
             } ?: return@zipWithNext null
 
@@ -259,7 +276,7 @@ object AlignmentTaskSolver : EventSubscriber {
             return grid
         }
 
-    private val directions = EnumFacing.HORIZONTALS.reversed()
+    private val directions = EnumFacing.entries.filter { it.directionVec.y == 0 }.reversed()
 
     /**
      * This code was modified into returning an ArrayList and was taken under CC BY-SA 4.0
