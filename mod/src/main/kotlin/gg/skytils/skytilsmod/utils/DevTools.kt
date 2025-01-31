@@ -52,7 +52,7 @@ object DevTools {
             _allToggleState.set { !it }
             return
         }
-        toggles.set { it + (toggle to (it[toggle]?.not() ?: false)) }
+        toggles.set { it + (toggle to (it[toggle]?.not() ?: true)) }
     }
 
 }
