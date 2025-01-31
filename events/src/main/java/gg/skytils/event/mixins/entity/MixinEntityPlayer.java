@@ -42,43 +42,4 @@ public class MixinEntityPlayer {
             ci.cancel();
         }
     }
-
-    @Inject(
-            method =
-            //#if MC>12000
-            //$$ "interact",
-            //#else
-            "interactWith",
-            //#endif
-            at = @At(value = "INVOKE",
-                target =
-                    //#if MC>12000
-                    //$$ "Lnet/minecraft/entity/player/PlayerEntity;getStackInHand(Lnet/minecraft/util/Hand;)Lnet/minecraft/item/ItemStack;",
-                    //#else
-                    "Lnet/minecraft/entity/player/EntityPlayer;getCurrentEquippedItem()Lnet/minecraft/item/ItemStack;",
-                    //#endif
-                ordinal = 0
-            ), cancellable = true)
-    private void onEntityInteract(Entity targetEntity,
-                                  //#if MC>12000
-                                  //$$ Hand hand,
-                                  //$$ CallbackInfoReturnable<ActionResult> cir
-                                  //#else
-                                  CallbackInfoReturnable<Boolean> cir
-                                  //#endif
-    ) {
-        if (EventsKt.postCancellableSync(new EntityInteractEvent(
-                //#if MC>=12000
-                //$$ targetEntity, hand
-                //#else
-                targetEntity
-                //#endif
-        ))) {
-            //#if MC>12000
-            //$$ cir.setReturnValue(ActionResult.FAIL);
-            //#else
-            cir.setReturnValue(false);
-            //#endif
-        }
-    }
 }

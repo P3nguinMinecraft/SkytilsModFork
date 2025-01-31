@@ -24,19 +24,19 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.TickEvent;
-import gg.skytils.event.impl.play.KeyboardInputEvent;
-import gg.skytils.event.impl.play.MouseInputEvent;
-import gg.skytils.event.impl.play.BlockInteractEvent;
-import gg.skytils.event.impl.play.WorldUnloadEvent;
+import gg.skytils.event.impl.play.*;
 import gg.skytils.event.impl.screen.ScreenOpenEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
@@ -54,6 +54,7 @@ import org.lwjgl.input.Mouse;
 //$$ import net.minecraft.util.ActionResult;
 //$$ import net.minecraft.util.Hand;
 //$$ import net.minecraft.util.hit.BlockHitResult;
+//$$ import net.minecraft.util.hit.EntityHitResult;
 //#endif
 
 @Mixin(Minecraft.class)
@@ -140,6 +141,22 @@ public class MixinMinecraft {
     //$$    BlockPos pos = hitResult.getBlockPos();
     //$$    if (!EventsKt.postCancellableSync(new BlockInteractEvent(itemStack, pos))) {
     //$$        return original.call(instance, player, hand, hitResult);
+    //$$    } else {
+    //$$        return ActionResult.PASS;
+    //$$    }
+    //$$ }
+    //#endif
+
+    //#if MC<11200
+    @WrapOperation(method = "rightClickMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/PlayerControllerMP;isPlayerRightClickingOnEntity(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/entity/Entity;Lnet/minecraft/util/MovingObjectPosition;)Z"))
+    private boolean onEntityInteract(PlayerControllerMP instance, EntityPlayer player, Entity entityIn, MovingObjectPosition movingObject, Operation<Boolean> original) {
+        return !EventsKt.postCancellableSync(new EntityInteractEvent(entityIn)) && original.call(instance, player, entityIn, movingObject);
+    }
+    //#else
+    //$$ @WrapOperation(method = "doItemUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;interactEntityAtLocation(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/util/hit/EntityHitResult;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResult;"))
+    //$$ private ActionResult onEntityInteract(ClientPlayerInteractionManager instance, PlayerEntity player, Entity entity, EntityHitResult hitResult, Hand hand, Operation<ActionResult> original) {
+    //$$    if (!EventsKt.postCancellableSync(new EntityInteractEvent(entity, hand))) {
+    //$$        return original.call(instance, player, entity, hitResult, hand);
     //$$    } else {
     //$$        return ActionResult.PASS;
     //$$    }
