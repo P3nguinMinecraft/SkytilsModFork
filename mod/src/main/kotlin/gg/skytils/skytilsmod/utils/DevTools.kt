@@ -49,7 +49,7 @@ object DevTools {
 
     fun toggle(toggle: String) {
         if (toggle == "all") {
-            _allToggleState.set(_allToggleState.getUntracked())
+            _allToggleState.set { !it }
             return
         }
         toggles.set { it + (toggle to (it[toggle]?.not() ?: false)) }
