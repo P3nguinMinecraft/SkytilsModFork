@@ -20,20 +20,19 @@ package gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals
 
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
+import gg.skytils.event.impl.play.EntityInteractEvent
 import gg.skytils.event.impl.play.WorldUnloadEvent
 import gg.skytils.event.impl.render.WorldDrawEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
-import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
 import net.minecraft.entity.item.EntityItemFrame
 import net.minecraft.init.Blocks
 import net.minecraft.init.Items
 import net.minecraft.item.Item
-import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.server.S1CPacketEntityMetadata
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
@@ -144,13 +143,10 @@ object AlignmentTaskSolver : EventSubscriber {
         }
     }
 
-    fun onPacketSend(event: PacketSendEvent<*>) {
+    fun onPacketSend(event: EntityInteractEvent) {
         if (directionSet.isNotEmpty() && Skytils.config.alignmentTerminalSolver && isSolverActive()) {
-            // TODO: preprocess getting entity being interacted and packet action
-            // Probably want to intercept interact before packet is sent when interaction action is being determined
-            // [EntityInteractEvent]
-            if ((Skytils.config.blockIncorrectTerminalClicks || Skytils.config.predictAlignmentClicks) && event.packet is C02PacketUseEntity && event.packet.action == C02PacketUseEntity.Action.INTERACT) {
-                val entity = mc.theWorld?.let(event.packet::getEntityFromWorld) ?: return
+            if ((Skytils.config.blockIncorrectTerminalClicks || Skytils.config.predictAlignmentClicks)) {
+                val entity = event.entity
                 if (entity !is EntityItemFrame) return
                 val pos = entity.hangingPosition
                 val clicks = clicks[pos]
