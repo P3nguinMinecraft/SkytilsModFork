@@ -26,6 +26,8 @@ import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.events.impl.GuiContainerEvent
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsws.client.WSClient
+import gg.skytils.skytilsws.shared.packet.C2SPacketJerryVote
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -154,13 +156,7 @@ object MayorInfo {
         }
     }
 
-    fun fetchJerryData() = Skytils.IO.launch {
-        val res = client.get("https://${Skytils.domain}/api/mayor/jerry").body<JerrySession>()
-        tickTimer(1) {
-            newJerryPerks = res.nextSwitch
-            jerryMayor = res.mayor
-        }
-    }
+    fun fetchJerryData() = {} // no-op
 
     fun sendJerryData(mayor: Mayor?, nextSwitch: Long) = Skytils.IO.launch {
         if (mayor == null || nextSwitch <= System.currentTimeMillis()) return@launch
@@ -168,19 +164,7 @@ object MayorInfo {
             println("Client's time isn't trusted, skip sending jerry data.")
             return@launch
         }
-        try {
-            val serverId = UUID.randomUUID().toString().replace("-".toRegex(), "")
-            val commentForDecompilers =
-                "This sends a request to Mojang's auth server, used for verification. This is how we verify you are the real user without your session details. This is the exact same system Optifine uses."
-            mc.sessionService.joinServer(mc.session.profile, mc.session.token, serverId)
-            val url =
-                "https://${Skytils.domain}/api/mayor/jerry/perks?username=${mc.session.username}&serverId=${serverId}&nextPerks=${nextSwitch}&mayor=${mayor.name}&currTime=${System.currentTimeMillis()}"
-            println(client.get(url).bodyAsText())
-        } catch (e: AuthenticationException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+        WSClient.sendPacket(C2SPacketJerryVote(mayor.name, nextSwitch, System.currentTimeMillis()))
     }
 }
 
