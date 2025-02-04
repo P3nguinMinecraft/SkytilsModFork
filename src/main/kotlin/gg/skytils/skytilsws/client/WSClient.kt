@@ -21,6 +21,7 @@ package gg.skytils.skytilsws.client
 import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
+import gg.skytils.skytilsmod.utils.DevTools
 import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.C2SPacketConnect
 import gg.skytils.skytilsws.shared.packet.Packet
@@ -100,6 +101,7 @@ object WSClient {
     }
 
     suspend fun sendPacket(packet: Packet) {
+        if (DevTools.getToggle("ws")) println("Sent packet: $packet")
         session?.sendSerialized(packet) ?: error("Tried to send packet but session was null")
     }
 
