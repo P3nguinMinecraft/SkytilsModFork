@@ -22,6 +22,7 @@ import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Reference
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
+import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.Room
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.Unknown
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
@@ -75,6 +76,9 @@ object PacketHandler : IPacketHandler {
                         addToUnique(packet.row, packet.col)
                     }
                 }
+            }
+            is S2CPacketDungeonMimic -> {
+                ScoreCalculation.mimicKilled.set(true)
             }
             is S2CPacketCHReset -> {
                 CHWaypoints.waypoints.remove(packet.serverId)
