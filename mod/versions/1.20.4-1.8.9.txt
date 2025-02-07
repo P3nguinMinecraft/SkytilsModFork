@@ -8,6 +8,8 @@ net.minecraft.block.AbstractBlock.AbstractBlockState getBlock() net.minecraft.cl
 net.minecraft.world.World entities net.minecraft.world.World field_0_260
 
 net.minecraft.util.math.BlockPos down() net.minecraft.class_0_378 method_10074()
+# https://github.com/Legacy-Fabric/yarn/pull/285
+net.minecraft.util.math.BlockPos offset() method_10093()
 
 net.minecraft.item.Items PLAYER_HEAD net.minecraft.item.Items SKULL
 
