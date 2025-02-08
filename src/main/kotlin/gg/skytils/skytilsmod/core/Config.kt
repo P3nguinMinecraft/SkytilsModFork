@@ -3431,7 +3431,7 @@ object Config : Vigilant(
 
     @Property(
         type = PropertyType.SWITCH, name = "Quad Link Legacy Solver",
-        description = "§b[WIP]§r Solves the Quad Link Legacy (CONNECT4) puzzle.",
+        description = "§b[WIP]§r Solves the Quad Link Legacy (CONNECT4) puzzle.\nThis currently does not work.",
         category = "Rift", subcategory = "Solvers",
         i18nName = "skytils.config.rift.solvers.quad_link_legacy_solver",
         i18nCategory = "skytils.config.rift",
