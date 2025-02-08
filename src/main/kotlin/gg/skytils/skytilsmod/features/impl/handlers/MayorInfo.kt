@@ -43,6 +43,7 @@ import java.io.IOException
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.round
+import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -124,9 +125,9 @@ object MayorInfo {
                 val timeLeft =
                     matcher.groups["h"]!!.value.toInt().hours + matcher.groups["m"]!!.value.toInt().minutes
                 val nextPerksNoRound = System.currentTimeMillis() + timeLeft.inWholeMilliseconds
-                val nextPerks = round(nextPerksNoRound / 300000.0).toLong() * 300000L
+                val nextPerks = (nextPerksNoRound / 300000.0).roundToLong() * 300000L
                 if (jerryMayor != mayor || abs(nextPerks - newJerryPerks) > 60000) {
-                    println("Jerry has ${mayor.name}'s perks ($perks) and is ending in $newJerryPerks ($${endingIn.stripControlCodes()})")
+                    println("Jerry has ${mayor.name}'s perks ($perks) and is ending in $nextPerks ($${endingIn.stripControlCodes()})")
                     sendJerryData(mayor, nextPerks)
                 }
                 newJerryPerks = nextPerks
