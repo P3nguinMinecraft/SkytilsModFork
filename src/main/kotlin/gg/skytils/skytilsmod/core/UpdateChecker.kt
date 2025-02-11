@@ -40,8 +40,8 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.moveTo
 
 object UpdateChecker {
@@ -77,6 +77,7 @@ object UpdateChecker {
                     "${if (oldJar.name.startsWith("!")) "!" else ""}${nameNoExtension}${if (oldJar.endsWith(".temp.jar") && newExtension == oldJar.extension) ".temp.jar" else ".$newExtension"}"
                 )
                 newJar.toPath().moveTo(newLocation.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+                newJar.toPath().resolveSibling("${newJar.name}.asc").deleteIfExists()
                 if (oldJar.delete()) {
                     println("successfully deleted the files. skipping install tasks")
                     return@Thread
