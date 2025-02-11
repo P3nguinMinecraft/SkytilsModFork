@@ -59,6 +59,7 @@
     "multiplayer.MixinPlayerControllerMP",
     "network.MixinNetHandlerPlayClient",
     "network.MixinNetworkManager",
+    "network.MixinPacketThreadUtil",
     "neu.MixinCustomAH",
     "neu.MixinGuiProfileViewer",
     "neu.MixinStorageManager",
