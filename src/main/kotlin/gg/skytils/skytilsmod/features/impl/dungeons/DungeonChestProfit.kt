@@ -29,6 +29,8 @@ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.romanToDecimal
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
+import gg.skytils.skytilsmod.utils.SBInfo
+import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
@@ -234,7 +236,7 @@ object DungeonChestProfit {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onSlotClick(event: GuiContainerEvent.SlotClickEvent) {
-        if (!Utils.inDungeons || event.container !is ContainerChest) return
+        if ((!Utils.inDungeons && SBInfo.mode != SkyblockIsland.DungeonHub.mode) || event.container !is ContainerChest) return
         if (Skytils.config.kismetRerollThreshold != 0 && !rerollBypass && event.slotId == 50 && event.chestName.endsWith(
                 " Chest"
             )
