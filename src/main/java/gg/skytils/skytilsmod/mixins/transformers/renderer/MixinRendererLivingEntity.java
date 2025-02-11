@@ -20,6 +20,8 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RendererLivingEntityHookKt;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -29,12 +31,18 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(RendererLivingEntity.class)
 public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> extends Render<T> {
     protected MixinRendererLivingEntity(RenderManager renderManager) {
         super(renderManager);
+    }
+
+    @ModifyVariable(method = "renderName*", at = @At(value = "STORE", ordinal = 0))
+    private String replaceEntityName(String name, @Local(argsOnly = true) T entity) {
+        return RendererLivingEntityHookKt.replaceEntityName(entity, name);
     }
 
     @Inject(method = "getColorMultiplier", at = @At("HEAD"), cancellable = true)

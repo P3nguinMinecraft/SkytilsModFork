@@ -47,7 +47,6 @@ class SkytilsTransformer : BaseClassTransformer() {
             try {
                 addColoredNamesCheck()
                 injectSplashProgressTransformer()
-                changeRenderedName()
                 injectNullCheck()
                 commitArson()
                 injectScoreboardScoreRemover()
