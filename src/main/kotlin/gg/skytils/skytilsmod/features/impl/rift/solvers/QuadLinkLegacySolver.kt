@@ -53,66 +53,66 @@ object QuadLinkLegacySolver {
     }
 
     @SubscribeEvent
-    fun onGuiContainerEvent(event: GuiContainerEvent) {
-        when (event) {
-            is GuiContainerEvent.CloseWindowEvent -> reset()
-            is GuiContainerEvent.ForegroundDrawnEvent -> {
-                if (!Skytils.config.quadLinkLegacySolver) return
-                val container = event.container as? ContainerChest ?: return
-                if (event.chestName != guiTitle) return
+    fun onCloseWindow(event: GuiContainerEvent.CloseWindowEvent) {
+        reset()
+    }
 
-                if (ourItem == null) {
-                    ourItem = container.getSlot(ourSlot).stack
-                    oppItem = container.getSlot(oppSlot).stack
+    @SubscribeEvent
+    fun onGuiContainerDrawEvent(event: GuiContainerEvent.ForegroundDrawnEvent) {
+        if (!Skytils.config.quadLinkLegacySolver) return
+        val container = event.container as? ContainerChest ?: return
+        if (event.chestName != guiTitle) return
 
-                    check(ourItem != null && oppItem != null) { "Our item or opponent's item is null" }
-                }
+        if (ourItem == null) {
+            ourItem = container.getSlot(ourSlot).stack
+            oppItem = container.getSlot(oppSlot).stack
 
-                // if null, it means the placing animation is happening
-                // if painting, it means we are waiting for the move
-                // if item stack, it means they are waiting for us
-                // if there is glass, the game is over
-                if (flatBoardSlots.map { container.getSlot(it).stack }.any {
-                    it == null ||
-                    it.item == Items.painting ||
-                    it.item == Item.getItemFromBlock(Blocks.stained_glass) ||
-                    !(it.getIsItemStackEqual(ourItem) || it.getIsItemStackEqual(oppItem) || it.item == Items.item_frame)
-                }) {
-                    bestColumn = -1
-                    return
-                }
+            check(ourItem != null && oppItem != null) { "Our item or opponent's item is null" }
+        }
 
-                if (bestColumn == -1) {
-                    // read the board in
-                    for (column in 0 until 7) {
-                        for (row in 0 until 6) {
-                            val slot = boardSlots[row].elementAt(column)
-                            val item = container.getSlot(slot).stack
-                            if (item.getIsItemStackEqual(ourItem)) {
-                                board[column][row] = true
-                            } else if (item.getIsItemStackEqual(oppItem)) {
-                                board[column][row] = false
-                            } else if (item.item == Items.item_frame) {
-                                board[column][row] = null
-                            }
-                        }
+        // if null, it means the placing animation is happening
+        // if painting, it means we are waiting for the move
+        // if item stack, it means they are waiting for us
+        // if there is glass, the game is over
+        if (flatBoardSlots.map { container.getSlot(it).stack }.any {
+                it == null ||
+                        it.item == Items.painting ||
+                        it.item == Item.getItemFromBlock(Blocks.stained_glass) ||
+                        !(it.getIsItemStackEqual(ourItem) || it.getIsItemStackEqual(oppItem) || it.item == Items.item_frame)
+            }) {
+            bestColumn = -1
+            return
+        }
+
+        if (bestColumn == -1) {
+            // read the board in
+            for (column in 0 until 7) {
+                for (row in 0 until 6) {
+                    val slot = boardSlots[row].elementAt(column)
+                    val item = container.getSlot(slot).stack
+                    if (item.getIsItemStackEqual(ourItem)) {
+                        board[column][row] = true
+                    } else if (item.getIsItemStackEqual(oppItem)) {
+                        board[column][row] = false
+                    } else if (item.item == Items.item_frame) {
+                        board[column][row] = null
                     }
-
-                    val result = negamax(1000, isOurs = true)
-                    bestColumn = result.first
-                }
-
-                if (bestColumn != -1) {
-                    val topSlot = container.getSlot(bestColumn+1)
-                    Gui.drawRect(
-                        topSlot.xDisplayPosition,
-                        topSlot.yDisplayPosition,
-                        topSlot.xDisplayPosition + 16,
-                        topSlot.yDisplayPosition + 16 * 6,
-                        Color.RED.withAlpha(100)
-                    )
                 }
             }
+
+            val result = negamax(1000, isOurs = true)
+            bestColumn = result.first
+        }
+
+        if (bestColumn != -1) {
+            val topSlot = container.getSlot(bestColumn + 1)
+            Gui.drawRect(
+                topSlot.xDisplayPosition,
+                topSlot.yDisplayPosition,
+                topSlot.xDisplayPosition + 16,
+                topSlot.yDisplayPosition + 16 * 6,
+                Color.RED.withAlpha(100)
+            )
         }
     }
 
