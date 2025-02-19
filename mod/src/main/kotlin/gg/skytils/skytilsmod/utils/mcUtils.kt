@@ -21,6 +21,10 @@ package gg.skytils.skytilsmod.utils
 import gg.essential.elementa.state.v2.State
 import gg.essential.universal.wrappers.UPlayer
 import net.minecraft.client.entity.EntityPlayerSP
+import net.minecraft.util.BlockPos
+import net.minecraft.util.MathHelper
+import net.minecraft.util.Vec3
+import net.minecraft.util.Vec3i
 
 //#if FORGE
 import net.minecraft.launchwrapper.Launch
@@ -74,3 +78,8 @@ fun isTimechangerLoaded() =
 operator fun EntityPlayerSP.component1() = this.posX
 operator fun EntityPlayerSP.component2() = this.posY
 operator fun EntityPlayerSP.component3() = this.posZ
+
+inline fun BlockPos(vec: Vec3): BlockPos = BlockPos(MathHelper.floor_double(vec.x), MathHelper.floor_double(vec.y), MathHelper.floor_double(vec.z))
+
+
+inline fun Vec3d(pos: Vec3i): Vec3 = Vec3(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())

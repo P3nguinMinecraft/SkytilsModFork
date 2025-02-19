@@ -20,3 +20,7 @@ net.minecraft.entity.Entity isRemoved net.minecraft.entity.Entity removed
 net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaX() net.minecraft.network.packet.s2c.play.EntityS2CPacket method_11648()
 net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaY() net.minecraft.network.packet.s2c.play.EntityS2CPacket method_11646()
 net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaZ() net.minecraft.network.packet.s2c.play.EntityS2CPacket method_11647()
+
+net.minecraft.world.EntityView getEntitiesByClass() net.minecraft.world.World method_8390()
+
+com.mojang.blaze3d.systems.RenderSystem net.minecraft.client.GlStateManager

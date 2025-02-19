@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
+import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -53,7 +54,7 @@ object CreeperSolver : EventSubscriber {
 
     fun updatePuzzleState() {
         if (this.creeper == null) {
-            val creeperScan = mc.thePlayer.entityBoundingBox.expand(14.0, 8.0, 13.0)
+            val creeperScan = mc.thePlayer?.entityBoundingBox?.expand(14.0, 8.0, 13.0) ?: return
             this.creeper = mc.theWorld?.getEntitiesWithinAABB(EntityCreeper::class.java, creeperScan) {
                 it != null && !it.isInvisible && it.maxHealth == 20f && it.health == 20f && !it.hasCustomName()
             }?.firstOrNull()
@@ -105,14 +106,15 @@ object CreeperSolver : EventSubscriber {
             )
         ) {
             val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
+
             GlStateManager.disableCull()
             val blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND)
-            GlStateManager.enableBlend()
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+            UGraphics.enableBlend()
+            UGraphics.tryBlendFuncSeparate(770, 771, 1, 0)
             val matrixStack = UMatrixStack()
             for (i in solutionPairs.indices) {
                 val (one, two) = solutionPairs[i]
-                if (mc.theWorld.getBlockState(one).block == Blocks.prismarine && mc.theWorld.getBlockState(two).block == Blocks.prismarine) {
+                if (mc.theWorld?.getBlockState(one)?.block == Blocks.prismarine && mc.theWorld?.getBlockState(two)?.block == Blocks.prismarine) {
                     continue
                 }
                 val color = Color(colors[i % colors.size].toInt())
@@ -141,7 +143,7 @@ object CreeperSolver : EventSubscriber {
                     matrixStack, aabb2.expand(0.01, 0.01, 0.01), color, 0.5f
                 )
             }
-            if (!blendEnabled) GlStateManager.disableBlend()
+            if (!blendEnabled) UGraphics.disableBlend()
             GlStateManager.enableCull()
         }
     }
