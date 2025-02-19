@@ -35,19 +35,21 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.init.Blocks
 import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
-import net.minecraftforge.client.event.RenderWorldLastEvent
-import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import java.awt.Color
 import kotlin.math.floor
 import kotlin.random.Random
+
+//#if MC<11300
+import net.minecraft.client.renderer.GlStateManager
+//#else
+//$$ import com.mojang.blaze3d.systems.RenderSystem
+//$$ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
+//#endif
 
 object BoulderSolver : EventSubscriber {
     var boulderChest: BlockPos? = null
@@ -82,23 +84,34 @@ object BoulderSolver : EventSubscriber {
                     val farLeftPos = boulderChest!!.offset(downRow, 5).offset(rightColumn.opposite, 9)
                     val boulderPos = farLeftPos.offset(rightColumn, 3 * step.x).offset(downRow, 3 * step.y)
                     val actualDirection: EnumFacing? = when (step.direction) {
-                        Direction.FORWARD -> boulderFacing
-                        Direction.BACKWARD -> boulderFacing!!.opposite
-                        Direction.LEFT -> boulderFacing!!.rotateYCCW()
-                        Direction.RIGHT -> boulderFacing!!.rotateY()
+                        BoulderPushDirection.FORWARD -> boulderFacing
+                        BoulderPushDirection.BACKWARD -> boulderFacing!!.opposite
+                        BoulderPushDirection.LEFT -> boulderFacing!!.rotateYCCW()
+                        BoulderPushDirection.RIGHT -> boulderFacing!!.rotateY()
                     }
                     val buttonPos = boulderPos.offset(actualDirection!!.opposite, 2).down()
                     val x = buttonPos.x - viewerX
                     val y = buttonPos.y - viewerY
                     val z = buttonPos.z - viewerZ
+
+                    //#if MC<11300
                     GlStateManager.disableCull()
+                    //#else
+                    //$$ RenderSystem.disableCull()
+                    //#endif
+
                     RenderUtil.drawFilledBoundingBox(
                         matrixStack,
                         AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1),
                         Skytils.config.boulderSolverColor,
                         0.7f
                     )
+
+                    //#if MC<11300
                     GlStateManager.enableCull()
+                    //#else
+                    //$$ RenderSystem.enableCull()
+                    //#endif
                     break
                 }
             }
@@ -109,7 +122,7 @@ object BoulderSolver : EventSubscriber {
         reset()
     }
 
-    enum class Direction {
+    enum class BoulderPushDirection {
         FORWARD, BACKWARD, LEFT, RIGHT
     }
 
@@ -117,7 +130,7 @@ object BoulderSolver : EventSubscriber {
         EMPTY, FILLED, PLACEHOLDER
     }
 
-    class BoulderPush(var x: Int, var y: Int, var direction: Direction)
+    class BoulderPush(var x: Int, var y: Int, var direction: BoulderPushDirection)
 
     fun update() {
         if (!Skytils.config.boulderSolver || !DungeonListener.missingPuzzles.contains("Boulder")) return
@@ -136,6 +149,7 @@ object BoulderSolver : EventSubscriber {
                     }
                     if (!foundBirch) {
                         val potentialBirch = potentialBarrier.down(2)
+                        //#if MC<12000
                         if (world.getBlockState(potentialBirch).block === Blocks.planks && Blocks.planks.getDamageValue(
                                 world,
                                 potentialBirch
@@ -143,29 +157,48 @@ object BoulderSolver : EventSubscriber {
                         ) {
                             foundBirch = true
                         }
+                        //#else
+                        //$$ if (world.getBlockState(potentialBirch).block === Blocks.BIRCH_PLANKS) foundBirch = true
+                        //#endif
                     }
                 }
                 if (!foundBirch || !foundBarrier) return@launch
                 if (boulderChest == null || boulderFacing == null) {
-                    val playerX = mc.thePlayer.posX.toInt()
-                    val playerZ = mc.thePlayer.posZ.toInt()
+                    val playerX = player.posX.toInt()
+                    val playerZ = player.posZ.toInt()
                     val xRange = playerX - 25..playerX + 25
                     val zRange = playerZ - 25..playerZ + 25
-                    findChest@ for (te in mc.theWorld.loadedTileEntityList) {
-                        if (te.pos.y == 66 && te is TileEntityChest && te.numPlayersUsing == 0 && te.pos.x in xRange && te.pos.z in zRange
+                    //#if MC<11300
+                    findChest@ for (te in world.loadedTileEntityList) {
+                    //#else
+                    //$$ findChest@ for (te in (mc.world!! as AccessorWorld).blockEntityTickers) {
+                    //#endif
+                        if (te.pos.y == 66 && te.pos.x in xRange && te.pos.z in zRange
                         ) {
-                            val potentialChestPos = te.pos
-                            if (world.getBlockState(potentialChestPos.down()).block == Blocks.stonebrick && world.getBlockState(
-                                    potentialChestPos.up(3)
-                                ).block == Blocks.barrier
-                            ) {
-                                boulderChest = potentialChestPos
-                                println("Boulder chest is at $boulderChest")
-                                for (direction in EnumFacing.HORIZONTALS) {
-                                    if (world.getBlockState(potentialChestPos.offset(direction)).block == Blocks.stained_hardened_clay) {
-                                        boulderFacing = direction
-                                        println("Boulder room is facing $direction")
-                                        break@findChest
+                            //#if MC<=11202
+                            if (te is TileEntityChest && te.numPlayersUsing == 0) {
+                            //#else
+                            //$$ if (te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world!!, te.pos) == 0) {
+                            //#endif
+                                val potentialChestPos = te.pos
+                                if (world.getBlockState(potentialChestPos.down()).block ==
+                                    //#if MC<11300
+                                    Blocks.stonebrick
+                                    //#else
+                                    //$$ Blocks.STONE_BRICKS
+                                    //#endif
+                                    && world.getBlockState(
+                                        potentialChestPos.up(3)
+                                    ).block == Blocks.barrier
+                                ) {
+                                    boulderChest = potentialChestPos
+                                    println("Boulder chest is at $boulderChest")
+                                    for (direction in EnumFacing.HORIZONTALS) {
+                                        if (world.getBlockState(potentialChestPos.offset(direction)).block == Blocks.stained_hardened_clay) {
+                                            boulderFacing = direction
+                                            println("Boulder room is facing $direction")
+                                            break@findChest
+                                        }
                                     }
                                 }
                             }
@@ -243,12 +276,12 @@ object BoulderSolver : EventSubscriber {
         )
         variantSteps.add(
             arrayListOf(
-                BoulderPush(2, 4, Direction.RIGHT),
-                BoulderPush(2, 3, Direction.FORWARD),
-                BoulderPush(3, 3, Direction.RIGHT),
-                BoulderPush(4, 3, Direction.RIGHT),
-                BoulderPush(4, 1, Direction.FORWARD),
-                BoulderPush(5, 1, Direction.RIGHT)
+                BoulderPush(2, 4, BoulderPushDirection.RIGHT),
+                BoulderPush(2, 3, BoulderPushDirection.FORWARD),
+                BoulderPush(3, 3, BoulderPushDirection.RIGHT),
+                BoulderPush(4, 3, BoulderPushDirection.RIGHT),
+                BoulderPush(4, 1, BoulderPushDirection.FORWARD),
+                BoulderPush(5, 1, BoulderPushDirection.RIGHT)
             )
         )
         expectedBoulders.add(
@@ -264,15 +297,15 @@ object BoulderSolver : EventSubscriber {
         )
         variantSteps.add(
             arrayListOf(
-                BoulderPush(3, 4, Direction.FORWARD),
-                BoulderPush(2, 4, Direction.LEFT),
-                BoulderPush(3, 3, Direction.RIGHT),
-                BoulderPush(3, 2, Direction.FORWARD),
-                BoulderPush(2, 2, Direction.LEFT),
-                BoulderPush(4, 2, Direction.RIGHT),
-                BoulderPush(2, 1, Direction.FORWARD),
-                BoulderPush(4, 1, Direction.FORWARD),
-                BoulderPush(3, 1, Direction.RIGHT)
+                BoulderPush(3, 4, BoulderPushDirection.FORWARD),
+                BoulderPush(2, 4, BoulderPushDirection.LEFT),
+                BoulderPush(3, 3, BoulderPushDirection.RIGHT),
+                BoulderPush(3, 2, BoulderPushDirection.FORWARD),
+                BoulderPush(2, 2, BoulderPushDirection.LEFT),
+                BoulderPush(4, 2, BoulderPushDirection.RIGHT),
+                BoulderPush(2, 1, BoulderPushDirection.FORWARD),
+                BoulderPush(4, 1, BoulderPushDirection.FORWARD),
+                BoulderPush(3, 1, BoulderPushDirection.RIGHT)
             )
         )
         expectedBoulders.add(
@@ -286,7 +319,7 @@ object BoulderSolver : EventSubscriber {
                 BoulderState.FILLED
             )
         )
-        variantSteps.add(arrayListOf(BoulderPush(1, 1, Direction.RIGHT)))
+        variantSteps.add(arrayListOf(BoulderPush(1, 1, BoulderPushDirection.RIGHT)))
         expectedBoulders.add(
             arrayListOf(
                 BoulderState.FILLED,
@@ -295,36 +328,36 @@ object BoulderSolver : EventSubscriber {
                 BoulderState.EMPTY,
                 BoulderState.EMPTY,
                 BoulderState.FILLED,
-                BoulderState.FILLED
-            )
-        )
-        variantSteps.add(
-            arrayListOf(
-                BoulderPush(4, 3, Direction.FORWARD),
-                BoulderPush(3, 3, Direction.LEFT),
-                BoulderPush(3, 1, Direction.FORWARD),
-                BoulderPush(2, 1, Direction.LEFT)
-            )
-        )
-        expectedBoulders.add(
-            arrayListOf(
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
-                BoulderState.EMPTY,
                 BoulderState.FILLED
             )
         )
         variantSteps.add(
             arrayListOf(
-                BoulderPush(3, 4, Direction.FORWARD),
-                BoulderPush(3, 3, Direction.FORWARD),
-                BoulderPush(2, 1, Direction.FORWARD),
-                BoulderPush(1, 1, Direction.LEFT)
+                BoulderPush(4, 3, BoulderPushDirection.FORWARD),
+                BoulderPush(3, 3, BoulderPushDirection.LEFT),
+                BoulderPush(3, 1, BoulderPushDirection.FORWARD),
+                BoulderPush(2, 1, BoulderPushDirection.LEFT)
+            )
+        )
+        expectedBoulders.add(
+            arrayListOf(
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.EMPTY,
+                BoulderState.FILLED
+            )
+        )
+        variantSteps.add(
+            arrayListOf(
+                BoulderPush(3, 4, BoulderPushDirection.FORWARD),
+                BoulderPush(3, 3, BoulderPushDirection.FORWARD),
+                BoulderPush(2, 1, BoulderPushDirection.FORWARD),
+                BoulderPush(1, 1, BoulderPushDirection.LEFT)
             )
         )
         expectedBoulders.add(
@@ -338,7 +371,7 @@ object BoulderSolver : EventSubscriber {
                 BoulderState.EMPTY
             )
         )
-        variantSteps.add(arrayListOf(BoulderPush(1, 4, Direction.FORWARD), BoulderPush(1, 1, Direction.RIGHT)))
+        variantSteps.add(arrayListOf(BoulderPush(1, 4, BoulderPushDirection.FORWARD), BoulderPush(1, 1, BoulderPushDirection.RIGHT)))
         expectedBoulders.add(
             arrayListOf(
                 BoulderState.EMPTY,
@@ -360,10 +393,10 @@ object BoulderSolver : EventSubscriber {
         )
         variantSteps.add(
             arrayListOf(
-                BoulderPush(6, 4, Direction.FORWARD),
-                BoulderPush(6, 3, Direction.FORWARD),
-                BoulderPush(4, 1, Direction.FORWARD),
-                BoulderPush(5, 1, Direction.RIGHT)
+                BoulderPush(6, 4, BoulderPushDirection.FORWARD),
+                BoulderPush(6, 3, BoulderPushDirection.FORWARD),
+                BoulderPush(4, 1, BoulderPushDirection.FORWARD),
+                BoulderPush(5, 1, BoulderPushDirection.RIGHT)
             )
         )
         expectedBoulders.add(
@@ -378,7 +411,7 @@ object BoulderSolver : EventSubscriber {
                 BoulderState.FILLED
             )
         )
-        variantSteps.add(arrayListOf(BoulderPush(0, 1, Direction.FORWARD)))
+        variantSteps.add(arrayListOf(BoulderPush(0, 1, BoulderPushDirection.FORWARD)))
     }
 
     override fun setup() {

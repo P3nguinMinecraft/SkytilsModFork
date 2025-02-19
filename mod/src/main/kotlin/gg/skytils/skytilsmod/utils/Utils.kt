@@ -62,6 +62,10 @@ import java.io.IOException
 import java.util.*
 import kotlin.math.floor
 
+//#if FABRIC
+//$$ import net.minecraft.util.math.*
+//#endif
+
 
 object Utils {
 
