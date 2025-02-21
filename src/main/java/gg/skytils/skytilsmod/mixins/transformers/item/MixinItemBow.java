@@ -44,6 +44,6 @@ public abstract class MixinItemBow extends Item {
             return intended.getItem() == itemIn && instance.getStackInSlot(8) == fake;
         }
 
-        return hasItem;
+        return false;
     }
 }

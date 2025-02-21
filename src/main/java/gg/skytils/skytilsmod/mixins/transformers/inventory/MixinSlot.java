@@ -29,10 +29,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Slot.class)
 public abstract class MixinSlot {
 
-    private final Slot $this = (Slot) (Object) this;
-
     @Inject(method = "getStack", at = @At("HEAD"), cancellable = true)
     private void markTerminalItems(CallbackInfoReturnable<ItemStack> cir) {
-        SlotHookKt.markTerminalItems($this, cir);
+        SlotHookKt.markTerminalItems((Slot) (Object) this, cir);
     }
 }
