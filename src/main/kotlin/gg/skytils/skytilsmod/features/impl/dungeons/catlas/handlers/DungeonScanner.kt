@@ -161,7 +161,10 @@ object DungeonScanner {
                     } else if (it.data.type == RoomType.ENTRANCE) {
                         Door(x, z, DoorType.ENTRANCE)
                     } else {
-                        Room(x, z, it.data).apply { isSeparator = true }
+                        Room(x, z, it.data).apply {
+                            isSeparator = true
+                            uniqueRoom = DungeonInfo.uniqueRooms.find { it.name == data.name }
+                        }
                     }
                 }
             }
