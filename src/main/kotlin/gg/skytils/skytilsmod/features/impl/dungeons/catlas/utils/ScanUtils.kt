@@ -80,7 +80,7 @@ object ScanUtils {
                 bedrock++
             } else {
                 bedrock = 0
-                if (!Utils.equalsOneOf(id, 5, 54, 146)) continue
+                if (Utils.equalsOneOf(id, 5, 54, 146)) continue
             }
 
             sb.append(id)
