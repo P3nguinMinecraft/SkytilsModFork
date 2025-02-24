@@ -3,6 +3,7 @@ catlas.config.map.toggle.rotate_map=Rotate Map
 catlas.config.map.toggle.center_map=Center Map
 catlas.config.map.toggle.dynamic_rotate=Dynamic Rotate
 catlas.config.map.toggle.hide_in_boss=Hide In Boss
+catlas.config.map.toggle.show_before_start=Show Before Start
 catlas.config.map.toggle.show_player_names=Show Player Names
 catlas.config.map.toggle.vanilla_head_marker=Vanilla Head Marker
 catlas.config.map.size.map_text_scale=Map Text Scale

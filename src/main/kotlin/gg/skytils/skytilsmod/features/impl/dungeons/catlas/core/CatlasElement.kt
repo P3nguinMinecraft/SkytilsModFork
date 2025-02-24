@@ -80,7 +80,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         GlStateManager.pushMatrix()
         GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
 
-        val connectorSize = DungeonMapColorParser.quarterRoom
+        val connectorSize = (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
         val checkmarkSize = when (CatlasConfig.mapCheckmark) {
             1 -> 8.0 // default
             else -> 10.0 // neu
@@ -89,7 +89,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         for (y in 0..10) {
             for (x in 0..10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
-                if (tile is Unknown || tile.state == RoomState.UNDISCOVERED) continue
+
+                if (tile is Unknown || (tile.state == RoomState.UNDISCOVERED && !isAlwaysVisible(tile))) continue
 
                 val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
                 val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)
@@ -131,6 +132,15 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         GlStateManager.popMatrix()
     }
 
+    private fun isAlwaysVisible(tile: Tile): Boolean {
+        if (!CatlasConfig.mapShowBeforeStart || DungeonTimer.dungeonStartTime != -1L) return false
+
+        return when (tile) {
+            is Room -> tile.uniqueRoom in DungeonInfo.preStartVisitedRooms
+            else -> false
+        }
+    }
+
     private fun renderText() {
         GlStateManager.pushMatrix()
         GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
@@ -142,8 +152,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
-            if (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) return@forEach
-            val size = MapUtils.mapRoomSize + DungeonMapColorParser.quarterRoom
+            if ((room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) && !isAlwaysVisible(room)) return@forEach
+            val size = MapUtils.mapRoomSize + (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
             val checkPos = unq.getCheckmarkPosition()
             val namePos = unq.getNamePosition()
             val xOffsetCheck = (checkPos.first / 2f) * size
@@ -276,7 +286,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
     override fun render() {
         if (!toggled || SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.thePlayer == null || mc.theWorld == null) return
-        if (DungeonTimer.dungeonStartTime == -1L) return
+        if (DungeonTimer.dungeonStartTime == -1L && !CatlasConfig.mapShowBeforeStart) return
         if (CatlasConfig.mapHideInBoss && DungeonTimer.bossEntryTime != -1L) return
         mc.mcProfiler.startSection("border")
 

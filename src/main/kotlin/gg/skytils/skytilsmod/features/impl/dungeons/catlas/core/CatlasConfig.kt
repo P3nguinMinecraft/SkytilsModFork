@@ -92,6 +92,18 @@ object CatlasConfig : Vigilant(
     var mapHideInBoss = false
 
     @Property(
+        name = "Show Before Start",
+        type = PropertyType.SWITCH,
+        description = "Shows the map before the dungeon starts.",
+        category = "Map",
+        subcategory = "Toggle",
+        i18nName = "catlas.config.map.toggle.show_before_start",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.toggle"
+    )
+    var mapShowBeforeStart = false
+
+    @Property(
         name = "Show Player Names",
         type = PropertyType.SELECTOR,
         description = "Show player name under player head",
