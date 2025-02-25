@@ -41,6 +41,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import java.util.TreeSet
 
 
 /**
@@ -154,7 +155,7 @@ object KuudraChestProfit {
 
         var keyNeeded: KuudraKey? = null
         var value = 0.0
-        val items = ArrayList<KuudraChestLootItem>()
+        val items = TreeSet<KuudraChestLootItem>().descendingSet()
 
         fun reset() {
             keyNeeded = null
@@ -204,7 +205,9 @@ object KuudraChestProfit {
     }
 
     private var textShadow_ = SmartFontRenderer.TextShadow.NORMAL
-    private class KuudraChestLootItem(var stackSize: Int, var displayText: String, var value: Double)
+    private data class KuudraChestLootItem(var stackSize: Int, var displayText: String, var value: Double) : Comparable<KuudraChestLootItem> {
+        override fun compareTo(other: KuudraChestLootItem): Int = value.compareTo(other.value)
+    }
     class KuudraChestProfitElement : GuiElement("Kuudra Chest Profit", x = 200, y = 120) {
         override fun render() {
             if (toggled && SBInfo.mode == SkyblockIsland.KuudraHollow.mode) {

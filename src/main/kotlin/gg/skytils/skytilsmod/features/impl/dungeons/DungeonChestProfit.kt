@@ -44,6 +44,7 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
+import java.util.TreeSet
 
 
 /**
@@ -268,7 +269,7 @@ object DungeonChestProfit {
 
         var price = 0.0
         var value = 0.0
-        var items = ArrayList<DungeonChestLootItem>()
+        var items = TreeSet<DungeonChestLootItem>().descendingSet()
         val profit
             get() = value - price
 
@@ -289,7 +290,9 @@ object DungeonChestProfit {
     }
 
     private var textShadow_ = SmartFontRenderer.TextShadow.NORMAL
-    private class DungeonChestLootItem(var item: ItemStack, var value: Double)
+    private data class DungeonChestLootItem(var item: ItemStack, var value: Double) : Comparable<DungeonChestLootItem> {
+        override fun compareTo(other: DungeonChestLootItem): Int = value.compareTo(other.value)
+    }
     class DungeonChestProfitElement : GuiElement("Dungeon Chest Profit", x = 200, y = 120) {
         override fun render() {
             if (toggled && (Utils.inDungeons || SBInfo.mode == SkyblockIsland.DungeonHub.mode)) {
