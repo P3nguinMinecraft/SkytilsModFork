@@ -51,7 +51,7 @@ repositories {
 }
 
 vineflower {
-    toolVersion.set("1.9.3")
+    toolVersion.set("1.11.0")
 }
 
 loom {
