@@ -153,6 +153,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
             if ((room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) && !isAlwaysVisible(room)) return@forEach
+            val halfRoom = (DungeonMapColorParser.halfRoom.takeUnless { it == -1 } ?: 8)
             val size = MapUtils.mapRoomSize + (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
             val checkPos = unq.getCheckmarkPosition()
             val namePos = unq.getNamePosition()
@@ -181,8 +182,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             if (CatlasConfig.mapRoomSecrets == 2 && hasSecrets) {
                 GlStateManager.pushMatrix()
                 GlStateManager.translate(
-                    xOffsetCheck + DungeonMapColorParser.halfRoom.toFloat(),
-                    yOffsetCheck + 2 + DungeonMapColorParser.halfRoom.toFloat(),
+                    xOffsetCheck + halfRoom.toFloat(),
+                    yOffsetCheck + 2 + halfRoom.toFloat(),
                     0f
                 )
                 GlStateManager.scale(2f, 2f, 1f)
@@ -207,8 +208,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             // Offset + half of roomsize
             RenderUtils.renderCenteredText(
                 name,
-                (xOffsetName + DungeonMapColorParser.halfRoom).toInt(),
-                (yOffsetName + DungeonMapColorParser.halfRoom).toInt(),
+                (xOffsetName + halfRoom).toInt(),
+                (yOffsetName + halfRoom).toInt(),
                 color
             )
         }
