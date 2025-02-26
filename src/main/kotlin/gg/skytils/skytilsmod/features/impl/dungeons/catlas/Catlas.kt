@@ -35,6 +35,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MapUpdater
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MimicDetector
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.ScanUtils
+import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.network.play.server.S34PacketMaps
@@ -85,6 +86,7 @@ object Catlas {
             ScanUtils.getRoomFromPos(mc.thePlayer.position)?.uniqueRoom?.let {
                 DungeonInfo.preStartVisitedRooms.add(it)
             }
+            DungeonListener.team[mc.thePlayer.name]?.mapPlayer?.yaw = mc.thePlayer.rotationYaw
         }
     }
 
