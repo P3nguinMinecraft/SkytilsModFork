@@ -148,14 +148,14 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
     private fun getConnectingRooms(door: Door, row: Int, column: Int): Pair<Room, Room>? {
         val vertical = column % 2 == 0
-        val connectingTiles = if (vertical) {
-            DungeonInfo.dungeonList[(row - 1) * 11 + column] to DungeonInfo.dungeonList[(row + 1) * 11 + column]
-        } else {
-            DungeonInfo.dungeonList[row * 11 + column - 1] to DungeonInfo.dungeonList[row-1 * 11 + column + 1]
-        }
-        return if (connectingTiles.first is Room && connectingTiles.second is Room) {
-            connectingTiles.first as Room to connectingTiles.second as Room
-        } else null
+        val connectingTiles = runCatching {
+            if (vertical) {
+                DungeonInfo.dungeonList[(row - 1) * 11 + column] to DungeonInfo.dungeonList[(row + 1) * 11 + column]
+            } else {
+                DungeonInfo.dungeonList[row * 11 + column - 1] to DungeonInfo.dungeonList[row * 11 + column + 1]
+            }
+        }.getOrNull() ?: return null
+        return (connectingTiles.first as? Room ?: return null) to (connectingTiles.second as? Room ?: return null)
     }
 
     private fun renderText() {
