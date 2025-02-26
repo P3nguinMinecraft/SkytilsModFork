@@ -90,7 +90,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             for (x in 0..10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
 
-                if (tile is Unknown || (tile.state == RoomState.UNDISCOVERED && !isAlwaysVisible(tile))) continue
+                if (tile is Unknown || (tile.state == RoomState.UNDISCOVERED && !isAlwaysVisible(tile, y, x))) continue
 
                 val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
                 val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)
@@ -132,13 +132,30 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         GlStateManager.popMatrix()
     }
 
-    private fun isAlwaysVisible(tile: Tile): Boolean {
-        if (!CatlasConfig.mapShowBeforeStart || DungeonTimer.dungeonStartTime != -1L) return false
+    private fun isAlwaysVisible(tile: Tile, row: Int, column: Int): Boolean {
+        if (!CatlasConfig.mapShowBeforeStart) return false
 
         return when (tile) {
             is Room -> tile.uniqueRoom in DungeonInfo.preStartVisitedRooms
+            is Door -> {
+                val connectingRooms = getConnectingRooms(tile, row, column) ?: return false
+                val (room1, room2) = connectingRooms
+                room1.uniqueRoom in DungeonInfo.preStartVisitedRooms || room2.uniqueRoom in DungeonInfo.preStartVisitedRooms
+            }
             else -> false
         }
+    }
+
+    private fun getConnectingRooms(door: Door, row: Int, column: Int): Pair<Room, Room>? {
+        val vertical = column % 2 == 0
+        val connectingTiles = if (vertical) {
+            DungeonInfo.dungeonList[(row - 1) * 11 + column] to DungeonInfo.dungeonList[(row + 1) * 11 + column]
+        } else {
+            DungeonInfo.dungeonList[row * 11 + column - 1] to DungeonInfo.dungeonList[row-1 * 11 + column + 1]
+        }
+        return if (connectingTiles.first is Room && connectingTiles.second is Room) {
+            connectingTiles.first as Room to connectingTiles.second as Room
+        } else null
     }
 
     private fun renderText() {
@@ -152,7 +169,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
-            if ((room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) && !isAlwaysVisible(room)) return@forEach
+            if ((room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) && !isAlwaysVisible(room, -1, -1)) return@forEach
             val halfRoom = (DungeonMapColorParser.halfRoom.takeUnless { it == -1 } ?: 8)
             val size = MapUtils.mapRoomSize + (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
             val checkPos = unq.getCheckmarkPosition()

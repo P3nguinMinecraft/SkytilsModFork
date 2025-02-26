@@ -60,7 +60,7 @@ object ScanUtils {
         val x = ((pos.x - DungeonScanner.startX + 15) shr 5)
         val z = ((pos.z - DungeonScanner.startZ + 15) shr 5)
         val room = DungeonInfo.dungeonList.getOrNull(x * 2 + z * 22)
-        return if (room is Room) room else null
+        return room as? Room
     }
 
     fun getCore(x: Int, z: Int): Int {
