@@ -99,8 +99,8 @@ object Catlas {
     fun onWorldRender(event: RenderWorldLastEvent) {
         if (!Utils.inDungeons || DungeonTimer.bossEntryTime != -1L || !CatlasConfig.boxWitherDoors) return
 
-        DungeonInfo.dungeonList.filterIsInstance<Door>().filter {
-            it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened
+        DungeonInfo.dungeonList.filter {
+            it is Door && it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened
         }.forEach {
             val matrixStack = UMatrixStack()
             val aabb = AxisAlignedBB(it.x - 1.0, 69.0, it.z - 1.0, it.x + 2.0, 73.0, it.z + 2.0)
