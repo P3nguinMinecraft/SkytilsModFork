@@ -76,15 +76,6 @@ object CreeperSolver {
                     }
                 }
             })
-
-            if (SuperSecretSettings.bennettArthur) {
-                solutionPairs.mapIndexed { i, pair ->
-                    pair.first to solutionPairs[(i + 1) % solutionPairs.size].second
-                }.let {
-                    solutionPairs.clear()
-                    solutionPairs.addAll(it)
-                }
-            }
         }
     }
 

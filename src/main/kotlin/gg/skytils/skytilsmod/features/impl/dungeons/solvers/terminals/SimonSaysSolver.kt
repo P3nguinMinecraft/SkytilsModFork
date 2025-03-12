@@ -113,7 +113,7 @@ object SimonSaysSolver {
                         }
                     }*/
                 }
-            } else if ((pos == startBtn && state.block === Blocks.stone_button && state.getValue(BlockButtonStone.POWERED)) || Funny.ticks == 180) {
+            } else if (pos == startBtn && state.block === Blocks.stone_button && state.getValue(BlockButtonStone.POWERED)) {
                 printDevMessage("Simon says was started", "simon")
                 clickInOrder.clear()
                 clickNeeded = 0
@@ -150,7 +150,7 @@ object SimonSaysSolver {
                     matrixStack,
                     AxisAlignedBB(x, y, z, x - .13, y + .26, z + .382),
                     color,
-                    0.5f * Funny.alphaMult
+                    0.5f
                 )
             }
             GlStateManager.enableCull()

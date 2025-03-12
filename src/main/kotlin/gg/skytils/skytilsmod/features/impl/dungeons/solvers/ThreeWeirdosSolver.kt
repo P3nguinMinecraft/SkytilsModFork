@@ -60,7 +60,7 @@ object ThreeWeirdosSolver {
             }
 
             if (solutions.any {
-                    SuperSecretSettings.bennettArthur || formatted.contains(it)
+                    formatted.contains(it)
                 }) {
                 val npcName = formatted.substringAfter("§c").substringBefore("§f")
                 riddleNPC = npcName

@@ -91,8 +91,6 @@ object SelectAllColorSolver {
         if (slot in 9..44 && column in 1..7) {
             if (item.isItemEnchanted) {
                 shouldClick.remove(slot)
-            } else if (SuperSecretSettings.bennettArthur) {
-                if (Random.nextInt(3) == 0) shouldClick.add(slot)
             } else if (item.unlocalizedName.contains(colorNeeded!!)) {
                 shouldClick.add(slot)
             }

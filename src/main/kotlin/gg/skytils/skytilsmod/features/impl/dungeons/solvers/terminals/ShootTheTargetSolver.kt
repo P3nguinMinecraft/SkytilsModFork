@@ -80,7 +80,7 @@ object ShootTheTargetSolver {
                 matrixStack,
                 AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Color.RED,
-                0.5f * Funny.alphaMult
+                0.5f
             )
             GlStateManager.enableCull()
         }

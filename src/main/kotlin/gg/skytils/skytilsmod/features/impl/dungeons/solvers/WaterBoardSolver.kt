@@ -128,7 +128,6 @@ object WaterBoardSolver {
                                         }
                                     }
                                     variant = when {
-                                        SuperSecretSettings.bennettArthur -> Random.nextInt(4)
                                         foundGold && foundClay -> 0
                                         foundEmerald && foundQuartz -> 1
                                         foundQuartz && foundDiamond -> 2

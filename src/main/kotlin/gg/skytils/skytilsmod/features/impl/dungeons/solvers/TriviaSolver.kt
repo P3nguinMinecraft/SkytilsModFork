@@ -87,11 +87,9 @@ object TriviaSolver {
                     }
                 }
 
-                if (!SuperSecretSettings.bennettArthur || Funny.ticks % 2 == 0) {
-                    if (!correctAnswers.any { it == answer }) {
-                        event.message = ChatComponentText(formatted.replace("§a", "§c"))
-                    } else correctAnswer = answer
-                }
+                if (!correctAnswers.any { it == answer }) {
+                    event.message = ChatComponentText(formatted.replace("§a", "§c"))
+                } else correctAnswer = answer
 
                 if (type == "ⓒ") {
                     trackLines = false

@@ -43,25 +43,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.handshake.FMLHandshakeMessage.ModList
 
 object Funny {
-    var ticks = 0
-    var alphaMult = 0f
     var cheaterSnitcher = false
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     fun onItemUse(event: PlayerInteractEvent) {
         if (!Utils.inSkyblock || !SuperSecretSettings.tryItAndSee || event.entityPlayer?.heldItem == null) return
         (event.entityPlayer as? EntityPlayerSP)?.dropOneItem(true)
-    }
-
-    @SubscribeEvent
-    fun onWorldRender(event: RenderWorldLastEvent) {
-        if (SuperSecretSettings.bennettArthur) {
-            if (++ticks >= 360) ticks = 0
-            alphaMult = MathHelper.sin(ticks * 0.0174533f).coerceAtLeast(0f)
-        } else {
-            ticks = 0
-            alphaMult = 1f
-        }
     }
 
     fun joinedSkyblock() {
