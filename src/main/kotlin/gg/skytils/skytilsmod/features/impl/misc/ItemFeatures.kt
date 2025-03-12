@@ -711,7 +711,7 @@ object ItemFeatures {
                 val level = petInfo.level
                 val maxLevel = if (petInfo.type == "GOLDEN_DRAGON") 200 else 100
 
-                if (petInfo.candyUsed > 0 && level != maxLevel) {
+                if (petInfo.candyUsed > 0 && (SuperSecretSettings.alwaysShowPetCandy || level != maxLevel)) {
                     stackTip = petInfo.candyUsed.toString()
                 }
             }
