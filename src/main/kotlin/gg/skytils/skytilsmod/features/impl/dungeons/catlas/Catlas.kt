@@ -83,8 +83,10 @@ object Catlas {
         }
 
         if (CatlasConfig.mapShowBeforeStart && DungeonTimer.dungeonStartTime == -1L) {
-            ScanUtils.getRoomFromPos(mc.thePlayer.position)?.uniqueRoom?.let {
-                DungeonInfo.preStartVisitedRooms.add(it)
+            ScanUtils.getRoomFromPos(mc.thePlayer.position)?.uniqueRoom?.let { unq ->
+                if (unq.state == RoomState.PREVISITED) return@let
+                unq.state = RoomState.PREVISITED
+                unq.tiles.forEach { it.state = RoomState.PREVISITED }
             }
             DungeonListener.team[mc.thePlayer.name]?.mapPlayer?.yaw = mc.thePlayer.rotationYaw
         }
