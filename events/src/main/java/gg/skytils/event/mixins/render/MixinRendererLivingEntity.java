@@ -52,6 +52,7 @@ public class MixinRendererLivingEntity
     //$$ private void onRender(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
     //#endif
         Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+        if (viewEntity == null) return;
         double renderX = entity.lastTickPosX + (entity.getPositionVector().xCoord - entity.lastTickPosX - viewEntity.getPositionVector().xCoord + viewEntity.lastTickPosX) * partialTicks - viewEntity.lastTickPosX;
         double renderY = entity.lastTickPosY + (entity.getPositionVector().yCoord - entity.lastTickPosY - viewEntity.getPositionVector().yCoord + viewEntity.lastTickPosY) * partialTicks - viewEntity.lastTickPosY;
         double renderZ = entity.lastTickPosZ + (entity.getPositionVector().zCoord - entity.lastTickPosZ - viewEntity.getPositionVector().zCoord + viewEntity.lastTickPosZ) * partialTicks - viewEntity.lastTickPosZ;
