@@ -445,7 +445,7 @@ object ItemFeatures {
                     val (dungeon, level) = req.split(':', limit = 2)
                     val levelReq = level.toIntOrNull() ?: 0
                     if (dungeon == "CATACOMBS") {
-                        if (levelReq > 24 || (levelReq == 24 && tier == 4)) "§4M${tier-3}" else "§aF$level"
+                        if (levelReq - tier > 19) "§4M${tier-3}" else "§aF$level"
                     } else {
                         "§b${dungeon} $tier"
                     }
