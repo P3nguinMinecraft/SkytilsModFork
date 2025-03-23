@@ -435,27 +435,20 @@ object ItemFeatures {
 
         if (Skytils.config.showItemQuality && extraAttr != null) {
             val boost = extraAttr.getInteger("baseStatBoostPercentage")
-            val tier = extraAttr.getInteger("item_tier")
-            val req = extraAttr.getString("dungeon_skill_req")
             
             if (boost > 0) {
-                val floor = when {
-                    req == "" && tier == 0 -> "§aE"
-                    req == "CATACOMBS:1" && tier == 1 -> "§aF1"
-                    req == "CATACOMBS:3" && tier == 2 -> "§aF2"
-                    req == "CATACOMBS:5" && tier == 3 -> "§aF3"
-                    req == "CATACOMBS:9" && tier == 4 -> "§aF4"
-                    req == "CATACOMBS:14" && tier == 5 -> "§aF5"
-                    req == "CATACOMBS:19" && tier == 6 -> "§aF6"
-                    req == "CATACOMBS:24" && tier == 7 -> "§aF7"
-                    req == "CATACOMBS:24" && tier == 4 -> "§4M1"
-                    req == "CATACOMBS:26" && tier == 5 -> "§4M2"
-                    req == "CATACOMBS:28" && tier == 6 -> "§4M3"
-                    req == "CATACOMBS:30" && tier == 7 -> "§4M4"
-                    req == "CATACOMBS:32" && tier == 8 -> "§4M5"
-                    req == "CATACOMBS:34" && tier == 9 -> "§4M6"
-                    req == "CATACOMBS:36" && tier == 10 -> "§4M7"
-                    else -> "§b$tier"
+                val tier = extraAttr.getInteger("item_tier")
+
+                val req = extraAttr.getString("dungeon_skill_req")
+
+                val floor: String = if (req.isEmpty() && tier == 0) "§aE" else {
+                    val (dungeon, level) = req.split(':', limit = 2)
+                    val levelReq = level.toIntOrNull() ?: 0
+                    if (dungeon == "CATACOMBS") {
+                        if (levelReq > 24 || (levelReq == 24 && tier == 4)) "§4M${tier-3}" else "§aF$level"
+                    } else {
+                        "§b${dungeon} $tier"
+                    }
                 }
 
                 val color = when {
