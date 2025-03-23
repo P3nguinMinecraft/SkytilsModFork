@@ -58,14 +58,14 @@ object CommandAliases : PersistentSave(File(Skytils.modDir, "commandaliases.json
                     if (runClientCommand(msg) != 0) return
                     Skytils.sendMessageQueue.add(msg)
                 } catch (ignored: IllegalFormatException) {
-                    if (event.addToChat) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
+                    if (event.addToHistory) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
                     UChat.chat("$failPrefix §cYou did not specify the correct amount of arguments for this alias!")
                 }
             } else {
                 val candidate = event.message.substring(1).trim()
                 val replacement = aliases.keys.find { candidate.startsWith(it) } ?: return
                 val args = candidate.removePrefix(replacement).trim()
-                event.isCanceled = true
+                event.cancelled = true
                 try {
                     val msg =
                         if (Skytils.config.commandAliasMode == 0) "/${replacement} $args" else "/${
@@ -73,7 +73,7 @@ object CommandAliases : PersistentSave(File(Skytils.modDir, "commandaliases.json
                                 *args.split(" ").toTypedArray()
                             )
                         }"
-                    if (event.addToHsitory) {
+                    if (event.addToHistory) {
                         mc.ingameGUI.chatGUI.addToSentMessages(msg)
                     }
                     if (runClientCommand(msg) != 0) return

@@ -467,7 +467,7 @@ object ItemFeatures : EventSubscriber {
                     else -> "§b"
                 }
 
-                event.toolTip.add("§6Quality Bonus: $color+$boost% §7($floor§7)")
+                event.tooltip.add("§6Quality Bonus: $color+$boost% §7($floor§7)")
             }
         }
 

@@ -405,12 +405,12 @@ object MiscFeatures : EventSubscriber {
                 "Reforge Item",
                 "Exp Sharing",
                 "Offer Pets",
-                "Upgrade Item"
+                "Upgrade Item",
                 "Convert to Dungeon Item",
             )
         ) return
 
-        if (event.slot.inventory === mc.thePlayer.inventory || GuiScreen.isCtrlKeyDown()) return
+        if (event.slot?.inventory === mc.thePlayer?.inventory || GuiScreen.isCtrlKeyDown()) return
         if (chestName.startsWithAny("Wardrobe")) return
 
         if (getSkyBlockItemID(item) == null) {
