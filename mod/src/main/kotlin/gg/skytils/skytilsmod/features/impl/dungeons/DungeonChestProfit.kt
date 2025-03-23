@@ -35,6 +35,8 @@ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.romanToDecimal
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
+import gg.skytils.skytilsmod.utils.SBInfo
+import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
@@ -45,6 +47,7 @@ import net.minecraft.init.Items
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.ItemStack
 import java.awt.Color
+import java.util.TreeSet
 
 
 /**
@@ -181,7 +184,7 @@ object DungeonChestProfit : EventSubscriber {
         } else {
             val unformatted = name.stripControlCodes().replace("Shiny ", "")
             ItemFeatures.itemIdToNameLookup.entries.find {
-                it.value == unformatted && !it.value.contains("STARRED")
+                it.value == unformatted && !it.key.contains("STARRED")
             }?.key
         }
     }
@@ -243,7 +246,7 @@ object DungeonChestProfit : EventSubscriber {
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inDungeons || event.container !is ContainerChest) return
+        if ((!Utils.inDungeons && SBInfo.mode != SkyblockIsland.DungeonHub.mode) || event.container !is ContainerChest) return
         if (Skytils.config.kismetRerollThreshold != 0 && !rerollBypass && event.slotId == 50 && event.chestName.endsWith(
                 " Chest"
             )
@@ -275,7 +278,7 @@ object DungeonChestProfit : EventSubscriber {
 
         var price = 0.0
         var value = 0.0
-        var items = ArrayList<DungeonChestLootItem>()
+        var items = TreeSet<DungeonChestLootItem>().descendingSet()
         val profit
             get() = value - price
 
@@ -296,7 +299,9 @@ object DungeonChestProfit : EventSubscriber {
     }
 
     private var textShadow_ = SmartFontRenderer.TextShadow.NORMAL
-    private class DungeonChestLootItem(var item: ItemStack, var value: Double)
+    private data class DungeonChestLootItem(var item: ItemStack, var value: Double) : Comparable<DungeonChestLootItem> {
+        override fun compareTo(other: DungeonChestLootItem): Int = value.compareTo(other.value)
+    }
     class DungeonChestProfitElement : GuiElement("Dungeon Chest Profit", x = 200, y = 120) {
         override fun render() {
             if (toggled && (Utils.inDungeons || SBInfo.mode == SkyblockIsland.DungeonHub.mode)) {

@@ -20,17 +20,20 @@ package gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.item.ItemTooltipEvent
-import gg.skytils.event.impl.screen.GuiContainerBackgroundDrawnEvent
+import gg.skytils.event.impl.screen.GuiContainerCloseWindowEvent
 import gg.skytils.event.impl.screen.GuiContainerPreDrawSlotEvent
 import gg.skytils.event.impl.screen.GuiContainerSlotClickEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
+import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.EnumDyeColor
-import kotlin.random.Random
+import net.minecraft.item.ItemStack
+import net.minecraft.network.play.server.S2DPacketOpenWindow
+import net.minecraft.network.play.server.S2FPacketSetSlot
+import net.minecraft.network.play.server.S30PacketWindowItems
 
 object SelectAllColorSolver : EventSubscriber {
 
@@ -38,49 +41,66 @@ object SelectAllColorSolver : EventSubscriber {
     val shouldClick = hashSetOf<Int>()
     private var colorNeeded: String? = null
     private val colors by lazy {
-        EnumDyeColor.entries.associateWith { it.getName().replace("_", " ").uppercase() }
+        EnumDyeColor.entries.associateWith { it.name.replace("_", " ").uppercase() }
     }
+    private var windowId: Int? = null
 
     override fun setup() {
-        register(::onBackgroundDrawn)
+        register(::onCloseWindow)
         register(::onDrawSlot)
+        register(::onPacket)
         register(::onSlotClick, EventPriority.High)
         register(::onTooltip, EventPriority.Lowest)
     }
 
-    fun onBackgroundDrawn(event: GuiContainerBackgroundDrawnEvent) {
-        if (Skytils.config.selectAllColorTerminalSolver && Utils.inDungeons && event.container is ContainerChest && event.chestName.startsWith(
-                "Select all the"
-            )
-        ) {
-            val promptColor = colors.entries.find { (_, name) ->
-                event.chestName.contains(name)
-            }?.key?.unlocalizedName
-            if (promptColor != colorNeeded) {
-                colorNeeded = promptColor
-                shouldClick.clear()
-            }
-            if (shouldClick.size == 0) {
-                for (slot in event.container.inventorySlots) {
-                    if (slot.inventory === mc.thePlayer?.inventory || !slot.hasStack) continue
-                    val item = slot.stack ?: continue
-                    if (item.isItemEnchanted) continue
-                    if (slot.slotNumber < 9 || slot.slotNumber > 44 || slot.slotNumber % 9 == 0 || slot.slotNumber % 9 == 8) continue
-                    if (SuperSecretSettings.bennettArthur) {
-                        if (Random.nextInt(3) == 0) shouldClick.add(slot.slotNumber)
-                    } else if (item.unlocalizedName.contains(colorNeeded!!)) {
-                        shouldClick.add(slot.slotNumber)
-                    }
+    fun onCloseWindow(event: GuiContainerCloseWindowEvent) {
+        shouldClick.clear()
+        colorNeeded = null
+        windowId = null
+    }
+
+    fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
+        if (event.packet is S2DPacketOpenWindow) {
+            val chestName = event.packet.windowTitle.unformattedText
+            if (chestName.startsWith("Select all the")) {
+                windowId = event.packet.windowId
+
+                val promptColor = colors.entries.find { (_, name) ->
+                    chestName.contains(name)
+                }?.key?.unlocalizedName
+                if (promptColor != colorNeeded) {
+                    colorNeeded = promptColor
+                    shouldClick.clear()
                 }
             } else {
-                shouldClick.removeIf {
-                    val slot = event.container.getSlot(it)
-                    return@removeIf slot.hasStack && slot.stack.isItemEnchanted
-                }
+                shouldClick.clear()
+                colorNeeded = null
+                windowId = null
             }
-        } else {
-            shouldClick.clear()
-            colorNeeded = null
+        }
+
+        if (!Skytils.config.selectAllColorTerminalSolver || !TerminalFeatures.isInPhase3()) return
+
+        when (event.packet) {
+            is S2FPacketSetSlot -> {
+                if (event.packet.func_149175_c() != windowId) return
+                handleItemStack(event.packet.func_149173_d(), event.packet.func_149174_e())
+            }
+            is S30PacketWindowItems -> {
+                if (event.packet.func_148911_c() != windowId) return
+                event.packet.itemStacks.forEachIndexed(::handleItemStack)
+            }
+        }
+    }
+
+    private fun handleItemStack(slot: Int, item: ItemStack) {
+        val column = slot % 9
+        if (slot in 9..44 && column in 1..7) {
+            if (item.isItemEnchanted) {
+                shouldClick.remove(slot)
+            } else if (item.unlocalizedName.contains(colorNeeded!!)) {
+                shouldClick.add(slot)
+            }
         }
     }
 

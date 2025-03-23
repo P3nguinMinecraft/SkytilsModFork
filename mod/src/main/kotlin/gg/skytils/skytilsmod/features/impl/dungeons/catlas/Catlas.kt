@@ -39,6 +39,8 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScann
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MapUpdater
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MimicDetector
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
+import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.ScanUtils
+import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.network.play.server.S34PacketMaps
@@ -86,6 +88,15 @@ object Catlas : EventSubscriber {
         if (DungeonScanner.shouldScan) {
             DungeonScanner.scan()
         }
+
+        if (CatlasConfig.mapShowBeforeStart && DungeonTimer.dungeonStartTime == -1L) {
+            ScanUtils.getRoomFromPos(mc.thePlayer.position)?.uniqueRoom?.let { unq ->
+                if (unq.state == RoomState.PREVISITED) return@let
+                unq.state = RoomState.PREVISITED
+                unq.tiles.forEach { it.state = RoomState.PREVISITED }
+            }
+            DungeonListener.team[mc.thePlayer.name]?.mapPlayer?.yaw = mc.thePlayer.rotationYaw
+        }
     }
 
     fun onWorldLoad(event: WorldUnloadEvent) {
@@ -95,8 +106,8 @@ object Catlas : EventSubscriber {
     fun onWorldRender(event: WorldDrawEvent) {
         if (!Utils.inDungeons || DungeonTimer.bossEntryTime != -1L || !CatlasConfig.boxWitherDoors) return
 
-        DungeonInfo.dungeonList.filterIsInstance<Door>().filter {
-            it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened
+        DungeonInfo.dungeonList.filter {
+            it is Door && it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened
         }.forEach {
             val matrixStack = UMatrixStack()
             val aabb = AxisAlignedBB(it.x - 1.0, 69.0, it.z - 1.0, it.x + 2.0, 73.0, it.z + 2.0)

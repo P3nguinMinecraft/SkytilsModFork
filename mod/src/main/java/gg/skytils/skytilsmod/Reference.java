@@ -62,5 +62,5 @@ public class Reference {
         }
     }
 
-    public static final int apiVersion = 5;
+    public static final int apiVersion = 6;
 }

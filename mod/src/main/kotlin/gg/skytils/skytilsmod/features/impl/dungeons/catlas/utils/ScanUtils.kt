@@ -60,17 +60,30 @@ object ScanUtils {
         val x = ((pos.x - DungeonScanner.startX + 15) shr 5)
         val z = ((pos.z - DungeonScanner.startZ + 15) shr 5)
         val room = DungeonInfo.dungeonList.getOrNull(x * 2 + z * 22)
-        return if (room is Room) room else null
+        return room as? Room
     }
 
     fun getCore(x: Int, z: Int): Int {
         val sb = StringBuilder(150)
-        val chunk = mc.theWorld.getChunkFromBlockCoords(BlockPos(x, 0, z))
-        for (y in 140 downTo 12) {
-            val id = Block.blockRegistry.getIDForObject(chunk.getBlock(BlockPos(x, y, z)))
-            if (!Utils.equalsOneOf(id, 5, 54, 146)) {
-                sb.append(id)
+        val chunk = mc.theWorld.getChunkFromChunkCoords(x shr 4, z shr 4)
+        val height = chunk.getHeightValue(x and 15, z and 15).coerceIn(11..140)
+        sb.append(CharArray(140 - height) { '0' })
+        var bedrock = 0
+        for (y in height downTo 12) {
+            val id = Block.getIdFromBlock(chunk.getBlock(BlockPos(x, y, z)))
+            if (id == 0 && bedrock >= 2 && y < 69) {
+                sb.append(CharArray(y - 11) { '0' })
+                break
             }
+
+            if (id == 7) {
+                bedrock++
+            } else {
+                bedrock = 0
+                if (Utils.equalsOneOf(id, 5, 54, 146)) continue
+            }
+
+            sb.append(id)
         }
         return sb.toString().hashCode()
     }

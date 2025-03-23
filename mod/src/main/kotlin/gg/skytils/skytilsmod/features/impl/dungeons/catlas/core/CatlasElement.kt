@@ -80,7 +80,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         GlStateManager.pushMatrix()
         GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
 
-        val connectorSize = DungeonMapColorParser.quarterRoom
+        val connectorSize = (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
         val checkmarkSize = when (CatlasConfig.mapCheckmark) {
             1 -> 8.0 // default
             else -> 10.0 // neu
@@ -89,7 +89,9 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         for (y in 0..10) {
             for (x in 0..10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
-                if (tile is Unknown || tile.state == RoomState.UNDISCOVERED) continue
+
+                if (tile is Unknown || (tile is Room && tile.state == RoomState.UNDISCOVERED)) continue
+                if (tile is Door && getDoorState(tile, y, x) == RoomState.UNDISCOVERED) continue
 
                 val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
                 val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)
@@ -131,6 +133,24 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         GlStateManager.popMatrix()
     }
 
+    private fun getDoorState(door: Door, row: Int, column: Int): RoomState {
+        val rooms = getConnectingRooms(door, row, column) ?: return RoomState.UNDISCOVERED
+        if (rooms.toList().any { it.state == RoomState.UNDISCOVERED }) return RoomState.UNDISCOVERED
+        return RoomState.PREVISITED
+    }
+
+    private fun getConnectingRooms(door: Door, row: Int, column: Int): Pair<Room, Room>? {
+        val vertical = column % 2 == 0
+        val connectingTiles = runCatching {
+            if (vertical) {
+                DungeonInfo.dungeonList[(row - 1) * 11 + column] to DungeonInfo.dungeonList[(row + 1) * 11 + column]
+            } else {
+                DungeonInfo.dungeonList[row * 11 + column - 1] to DungeonInfo.dungeonList[row * 11 + column + 1]
+            }
+        }.getOrNull() ?: return null
+        return (connectingTiles.first as? Room ?: return null) to (connectingTiles.second as? Room ?: return null)
+    }
+
     private fun renderText() {
         GlStateManager.pushMatrix()
         GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
@@ -143,7 +163,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
             if (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) return@forEach
-            val size = MapUtils.mapRoomSize + DungeonMapColorParser.quarterRoom
+            val halfRoom = (DungeonMapColorParser.halfRoom.takeUnless { it == -1 } ?: 8)
+            val size = MapUtils.mapRoomSize + (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
             val checkPos = unq.getCheckmarkPosition()
             val namePos = unq.getNamePosition()
             val xOffsetCheck = (checkPos.first / 2f) * size
@@ -152,18 +173,20 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             val yOffsetName = (namePos.second / 2f) * size
 
             val color = if (CatlasConfig.mapColorText) when (room.state) {
-                RoomState.GREEN -> 0x55ff55
-                RoomState.CLEARED -> 0xffffff
-                RoomState.FAILED -> 0xff0000
-                else -> 0xaaaaaa
-            } else 0xffffff
+                RoomState.GREEN -> 0x55FF55
+                RoomState.CLEARED -> 0xFFFFFF
+                RoomState.FAILED -> 0xFF0000
+                RoomState.PREVISITED -> 0x555555
+                else -> 0xAAAAAA
+            } else 0xFFFFFF
+
             val secretCount = room.data.secrets
             val roomType = room.data.type
             val hasSecrets = secretCount > 0
 
             val secretText = when (CatlasConfig.foundRoomSecrets) {
                 0 -> secretCount.toString()
-                1 -> "${unq.foundSecrets ?: "?"}/${secretCount}"
+                1 -> if (secretCount == 0 && (unq.foundSecrets ?: 0) == 0) "0" else "${unq.foundSecrets ?: "?"}/${secretCount}"
                 2 -> unq.foundSecrets?.toString() ?: "?"
                 else -> error("Invalid foundRoomSecrets value")
             }
@@ -171,8 +194,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             if (CatlasConfig.mapRoomSecrets == 2 && hasSecrets) {
                 GlStateManager.pushMatrix()
                 GlStateManager.translate(
-                    xOffsetCheck + DungeonMapColorParser.halfRoom.toFloat(),
-                    yOffsetCheck + 2 + DungeonMapColorParser.halfRoom.toFloat(),
+                    xOffsetCheck + halfRoom.toFloat(),
+                    yOffsetCheck + 2 + halfRoom.toFloat(),
                     0f
                 )
                 GlStateManager.scale(2f, 2f, 1f)
@@ -197,8 +220,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             // Offset + half of roomsize
             RenderUtils.renderCenteredText(
                 name,
-                (xOffsetName + DungeonMapColorParser.halfRoom).toInt(),
-                (yOffsetName + DungeonMapColorParser.halfRoom).toInt(),
+                (xOffsetName + halfRoom).toInt(),
+                (yOffsetName + halfRoom).toInt(),
                 color
             )
         }
@@ -276,7 +299,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
     override fun render() {
         if (!toggled || SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.thePlayer == null || mc.theWorld == null) return
-        if (DungeonTimer.dungeonStartTime == -1L) return
+        if (DungeonTimer.dungeonStartTime == -1L && !CatlasConfig.mapShowBeforeStart) return
         if (CatlasConfig.mapHideInBoss && DungeonTimer.bossEntryTime != -1L) return
         mc.mcProfiler.startSection("border")
 

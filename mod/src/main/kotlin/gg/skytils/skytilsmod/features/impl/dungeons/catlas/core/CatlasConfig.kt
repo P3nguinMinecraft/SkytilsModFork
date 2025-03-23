@@ -20,8 +20,10 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.core
 
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
+import gg.skytils.skytilsmod.utils.DungeonClass
 import java.awt.Color
 import java.io.File
+import java.util.EnumMap
 
 object CatlasConfig : Vigilant(
     File("./config/skytils/catlas/config.toml"),
@@ -88,6 +90,18 @@ object CatlasConfig : Vigilant(
         i18nSubcategory = "catlas.config.map.toggle"
     )
     var mapHideInBoss = false
+
+    @Property(
+        name = "Show Before Start",
+        type = PropertyType.SWITCH,
+        description = "Shows the map before the dungeon starts.",
+        category = "Map",
+        subcategory = "Toggle",
+        i18nName = "catlas.config.map.toggle.show_before_start",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.toggle"
+    )
+    var mapShowBeforeStart = false
 
     @Property(
         name = "Show Player Names",
@@ -226,13 +240,13 @@ object CatlasConfig : Vigilant(
     )
     var mapRoomSecrets = 0
 
-    // TODO: Add translation
     @Property(
         name = "Found Room Secrets",
         type = PropertyType.SELECTOR,
         description = "Shows found secrets of rooms on map.",
         category = "Rooms",
         options = ["Off", "On", "Replace Total"],
+        i18nName = "catlas.config.rooms..found_room_secrets",
         i18nCategory = "catlas.config.rooms"
     )
     var foundRoomSecrets = 0
@@ -339,6 +353,66 @@ object CatlasConfig : Vigilant(
         i18nSubcategory = "catlas.config.colors.doors"
     )
     var colorUnopenedDoor = Color(65, 65, 65)
+
+    @Property(
+        name = "Player Border Color (Archer)",
+        type = PropertyType.COLOR,
+        category = "Colors",
+        subcategory = "Players",
+        allowAlpha = true,
+        i18nName = "catlas.config.colors.players.player_border_color_archer",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.render"
+    )
+    var colorPlayerArcher = Color(0, 0, 0, 255)
+
+    @Property(
+        name = "Player Border Color (Berserk)",
+        type = PropertyType.COLOR,
+        category = "Colors",
+        subcategory = "Players",
+        allowAlpha = true,
+        i18nName = "catlas.config.colors.players.player_border_color_berserk",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.render"
+    )
+    var colorPlayerBerserk = Color(0, 0, 0, 255)
+
+    @Property(
+        name = "Player Border Color (Healer)",
+        type = PropertyType.COLOR,
+        category = "Colors",
+        subcategory = "Players",
+        allowAlpha = true,
+        i18nName = "catlas.config.colors.players.player_border_color_healer",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.render"
+    )
+    var colorPlayerHealer = Color(0, 0, 0, 255)
+
+    @Property(
+        name = "Player Border Color (Mage)",
+        type = PropertyType.COLOR,
+        category = "Colors",
+        subcategory = "Players",
+        allowAlpha = true,
+        i18nName = "catlas.config.colors.players.player_border_color_mage",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.render"
+    )
+    var colorPlayerMage = Color(0, 0, 0, 255)
+
+    @Property(
+        name = "Player Border Color (Tank)",
+        type = PropertyType.COLOR,
+        category = "Colors",
+        subcategory = "Players",
+        allowAlpha = true,
+        i18nName = "catlas.config.colors.players.player_border_color_tank",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.render"
+    )
+    var colorPlayerTank = Color(0, 0, 0, 255)
 
     @Property(
         name = "Blood Room",

@@ -216,7 +216,7 @@ object ScoreCalculation: EventSubscriber {
                 "scorecalctotal"
             )
             if (DungeonFeatures.dungeonFloor == "E")
-                first.first.coerceIn(14, 70) + first.second + second.first + (second.second * 0.7).toInt()
+                first.first.coerceIn(14, 70) + first.second + second.first + ceil(second.second * 0.7).toInt()
             else first.first.coerceIn(20, 100) + first.second + second.first + second.second
         }.also { state ->
             state.onSetValue { score ->
@@ -297,7 +297,7 @@ object ScoreCalculation: EventSubscriber {
                 ScoreCalculationElement.text.add("§f• §eSpeed Score:§a ${speedScore.get()}")
 
                 if (DungeonFeatures.dungeonFloor == "E") {
-                    ScoreCalculationElement.text.add("§f• §eBonus Score:§a ${(bonusScore.get() * 0.7).toInt()}")
+                    ScoreCalculationElement.text.add("§f• §eBonus Score:§a ${ceil(bonusScore.get() * 0.7).toInt()}")
                     ScoreCalculationElement.text.add("§f• §eTotal Score:§a $score" + if (isPaul.get()) " §7(§6+7§7)" else "")
                 } else {
                     ScoreCalculationElement.text.add("§f• §eBonus Score:§a ${bonusScore.get()}")

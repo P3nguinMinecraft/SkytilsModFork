@@ -19,6 +19,7 @@
 package gg.skytils.skytilsmod.tweaker;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
+import net.minecraftforge.fml.relauncher.CoreModManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -40,7 +41,7 @@ public class DependencyLoader {
         if (Security.getProvider("BC") == null) loadBCProv();
     }
 
-    public static File loadDependency(String path) throws Throwable {
+    public static File loadDependency(String path, boolean isMod) throws Throwable {
         File downloadLocation = new File("./libraries/" + path);
         Path downloadPath = downloadLocation.toPath();
 
@@ -55,12 +56,16 @@ public class DependencyLoader {
 
         addToClasspath(downloadLocation.toURI().toURL());
 
+        if (!isMod) {
+            CoreModManager.getIgnoredMods().add(downloadLocation.getName());
+        }
+
         return downloadLocation;
     }
 
     public static void loadBCProv() {
         try {
-            loadDependency("org/bouncycastle/bcprov-jdk18on/1.78.1/bcprov-jdk18on-1.78.1.jar");
+            loadDependency("org/bouncycastle/bcprov-jdk18on/1.78.1/bcprov-jdk18on-1.78.1.jar", false);
             System.out.println("Bouncy Castle provider loaded");
         } catch (Throwable t) {
             System.out.println("Failed to load Bouncy Castle providers");
@@ -77,7 +82,7 @@ public class DependencyLoader {
 
         try {
             String brotli4jPlatform = getBrotli4jPlatform();
-            loadDependency(String.format("com/aayushatharva/brotli4j/native-%s/1.16.0/native-%s-1.16.0.jar", brotli4jPlatform, brotli4jPlatform));
+            loadDependency(String.format("com/aayushatharva/brotli4j/native-%s/1.16.0/native-%s-1.16.0.jar", brotli4jPlatform, brotli4jPlatform), false);
             Brotli4jLoader.ensureAvailability();
             hasNativeBrotli = true;
             System.out.println("Native Brotli loaded");

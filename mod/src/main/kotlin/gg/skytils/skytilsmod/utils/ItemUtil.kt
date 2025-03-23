@@ -28,7 +28,7 @@ import java.util.*
 import kotlin.math.max
 
 object ItemUtil {
-    private val PET_PATTERN = "§7\\[Lvl \\d+](?: §8\\[.*])? (?<color>§[0-9a-fk-or]).+".toRegex()
+    private val PET_PATTERN = "(?:§e⭐ )?§7\\[Lvl \\d+](?: §8\\[.*])? (?<color>§[0-9a-fk-or]).+".toRegex()
     const val NBT_INTEGER = 3
     private const val NBT_STRING = 8
     private const val NBT_LIST = 9
@@ -211,9 +211,9 @@ object ItemUtil {
         return item
     }
 
-    fun getSkullTexture(item: ItemStack): String? {
-        if (item.item != Items.skull) return null
-        val nbt = item.tagCompound
+    fun getSkullTexture(item: ItemStack?): String? {
+        if (item?.item != Items.skull) return null
+        val nbt = item?.tagCompound ?: return null
         if (!nbt.hasKey("SkullOwner")) return null
         return nbt.getCompoundTag("SkullOwner").getCompoundTag("Properties")
             .getTagList("textures", Constants.NBT.TAG_COMPOUND).getCompoundTagAt(0).getString("Value")

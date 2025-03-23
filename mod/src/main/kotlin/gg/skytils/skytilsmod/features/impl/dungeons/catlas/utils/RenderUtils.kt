@@ -23,6 +23,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasElement
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.DungeonMapPlayer
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
+import gg.skytils.skytilsmod.utils.DungeonClass
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.bindColor
@@ -172,7 +173,16 @@ object RenderUtils {
                 GlStateManager.rotate(-180f, 0f, 0f, 1f)
             } else {
                 // Render black border around the player head
-                renderRectBorder(-6.0, -6.0, 12.0, 12.0, 1.0, Color(0, 0, 0, 255))
+                val borderColor = when (player.teammate.dungeonClass) {
+                    DungeonClass.ARCHER -> CatlasConfig.colorPlayerArcher
+                    DungeonClass.BERSERK -> CatlasConfig.colorPlayerBerserk
+                    DungeonClass.HEALER -> CatlasConfig.colorPlayerHealer
+                    DungeonClass.MAGE -> CatlasConfig.colorPlayerMage
+                    DungeonClass.TANK -> CatlasConfig.colorPlayerTank
+                    else -> Color.BLACK
+                }
+
+                renderRectBorder(-6.0, -6.0, 12.0, 12.0, 1.0, borderColor)
 
                 preDraw()
                 GlStateManager.enableTexture2D()

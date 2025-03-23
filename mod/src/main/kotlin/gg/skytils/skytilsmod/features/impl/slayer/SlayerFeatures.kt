@@ -320,8 +320,8 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         if (packet is S1CPacketEntityMetadata) {
             (slayer as? SeraphSlayer)?.run {
                 if (packet.entityId == entity.entityId) {
-                    if (entity.heldBlockState?.block == Blocks.beacon && ((packet.func_149376_c()
-                            .find { it.dataValueId == 16 } ?: return).`object` as Short).toInt().and(65535)
+                    if (entity.heldBlockState?.block == Blocks.beacon && ((packet.func_149376_c()?.find { it.dataValueId == 16 } ?: return)
+                            .`object` as Short).toInt().and(65535)
                             .and(4095) == 0
                     ) {
                         lastYangGlyphSwitch = System.currentTimeMillis()
@@ -336,7 +336,7 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
                 }
             }
             if (Skytils.config.totemPing != 0 && packet.entityId == (slayer as? DemonlordSlayer)?.totemEntity?.entityId) {
-                ((packet.func_149376_c().find { it.dataValueId == 2 } ?: return).`object` as String).let { name ->
+                ((packet.func_149376_c()?.find { it.dataValueId == 2 } ?: return).`object` as String).let { name ->
                     printDevMessage("totem name updating: $name", "totem")
                     totemRegex.matchEntire(name)?.run {
                         printDevMessage("time ${groups["time"]}", "totem")

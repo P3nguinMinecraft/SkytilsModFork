@@ -27,11 +27,11 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.middleVec
+import gg.skytils.skytilsmod.utils.printDevMessage
 import net.minecraft.block.BlockButtonStone
 import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.client.renderer.GlStateManager
@@ -67,7 +67,7 @@ object SimonSaysSolver : EventSubscriber {
                         val hitPos = rayCast.blockPos ?: return
                         if (hitPos.x in 110..111 && hitPos.y in 120..123 && hitPos.z in 92..95) {
                             clickNeeded++
-                            //UChat.chat("${Skytils.prefix} Registered teammate click on Simon Says. (Report on Discord if wrong.)")
+                            printDevMessage("Registered teammate click on Simon Says.", "simon")
                         }
                     }
                 }
@@ -87,7 +87,10 @@ object SimonSaysSolver : EventSubscriber {
                     if (SuperSecretSettings.azooPuzzoo && clickInOrder.size == 3 && clickNeeded == 0 && pos == clickInOrder[1]) {
                         clickNeeded += 2
                     } else if (clickInOrder[clickNeeded] != pos) {
-                        if (Skytils.config.blockIncorrectTerminalClicks) event.cancelled = true
+                        if (Skytils.config.blockIncorrectTerminalClicks) {
+                            printDevMessage("Prevented click on $pos", "simon")
+                            event.cancelled = true
+                        }
                     } else {
                         clickNeeded++
                     }
@@ -103,15 +106,15 @@ object SimonSaysSolver : EventSubscriber {
         if (Utils.inDungeons && Skytils.config.simonSaysSolver && TerminalFeatures.isInPhase3()) {
             if ((pos.y in 120..123) && pos.z in 92..95) {
                 if (pos.x == 111) {
-                    //println("Block at $pos changed to ${state.block.localizedName} from ${old.block.localizedName}")
-                    if (state.block === Blocks.sea_lantern) {
+                    printDevMessage("Block at $pos changed to ${state.block.localizedName} from ${old.block.localizedName}", "simon")
+                    if (state.block === Blocks.obsidian && old.block === Blocks.sea_lantern) {
                         if (!clickInOrder.contains(pos)) {
                             clickInOrder.add(pos)
-                        }
+                        } else printDevMessage("Duplicate block at $pos", "simon")
                     }
                 } else if (pos.x == 110) {
                     if (state.block === Blocks.air) {
-                        //println("Buttons on simon says were removed!")
+                        printDevMessage("Buttons on simon says were removed!", "simon")
                         clickNeeded = 0
                         clickInOrder.clear()
                     } /*else if (state.block === Blocks.stone_button) {
@@ -123,8 +126,8 @@ object SimonSaysSolver : EventSubscriber {
                         }
                     }*/
                 }
-            } else if ((pos == startBtn && state.block === Blocks.stone_button && state.getValue(BlockButtonStone.POWERED)) || Funny.ticks == 180) {
-                //println("Simon says was started")
+            } else if (pos == startBtn && state.block === Blocks.stone_button && state.getValue(BlockButtonStone.POWERED)) {
+                printDevMessage("Simon says was started", "simon")
                 clickInOrder.clear()
                 clickNeeded = 0
             }
@@ -159,7 +162,7 @@ object SimonSaysSolver : EventSubscriber {
                     matrixStack,
                     AxisAlignedBB(x, y, z, x - .13, y + .26, z + .382),
                     color,
-                    0.5f * Funny.alphaMult
+                    0.5f
                 )
             }
             GlStateManager.enableCull()

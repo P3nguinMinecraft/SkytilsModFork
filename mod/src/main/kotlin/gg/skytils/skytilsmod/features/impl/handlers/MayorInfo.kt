@@ -33,6 +33,8 @@ import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.TabListUtils
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
+import gg.skytils.skytilsws.client.WSClient
+import gg.skytils.skytilsws.shared.packet.C2SPacketJerryVote
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -45,6 +47,7 @@ import java.io.IOException
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.round
+import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -113,7 +116,7 @@ object MayorInfo : EventSubscriber {
         ) return
         if (event.container is ContainerChest) {
             val chestName = event.chestName
-            if (((chestName == "Mayor Jerry" && event.slot.slotNumber == 13) || (chestName == "Calendar and Events" && event.slot.slotNumber == 46)) && event.slot.hasStack) {
+            if (event.slot.hasStack && ((chestName == "Mayor Jerry" && (event.slot.slotNumber == 13 || event.slot.stack?.displayName == "§dJERRY IS MAYOR!!!")) || (chestName == "Calendar and Events" && event.slot.slotNumber == 37))) {
                 val lore = ItemUtil.getItemLore(event.slot.stack)
                 if (!lore.contains("§9Perkpocalypse Perks:")) return
                 val endingIn = lore.asReversed().find { it.startsWith("§7Next set of perks in") } ?: return
@@ -129,9 +132,9 @@ object MayorInfo : EventSubscriber {
                 val timeLeft =
                     matcher.groups["h"]!!.value.toInt().hours + matcher.groups["m"]!!.value.toInt().minutes
                 val nextPerksNoRound = System.currentTimeMillis() + timeLeft.inWholeMilliseconds
-                val nextPerks = round(nextPerksNoRound / 300000.0).toLong() * 300000L
+                val nextPerks = (nextPerksNoRound / 300000.0).roundToLong() * 300000L
                 if (jerryMayor != mayor || abs(nextPerks - newJerryPerks) > 60000) {
-                    println("Jerry has ${mayor.name}'s perks ($perks) and is ending in $newJerryPerks ($${endingIn.stripControlCodes()})")
+                    println("Jerry has ${mayor.name}'s perks ($perks) and is ending in $nextPerks ($${endingIn.stripControlCodes()})")
                     sendJerryData(mayor, nextPerks)
                 }
                 newJerryPerks = nextPerks
@@ -161,13 +164,7 @@ object MayorInfo : EventSubscriber {
         }
     }
 
-    fun fetchJerryData() = Skytils.IO.launch {
-        val res = client.get("https://${Skytils.domain}/api/mayor/jerry").body<JerrySession>()
-        tickTimer(1) {
-            newJerryPerks = res.nextSwitch
-            jerryMayor = res.mayor
-        }
-    }
+    fun fetchJerryData() = {} // no-op
 
     fun sendJerryData(mayor: Mayor?, nextSwitch: Long) = Skytils.IO.launch {
         if (mayor == null || nextSwitch <= System.currentTimeMillis()) return@launch
@@ -175,19 +172,7 @@ object MayorInfo : EventSubscriber {
             println("Client's time isn't trusted, skip sending jerry data.")
             return@launch
         }
-        try {
-            val serverId = UUID.randomUUID().toString().replace("-".toRegex(), "")
-            val commentForDecompilers =
-                "This sends a request to Mojang's auth server, used for verification. This is how we verify you are the real user without your session details. This is the exact same system Optifine uses."
-            mc.sessionService.joinServer(mc.session.profile, mc.session.token, serverId)
-            val url =
-                "https://${Skytils.domain}/api/mayor/jerry/perks?username=${mc.session.username}&serverId=${serverId}&nextPerks=${nextSwitch}&mayor=${mayor.name}&currTime=${System.currentTimeMillis()}"
-            println(client.get(url).bodyAsText())
-        } catch (e: AuthenticationException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+        WSClient.sendPacket(C2SPacketJerryVote(mayor.name, nextSwitch, System.currentTimeMillis()))
     }
 }
 

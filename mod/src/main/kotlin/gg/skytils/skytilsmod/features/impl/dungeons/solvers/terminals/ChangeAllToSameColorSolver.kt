@@ -90,8 +90,6 @@ object ChangeAllToSameColorSolver : EventSubscriber {
                 }
             }
 
-            if (SuperSecretSettings.bennettArthur) betterOpt = Random.nextInt(-4, 5)
-
             GlStateManager.disableLighting()
             GlStateManager.disableDepth()
             GlStateManager.disableBlend()

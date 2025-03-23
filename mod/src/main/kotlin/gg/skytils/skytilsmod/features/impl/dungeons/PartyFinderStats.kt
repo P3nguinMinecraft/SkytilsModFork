@@ -66,15 +66,21 @@ object PartyFinderStats : EventSubscriber {
 
     fun printStats(username: String, withKick: Boolean) {
         Skytils.launch {
-            val uuid = try {
-                MojangUtil.getUUIDFromUsername(username)
+            try {
+                val uuid = MojangUtil.getUUIDFromUsername(username) ?: run {
+                    UChat.chat("$failPrefix §cFailed to get UUID for username $username")
+                    return@launch
+                }
+                val member = API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString()) ?: run {
+                    UChat.chat("$failPrefix §cFailed to get profile information for $username ($uuid)")
+                    return@launch
+                }
+
+                playerStats(username, uuid, member, withKick)
             } catch (e: MojangUtil.MojangException) {
                 e.printStackTrace()
                 UChat.chat("$failPrefix §cFailed to get UUID, reason: ${e.message}")
                 return@launch
-            } ?: return@launch
-            API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())?.let { member ->
-                playerStats(username, uuid, member, withKick)
             }
         }.invokeOnCompletion { error ->
             if (error != null) {
@@ -166,6 +172,12 @@ object PartyFinderStats : EventSubscriber {
                                     itemIds.contains("SHADOW_FURY") -> add("§8Shadow Fury")
                                     itemIds.contains("FLOWER_OF_TRUTH") -> add("§cFoT")
                                 }
+                                //Tank & Healer
+                                when {
+                                    itemIds.contains("GLOOMLOCK_GRIMOIRE") -> add("§5Gloomlock")
+                                    itemIds.contains("TRIBAL_SPEAR") -> add("§6Tribal Spear")
+                                    itemIds.contains("LAST_BREATH") -> add("§6Last Breath")
+                                }
                                 //Miscellaneous
                                 add(checkItemId(itemIds, "GYROKINETIC_WAND", "§5Gyro"))
                                 add(checkItemId(itemIds, "DARK_CLAYMORE", "§7Claymore"))
@@ -174,6 +186,7 @@ object PartyFinderStats : EventSubscriber {
                                 checkStonk(itemIds, extraAttribs)?.run { add(this) }
                                 add(checkItemId(itemIds, "BONZO_STAFF", "§9Bonzo Staff"))
                                 add(checkItemId(itemIds, "JERRY_STAFF", "§eJerry-chine"))
+                                add(checkItemId(itemIds, "FIRE_FREEZE_STAFF", "§4Fire Freeze"))
 
                                 remove(null)
                             }

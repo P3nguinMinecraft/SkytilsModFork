@@ -27,6 +27,7 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.utils.RegexAsString
 import gg.skytils.skytilsmod.utils.Utils
 import kotlinx.coroutines.launch
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -43,7 +44,8 @@ object CustomNotifications : PersistentSave(File(Skytils.modDir, "customnotifica
         if (!Utils.inSkyblock || event.packet !is S02PacketChat || event.packet.type != 0.toByte() || notifications.isEmpty()) return
         Skytils.launch {
             val formatted = event.packet.chatComponent.formattedText
-            for ((regex, text, displayTicks) in notifications) {
+            for ((regex, text, displayTicks, enabled) in notifications) {
+                if (!enabled) continue
                 val match = regex.find(formatted) ?: continue
                 var title = text
                 match.groupValues.forEachIndexed { i, s -> title = title.replace("%%${i}%%", s) }
@@ -79,7 +81,8 @@ object CustomNotifications : PersistentSave(File(Skytils.modDir, "customnotifica
         @Serializable(with = RegexAsString::class)
         val regex: Regex,
         val text: String,
-        @SerialName("ticks") val displayTicks: Int
+        @SerialName("ticks") val displayTicks: Int,
+        @EncodeDefault val enabled: Boolean = true
     )
 
     override fun setup() {

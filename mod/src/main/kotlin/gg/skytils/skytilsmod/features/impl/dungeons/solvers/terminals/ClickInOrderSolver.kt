@@ -76,15 +76,15 @@ object ClickInOrderSolver : EventSubscriber {
         GlStateManager.color(1f, 1f, 1f, 1f)
         if (firstSlot != null) {
             val slot = invSlots[firstSlot]
-            if (slot != null) slot highlight Skytils.config.clickInOrderFirst.multAlpha(Funny.alphaMult)
+            if (slot != null) slot highlight Skytils.config.clickInOrderFirst
         }
         if (secondSlot != null) {
             val slot = invSlots[secondSlot]
-            if (slot != null) slot highlight Skytils.config.clickInOrderSecond.multAlpha(Funny.alphaMult)
+            if (slot != null) slot highlight Skytils.config.clickInOrderSecond
         }
         if (thirdSlot != null) {
             val slot = invSlots[thirdSlot]
-            if (slot != null) slot highlight Skytils.config.clickInOrderThird.multAlpha(Funny.alphaMult)
+            if (slot != null) slot highlight Skytils.config.clickInOrderThird
         }
         if (lightingState) GlStateManager.enableLighting()
     }

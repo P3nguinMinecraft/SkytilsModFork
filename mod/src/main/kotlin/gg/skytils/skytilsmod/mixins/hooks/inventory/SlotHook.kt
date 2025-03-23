@@ -23,10 +23,11 @@ import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.ILockableContainer
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 fun markTerminalItems(slot: Slot, cir: CallbackInfoReturnable<ItemStack?>) {
-    if (!Utils.inSkyblock) return
+    if (!Utils.inSkyblock || slot.inventory !is ILockableContainer) return
     val original = slot.inventory.getStackInSlot(slot.slotIndex) ?: return
     if (!original.isItemEnchanted && (SelectAllColorSolver.shouldClick.contains(slot.slotNumber) ||
                 StartsWithSequenceSolver.shouldClick.contains(slot.slotNumber))

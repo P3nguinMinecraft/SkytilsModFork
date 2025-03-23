@@ -22,10 +22,12 @@ import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Reference
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
+import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.Room
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.Unknown
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.ScanUtils
+import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints.CHInstance
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints.chWaypointsList
@@ -76,6 +78,9 @@ object PacketHandler : IPacketHandler {
                     }
                 }
             }
+            is S2CPacketDungeonMimic -> {
+                ScoreCalculation.mimicKilled.set(true)
+            }
             is S2CPacketCHReset -> {
                 CHWaypoints.waypoints.remove(packet.serverId)
             }
@@ -95,6 +100,13 @@ object PacketHandler : IPacketHandler {
                 } else {
                     val instance = chWaypointsList.getOrPut(SBInfo.server ?: "") { CHInstance() }
                     instance.waypoints[packet.type] = BlockPos(packet.x, packet.y, packet.z)
+                }
+            }
+            is S2CPacketJerryMayor -> {
+                MayorInfo.jerryMayor = MayorInfo.mayorData.find { it.name == packet.mayor }
+                MayorInfo.newJerryPerks = packet.endTime
+                if (MayorInfo.currentMayor != "Jerry") {
+                    MayorInfo.fetchMayorData()
                 }
             }
             else -> {

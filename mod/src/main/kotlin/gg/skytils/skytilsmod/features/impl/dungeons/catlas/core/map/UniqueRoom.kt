@@ -12,6 +12,7 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
     var mainRoom = room
     val tiles = mutableListOf(room)
     var foundSecrets: Int? = null
+    var state: RoomState = RoomState.UNDISCOVERED
 
     init {
         DungeonInfo.cryptCount += room.data.crypts
@@ -75,5 +76,14 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
 
     fun getCheckmarkPosition(): Pair<Int, Int> {
         return if (CatlasConfig.mapCenterCheckmark) center else topLeft
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is UniqueRoom) return false
+        return name == other.name && tiles == other.tiles
     }
 }

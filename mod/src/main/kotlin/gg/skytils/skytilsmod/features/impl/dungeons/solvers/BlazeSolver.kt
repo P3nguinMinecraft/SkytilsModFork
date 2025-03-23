@@ -190,7 +190,6 @@ object BlazeSolver : EventSubscriber {
             }
         }
         orderedBlazes.sortWith { blaze1, blaze2 ->
-            if (SuperSecretSettings.bennettArthur) return@sortWith Random.nextInt(-1, 2)
             val compare = blaze1.health.compareTo(blaze2.health)
             if (compare == 0 && !impossible) {
                 impossible = true

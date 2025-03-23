@@ -28,21 +28,23 @@ import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
  * Adopted from PikaFan's Rain Timer Website, licensed under GPL v3
  * @link https://github.com/PikaFan123/rain-timer
  */
-object RainTimer : EventSubscriber{
-    var nextRain = 1596552707000
+object RainTimer : EventSubscriber {
+    var nextRain = 1727548500000 // Unix-Time of a past rain event start in milliseconds
+    const val eventCycleTime = 3600000 // Time between two rain event starts in milliseconds
+    const val eventCooldownTime = 2400000 // Time between rain event end and start in milliseconds
 
     override fun setup() {}
 
     init {
         RainTimerGuiElement()
-        while (nextRain < System.currentTimeMillis()) nextRain += 4850000
+        while (nextRain < System.currentTimeMillis()) nextRain += eventCycleTime
     }
 
     class RainTimerGuiElement : GuiElement(name = "Rain Timer", x = 10, y = 10) {
         override fun render() {
             if (Utils.inSkyblock && toggled) {
-                if (nextRain < System.currentTimeMillis()) nextRain += 4850000
-                val remainingRain = ((nextRain - System.currentTimeMillis()) - 3850000) / 1000L
+                if (nextRain < System.currentTimeMillis()) nextRain += eventCycleTime
+                val remainingRain = ((nextRain - System.currentTimeMillis()) - eventCooldownTime) / 1000L
                 if (remainingRain > 0) {
                     fr.drawString(
                         "${remainingRain / 60}:${"%02d".format(remainingRain % 60)}",

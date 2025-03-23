@@ -25,7 +25,11 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
+import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsws.client.WSClient
+import gg.skytils.skytilsws.shared.SkytilsWS
+import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonMimic
 import net.minecraft.entity.monster.EntityZombie
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
@@ -55,6 +59,7 @@ object MimicDetector : EventSubscriber {
                 if (Skytils.config.scoreCalculationAssist) {
                     Skytils.sendMessageQueue.add("/pc \$SKYTILS-DUNGEON-SCORE-MIMIC$")
                 }
+                WSClient.sendPacketAsync(C2SPacketDungeonMimic(SBInfo.server ?: return))
             }
         }
     }
@@ -73,6 +78,7 @@ object MimicDetector : EventSubscriber {
                 if (Skytils.config.scoreCalculationAssist) {
                     Skytils.sendMessageQueue.add("/pc \$SKYTILS-DUNGEON-SCORE-MIMIC$")
                 }
+                WSClient.sendPacketAsync(C2SPacketDungeonMimic(SBInfo.server ?: return))
             }
         }
     }

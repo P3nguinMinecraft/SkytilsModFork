@@ -93,9 +93,7 @@ object TicTacToeSolver : EventSubscriber {
                     }
                 }
                 AlphaBetaAdvanced.run(board!!)
-                val move =
-                    if (!SuperSecretSettings.bennettArthur) board!!.algorithmBestMove else board!!.availableMoves.randomOrNull()
-                        ?: -1
+                val move = board!!.algorithmBestMove
                 if (move != -1) {
                     val column = move % Board.BOARD_WIDTH
                     val row = move / Board.BOARD_WIDTH

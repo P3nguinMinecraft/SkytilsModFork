@@ -135,7 +135,7 @@ object IcePathSolver : EventSubscriber {
                     pos!!.addVector(0.5, 0.5, 0.5),
                     pos2!!.addVector(0.5, 0.5, 0.5),
                     5,
-                    Color(1f, 0f, 0f, Funny.alphaMult),
+                    Color.RED,
                     event.partialTicks,
                     UMatrixStack.Compat.get()
                 )

@@ -30,31 +30,58 @@ import java.io.File
 import java.io.Reader
 import java.io.Writer
 import java.util.*
+import kotlin.collections.sortedMapOf
 
 object CommandAliases : PersistentSave(File(Skytils.modDir, "commandaliases.json")), EventSubscriber {
-    val aliases = hashMapOf<String, String>()
+    val aliases: MutableMap<String, String> by lazy {
+        if (Skytils.config.commandAliasesSpaces) sortedMapOf(Comparator.comparingInt(String::length).reversed())
+        else hashMapOf()
+    }
 
     fun onSendChatMessage(event: ChatMessageSentEvent) {
         if (event.message.startsWith("/")) {
-            val args = event.message.substring(1).trim().split(" ").toMutableList()
-            val command = args.removeAt(0)
-            val replacement = aliases[command] ?: return
-            event.cancelled = true
-            try {
-                val msg =
-                    if (Skytils.config.commandAliasMode == 0) "/" + replacement + " " + args.joinToString(" ") else "/${
-                        replacement.format(
-                            *args.toTypedArray()
-                        )
-                    }"
-                if (event.addToHistory) {
-                    mc.ingameGUI.chatGUI.addToSentMessages(msg)
+            if (!Skytils.config.commandAliasesSpaces) {
+                val args = event.message.substring(1).trim().split(" ").toMutableList()
+                val command = args.removeAt(0)
+                val replacement = aliases[command] ?: return
+                event.cancelled = true
+                try {
+                    val msg =
+                        if (Skytils.config.commandAliasMode == 0) "/${replacement} ${args.joinToString(" ")}" else "/${
+                            replacement.format(
+                                *args.toTypedArray()
+                            )
+                        }"
+                    if (event.addToHistory) {
+                        mc.ingameGUI.chatGUI.addToSentMessages(msg)
+                    }
+                    if (runClientCommand(msg) != 0) return
+                    Skytils.sendMessageQueue.add(msg)
+                } catch (ignored: IllegalFormatException) {
+                    if (event.addToChat) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
+                    UChat.chat("$failPrefix §cYou did not specify the correct amount of arguments for this alias!")
                 }
-                if (runClientCommand(msg) != 0) return
-                Skytils.sendMessageQueue.add(msg)
-            } catch (ignored: IllegalFormatException) {
-                if (event.addToHistory) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
-                UChat.chat("$failPrefix §cYou did not specify the correct amount of arguments for this alias!")
+            } else {
+                val candidate = event.message.substring(1).trim()
+                val replacement = aliases.keys.find { candidate.startsWith(it) } ?: return
+                val args = candidate.removePrefix(replacement).trim()
+                event.isCanceled = true
+                try {
+                    val msg =
+                        if (Skytils.config.commandAliasMode == 0) "/${replacement} $args" else "/${
+                            replacement.format(
+                                *args.split(" ").toTypedArray()
+                            )
+                        }"
+                    if (event.addToHsitory) {
+                        mc.ingameGUI.chatGUI.addToSentMessages(msg)
+                    }
+                    if (runClientCommand(msg) != 0) return
+                    Skytils.sendMessageQueue.add(msg)
+                } catch (ignored: IllegalFormatException) {
+                    if (event.addToHistory) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
+                    UChat.chat("$failPrefix §cYou did not specify the correct amount of arguments for this alias!")
+                }
             }
         }
     }

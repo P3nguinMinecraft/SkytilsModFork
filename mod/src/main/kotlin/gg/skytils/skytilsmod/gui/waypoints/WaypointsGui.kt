@@ -57,7 +57,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
     private val categoryContainers = HashMap<UIContainer, Category>()
 
     init {
-        lastUpdatedPlayerPosition = Skytils.mc.thePlayer?.position ?: BlockPos.ORIGIN
+        lastUpdatedPlayerPosition = Skytils.mc.thePlayer?.run { BlockPos(posX, posY + 0.5, posZ) } ?: BlockPos.ORIGIN
 
         scrollComponent = ScrollComponent(
             innerPadding = 4f,
@@ -419,7 +419,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
     private fun addNewWaypoint(
         category: Category,
         name: String = "",
-        pos: BlockPos = mc.thePlayer.position,
+        pos: BlockPos = lastUpdatedPlayerPosition,
         enabled: Boolean = true,
         color: Color = Color.RED,
         addedAt: Long = System.currentTimeMillis(),

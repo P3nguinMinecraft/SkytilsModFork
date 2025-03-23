@@ -97,6 +97,16 @@ object Config : Vigilant(
     var commandAliasMode = 0
 
     @Property(
+        type = PropertyType.SWITCH, name = "Command Alias Subcommands",
+        description = "§b[BETA] Allows the use of spaces in command aliases to target subcommands.\nThis should only be turned on if used.",
+        category = "General", subcategory = "Command Aliases",
+        i18nName = "skytils.config.general.command_aliases.command_alias_subcommands",
+        i18nCategory = "skytils.config.general",
+        i18nSubcategory = "skytils.config.general.command_aliases"
+    )
+    var commandAliasesSpaces = false
+
+    @Property(
         type = PropertyType.SWITCH, name = "Auto Start Local API",
         description = "Automatically launches the Local API on game startup.",
         category = "General", subcategory = "Local API",
@@ -1963,6 +1973,17 @@ object Config : Vigilant(
     var crystalHollowMap = false
 
     @Property(
+        type = PropertyType.DECIMAL_SLIDER, name = "Crystal Hollows map player arrow scale",
+        description = "Scale the arrow indicating the player on the crystal hollows map",
+        category = "Mining", subcategory  = "Crystal Hollows",
+        minF = 0.5f, maxF = 10f, decimalPlaces = 2,
+        i18nName = "skytils.config.mining.crystal_hollows.player_arrow_scaling",
+        i18nCategory = "skytils.config.mining",
+        i18nSubcategory = "skytils.config.mining.crystal_hollows"
+    )
+    var crystalHollowsMapPlayerScale = 2.25F
+
+    @Property(
         type = PropertyType.SWITCH, name = "Crystal Hollows map special places",
         description = "Show special places on the map (like Lost Precusor City).",
         category = "Mining", subcategory = "Crystal Hollows",
@@ -3383,6 +3404,17 @@ object Config : Vigilant(
     var petItemConfirmation = false
 
     @Property(
+        type = PropertyType.SWITCH, name = "Quad Link Legacy Solver",
+        description = "§b[WIP]§r Solves the Quad Link Legacy (CONNECT4) puzzle.\nThis currently does not work.",
+        category = "Rift", subcategory = "Solvers",
+        i18nName = "skytils.config.rift.solvers.quad_link_legacy_solver",
+        i18nCategory = "skytils.config.rift",
+        i18nSubcategory = "skytils.config.rift.solvers",
+        searchTags = ["Wizardman", "Connect4", "ConnectFOUR"],
+    )
+    var quadLinkLegacySolver = false
+
+    @Property(
         type = PropertyType.DECIMAL_SLIDER, name = "Current Revenant RNG Meter",
         description = "Internal value to store current Revenant RNG meter",
         category = "Slayer",
@@ -4440,6 +4472,8 @@ object Config : Vigilant(
         addDependency("showTotalTrophyFish", "trophyFishTracker")
 
         addDependency("shinyPigLocations", "shinyOrbWaypoints")
+
+        addDependency("crystalHollowsMapPlayerScale", "crystalHollowMap")
 
         registerListener("protectItemBINThreshold") { _: String ->
             tickTimer(1) {

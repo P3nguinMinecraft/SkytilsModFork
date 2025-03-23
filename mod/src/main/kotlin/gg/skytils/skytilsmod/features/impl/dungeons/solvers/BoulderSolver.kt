@@ -239,8 +239,6 @@ object BoulderSolver : EventSubscriber {
                             }
                             if (isRight) {
                                 roomVariant = i
-                                if (SuperSecretSettings.bennettArthur) roomVariant =
-                                    Random.nextInt(0, expectedBoulders.size)
                                 UChat.chat("$successPrefix §aSkytils detected boulder variant ${roomVariant + 1}.")
                                 break
                             }

@@ -141,8 +141,7 @@ object TeleportMazeSolver : EventSubscriber {
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
-                Skytils.config.teleportMazeSolverColor,
-                Funny.alphaMult
+                Skytils.config.teleportMazeSolverColor
             )
             GlStateManager.enableCull()
         }

@@ -32,6 +32,7 @@ import gg.essential.elementa.constraints.SiblingConstraint
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.OutlineEffect
 import gg.essential.universal.UKeyboard
+import gg.essential.vigilance.gui.settings.CheckboxComponent
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.CustomNotifications
@@ -49,7 +50,8 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
         val container: UIContainer,
         val regex: UITextInput,
         val displayText: UITextInput,
-        val ticks: UITextInput
+        val ticks: UITextInput,
+        val toggle: CheckboxComponent
     )
 
     init {
@@ -95,11 +97,11 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
         )
 
         for (notif in CustomNotifications.notifications.sortedBy { it.text }) {
-            addNewNotification(notif.regex.pattern, notif.text, notif.displayTicks)
+            addNewNotification(notif.regex.pattern, notif.text, notif.displayTicks, notif.enabled)
         }
     }
 
-    private fun addNewNotification(regex: String = "", text: String = "", ticks: Int = 20) {
+    private fun addNewNotification(regex: String = "", text: String = "", ticks: Int = 20, enabled: Boolean = true) {
         val container = UIContainer().childOf(scrollComponent).constrain {
             x = CenterConstraint()
             y = SiblingConstraint(5f)
@@ -107,8 +109,13 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
             height = 9.5.percent()
         }.effect(OutlineEffect(Color(0, 243, 255), 1f))
 
-        val triggerMessage = UITextInput("Trigger Regex").childOf(container).constrain {
+        val toggle = CheckboxComponent(enabled).childOf(container).constrain {
             x = 5.pixels()
+            y = CenterConstraint()
+        }
+
+        val triggerMessage = UITextInput("Trigger Regex").childOf(container).constrain {
+            x = SiblingConstraint(5f)
             y = CenterConstraint()
             width = 40.percent()
         }.apply {
@@ -164,14 +171,14 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
             components.remove(container)
         }
 
-        components[container] = Entry(container, triggerMessage, displayText, displayTicks)
+        components[container] = Entry(container, triggerMessage, displayText, displayTicks, toggle)
     }
 
     override fun onScreenClose() {
         super.onScreenClose()
         CustomNotifications.notifications.clear()
 
-        for ((_, triggerRegex, displayText, displayTicks) in components.values) {
+        for ((_, triggerRegex, displayText, displayTicks, toggle) in components.values) {
             if (triggerRegex.getText().isBlank() || displayText.getText().isBlank() || displayTicks.getText()
                     .isBlank()
             ) continue
@@ -180,7 +187,8 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
                     CustomNotifications.Notification(
                         triggerRegex.getText().replace("%%MC_IGN%%", mc.session.username).toRegex(),
                         displayText.getText(),
-                        displayTicks.getText().toInt()
+                        displayTicks.getText().toInt(),
+                        toggle.checked
                     )
                 )
             }.onFailure {

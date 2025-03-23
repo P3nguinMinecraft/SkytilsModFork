@@ -138,7 +138,7 @@ object AlignmentTaskSolver : EventSubscriber {
             val frame =
                 (mc.theWorld?.loadedEntityList?.find { it is EntityItemFrame && it.hangingPosition == space.framePos }
                     ?: continue) as EntityItemFrame
-            val neededClicks = if (!SuperSecretSettings.bennettArthur) getTurnsNeeded(frame.rotation, directionSet.getOrElse(space.coords) { 0 }) else Random.nextInt(8)
+            val neededClicks = getTurnsNeeded(frame.rotation, directionSet.getOrElse(space.coords) { 0 })
             clicks[space.framePos] = neededClicks
         }
     }

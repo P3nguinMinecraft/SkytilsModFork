@@ -100,7 +100,7 @@ val shadowMeMod: Configuration by configurations.creating {
 
 dependencies {
     if (platform.isForge) {
-        shadowMe("gg.essential:loader-launchwrapper:1.2.2")
+        shadowMe("gg.essential:loader-launchwrapper:1.2.3")
     } else {
         include(modRuntimeOnly("gg.essential:loader-fabric:1.2.3")!!)
         modImplementation("net.fabricmc.fabric-api:fabric-api:0.99.4+1.20.6")
@@ -173,7 +173,7 @@ dependencies {
     }
     shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.1")
 
-    shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-beta.2")!!)
+    shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-beta.4")!!)
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
     compileOnly("org.spongepowered:mixin:0.8.5")
 }
