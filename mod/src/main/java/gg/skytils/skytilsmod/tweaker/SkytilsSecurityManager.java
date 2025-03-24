@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.tweaker;
 
+//#if MC==10809
 import net.minecraftforge.fml.relauncher.FMLSecurityManager;
 
 import javax.swing.*;
@@ -137,3 +138,4 @@ public class SkytilsSecurityManager extends SecurityManager {
         }
     }
 }
+//#endif

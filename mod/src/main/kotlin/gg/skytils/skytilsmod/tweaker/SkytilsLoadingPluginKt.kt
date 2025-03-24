@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.tweaker
 
+//#if MC==10809
 import SkytilsInstallerFrame
 import gg.essential.universal.UDesktop
 import gg.skytils.skytilsmod.Skytils.client
@@ -165,3 +166,4 @@ private fun createButton(text: String, onClick: JButton.() -> Unit): JButton {
         })
     }
 }
+//#endif

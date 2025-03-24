@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.asm.transformers
 
+//#if MC==10809
 import dev.falsehonesty.asmhelper.dsl.modify
 import net.minecraft.entity.Entity
 import org.objectweb.asm.Opcodes
@@ -54,3 +55,4 @@ object DSMColoredNamesTransformer {
             .endsWith(" Hit")
     }
 }
+//#endif

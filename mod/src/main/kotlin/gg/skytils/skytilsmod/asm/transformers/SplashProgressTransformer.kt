@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.asm.transformers
 
+//#if MC==10809
 import dev.falsehonesty.asmhelper.dsl.instructions.InsnListBuilder
 import dev.falsehonesty.asmhelper.dsl.modify
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
@@ -115,3 +116,4 @@ object SplashProgressTransformer {
         return rotate || !SuperSecretSettings.noSychic && Utils.isBSMod
     }
 }
+//#endif

@@ -18,6 +18,9 @@
   "entrypoints": {
     "client": [
       "gg.skytils.skytilsmod.SkytilsMod"
+    ],
+    "prelaunch": [
+      "gg.skytils.skytilsmod.tweaker.SkytilsPreLaunch"
     ]
   },
   "mixins": [
@@ -25,6 +28,7 @@
     "mixins.skytils-events.json"
   ],
   "depends": {
+    "essential-loader": ">=1.2.3",
     "fabricloader": "*",
     "fabric-api": "*",
     "fabric-language-kotlin": "*",

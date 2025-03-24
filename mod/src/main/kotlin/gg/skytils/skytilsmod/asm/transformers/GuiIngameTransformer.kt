@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.asm.transformers
 
+//#if MC==10809
 import dev.falsehonesty.asmhelper.dsl.instructions.InsnListBuilder
 import dev.falsehonesty.asmhelper.dsl.instructions.JumpCondition
 import dev.falsehonesty.asmhelper.dsl.instructions.Local
@@ -106,3 +107,4 @@ private fun isScorePoints(insn: AbstractInsnNode): Boolean {
         "()I"
     ))
 }
+//#endif

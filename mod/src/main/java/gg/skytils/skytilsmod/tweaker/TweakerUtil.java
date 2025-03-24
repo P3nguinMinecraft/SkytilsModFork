@@ -19,7 +19,6 @@
 package gg.skytils.skytilsmod.tweaker;
 
 import gg.skytils.skytilsmod.Reference;
-import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -37,6 +36,13 @@ import java.net.URLClassLoader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
+
+//#if MC==10809
+import net.minecraft.launchwrapper.Launch;
+//#else
+//$$ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+//$$ import java.nio.file.Path;
+//#endif
 
 public class TweakerUtil {
     public static void exit() {
@@ -128,11 +134,13 @@ public class TweakerUtil {
         return (Field) m2.invoke(clazz, fields, name);
     }
 
+    //#if MC==10809
     static void registerTransformerExclusions(String... classes) {
         for (String className : classes) {
             Launch.classLoader.addTransformerExclusion(className);
         }
     }
+    //#endif
 
     public static String makeRequest(String url) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -154,6 +162,7 @@ public class TweakerUtil {
     }
 
     public static void addToClasspath(URL url) throws Throwable {
+        //#if MC==10809
         Launch.classLoader.addURL(url);
         ClassLoader parent = Launch.classLoader.getClass().getClassLoader();
         if (parent != null) {
@@ -172,5 +181,8 @@ public class TweakerUtil {
                 ucpAddURL.invoke(ucp, url);
             }
         }
+        //#else
+        //$$ FabricLauncherBase.getLauncher().addToClassPath(Path.of(url.toURI()));
+        //#endif
     }
 }

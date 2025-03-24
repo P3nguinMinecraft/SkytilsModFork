@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.tweaker;
 
+//#if MC==10809
 import gg.essential.loader.stage0.EssentialSetupTweaker;
 import net.hypixel.modapi.tweaker.HypixelModAPITweaker;
 import net.minecraft.launchwrapper.Launch;
@@ -80,3 +81,4 @@ public class SkytilsTweaker extends EssentialSetupTweaker {
         return super.getLaunchArguments();
     }
 }
+//#endif

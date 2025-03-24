@@ -19,7 +19,9 @@
 package gg.skytils.skytilsmod.tweaker;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
+//#if MC==10809 && FORGE
 import net.minecraftforge.fml.relauncher.CoreModManager;
+//#endif
 
 import java.io.File;
 import java.io.InputStream;
@@ -36,6 +38,7 @@ public class DependencyLoader {
     private static final String MAVEN_CENTRAL_ROOT = "https://repo1.maven.org/maven2/";
     public static boolean hasNativeBrotli = false;
 
+    // TODO: not called on Fabric
     public static void loadDependencies() {
         loadBrotli();
         if (Security.getProvider("BC") == null) loadBCProv();
@@ -54,11 +57,14 @@ public class DependencyLoader {
 
         System.out.printf("Dependency size for %s: %s%n", path.substring(path.lastIndexOf('/') + 1), Files.size(downloadPath));
 
+        // TODO
         addToClasspath(downloadLocation.toURI().toURL());
 
+        //#if MC==10809 && FORGE
         if (!isMod) {
             CoreModManager.getIgnoredMods().add(downloadLocation.getName());
         }
+        //#endif
 
         return downloadLocation;
     }

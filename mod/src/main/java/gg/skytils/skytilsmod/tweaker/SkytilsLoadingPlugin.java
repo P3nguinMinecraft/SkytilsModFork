@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.tweaker;
 
+//#if MC==10809
 import gg.skytils.skytilsmod.Skytils;
 import kotlin.KotlinVersion;
 import net.minecraft.launchwrapper.Launch;
@@ -291,3 +292,4 @@ public class SkytilsLoadingPlugin implements IFMLLoadingPlugin {
         return kotlinPlugin.getAccessTransformerClass();
     }
 }
+//#endif

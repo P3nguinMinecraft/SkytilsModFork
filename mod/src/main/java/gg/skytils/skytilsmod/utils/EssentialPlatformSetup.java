@@ -44,7 +44,7 @@ public class EssentialPlatformSetup {
     }
 
 
-    public static void setup() throws Throwable {
+    public static void setup() {
         for (final String url : dataURLCandidates) {
             if (trySetDataUrl(url)) {
                 Reference.dataUrl = url;

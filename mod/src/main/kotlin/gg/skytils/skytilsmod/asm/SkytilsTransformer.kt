@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.asm
 
+//#if MC==10809
 import dev.falsehonesty.asmhelper.BaseClassTransformer
 import gg.skytils.skytilsmod.asm.transformers.*
 import net.minecraft.launchwrapper.LaunchClassLoader
@@ -56,3 +57,4 @@ class SkytilsTransformer : BaseClassTransformer() {
         }
     }
 }
+//#endif

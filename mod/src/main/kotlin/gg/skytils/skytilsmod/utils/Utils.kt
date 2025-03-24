@@ -303,12 +303,14 @@ fun <T : Any> T?.ifNull(run: () -> Unit): T? {
     return this
 }
 
+//#if MC==10809
 val MethodInsnNode.descriptor: Descriptor
     get() = Descriptor(
         AsmHelper.remapper.remapClassName(this.owner),
         SkytilsTransformer.methodMaps.getOrSelf(AsmHelper.remapper.remapMethodName(this.owner, this.name, this.desc)),
         AsmHelper.remapper.remapDesc(this.desc)
     )
+//#endif
 
 fun <T : Any> Map<T, T>.getOrSelf(key: T): T = this.getOrDefault(key, key)
 

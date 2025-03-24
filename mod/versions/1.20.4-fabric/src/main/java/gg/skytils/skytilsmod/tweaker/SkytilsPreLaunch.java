@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,18 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.asm.transformers
+package gg.skytils.skytilsmod.tweaker;
 
-//#if MC==10809
-import dev.falsehonesty.asmhelper.dsl.overwrite
+import gg.skytils.skytilsmod.utils.EssentialPlatformSetup;
+import gg.skytils.skytilsmod.utils.SuperSecretSettings;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 
-fun commitArson() = overwrite {
-    className = "cheaters.get.banned.remote.CrashReporter"
-    methodName = "douse"
-    methodDesc = "(Ljava/io/File;)V"
-
-    insnList {
-        methodReturn()
+public class SkytilsPreLaunch implements PreLaunchEntrypoint {
+    @Override
+    public void onPreLaunch() {
+        // DuplicateSkytilsChecker.checkForDuplicates(); TODO: is this needed on Fabric?
+        SuperSecretSettings.load();
+        DependencyLoader.loadDependencies();
+        EssentialPlatformSetup.setup();
     }
 }
-//#endif
