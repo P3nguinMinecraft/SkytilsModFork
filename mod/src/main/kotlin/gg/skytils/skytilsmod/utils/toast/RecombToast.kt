@@ -32,7 +32,11 @@ class RecombToast(item: String) :
 {
     companion object {
         private val RECOMB = ItemUtil.setSkullTexture(
+            //#if MC==10809
             ItemStack(Items.skull, 1, 3),
+            //#else
+            //$$  ItemStack(Items.PLAYER_HEAD, 1),
+            //#endif
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWRmZjhkYmJhYjE1YmZiYjExZTIzYjFmNTBiMzRlZjU0OGFkOTgzMmMwYmQ3ZjVhMTM3OTFhZGFkMDA1N2UxYiJ9fX0K",
             "10479f18-e67f-3c86-93e2-b4df79d0457e"
         )

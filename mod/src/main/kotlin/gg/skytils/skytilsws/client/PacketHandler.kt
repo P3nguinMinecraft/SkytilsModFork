@@ -43,8 +43,20 @@ import java.util.*
 object PacketHandler : IPacketHandler {
     suspend fun handleLogin(session: WebSocketSession, packet: S2CPacketAcknowledge) {
         val serverId = UUID.randomUUID().toString().replace("-".toRegex(), "")
-        mc.sessionService.joinServer(mc.session.profile, mc.session.token, serverId)
-        WSClient.sendPacket(C2SPacketLogin(mc.session.username, mc.session.profile.id.toString(), Reference.VERSION, SkytilsWS.version, serverId))
+        mc.sessionService.joinServer(
+            //#if MC==10809
+            mc.session.profile,
+            //#else
+            //$$ mc.session.uuidOrNull,
+            //#endif
+            mc.session.token, serverId)
+        WSClient.sendPacket(C2SPacketLogin(mc.session.username,
+            //#if MC==10809
+            mc.session.profile.id.toString(),
+            //#else
+            //$$ mc.session.uuidOrNull!!.toString(),
+            //#endif
+            Reference.VERSION, SkytilsWS.version, serverId))
     }
 
     override suspend fun processPacket(session: WebSocketSession, packet: Packet) {

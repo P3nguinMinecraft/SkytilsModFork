@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.core
 
+//#if MC==10809 && FORGE
 import gg.skytils.skytilsmod.gui.OptionsGui
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
@@ -45,3 +46,4 @@ class ForgeGuiFactory : IModGuiFactory {
         }
 
 }
+//#endif

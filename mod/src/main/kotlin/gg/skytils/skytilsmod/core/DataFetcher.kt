@@ -119,7 +119,7 @@ object DataFetcher {
                     Utils.checkThreadAndQueue {
                         TreasureHunterSolver.treasureHunterLocations.clear()
                         entries.associateTo(TreasureHunterSolver.treasureHunterLocations) { (key, value) ->
-                            key to value.split(",").map { it.toDouble() }
+                            key to value.split(",").map { it.toInt() }
                                 .run { BlockPos(this[0], this[1], this[2]) }
                         }
                     }

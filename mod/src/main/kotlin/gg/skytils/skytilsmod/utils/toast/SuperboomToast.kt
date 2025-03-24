@@ -19,10 +19,15 @@
 package gg.skytils.skytilsmod.utils.toast
 
 import gg.skytils.skytilsmod.gui.profile.components.ItemComponent
-import net.minecraft.enchantment.Enchantment
 import net.minecraft.init.Blocks
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+
+//#if MC==10809
+import net.minecraft.enchantment.Enchantment
+import net.minecraft.item.Item
+//#else
+//$$ import net.minecraft.enchantment.Enchantments
+//#endif
 
 class SuperboomToast :
         Toast(
@@ -31,7 +36,12 @@ class SuperboomToast :
         )
 {
     companion object {
+        //#if MC==10809
         private val superboom = ItemStack(Item.getItemFromBlock(Blocks.tnt))
             .apply { addEnchantment(Enchantment.unbreaking, 1) }
+        //#else
+        //$$  private val superboom = ItemStack(Blocks.TNT.asItem())
+        //$$    .apply { addEnchantment(Enchantments.UNBREAKING, 1) }
+        //#endif
     }
 }
