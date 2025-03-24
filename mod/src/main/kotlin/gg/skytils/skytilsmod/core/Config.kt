@@ -41,12 +41,15 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.vigilance.property
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.client.ClientCommandHandler
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.LoaderState
 import java.awt.Color
 import java.io.File
 import java.net.URI
+
+//#if FORGE
+import net.minecraftforge.client.ClientCommandHandler
+import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.LoaderState
+//#endif
 
 object Config : Vigilant(
     File("./config/skytils/config.toml"),
@@ -4493,11 +4496,19 @@ object Config : Vigilant(
         }
 
         registerListener("itemRarityShape") { i: Int ->
+            //#if FORGE
             if (i == 4 && Loader.instance().hasReachedState(LoaderState.POSTINITIALIZATION)) {
+            //#else
+            //$$ if (i == 4 && mc.isFinishedLoading) {
+            //#endif
                 val old = itemRarityShape
                 runCatching {
                     val loc = ResourceLocation("skytils:gui/customrarity.png")
+                    //#if MC==10809
                     mc.resourceManager.getResource(loc)
+                    //#else
+                    //$$ mc.resourceManager.getResourceOrThrow(loc)
+                    //#endif
                 }.onFailure {
                     tickTimer(1) {
                         if (itemRarityShape == 4) {
@@ -4512,10 +4523,13 @@ object Config : Vigilant(
 
         registerListener("overrideReparty") { state: Boolean ->
             if (state) {
+                //TODO
+                //#if MC==10809
                 (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["reparty"] =
                     RepartyCommand
                 (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["rp"] =
                     RepartyCommand
+                //#endif
             }
         }
 
