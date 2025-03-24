@@ -24,3 +24,5 @@ net.minecraft.network.packet.s2c.play.EntityS2CPacket getDeltaZ() net.minecraft.
 net.minecraft.world.EntityView getEntitiesByClass() net.minecraft.world.World method_8390()
 
 com.mojang.blaze3d.systems.RenderSystem net.minecraft.client.GlStateManager
+
+net.minecraft.text.Text getString() method_0_5147()

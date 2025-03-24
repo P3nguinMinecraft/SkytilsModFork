@@ -17,8 +17,16 @@
  */
 package gg.skytils.skytilsmod.features.impl.overlays
 
+import gg.essential.elementa.ElementaVersion
+import gg.essential.elementa.WindowScreen
+import gg.essential.elementa.components.input.UITextInput
+import gg.essential.elementa.layoutdsl.*
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.memo
+import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.onChange
 import gg.essential.universal.UKeyboard
-import gg.essential.universal.UResolution
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.screen.GuiContainerSlotClickEvent
 import gg.skytils.event.impl.screen.ScreenKeyInputEvent
@@ -27,38 +35,49 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.misc.ContainerSellValue
-import gg.skytils.skytilsmod.gui.elements.CleanButton
+import gg.skytils.skytilsmod.gui.layout.button
+import gg.skytils.skytilsmod.gui.layout.mcTextInput
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiEditSign
-import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.gui.GuiTextField
+import gg.skytils.skytilsmod.utils.getSlot
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiEditSign
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C12PacketUpdateSign
 import net.minecraft.tileentity.TileEntitySign
 import net.minecraft.util.ChatComponentText
-import org.lwjgl.input.Keyboard
-import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.Display
-import java.awt.Color
+import kotlin.text.lowercase
+import kotlin.text.toDouble
 
-// TODO: Migrate to elementa
 object AuctionPriceOverlay : EventSubscriber {
-    private var lastAuctionedStack: ItemStack? = null
-    private var lastEnteredInput = ""
-    private var undercut = false
-    private val tooltipLocationButton = GuiButton(999, 2, 2, 20, 20, "bruh")
+    private val undercutState = mutableStateOf(false)
+    private val isUndercutState = memo {
+        if (!undercutState() || lastAuctionedStackState() == null) return@memo false
+        AuctionData.getIdentifier(lastAuctionedStackState())?.let(AuctionData.lowestBINs::containsKey) == true
+    }
+    private val lastAuctionedStackState: MutableState<ItemStack?> = mutableStateOf(null)
+    private val lbinPriceState = memo {
+        lastAuctionedStackState()?.let(AuctionData::getIdentifier)?.let(AuctionData.lowestBINs::get)
+    }
+    private val valueState: State<String> = memo {
+        val count = lastAuctionedStackState()?.stackSize ?: 0
+        lbinPriceState()?.let { valuePer ->
+            "Clean Lowest BIN Price: §b${NumberUtil.nf.format((valuePer * count).toInt())}" +
+                    if (count > 1) " §7(${NumberUtil.nf.format(valuePer.roundToPrecision(2))} each§7)" else ""
+        } ?: ""
+    }
+    private val estimatedValueState: State<String> = memo {
+        lastAuctionedStackState()?.let(ContainerSellValue::getItemValue)?.let {estimatedValue ->
+            "Estimated Value: §b${NumberUtil.nf.format(estimatedValue)}"
+        } ?: ""
+    }
+    // Outside of screen to allow for persistent values
+    val inputState: MutableState<String> = mutableStateOf("")
 
     fun onGuiOpen(event: ScreenOpenEvent) {
         if (!Utils.inSkyblock || !Skytils.config.betterAuctionPriceInput) return
@@ -70,15 +89,25 @@ object AuctionPriceOverlay : EventSubscriber {
         ) {
             val sign =
                 (event.screen as AccessorGuiEditSign).tileSign
-            if (sign != null && sign.pos.y == 0 && sign.signText[1].unformattedText == "^^^^^^^^^^^^^^^" && sign.signText[2].unformattedText == "Your auction" && sign.signText[3].unformattedText == "starting bid") {
-                event.screen = AuctionPriceScreen(event.screen as GuiEditSign)
+            //#if MC<12000
+            val signText = sign.signText
+            //#else
+            //$$ val signText = sign.frontText.getMessages(false)
+            //#endif
+            if (
+                sign != null && sign.pos.y == 0 &&
+                signText[1].unformattedText == "^^^^^^^^^^^^^^^" &&
+                signText[2].unformattedText == "Your auction" &&
+                signText[3].unformattedText == "starting bid"
+            ) {
+                event.screen = ElementaAuctionPriceScreen((event.screen as AccessorGuiEditSign).tileSign)
             }
         }
     }
 
     fun onGuiKey(event: ScreenKeyInputEvent) {
         if (!Utils.inSkyblock || !Skytils.config.betterAuctionPriceInput) return
-        if (event.screen is GuiChest && Keyboard.getEventKeyState() && Keyboard.getEventKey() == UKeyboard.KEY_ENTER) {
+        if (event.screen is GuiChest && event.keyCode == UKeyboard.KEY_ENTER) {
             if (Utils.equalsOneOf(
                     SBInfo.lastOpenContainerName,
                     "Create Auction",
@@ -86,7 +115,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 )
             ) {
                 (event.screen as AccessorGuiContainer).invokeHandleMouseClick(
-                    (event.screen as GuiChest).inventorySlots.getSlot(
+                    (event.screen as GuiChest).getSlot(
                         29
                     ), 29, 2, 3
                 )
@@ -98,7 +127,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 )
             ) {
                 (event.screen as AccessorGuiContainer).invokeHandleMouseClick(
-                    (event.screen as GuiChest).inventorySlots.getSlot(
+                    (event.screen as GuiChest).getSlot(
                         11
                     ), 11, 2, 3
                 )
@@ -116,10 +145,13 @@ object AuctionPriceOverlay : EventSubscriber {
                     "Create BIN Auction"
                 ) && event.slotId == 31
             ) {
-                val auctionItem = event.container.getSlot(13).stack
-                if (auctionItem != null) {
+                event.container.getSlot(13).stack?.let { auctionItem ->
+                    //#if MC<120000
                     if (auctionItem.displayName == "§a§l§nAUCTION FOR ITEM:") {
-                        lastAuctionedStack = auctionItem
+                    //#else
+                    //$$ if (auctionItem.name.string == "§a§l§nAUCTION FOR ITEM:") {
+                    //#endif
+                        lastAuctionedStackState.set(auctionItem)
                     }
                 }
             }
@@ -129,226 +161,73 @@ object AuctionPriceOverlay : EventSubscriber {
                     "Confirm BIN Auction"
                 )
             ) {
-                lastAuctionedStack = null
+                lastAuctionedStackState.set(null)
             }
         }
     }
 
-    open class AuctionPriceScreen(oldScreen: GuiEditSign) : GuiScreen() {
-        var fr: SmartFontRenderer = ScreenRenderer.fontRenderer
-        private val undercutButton = CleanButton(
-            0,
-            0,
-            0,
-            200,
-            20,
-            if (!isUndercut()) "Mode: Normal" else "Mode: Undercut"
-        )
-        private val priceField = GuiTextField(0, fr, 0, 0, 270, 20)
-        private var sign: TileEntitySign =
-            (oldScreen as AccessorGuiEditSign).tileSign
-        private var dragging = false
-        private var xOffset = 0f
-        private var yOffset = 0f
-        override fun initGui() {
-            buttonList.clear()
-            Keyboard.enableRepeatEvents(true)
-            sign.setEditable(false)
-            priceField.xPosition = width / 2 - 135
-            priceField.yPosition = height / 2
-            priceField.maxStringLength = 15
-            priceField.setValidator { text: String? ->
-                text!!.lowercase().replace("[^0-9.kmb]".toRegex(), "").length == text.length
-            }
-            priceField.isFocused = true
-            priceField.text = lastEnteredInput
-            priceField.setCursorPositionEnd()
-            priceField.setSelectionPos(0)
-            undercutButton.xPosition = width / 2 - 100
-            undercutButton.yPosition = height / 2 + 25
-            buttonList.add(undercutButton)
-            buttonList.add(tooltipLocationButton)
-            sign.signText[0] = ChatComponentText(input)
+    class ElementaAuctionPriceScreen(private val sign: TileEntitySign) : WindowScreen(ElementaVersion.V5) {
+        companion object {
+            private val REGEX = Regex("[^0-9.kmb]")
         }
-
-        override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-            onMouseMove()
-            drawGradientRect(0, 0, width, height, Color(117, 115, 115, 25).rgb, Color(0, 0, 0, 200).rgb)
-            priceField.drawTextBox()
-            if (lastAuctionedStack != null) {
-                val auctionIdentifier = AuctionData.getIdentifier(lastAuctionedStack)
-                if (auctionIdentifier != null) {
-                    // this might actually have multiple items as the price
-                    val valuePer = AuctionData.lowestBINs[auctionIdentifier]
-                    if (valuePer != null) fr.drawString(
-                        "Clean Lowest BIN Price: §b" + NumberUtil.nf.format((valuePer * lastAuctionedStack!!.stackSize).toInt()) + if (lastAuctionedStack!!.stackSize > 1) " §7(" + NumberUtil.nf.format(
-                            valuePer.roundToPrecision(2)
-                        ) + " each§7)" else "",
-                        width / 2f,
-                        height / 2f - 50,
-                        CommonColors.ORANGE,
-                        SmartFontRenderer.TextAlignment.MIDDLE,
-                        SmartFontRenderer.TextShadow.NONE
-                    )
-                }
-                val estimatedValue = ContainerSellValue.getItemValue(lastAuctionedStack!!)
-                if (estimatedValue > 0) fr.drawString(
-                    "Estimated Value: §b" + NumberUtil.nf.format(
-                        estimatedValue
-                    ),
-                    width / 2f + 200,
-                    height / 2f - 50,
-                    CommonColors.ORANGE,
-                    SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                    SmartFontRenderer.TextShadow.NONE
-                )
-                if (isUndercut()) {
-                    val input = input
-                    fr.drawString(
-                        "Listing For: ${
-                            input ?: "§cInvalid Value"
-                        }",
-                        width / 2f,
-                        height / 2f - 25,
-                        CommonColors.ORANGE,
-                        SmartFontRenderer.TextAlignment.MIDDLE,
-                        SmartFontRenderer.TextShadow.NONE
-                    )
-                }
-                if (tooltipLocationButton.enabled) {
-                    val lore = ArrayList(ItemUtil.getItemLore(lastAuctionedStack!!))
-                    if (lore.size > 3) {
-                        lore.removeAt(0)
-                        lore.removeAt(lore.size - 1)
-                        lore.removeAt(lore.size - 1)
-                    }
-                    if (lore.size > 0) {
-                        var largestLen = 0
-                        for (line in lore) {
-                            val len = fr.getStringWidth(line)
-                            if (len > largestLen) largestLen = len
+        private val validatedInput: State<String?> = State {
+            val input = inputState()
+            if (isUndercutState()) {
+                val lbin = lbinPriceState() ?: return@State null
+                val count = lastAuctionedStackState()?.stackSize ?: 0
+                var num = input.toDoubleOrNull() ?:  if (isProperCompactNumber(input)) {
+                    getActualValueFromCompactNumber(input) ?: return@State null
+                } else return@State null
+                val actualValue = (lbin - num) * count
+                if (actualValue < 0) return@State null
+                val stringified = actualValue.toLong().toString()
+                return@State if (stringified.length > 15) NumberUtil.format(actualValue.toLong()) else stringified
+            }
+            return@State input.lowercase()
+        }
+        private val listingTextState: State<String> = memo {
+            "§6Listing for: ${validatedInput() ?: "§cInvalid Value"}"
+        }
+        init {
+            val input: UITextInput
+            window.layout {
+                row(Modifier.fillParent()) {
+                    column(Modifier.fillHeight()) {
+                        text(valueState)
+                        text(estimatedValueState)
+                        text(listingTextState)
+                        spacer(0f, 5f)
+                        input = mcTextInput(inputState, modifier = Modifier.width(260f).height(10f))
+                        input.filter { text ->
+                            text.lowercase().replace(REGEX, "")
                         }
-                        val x = tooltipLocationButton.xPosition
-                        val y = tooltipLocationButton.yPosition - 20
-                        tooltipLocationButton.width = largestLen
-                        tooltipLocationButton.height = lore.size * fr.FONT_HEIGHT + 20
-                        fr.drawString(
-                            "You're selling: ${lastAuctionedStack!!.stackSize}x",
-                            x.toFloat(),
-                            y.toFloat(),
-                            CommonColors.ORANGE,
-                            SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                            SmartFontRenderer.TextShadow.NONE
-                        )
-                        drawHoveringText(lore, x - 10, y + 30, fr)
-                        GlStateManager.disableLighting()
-                    }
-                }
-            }
-            undercutButton.drawButton(mc, mouseX, mouseY)
-        }
-
-        override fun updateScreen() {
-            undercutButton.displayString = if (!isUndercut()) "Mode: Normal" else "Mode: Undercut"
-            priceField.updateCursorCounter()
-            super.updateScreen()
-        }
-
-
-        override fun keyTyped(typedChar: Char, keyCode: Int) {
-            if (keyCode == Keyboard.KEY_RETURN || keyCode == Keyboard.KEY_ESCAPE) {
-                sign.markDirty()
-                mc.displayGuiScreen(null)
-                return
-            }
-            priceField.textboxKeyTyped(typedChar, keyCode)
-            val input = input
-            if (input == null) {
-                sign.signText[0] = ChatComponentText("Invalid Value")
-            } else {
-                sign.signText[0] = ChatComponentText(input)
-                lastEnteredInput = priceField.text
-            }
-        }
-
-
-        override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
-            priceField.mouseClicked(mouseX, mouseY, mouseButton)
-            super.mouseClicked(mouseX, mouseY, mouseButton)
-        }
-
-        override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
-            super.mouseReleased(mouseX, mouseY, state)
-            dragging = false
-        }
-
-        private fun onMouseMove() {
-            val sr = UResolution
-            val minecraftScale = sr.scaleFactor.toFloat()
-            val floatMouseX = Mouse.getX() / minecraftScale
-            val floatMouseY = (Display.getHeight() - Mouse.getY()) / minecraftScale
-            if (dragging) {
-                tooltipLocationButton.xPosition = (floatMouseX - xOffset).toInt()
-                tooltipLocationButton.yPosition = (floatMouseY - yOffset).toInt()
-            }
-        }
-
-
-        override fun actionPerformed(button: GuiButton) {
-            if (button.id == 0) {
-                undercut = !undercut
-                sign.signText[0] = ChatComponentText(input ?: "Invalid Value")
-            } else if (button.id == 999) {
-                dragging = true
-                val sr = UResolution
-                val minecraftScale = sr.scaleFactor.toFloat()
-                val floatMouseX = Mouse.getX() / minecraftScale
-                val floatMouseY = (mc.displayHeight - Mouse.getY()) / minecraftScale
-                xOffset = floatMouseX - tooltipLocationButton.xPosition
-                yOffset = floatMouseY - tooltipLocationButton.yPosition
-            }
-        }
-
-        override fun onGuiClosed() {
-            Keyboard.enableRepeatEvents(false)
-            val nethandlerplayclient = mc.netHandler
-            nethandlerplayclient?.addToSendQueue(C12PacketUpdateSign(sign.pos, sign.signText))
-            sign.setEditable(true)
-        }
-
-        val input: String?
-            get() {
-                val input = priceField.text
-                if (isUndercut()) {
-                    val lbin = AuctionData.lowestBINs[AuctionData.getIdentifier(lastAuctionedStack)]!!
-                    try {
-                        val num = input.toDouble()
-                        val actualValue = (lbin - num) * lastAuctionedStack!!.stackSize
-                        if (actualValue < 0) return null
-                        val stringified = actualValue.toLong().toString()
-                        return if (stringified.length > 15) NumberUtil.format(actualValue.toLong()) else stringified
-                    } catch (ignored: NumberFormatException) {
-                    }
-                    if (isProperCompactNumber(input)) {
-                        val num = getActualValueFromCompactNumber(input)
-                        if (num != null) {
-                            val actualValue = (lbin - num) * lastAuctionedStack!!.stackSize
-                            if (actualValue < 0) return null
-                            val stringified = actualValue.toLong().toString()
-                            return if (stringified.length > 15) NumberUtil.format(actualValue.toLong()) else stringified
+                        input.onKeyType { char, keyCode ->
+                            if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) {
+                                mc.displayGuiScreen(null)
+                                return@onKeyType
+                            }
+                        }
+                        inputState.onChange(window) {
+                            sign.signText[0] = ChatComponentText(validatedInput.getUntracked() ?: "Invalid Value")
+                        }
+                        spacer(0f, 5f)
+                        button(memo { if (isUndercutState()) "Mode: Undercut" else "Mode: Normal" }) {
+                            undercutState.set { !it }
                         }
                     }
-                    return null
                 }
-                return input.lowercase()
+            }
+            window.onKeyType { char, keyCode ->
+                input.setActive(true)
+                input.keyType(char, keyCode)
             }
 
-    }
+        }
 
-    private fun isUndercut(): Boolean {
-        if (!undercut || lastAuctionedStack == null) return false
-        val id = AuctionData.getIdentifier(lastAuctionedStack)
-        return id != null && AuctionData.lowestBINs.containsKey(id)
+        override fun onScreenClose() {
+            super.onScreenClose()
+            mc.netHandler?.addToSendQueue(C12PacketUpdateSign(sign.pos, sign.signText))
+        }
     }
 
     /**
