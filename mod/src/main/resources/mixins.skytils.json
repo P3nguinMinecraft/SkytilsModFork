@@ -56,8 +56,6 @@
     "item.MixinItemStack",
     "model.MixinModelBlaze",
     "network.MixinNetHandlerPlayClient",
-    "network.MixinNetworkManager",
-    "network.MixinPacketThreadUtil",
     "neu.MixinCustomAH",
     "neu.MixinGuiProfileViewer",
     "neu.MixinStorageManager",
