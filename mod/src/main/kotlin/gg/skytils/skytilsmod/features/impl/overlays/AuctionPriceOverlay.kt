@@ -49,7 +49,7 @@ import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiEditSign
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C12PacketUpdateSign
-import net.minecraft.tileentity.TileEntitySign
+import net.minecraft.util.BlockPos
 import net.minecraft.util.ChatComponentText
 import kotlin.text.lowercase
 import kotlin.text.toDouble
@@ -100,7 +100,8 @@ object AuctionPriceOverlay : EventSubscriber {
                 signText[2].unformattedText == "Your auction" &&
                 signText[3].unformattedText == "starting bid"
             ) {
-                event.screen = ElementaAuctionPriceScreen((event.screen as AccessorGuiEditSign).tileSign)
+                val tileEntitySign = (event.screen as AccessorGuiEditSign).tileSign
+                event.screen = ElementaAuctionPriceScreen(tileEntitySign.pos, tileEntitySign.signText.map { it.unformattedText }.toTypedArray())
             }
         }
     }
@@ -166,7 +167,7 @@ object AuctionPriceOverlay : EventSubscriber {
         }
     }
 
-    class ElementaAuctionPriceScreen(private val sign: TileEntitySign) : WindowScreen(ElementaVersion.V5) {
+    class ElementaAuctionPriceScreen(private val pos: BlockPos, private val text: Array<String>) : WindowScreen(ElementaVersion.V5) {
         companion object {
             private val REGEX = Regex("[^0-9.kmb]")
         }
@@ -208,7 +209,7 @@ object AuctionPriceOverlay : EventSubscriber {
                             }
                         }
                         inputState.onChange(window) {
-                            sign.signText[0] = ChatComponentText(validatedInput.getUntracked() ?: "Invalid Value")
+                            text[0] = validatedInput.getUntracked() ?: "Invalid Value"
                         }
                         spacer(0f, 5f)
                         button(memo { if (isUndercutState()) "Mode: Undercut" else "Mode: Normal" }) {
@@ -226,7 +227,7 @@ object AuctionPriceOverlay : EventSubscriber {
 
         override fun onScreenClose() {
             super.onScreenClose()
-            mc.netHandler?.addToSendQueue(C12PacketUpdateSign(sign.pos, sign.signText))
+            mc.netHandler?.addToSendQueue(C12PacketUpdateSign(pos, text.map { ChatComponentText(it) }.toTypedArray()))
         }
     }
 
