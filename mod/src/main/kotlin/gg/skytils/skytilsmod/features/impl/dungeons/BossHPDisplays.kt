@@ -36,12 +36,13 @@ import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.util.IChatComponent
 import net.minecraft.util.Vec3
 import java.awt.Color
 
 object BossHPDisplays : EventSubscriber {
     private var canGiantsSpawn = false
-    private var giantNames = emptyList<Pair<String, Vec3>>()
+    private var giantNames = emptyList<Pair<IChatComponent, Vec3>>()
     private var guardianRespawnTimers = emptyList<String>()
     private val guardianNameRegex = Regex("§c(Healthy|Reinforced|Chaos|Laser) Guardian §e0§c❤")
     private val timerRegex = Regex("§c ☠ §7 (.+?) §c ☠ §7")
@@ -79,17 +80,19 @@ object BossHPDisplays : EventSubscriber {
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
         if (!Utils.inDungeons) return
         if (canGiantsSpawn && mc.theWorld != null && (Skytils.config.showGiantHPAtFeet || Skytils.config.showGiantHP)) {
-            val hasSadanPlayer = mc.theWorld.getPlayerEntityByName("Sadan ") != null
-            giantNames = mc.theWorld.loadedEntityList.filterIsInstance<EntityArmorStand>().filter {
-                val name = it.displayName.formattedText
-                name.contains("❤") && (!hasSadanPlayer && name.contains("§e﴾ §c§lSadan§r") || (name.contains("Giant") && dungeonFloorNumber?.let { it >= 6 } == true) || GiantHPElement.GIANT_NAMES.any {
+            val hasSadanPlayer = mc.theWorld?.playerEntities?.firstOrNull { it.displayName?.unformattedText == "Sadan" } != null
+            giantNames = mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()?.filter {
+                val name = it.displayName?.unformattedText ?: return@filter false
+                name.contains("❤") && (!hasSadanPlayer && name.contains("﴾ Sadan") || (name.contains("Giant") && dungeonFloorNumber?.let { it >= 6 } == true) || GiantHPElement.GIANT_NAMES.any {
                     name.contains(
                         it
                     )
                 })
-            }.map {
-                Pair(it.displayName.formattedText, it.positionVector.addVector(0.0, -10.0, 0.0))
-            }
+            }?.mapNotNull { entity ->
+                entity.displayName?.let { name ->
+                    Pair(name, entity.positionVector.addVector(0.0, -10.0, 0.0))
+                }
+            } ?: emptyList()
         } else giantNames = emptyList()
         if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && mc.theWorld != null) {
             guardianRespawnTimers = mutableListOf<String>().apply {
@@ -123,7 +126,7 @@ object BossHPDisplays : EventSubscriber {
         for ((name, pos) in giantNames) {
             RenderUtil.drawLabel(
                 pos,
-                name,
+                name.formattedText,
                 Color.WHITE,
                 event.partialTicks,
                 matrixStack
@@ -172,8 +175,8 @@ object BossHPDisplays : EventSubscriber {
             if (toggled && giantNames.isNotEmpty()) {
                 RenderUtil.drawAllInList(
                     this,
-                    (giantNames.takeIf { it.size == 1 } ?: giantNames.filter { !it.first.contains("Sadan") }).map {
-                        it.first
+                    (giantNames.takeIf { it.size == 1 } ?: giantNames.filter { !it.first.unformattedText.contains("Sadan") }).map {
+                        it.first.formattedText
                     }
                 )
             }
