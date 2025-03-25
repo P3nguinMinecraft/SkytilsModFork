@@ -50,9 +50,12 @@ import net.minecraft.client.gui.inventory.GuiEditSign
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C12PacketUpdateSign
 import net.minecraft.util.BlockPos
-import net.minecraft.util.ChatComponentText
 import kotlin.text.lowercase
 import kotlin.text.toDouble
+
+//#if MC<12000
+import net.minecraft.util.ChatComponentText
+//#endif
 
 object AuctionPriceOverlay : EventSubscriber {
     private val undercutState = mutableStateOf(false)
@@ -100,8 +103,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 signText[2].unformattedText == "Your auction" &&
                 signText[3].unformattedText == "starting bid"
             ) {
-                val tileEntitySign = (event.screen as AccessorGuiEditSign).tileSign
-                event.screen = ElementaAuctionPriceScreen(tileEntitySign.pos, tileEntitySign.signText.map { it.unformattedText }.toTypedArray())
+                event.screen = ElementaAuctionPriceScreen(sign.pos, signText.map { it.unformattedText }.toTypedArray())
             }
         }
     }
@@ -147,7 +149,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 ) && event.slotId == 31
             ) {
                 event.container.getSlot(13).stack?.let { auctionItem ->
-                    //#if MC<120000
+                    //#if MC<12000
                     if (auctionItem.displayName == "§a§l§nAUCTION FOR ITEM:") {
                     //#else
                     //$$ if (auctionItem.name.string == "§a§l§nAUCTION FOR ITEM:") {
@@ -204,7 +206,7 @@ object AuctionPriceOverlay : EventSubscriber {
                         }
                         input.onKeyType { char, keyCode ->
                             if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) {
-                                mc.displayGuiScreen(null)
+                                mc?.displayGuiScreen(null)
                                 return@onKeyType
                             }
                         }
@@ -227,7 +229,11 @@ object AuctionPriceOverlay : EventSubscriber {
 
         override fun onScreenClose() {
             super.onScreenClose()
+            //#if MC<12000
             mc.netHandler?.addToSendQueue(C12PacketUpdateSign(pos, text.map { ChatComponentText(it) }.toTypedArray()))
+            //#else
+            //$$ client?.networkHandler?.sendPacket(UpdateSignC2SPacket(pos, true, text[0], text[1], text[2], text[3]))
+            //#endif
         }
     }
 
