@@ -79,24 +79,32 @@ object BossHPDisplays : EventSubscriber {
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
         if (!Utils.inDungeons) return
-        if (canGiantsSpawn && mc.theWorld != null && (Skytils.config.showGiantHPAtFeet || Skytils.config.showGiantHP)) {
-            val hasSadanPlayer = mc.theWorld?.playerEntities?.firstOrNull { it.displayName?.unformattedText == "Sadan" } != null
-            giantNames = mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()?.filter {
+        val world = mc.theWorld
+
+        if (world != null && canGiantsSpawn && (Skytils.config.showGiantHPAtFeet || Skytils.config.showGiantHP)) {
+            val hasSadanPlayer = world.playerEntities.any {
+                "Sadan " == it.name
+                //#if MC>=11602
+                //$$ .string
+                //#endif
+            }
+            giantNames = world.loadedEntityList.filterIsInstance<EntityArmorStand>().filter {
                 val name = it.displayName?.unformattedText ?: return@filter false
                 name.contains("❤") && (!hasSadanPlayer && name.contains("﴾ Sadan") || (name.contains("Giant") && dungeonFloorNumber?.let { it >= 6 } == true) || GiantHPElement.GIANT_NAMES.any {
                     name.contains(
                         it
                     )
                 })
-            }?.mapNotNull { entity ->
+            }.mapNotNull { entity ->
                 entity.displayName?.let { name ->
                     Pair(name, entity.positionVector.addVector(0.0, -10.0, 0.0))
                 }
-            } ?: emptyList()
+            }
         } else giantNames = emptyList()
-        if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && mc.theWorld != null) {
+
+        if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && world != null) {
             guardianRespawnTimers = mutableListOf<String>().apply {
-                for (entity in mc.theWorld.loadedEntityList) {
+                for (entity in world.loadedEntityList) {
                     if (size >= 4) break
                     if (entity !is EntityArmorStand) continue
                     val name = entity.customNameTag

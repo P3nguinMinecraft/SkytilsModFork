@@ -134,7 +134,7 @@ object BloodHelper : EventSubscriber {
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || watchers.isEmpty()) return
         if (event.packet !is S14PacketEntity.S17PacketEntityLookMove) return
-        val entity = event.packet.getEntity(UMinecraft.getWorld()) ?: return
+        val entity = event.packet.getEntity(UMinecraft.getWorld() ?: return) ?: return
         if (entity !is EntityArmorStand || entity.getEquipmentInSlot(EquipmentSlot.HEAD)?.item != Items.skull) return
         mobs[entity]?.let { mob ->
             mob.deltas.add(
