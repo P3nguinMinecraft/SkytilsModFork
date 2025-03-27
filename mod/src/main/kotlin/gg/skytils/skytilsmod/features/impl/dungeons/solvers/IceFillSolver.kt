@@ -26,12 +26,12 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.tickTimer
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.ifNull
+import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.minecraft.client.renderer.GlStateManager
@@ -62,7 +62,7 @@ object IceFillSolver : EventSubscriber {
                         ) {
                             val pos = te.pos
                             if (world.getBlockState(pos.down()).block == Blocks.stone) {
-                                for (direction in EnumFacing.HORIZONTALS) {
+                                for (direction in UDirection.HORIZONTALS) {
                                     if (world.getBlockState(pos.offset(direction)).block == Blocks.cobblestone && world.getBlockState(
                                             pos.offset(direction.opposite, 2)
                                         ).block == Blocks.iron_bars) {
@@ -167,7 +167,7 @@ object IceFillSolver : EventSubscriber {
             val spaces = getSpaces()
 
             val moves = spaces.associate {
-                val neighbors = EnumFacing.HORIZONTALS.associateBy { direction -> it.offset(direction) }
+                val neighbors = UDirection.HORIZONTALS.associateBy { direction -> it.offset(direction) }
                     .filterKeys { spot -> spot in spaces }
                     .mapKeys { (pos, _) -> spaces.indexOf(pos) }
                 Pair(spaces.indexOf(it), neighbors)
@@ -295,7 +295,7 @@ object IceFillSolver : EventSubscriber {
 
             while (queue.isNotEmpty()) {
                 val current = queue.removeLast()
-                EnumFacing.HORIZONTALS.forEach { direction ->
+                UDirection.HORIZONTALS.forEach { direction ->
                     val next = current.offset(direction)
                     if (next !in spaces && world.getBlockState(next).block === Blocks.air && Utils.equalsOneOf(
                             world.getBlockState(

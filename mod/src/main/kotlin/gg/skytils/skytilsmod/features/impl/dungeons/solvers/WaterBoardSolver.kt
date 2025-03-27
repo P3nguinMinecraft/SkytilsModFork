@@ -27,8 +27,8 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.minecraft.block.Block
@@ -41,7 +41,6 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import java.awt.Color
 import java.util.*
-import kotlin.random.Random
 
 /**
  * Original code was taken from Danker's Skyblock Mod under GPL 3.0 license and modified by the Skytils team
@@ -89,7 +88,7 @@ object WaterBoardSolver : EventSubscriber {
                                             potentialChestPos.up(2)
                                         ).block === Blocks.stained_glass
                                     ) {
-                                        for (direction in EnumFacing.HORIZONTALS) {
+                                        for (direction in UDirection.HORIZONTALS) {
                                             if (world.getBlockState(
                                                     potentialChestPos.offset(direction.opposite, 3).down(2)
                                                 ).block === Blocks.sticky_piston && world.getBlockState(

@@ -26,10 +26,10 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.DungeonPuzzleResetEvent
 import gg.skytils.skytilsmod.core.tickTimer
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.launch
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.monster.EntitySilverfish
@@ -90,7 +90,7 @@ object IcePathSolver : EventSubscriber {
                                             pos.up(2)
                                         ).block == Blocks.hopper
                                     ) {
-                                        for (direction in EnumFacing.HORIZONTALS) {
+                                        for (direction in UDirection.HORIZONTALS) {
                                             if (mc.theWorld.getBlockState(pos.offset(direction)).block == Blocks.stonebrick) {
                                                 silverfishChestPos = pos
                                                 roomFacing = direction
@@ -214,10 +214,10 @@ object IcePathSolver : EventSubscriber {
         ) { arrayOfNulls<Point>(iceCave[0].size) }
         queue.addLast(Point(startX, startY))
         iceCaveColors[startY][startX] = startPoint
-        while (queue.size != 0) {
+        while (queue.isNotEmpty()) {
             val currPos = queue.removeFirst()
             // traverse adjacent nodes while sliding on the ice
-            for (dir in EnumFacing.HORIZONTALS) {
+            for (dir in UDirection.HORIZONTALS) {
                 val nextPos = move(iceCave, iceCaveColors, currPos, dir)
                 if (nextPos != null) {
                     queue.addLast(nextPos)

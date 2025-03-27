@@ -31,8 +31,8 @@ import gg.skytils.skytilsmod._event.DungeonPuzzleDiscoveredEvent
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.minecraft.init.Blocks
@@ -42,7 +42,6 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
 import kotlin.math.floor
-import kotlin.random.Random
 
 //#if MC<11300
 import net.minecraft.client.renderer.GlStateManager
@@ -193,7 +192,7 @@ object BoulderSolver : EventSubscriber {
                                 ) {
                                     boulderChest = potentialChestPos
                                     println("Boulder chest is at $boulderChest")
-                                    for (direction in EnumFacing.HORIZONTALS) {
+                                    for (direction in UDirection.HORIZONTALS) {
                                         if (world.getBlockState(potentialChestPos.offset(direction)).block == Blocks.stained_hardened_clay) {
                                             boulderFacing = direction
                                             println("Boulder room is facing $direction")

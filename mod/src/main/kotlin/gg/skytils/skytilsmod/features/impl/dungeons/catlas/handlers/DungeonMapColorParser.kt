@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers
 
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
-import net.minecraft.util.EnumFacing
+import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import net.minecraft.world.storage.MapData
 
 object DungeonMapColorParser {
@@ -96,7 +96,7 @@ object DungeonMapColorParser {
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             connected.add(current)
-            queue.addAll(EnumFacing.HORIZONTALS.mapNotNull {
+            queue.addAll(UDirection.HORIZONTALS.mapNotNull {
                 getTile(current.x + it.directionVec.x, current.z + it.directionVec.z) as? Room
             })
         }

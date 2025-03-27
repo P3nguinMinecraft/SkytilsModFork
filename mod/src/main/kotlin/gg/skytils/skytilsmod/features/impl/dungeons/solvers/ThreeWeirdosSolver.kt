@@ -29,13 +29,12 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod.core.DataFetcher
 import gg.skytils.skytilsmod.listeners.DungeonListener
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
 
 object ThreeWeirdosSolver : EventSubscriber {
     val solutions = hashSetOf<String>()
@@ -73,7 +72,7 @@ object ThreeWeirdosSolver : EventSubscriber {
                 mc.theWorld?.loadedEntityList?.find {
                     it is EntityArmorStand && riddleNPC!! in it.customNameTag
                 }?.let {
-                    riddleChest = EnumFacing.HORIZONTALS.map { dir -> it.position.offset(dir)  }.find {
+                    riddleChest = UDirection.HORIZONTALS.map { dir -> it.position.offset(dir)  }.find {
                         mc.theWorld?.getBlockState(it)?.block == Blocks.chest
                     }
                     println("Riddle NPC ${it.customNameTag} @ ${it.position} w/ chest @ $riddleChest")
