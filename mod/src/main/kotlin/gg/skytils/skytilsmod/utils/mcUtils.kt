@@ -22,6 +22,7 @@ import gg.essential.elementa.state.v2.State
 import gg.essential.universal.wrappers.UPlayer
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.client.gui.inventory.GuiChest
+import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
 import net.minecraft.util.MathHelper
 import net.minecraft.util.Vec3
@@ -91,3 +92,9 @@ fun GuiChest.getSlot(id: Int) =
     //#else
     //$$ screenHandler.getSlot(id)
     //#endif
+
+val ItemStack.displayNameStr: String
+    inline get() = this.displayName
+        //#if MC>=11600
+        //$$ .string
+        //#endif

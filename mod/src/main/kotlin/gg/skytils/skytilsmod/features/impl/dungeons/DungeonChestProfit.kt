@@ -81,7 +81,7 @@ object DungeonChestProfit : EventSubscriber {
         if (event.chestName.endsWith(" Chest")) {
             val chestType = DungeonChest.getFromName(event.chestName) ?: return
             val openChest = inv.getStackInSlot(31) ?: return
-            if (openChest.displayName == "§aOpen Reward Chest") {
+            if (openChest.displayNameStr == "§aOpen Reward Chest") {
                 chestType.price = getChestPrice(ItemUtil.getItemLore(openChest))
                 chestType.value = 0.0
                 chestType.items.clear()
@@ -91,7 +91,7 @@ object DungeonChestProfit : EventSubscriber {
                     val value = if (identifier != null) {
                         AuctionData.lowestBINs[identifier] ?: 0.0
                     } else {
-                        getEssenceValue(lootSlot.displayName) ?: continue
+                        getEssenceValue(lootSlot.displayNameStr) ?: continue
                     }
 
                     chestType.value += value
@@ -109,7 +109,7 @@ object DungeonChestProfit : EventSubscriber {
         } else if (croesusChestRegex.matches(event.chestName)) {
             for (i in 10..16) {
                 val openChest = inv.getStackInSlot(i) ?: continue
-                val chestType = DungeonChest.getFromName(openChest.displayName.stripControlCodes()) ?: continue
+                val chestType = DungeonChest.getFromName(openChest.displayNameStr.stripControlCodes()) ?: continue
                 val lore = ItemUtil.getItemLore(openChest)
 
                 val contentIndex = lore.indexOf("§7Contents")
@@ -139,7 +139,7 @@ object DungeonChestProfit : EventSubscriber {
         if (event.container !is ContainerChest || event.slot.inventory == mc.thePlayer.inventory) return
         val stack = event.slot.stack ?: return
         if (stack.item == Items.skull) {
-            val name = stack.displayName
+            val name = stack.displayNameStr
             if (!(name == "§cThe Catacombs" || name == "§cMaster Mode The Catacombs")) return
             val lore = ItemUtil.getItemLore(stack)
             event.slot highlight when {
@@ -226,7 +226,8 @@ object DungeonChestProfit : EventSubscriber {
             )
 
             for (item in chest.items) {
-                val line = item.item.displayName + "§f: §a" + NumberUtil.nf.format(item.value)
+                val itemName = item.item.displayNameStr
+                val line = itemName + "§f: §a" + NumberUtil.nf.format(item.value)
                 ScreenRenderer.fontRenderer.drawString(
                     line,
                     if (leftAlign) element.scaleX else element.scaleX + element.width,
