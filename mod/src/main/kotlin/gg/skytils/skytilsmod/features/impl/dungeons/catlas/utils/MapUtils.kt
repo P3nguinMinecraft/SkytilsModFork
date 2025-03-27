@@ -24,6 +24,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonMapColorParser
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.displayNameStr
 import net.minecraft.item.ItemMap
 import net.minecraft.util.Vec4b
 import net.minecraft.world.storage.MapData
@@ -46,8 +47,12 @@ object MapUtils {
 
     fun getMapData(): MapData? {
         val map = mc.thePlayer?.inventory?.getStackInSlot(8) ?: return null
-        if (map.item !is ItemMap || !map.displayName.contains("Magical Map")) return null
+        if (map.item !is ItemMap || !map.displayNameStr.contains("Magical Map")) return null
+        //#if MC==10809
         return (map.item as ItemMap).getMapData(map, mc.theWorld)
+        //#else
+        //$$ return FilledMapItem.getMapState(map, mc.world!!)
+        //#endif
     }
 
     /**

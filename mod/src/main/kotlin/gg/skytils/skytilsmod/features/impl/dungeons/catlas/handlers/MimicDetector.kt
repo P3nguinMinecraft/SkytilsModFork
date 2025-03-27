@@ -27,6 +27,7 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonMimic
@@ -68,10 +69,14 @@ object MimicDetector : EventSubscriber {
         if (ScoreCalculation.mimicKilled.get()) return
         if (mimicOpenTime == 0L) return
         if (System.currentTimeMillis() - mimicOpenTime < 750) return
-        if (mc.thePlayer.getDistanceSq(mimicPos) < 400) {
-            if (mc.theWorld.loadedEntityList.none {
-                    it is EntityZombie && it.isChild && it.getCurrentArmor(3)
+        if (mc.thePlayer!!.position.distanceSq(mimicPos) < 400) {
+            if (mc.theWorld!!.loadedEntityList.none {
+                    it is EntityZombie && it.isChild && it.getEquipmentInSlot(EquipmentSlot.HEAD)
+                        //#if MC==10809
                         ?.getSubCompound("SkullOwner", false)
+                        //#else
+                        //$$ ?.getSubNbt("SkullOwner")
+                        //#endif
                         ?.getString("Id") == "bcb486a4-0cb5-35db-93f0-039fbdde03f0"
                 }) {
                 ScoreCalculation.mimicKilled.set(true)

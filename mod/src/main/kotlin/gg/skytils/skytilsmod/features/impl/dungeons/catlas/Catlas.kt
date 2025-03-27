@@ -47,6 +47,11 @@ import net.minecraft.network.play.server.S34PacketMaps
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.storage.MapData
 
+//#if MC>=11600
+//$$ import net.minecraft.item.FilledMapItem
+//$$ import net.minecraft.item.map.MapIcon
+//#endif
+
 object Catlas : EventSubscriber {
 
     fun reset() {
@@ -66,7 +71,9 @@ object Catlas : EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        if (!Utils.inDungeons || mc.thePlayer == null) return
+        if (!Utils.inDungeons) return
+
+        val player = mc.thePlayer ?: return
 
         if (!MapUtils.calibrated) {
             if (DungeonInfo.dungeonMap == null) {
@@ -90,7 +97,7 @@ object Catlas : EventSubscriber {
         }
 
         if (CatlasConfig.mapShowBeforeStart && DungeonTimer.dungeonStartTime == -1L) {
-            ScanUtils.getRoomFromPos(mc.thePlayer.position)?.uniqueRoom?.let { unq ->
+            ScanUtils.getRoomFromPos(player.position)?.uniqueRoom?.let { unq ->
                 if (unq.state == RoomState.PREVISITED) return@let
                 unq.state = RoomState.PREVISITED
                 // TODO: unq.tiles does not work here, figure out why #536
@@ -98,7 +105,7 @@ object Catlas : EventSubscriber {
                     it.state = RoomState.PREVISITED
                 }
             }
-            DungeonListener.team[mc.thePlayer.name]?.mapPlayer?.yaw = mc.thePlayer.rotationYaw
+            DungeonListener.team[player.name]?.mapPlayer?.yaw = player.rotationYaw
         }
     }
 
@@ -145,11 +152,17 @@ object Catlas : EventSubscriber {
     }
 
     fun onPacket(event: PacketReceiveEvent<*>) {
-        if (event.packet is S34PacketMaps && Utils.inDungeons && DungeonInfo.dungeonMap == null && mc.theWorld != null) {
+        if (event.packet is S34PacketMaps && Utils.inDungeons && DungeonInfo.dungeonMap == null) {
+            val world = mc.theWorld ?: return
             val id = event.packet.mapId
             if (id and 1000 == 0) {
-                val guess = mc.theWorld.mapStorage.loadData(MapData::class.java, "map_${id}") as MapData? ?: return
+                //#if MC==10809
+                val guess = world.mapStorage.loadData(MapData::class.java, "map_${id}") as MapData? ?: return
                 if (guess.mapDecorations.any { it.value.func_176110_a() == 1.toByte() }) {
+                //#else
+                //$$ val guess = FilledMapItem.loadMapData(id, world) ?: return
+                //$$ if (guess.icons.any { it.type == MapIcon.Type.PLAYER }) {
+                //#endif
                     DungeonInfo.guessMapData = guess
                 }
             }

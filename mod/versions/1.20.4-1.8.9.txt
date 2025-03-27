@@ -29,3 +29,7 @@ net.minecraft.text.Text getString() method_0_5147()
 
 net.minecraft.util.math.Direction.Type HORIZONTAL net.minecraft.util.math.Direction HORIZONTAL
 net.minecraft.util.math.Direction.Type VERTICAL net.minecraft.util.math.Direction VERTICAL
+
+net.minecraft.world.World getChunk method_0_271
+
+net.minecraft.resource.ResourceFactory getResourceOrThrow method_14486
