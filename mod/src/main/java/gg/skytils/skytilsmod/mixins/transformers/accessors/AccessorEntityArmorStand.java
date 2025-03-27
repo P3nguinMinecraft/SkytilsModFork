@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(EntityArmorStand.class)
-public interface AccessorEntityArmorstand {
+public interface AccessorEntityArmorStand {
     @Invoker
     void invokeSetShowArms(boolean bl);
 }

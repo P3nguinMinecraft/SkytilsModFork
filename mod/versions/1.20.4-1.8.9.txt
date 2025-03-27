@@ -33,3 +33,5 @@ net.minecraft.util.math.Direction.Type VERTICAL net.minecraft.util.math.Directio
 net.minecraft.world.World getChunk method_0_271
 
 net.minecraft.resource.ResourceFactory getResourceOrThrow method_14486
+
+net.minecraft.client.render.entity.EnderDragonEntityRenderer$DragonEntityModel net.minecraft.client.render.entity.model.DragonEntityModel

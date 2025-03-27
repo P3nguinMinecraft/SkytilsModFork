@@ -53,7 +53,7 @@ import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.gui.layout.text
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorEntityArmorstand
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorEntityArmorStand
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.ItemUtil.getExtraAttributes
@@ -256,7 +256,7 @@ object MiscFeatures : EventSubscriber {
             }
         } else if (Skytils.deobfEnvironment && DevTools.getToggle("invis")) {
             event.entity.isInvisible = false
-            (event.entity as? AccessorEntityArmorstand)?.invokeSetShowArms(true)
+            (event.entity as? AccessorEntityArmorStand)?.invokeSetShowArms(true)
         }
     }
 

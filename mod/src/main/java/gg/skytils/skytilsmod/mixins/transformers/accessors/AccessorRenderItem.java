@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
+//#if MC==10809
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.resources.model.IBakedModel;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,3 +29,4 @@ public interface AccessorRenderItem {
     @Invoker
     void invokeRenderModel(IBakedModel model, int color);
 }
+//#endif

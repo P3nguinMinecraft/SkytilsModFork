@@ -22,8 +22,18 @@ import net.minecraft.network.play.server.S3BPacketScoreboardObjective;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
+//#if MC!=10809
+//$$ import net.minecraft.util.text.Text;
+//#endif
+
 @Mixin(S3BPacketScoreboardObjective.class)
 public interface AccessorS3BPacketScoreboardObjective {
     @Accessor
-    void setObjectiveValue(String value);
+    void setObjectiveValue(
+            //#if MC==10809
+            String value
+            //#else
+            //$$ Text value
+            //#endif
+    );
 }

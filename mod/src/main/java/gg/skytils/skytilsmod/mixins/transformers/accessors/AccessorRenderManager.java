@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
+//#if MC==10809
 import net.minecraft.client.renderer.entity.RenderManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -34,3 +35,4 @@ public interface AccessorRenderManager {
     @Accessor("renderPosZ")
     double getRenderZ();
 }
+//#endif

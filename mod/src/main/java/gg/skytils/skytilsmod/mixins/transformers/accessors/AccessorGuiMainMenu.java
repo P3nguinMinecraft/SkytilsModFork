@@ -22,11 +22,23 @@ import net.minecraft.client.gui.GuiMainMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
+//#if MC!=10809
+//$$ import net.minecraft.client.gui.screen.SplashTextRenderer;
+//#endif
+
 @Mixin(GuiMainMenu.class)
 public interface AccessorGuiMainMenu {
     @Accessor
+    //#if MC==10809
     String getSplashText();
+    //#else
+    //$$ SplashTextRenderer getSplashText();
+    //#endif
 
     @Accessor
+    //#if MC==10809
     void setSplashText(String text);
+    //#else
+    //$$ void setSplashText(SplashTextRenderer text);
+    //#endif
 }

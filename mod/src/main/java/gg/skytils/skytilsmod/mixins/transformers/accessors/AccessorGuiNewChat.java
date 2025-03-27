@@ -38,6 +38,8 @@ public interface AccessorGuiNewChat {
     @Accessor
     int getScrollPos();
 
+    //#if MC==10809
     @Invoker
     void invokeSetChatLine(IChatComponent chatComponent, int chatLineId, int updateCounter, boolean displayOnly);
+    //#endif
 }

@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
+//#if MC==10809
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,3 +45,4 @@ public interface AccessorCommandHandler {
     void setCommandMap(Map<String, ICommand> map);
 
 }
+//#endif

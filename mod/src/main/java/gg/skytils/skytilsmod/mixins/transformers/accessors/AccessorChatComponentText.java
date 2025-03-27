@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
+//#if MC==10809
 import net.minecraft.util.ChatComponentText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -32,3 +33,4 @@ public interface AccessorChatComponentText {
     @Accessor
     void setText(String text);
 }
+//#endif

@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
+//#if MC==10809
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.stream.GuiStreamUnavailable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,3 +29,4 @@ public interface AccessorGuiStreamUnavailable {
     @Accessor
     GuiScreen getParentScreen();
 }
+//#endif

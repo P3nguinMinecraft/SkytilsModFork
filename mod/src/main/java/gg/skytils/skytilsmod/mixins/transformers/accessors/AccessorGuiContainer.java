@@ -24,6 +24,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
+//#if MC>=12000
+//$$ import net.minecraft.screen.slot.SlotActionType;
+//#endif
+
 @Mixin(GuiContainer.class)
 public interface AccessorGuiContainer {
     @Accessor
@@ -39,5 +43,9 @@ public interface AccessorGuiContainer {
     int getGuiTop();
 
     @Invoker
+    //#if MC<12000
     void invokeHandleMouseClick(Slot slotIn, int slotId, int clickedButton, int clickType);
+    //#else
+    //$$ void invokeHandleMouseClick(Slot slotIn, int slotId, int clickedButton, SlotActionType clickType);
+    //#endif
 }

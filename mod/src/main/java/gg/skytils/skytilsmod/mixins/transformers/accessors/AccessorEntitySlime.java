@@ -18,9 +18,9 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
+//#if MC==10809
 import net.minecraft.entity.monster.EntitySlime;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin({EntitySlime.class})
@@ -28,3 +28,4 @@ public interface AccessorEntitySlime {
     @Invoker("setSlimeSize")
     void invokeSetSlimeSize(int size);
 }
+//#endif
