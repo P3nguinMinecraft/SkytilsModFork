@@ -184,8 +184,6 @@ sourceSets {
     }
 }
 
-val javaVersion = if (platform.isLegacyForge) JavaVersion.VERSION_1_8 else JavaVersion.VERSION_17
-
 val enabledVersions = setOf(
     "1.8.9-forge",
     "1.20.4-fabric"
@@ -280,7 +278,7 @@ tasks {
     }
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = javaVersion.toString()
+            jvmTarget = platform.javaVersion.toString()
             freeCompilerArgs =
                 listOf(
                     /*"-opt-in=kotlin.RequiresOptIn", */
@@ -322,8 +320,7 @@ tasks {
 
 kotlin {
     jvmToolchain {
-        check(this is JavaToolchainSpec)
-        languageVersion.set(JavaLanguageVersion.of(javaVersion.asInt()))
+        languageVersion.set(JavaLanguageVersion.of(platform.javaVersion.asInt()))
     }
 }
 
