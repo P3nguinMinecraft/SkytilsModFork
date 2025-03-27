@@ -32,6 +32,7 @@
     "fabricloader": "*",
     "fabric-api": "*",
     "fabric-language-kotlin": "*",
+    "hypixel-mod-api": ">=1.0.1",
     "minecraft": "*",
     "java": ">=21"
   }

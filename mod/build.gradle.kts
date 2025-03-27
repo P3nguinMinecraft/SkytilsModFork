@@ -167,11 +167,14 @@ dependencies {
     }
     compileOnly("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
-
-    compileOnly("net.hypixel:mod-api-forge:1.0.1.1") {
-        exclude(group = "me.djtheredstoner", module = "DevAuth-forge-legacy")
+    if (platform.isLegacyForge) {
+        compileOnly("net.hypixel:mod-api-forge:1.0.1.1") {
+            exclude(group = "me.djtheredstoner", module = "DevAuth-forge-legacy")
+        }
+        shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.1")
+    } else {
+        compileOnly("net.hypixel:mod-api:1.0.1")
     }
-    shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.1")
 
     shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-beta.4")!!)
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
