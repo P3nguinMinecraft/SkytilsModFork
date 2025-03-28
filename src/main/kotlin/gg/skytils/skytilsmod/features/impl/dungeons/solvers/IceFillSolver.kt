@@ -195,13 +195,9 @@ object IceFillSolver {
 
         fun draw(matrixStack: UMatrixStack, partialTicks: Float) {
             path?.let {
-                GlStateManager.pushMatrix()
                 GlStateManager.disableCull()
-
-                it.zipWithNext { first, second ->
-                    RenderUtil.draw3DLine(first, second, 5, Color.MAGENTA, partialTicks, matrixStack)
-                }
-                GlStateManager.popMatrix()
+                RenderUtil.draw3DLineStrip(it, 5, Color.MAGENTA, partialTicks, matrixStack)
+                GlStateManager.enableCull()
             }
         }
 

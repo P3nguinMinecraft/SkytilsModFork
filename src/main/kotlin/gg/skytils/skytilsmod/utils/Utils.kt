@@ -407,13 +407,13 @@ fun <E> List<E>.getLastOrNull(index: Int) = getOrNull(lastIndex - index)
 fun <T> Iterator<T>.nextOrNull(): T? = if (hasNext()) next() else null
 
 inline val Vec3.x
-    get() = this.xCoord
+    inline get() = this.xCoord
 
 inline val Vec3.y
-    get() = this.yCoord
+    inline get() = this.yCoord
 
 inline val Vec3.z
-    get() = this.zCoord
+    inline get() = this.zCoord
 
 operator fun Vec3.plus(other: Vec3): Vec3 = add(other)
 operator fun Vec3.minus(other: Vec3): Vec3 = subtract(other)
