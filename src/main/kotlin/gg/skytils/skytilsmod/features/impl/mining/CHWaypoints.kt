@@ -275,7 +275,8 @@ object CHWaypoints {
             fun sendThroughWS() {
                 if (loc.exists()) {
                     WSClient.wsClient.launch {
-                        WSClient.sendPacket(C2SPacketCHWaypoint(serverId = SBInfo.server ?: "", serverTime = mc.theWorld.worldTime, packetType, loc.locX!!.toInt(), loc.locY!!.toInt(), loc.locZ!!.toInt()))
+                        val worldTime = mc.theWorld?.realWorldTime ?: return@launch
+                        WSClient.sendPacket(C2SPacketCHWaypoint(serverId = SBInfo.server ?: "", serverTime = worldTime, packetType, loc.locX!!.toInt(), loc.locY!!.toInt(), loc.locZ!!.toInt()))
                     }
                 }
             }

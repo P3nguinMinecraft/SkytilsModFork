@@ -33,6 +33,7 @@ import gg.skytils.skytilsmod.asm.SkytilsTransformer
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
 import gg.skytils.skytilsmod.events.impl.PacketEvent.ReceiveEvent
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiNewChat
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory.web
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
@@ -55,6 +56,7 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.util.*
+import net.minecraft.world.World
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.common.MinecraftForge
 import org.objectweb.asm.tree.MethodInsnNode
@@ -432,3 +434,6 @@ fun <T> List<T>.elementPairs() = sequence {
         for (j in i + 1..<arr.size)
             yield(arr[i] to arr[j])
 }
+
+inline val World.realWorldTime: Long
+    inline get() = (worldInfo as AccessorWorldInfo).realWorldTime

@@ -681,8 +681,7 @@ object MiscFeatures {
                     )
                     return
                 }
-                val day =
-                    (mc.theWorld.worldInfo as AccessorWorldInfo).realWorldTime / 24000
+                val day = mc.theWorld.realWorldTime / 24000
                 ScreenRenderer.fontRenderer.drawString(
                     "Day ${NumberUtil.nf.format(day)}",
                     0f,

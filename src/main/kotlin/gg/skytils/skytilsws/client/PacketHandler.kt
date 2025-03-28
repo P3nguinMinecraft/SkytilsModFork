@@ -32,6 +32,7 @@ import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints.CHInstance
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints.chWaypointsList
 import gg.skytils.skytilsmod.utils.SBInfo
+import gg.skytils.skytilsmod.utils.realWorldTime
 import gg.skytils.skytilsws.shared.IPacketHandler
 import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.*
@@ -86,7 +87,9 @@ object PacketHandler : IPacketHandler {
             }
             is S2CPacketCHWaypoint -> {
                 if (SBInfo.server == packet.serverId) {
-                    if (mc.theWorld.worldTime < packet.serverTime) {
+                    val worldTime = mc.theWorld?.realWorldTime
+
+                    if (worldTime != null && worldTime < packet.serverTime) {
                         WSClient.sendPacket(C2SPacketCHReset(packet.serverId))
                     } else {
                         CHWaypoints.CrystalHollowsMap.Locations.entries.find { it.packetType == packet.type }?.let {
