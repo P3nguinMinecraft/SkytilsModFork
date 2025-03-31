@@ -1292,16 +1292,6 @@ object Config : Vigilant(
     var findCorrectLivid = false
 
     @Property(
-        type = PropertyType.SELECTOR, name = "Type of Livid Finder",
-        category = "Dungeons", subcategory = "Solvers",
-        options = ["Block Change (NEW)", "Static Block"],
-        i18nName = "skytils.config.dungeons.solvers.type_of_livid_finder",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.solvers"
-    )
-    var lividFinderType = 0
-
-    @Property(
         type = PropertyType.SWITCH, name = "Boxed Tanks",
         description = "Shows the bounding box of all tanks through walls.",
         category = "Dungeons", subcategory = "Tank Helper Tools",
@@ -4456,7 +4446,6 @@ object Config : Vigilant(
         addDependency("clickInOrderSecond", "clickInOrderTerminalSolver")
         addDependency("clickInOrderThird", "clickInOrderTerminalSolver")
         addDependency("changeToSameColorMode", "changeAllSameColorTerminalSolver")
-        addDependency("lividFinderType", "findCorrectLivid")
         addDependency("predictAlignmentClicks", "alignmentTerminalSolver")
         addDependency("predictSimonClicks", "simonSaysSolver")
 
