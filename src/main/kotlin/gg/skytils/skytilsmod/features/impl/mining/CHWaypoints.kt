@@ -28,8 +28,8 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.Skytils.Companion.prefix
 import gg.skytils.skytilsmod.core.structure.GuiElement
-import gg.skytils.skytilsmod.events.impl.HypixelPacketEvent
 import gg.skytils.skytilsmod.events.impl.PacketEvent
+import gg.skytils.skytilsmod.events.impl.skyblock.LocationChangeEvent
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory
@@ -38,7 +38,6 @@ import gg.skytils.skytilsws.shared.packet.C2SPacketCHWaypoint
 import gg.skytils.skytilsws.shared.packet.C2SPacketCHWaypointsSubscribe
 import gg.skytils.skytilsws.shared.structs.CHWaypointType
 import kotlinx.coroutines.launch
-import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket
 import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -73,13 +72,9 @@ object CHWaypoints {
 
 
     @SubscribeEvent
-    fun onHypixelPacket(event: HypixelPacketEvent.ReceiveEvent) {
-        if (event.packet is ClientboundLocationPacket) {
-            if (event.packet.mode.getOrNull() == SkyblockIsland.CrystalHollows.mode) {
-                Skytils.IO.launch {
-                    WSClient.sendPacket(C2SPacketCHWaypointsSubscribe(event.packet.serverName))
-                }
-            }
+    fun onHypixelPacket(event: LocationChangeEvent) {
+        if (event.packet.mode.getOrNull() == SkyblockIsland.CrystalHollows.mode) {
+            WSClient.sendPacketAsync(C2SPacketCHWaypointsSubscribe(event.packet.serverName))
         }
     }
 

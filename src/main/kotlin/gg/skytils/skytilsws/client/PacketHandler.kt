@@ -32,6 +32,7 @@ import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints.CHInstance
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints.chWaypointsList
 import gg.skytils.skytilsmod.utils.SBInfo
+import gg.skytils.skytilsmod.utils.printDevMessage
 import gg.skytils.skytilsmod.utils.realWorldTime
 import gg.skytils.skytilsws.shared.IPacketHandler
 import gg.skytils.skytilsws.shared.SkytilsWS
@@ -86,7 +87,8 @@ object PacketHandler : IPacketHandler {
                 CHWaypoints.waypoints.remove(packet.serverId)
             }
             is S2CPacketCHWaypoint -> {
-                if (SBInfo.server == packet.serverId) {
+                val currentServer = SBInfo.server
+                if (currentServer == packet.serverId) {
                     val worldTime = mc.theWorld?.realWorldTime
 
                     if (worldTime != null && worldTime < packet.serverTime) {
@@ -101,7 +103,8 @@ object PacketHandler : IPacketHandler {
                         }
                     }
                 } else {
-                    val instance = chWaypointsList.getOrPut(SBInfo.server ?: "") { CHInstance() }
+                    printDevMessage("$packet serverId: ${packet.serverId} != $currentServer", "chwaypoints")
+                    val instance = chWaypointsList.getOrPut(packet.serverId) { CHInstance() }
                     instance.waypoints[packet.type] = BlockPos(packet.x, packet.y, packet.z)
                 }
             }
