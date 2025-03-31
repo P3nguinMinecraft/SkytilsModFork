@@ -144,6 +144,7 @@ enum class SkyblockIsland(val displayName: String, val mode: String) {
     SpiderDen("Spider's Den", "combat_1"),
     CrimsonIsle("Crimson Isle", "crimson_isle"),
     TheEnd("The End", "combat_3"),
+    BackwaterBayou("Backwater Bayou", "fishing_1"),
     GoldMine("Gold Mine", "mining_1"),
     DeepCaverns("Deep Caverns", "mining_2"),
     DwarvenMines("Dwarven Mines", "mining_3"),
