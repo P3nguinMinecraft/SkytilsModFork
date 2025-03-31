@@ -28,6 +28,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.Skytils.Companion.prefix
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.events.impl.PacketEvent
 import gg.skytils.skytilsmod.events.impl.skyblock.LocationChangeEvent
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
@@ -67,13 +68,32 @@ object CHWaypoints {
         Regex(".*(?<user>[a-zA-Z0-9_]{3,16}):.* (?<x>[0-9]{1,3}),? (?<z>[0-9]{1,3}).*")
     val chWaypointsList = hashMapOf<String, CHInstance>()
     class CHInstance {
+        val createTime = System.currentTimeMillis()
         val waypoints = hashMapOf<CHWaypointType, BlockPos>()
     }
 
+    init {
+        tickTimer(20 * 60 * 5) {
+            chWaypointsList.entries.removeAll {
+                System.currentTimeMillis() > it.value.createTime + 1000 * 60 * 5
+            }
+        }
+    }
 
     @SubscribeEvent
     fun onHypixelPacket(event: LocationChangeEvent) {
         if (event.packet.mode.getOrNull() == SkyblockIsland.CrystalHollows.mode) {
+            val instance = chWaypointsList[event.packet.serverName]
+            if (instance != null) {
+                for ((type, position) in instance.waypoints) {
+                    val loc = CrystalHollowsMap.Locations.entries.find { it.packetType == type } ?: continue
+
+                    val locationObject = loc.loc
+                    locationObject.locX = position.x.toDouble()
+                    locationObject.locY = position.y.toDouble()
+                    locationObject.locZ = position.z.toDouble()
+                }
+            }
             WSClient.sendPacketAsync(C2SPacketCHWaypointsSubscribe(event.packet.serverName))
         }
     }
