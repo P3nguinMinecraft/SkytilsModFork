@@ -43,6 +43,7 @@ import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
@@ -163,10 +164,23 @@ object CHWaypoints {
             && mc.thePlayer != null && unformatted.startsWith("[NPC] King Yolkar:")
         ) {
             val yolkar = CrystalHollowsMap.Locations.KingYolkar
-            if (!yolkar.loc.exists()) {
-                yolkar.loc.set()
-                yolkar.sendThroughWS()
-            } else yolkar.loc.set()
+
+            val nametag = mc.theWorld!!.loadedEntityList.find { it is EntityArmorStand && it.customNameTag == "§6King Yolkar" }
+
+            if (nametag != null) {
+                val shifted = nametag.positionVector.subtract(200.0, 0.0, 200.0)
+
+                val shouldSendThroughWS =
+                        yolkar.loc.locX != shifted.x ||
+                        yolkar.loc.locY != shifted.y ||
+                        yolkar.loc.locZ != shifted.z
+
+                yolkar.loc.setExact(shifted.x, shifted.y, shifted.z)
+
+                if (shouldSendThroughWS) {
+                    yolkar.sendThroughWS()
+                }
+            }
         }
         if (unformatted.startsWith("You died") || unformatted.startsWith("☠ You were killed")) {
             waypointDelayTicks =
@@ -394,6 +408,20 @@ object CHWaypoints {
             locX = (locMinX + locMaxX) / 2
             locY = (locMinY + locMaxY) / 2
             locZ = (locMinZ + locMaxZ) / 2
+        }
+
+        fun setExact(x: Double, y: Double, z: Double) {
+            locX = x
+            locMinX = x
+            locMaxX = x
+
+            locY = y
+            locMinY = y
+            locMaxY = y
+
+            locZ = z
+            locMinZ = z
+            locMaxZ = z
         }
 
         fun exists(): Boolean {
