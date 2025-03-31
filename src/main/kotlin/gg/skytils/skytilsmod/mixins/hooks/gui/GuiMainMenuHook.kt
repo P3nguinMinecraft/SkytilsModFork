@@ -20,6 +20,7 @@ package gg.skytils.skytilsmod.mixins.hooks.gui
 
 import gg.essential.universal.ChatColor
 import gg.skytils.skytilsmod.Skytils
+import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiMainMenu
 import gg.skytils.skytilsmod.utils.NumberUtil.addSuffix
 import gg.skytils.skytilsmod.utils.Utils
@@ -35,10 +36,19 @@ fun setSplashText(gui: GuiMainMenu, cal: Calendar) {
         else
             gui.splashText = "§zHappy ${numBirthday.addSuffix()} Birthday Skytils!"
     } else if (Utils.isBSMod) {
-        if (!Skytils.usingSBA)
-            gui.splashText = addColor("Powered by BSMod+!", 0)
-        else
-            gui.splashText = "§zPowered by BSMod+!"
+        if (SkytilsPlus.redeemed) {
+            val text = setOf("Powered by BSMod+!", "Thanks for supporting BSMod!").random()
+
+            if (!Skytils.usingSBA)
+                gui.splashText = addColor(text, 0)
+            else
+                gui.splashText = text
+        } else {
+            if (!Skytils.usingSBA)
+                gui.splashText = addColor("/bsmod+ redeem FREETRIAL", 0)
+            else
+                gui.splashText = "/bsmod+ redeem FREETRIAL"
+        }
     }
 }
 
