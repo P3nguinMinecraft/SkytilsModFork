@@ -178,12 +178,12 @@ class GachaGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
                         y = SiblingConstraint(5f)
                     }.onLeftClick {
                         val flex = flexSet.random().replace("{length}", pickedText)
-                        Skytils.sendMessageQueue.add("/ac " +
+/*                        Skytils.sendMessageQueue.add("/ac " +
                                 flex.replace("{name}", TabListUtils.tabEntries.filter {
                                     val uuid = it.first.gameProfile.id
                                     uuid != mc.thePlayer.uniqueID && uuid.version() == 4
                                 }.randomOrNull()?.first?.gameProfile?.name ?: "everyone")
-                        )
+                        )*/
                         if (Loader.isModLoaded("SkyblockExtras")) {
                             if ("/sbeconnect" !in mc.ingameGUI.chatGUI.sentMessages) {
                                 this@GachaGui.sendChatMessage("/sbeconnect")
@@ -192,11 +192,15 @@ class GachaGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
                                 }
                             }
                         }
+                    }.apply {
+                        if (!Loader.isModLoaded("SkyblockExtras")) hide(true)
                     }
                     UIText("Flex weekly to get an extra day on your subscription!").childOf(window).constrain {
                         x = CenterConstraint()
                         y = SiblingConstraint(5f)
                         textScale = .8.pixels
+                    }.apply {
+                        if (!Loader.isModLoaded("SkyblockExtras")) hide(true)
                     }
                     SimpleButton("Claim").childOf(window).constrain {
                         x = CenterConstraint()
