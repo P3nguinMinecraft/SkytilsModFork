@@ -40,6 +40,10 @@ import net.minecraft.util.IChatComponent
 import net.minecraft.util.Vec3
 import java.awt.Color
 
+//#if MC>12000
+//$$ import gg.sktyils.skytilsmod.util.formattedText
+//#endif
+
 object BossHPDisplays : EventSubscriber {
     private var canGiantsSpawn = false
     private var giantNames = emptyList<Pair<IChatComponent, Vec3>>()
@@ -108,6 +112,10 @@ object BossHPDisplays : EventSubscriber {
                     if (size >= 4) break
                     if (entity !is EntityArmorStand) continue
                     val name = entity.customNameTag
+                    //#if MC>12000
+                    //$$     ?.formattedText
+                    //#endif
+                        ?: continue
                     if (name.startsWith("§c ☠ §7 ") && name.endsWith(" §c ☠ §7")) {
                         val nameTag = mc.theWorld.getEntitiesWithinAABB(
                             EntityArmorStand::class.java,

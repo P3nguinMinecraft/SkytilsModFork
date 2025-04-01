@@ -35,3 +35,4 @@ net.minecraft.world.World getChunk method_0_271
 net.minecraft.resource.ResourceFactory getResourceOrThrow method_14486
 
 net.minecraft.client.render.entity.EnderDragonEntityRenderer$DragonEntityModel net.minecraft.client.render.entity.model.DragonEntityModel
+net.minecraft.client.world.ClientWorld players net.minecraft.world.World field_9228
