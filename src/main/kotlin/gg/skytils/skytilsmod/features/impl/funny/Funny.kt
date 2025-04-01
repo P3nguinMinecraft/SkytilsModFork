@@ -26,15 +26,12 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.tickTimer
-import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SheepifyRebellion
 import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.gui.elements.GIFResource
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.getSkytilsResource
 import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.util.MathHelper
-import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.Loader

@@ -36,15 +36,9 @@ import gg.skytils.skytilsmod.core.MC
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiChat
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiNewChat
-import gg.skytils.skytilsmod.utils.TabListUtils
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.splitToWords
 import kotlinx.coroutines.*
-import net.minecraft.client.audio.PositionedSoundRecord
-import net.minecraft.util.ResourceLocation
-import net.minecraftforge.client.ClientCommandHandler
 import net.minecraftforge.fml.common.Loader
 import java.time.Instant
 import kotlin.random.Random
@@ -53,7 +47,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
-class GachaGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
+class GachaGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
     private val flexSet = hashSetOf(
         "{name}, I just purchased {length} of BSMod+!",
         "GUYS I JUST WON {length} of BSMod+! {name} you should try too!!!",
