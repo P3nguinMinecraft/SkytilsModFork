@@ -20,14 +20,16 @@ package gg.sktyils.skytilsmod.util
 
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.text.CharacterVisitor
+import net.minecraft.text.StringVisitable
 import net.minecraft.text.Style
 import net.minecraft.util.Formatting
+import java.util.*
 
 /**
  * This class visits a text instance and can be used to retrieve a version of the text
  * that attempts to use legacy control codes to represent colors and formatting
  */
-class ControlCodeCharVisitor : CharacterVisitor {
+class ControlCodeVisitor : CharacterVisitor, StringVisitable.StyledVisitor<String> {
     private val builder = StringBuilder()
     private var prevStyle: Style? = null
     override fun accept(index: Int, style: Style, codePoint: Int): Boolean {
@@ -38,6 +40,16 @@ class ControlCodeCharVisitor : CharacterVisitor {
 
         builder.append(codePoint.toChar())
         return true
+    }
+
+    override fun accept(style: Style, asString: String): Optional<String> {
+        if (style != prevStyle) {
+            prevStyle = style
+            builder.append(serializeFormattingToString(style))
+        }
+
+        builder.append(asString)
+        return Optional.empty()
     }
 
     private fun serializeFormattingToString(style: Style): String {
@@ -51,9 +63,7 @@ class ControlCodeCharVisitor : CharacterVisitor {
             style.isObfuscated -> builder.append("§k")
         }
 
-        style.color?.let { color ->
-            Formatting.byName(color.name)?.toString()
-        }?.let(builder::append)
+        style.color?.name?.let(Formatting::byName)?.let(builder::append)
 
         return builder.toString()
     }
