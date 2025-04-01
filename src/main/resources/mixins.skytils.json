@@ -90,6 +90,7 @@
     "sba.MixinContainerPreviewManager",
     "sk1eroam.MixinAnimationHandler",
     "skyclientupdater.MixinUpdateChecker",
+    "skyhanni.MixinHideArmor",
     "util.MixinChatStyle",
     "util.MixinIChatComponentSerializer",
     "util.MixinUtil",
