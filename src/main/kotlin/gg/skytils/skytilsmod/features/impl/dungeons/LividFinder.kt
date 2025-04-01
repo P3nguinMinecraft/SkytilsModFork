@@ -23,6 +23,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.tickTask
+import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.events.impl.BlockChangeEvent
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
@@ -30,6 +31,7 @@ import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.printDevMessage
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.sync.Mutex
 import net.minecraft.block.BlockStainedGlass
@@ -88,14 +90,15 @@ object LividFinder {
         if ((!foundLivid || DungeonFeatures.dungeonFloor == "M5") && blindnessDuration != null) {
             if (lock.tryLock()) {
                 printDevMessage("Starting livid job", "livid")
-                tickTask(blindnessDuration) {
-                    if (mc.thePlayer.ticksExisted > blindnessDuration) {
-                        val state = mc.theWorld.getBlockState(lividBlock)
-                        val color = state.getValue(BlockStainedGlass.COLOR)
-                        val mapped = dyeToChar[color]
-                        getLivid(color, mapped)
-                    } else printDevMessage("Player changed worlds?", "livid")
-                }.onCompletion {
+                tickTimer(blindnessDuration) {
+                    runCatching {
+                        if (mc.thePlayer.ticksExisted > blindnessDuration) {
+                            val state = mc.theWorld.getBlockState(lividBlock)
+                            val color = state.getValue(BlockStainedGlass.COLOR)
+                            val mapped = dyeToChar[color]
+                            getLivid(color, mapped)
+                        } else printDevMessage("Player changed worlds?", "livid")
+                    }
                     lock.unlock()
                 }
             } else printDevMessage("Livid job already started", "livid")
@@ -115,17 +118,20 @@ object LividFinder {
             val color = event.update.getValue(BlockStainedGlass.COLOR)
             val mapped = dyeToChar[color]
             printDevMessage("before blind ${color}", "livid")
-            getLivid(color, mapped)
-            printDevMessage("block detection done", "livid")
+            val blindnessDuration = mc.thePlayer.getActivePotionEffect(Potion.blindness)?.duration
+            tickTimer(blindnessDuration ?: 2) {
+                getLivid(color, mapped)
+                printDevMessage("block detection done", "livid")
+            }
         }
     }
 
     @SubscribeEvent
     fun onRenderLivingPre(event: RenderLivingEvent.Pre<*>) {
         if (!Utils.inDungeons) return
-        if (event.entity == lividTag) {
+        if ((event.entity == lividTag) || (lividTag == null && event.entity == livid)) {
             val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
-            val aabb = AxisAlignedBB(
+            val aabb = livid?.entityBoundingBox ?: AxisAlignedBB(
                 x - 0.5,
                 y - 2,
                 z - 0.5,
@@ -133,6 +139,7 @@ object LividFinder {
                 y,
                 z + 0.5
             )
+
             RenderUtil.drawOutlinedBoundingBox(
                 aabb,
                 Color(255, 107, 11, 255),
