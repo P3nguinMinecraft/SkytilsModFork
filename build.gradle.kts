@@ -48,6 +48,11 @@ repositories {
             includeGroupAndSubgroups("com.github")
         }
     }
+    maven("https://maven.dediamondpro.dev/releases") {
+        mavenContent {
+            includeGroup("dev.dediamondpro")
+        }
+    }
 }
 
 vineflower {
@@ -106,6 +111,8 @@ dependencies {
     shadowMe("com.github.Skytils.Vigilance:vigilance-1.8.9-forge:afb0909442") {
         isTransitive = false
     }
+
+    shadowMe("dev.dediamondpro:minemark-elementa:1.2.3")
 
     shadowMeMod("com.github.Skytils:AsmHelper:91ecc2bd9c") {
         exclude(module = "kotlin-reflect")
