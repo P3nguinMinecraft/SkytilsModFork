@@ -89,7 +89,7 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
                             getKeyRingCollection("sychic")
                         )
 
-                        val sig = (JcaPGPObjectFactory(PGPUtil.getDecoderStream(signFile.inputStream())).nextObject() as PGPSignatureList).first()
+                        val sig = PGPUtil.getDecoderStream(signFile.inputStream()).use { (JcaPGPObjectFactory(it).nextObject() as PGPSignatureList).first() }
                         val key = keys.firstNotNullOfOrNull { it.getPublicKey(sig.keyID) }
                         if (key != null) {
                             sig.init(JcaPGPContentVerifierBuilderProvider().setProvider(Security.getProvider("BC") ?: BouncyCastleProvider().also(Security::addProvider)), key)
@@ -154,10 +154,13 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
                 return null
             }
             val fileSaved = File(directory, url.pathSegments.last().decodeURLPart())
-            if (mc.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyTo(fileSaved.writeChannel()) == 0L) {
-                failed = true
-                return null
-            }
+            val writeChannel = fileSaved.writeChannel()
+            writeChannel.close(runCatching {
+                if (mc.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyTo(writeChannel) == 0L) {
+                    failed = true
+                    return null
+                }
+            }.exceptionOrNull())
             println("Downloaded update to $fileSaved")
             return fileSaved
         } catch (ex: Exception) {

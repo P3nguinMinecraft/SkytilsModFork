@@ -40,10 +40,9 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
 import java.io.File
-import java.nio.file.AtomicMoveNotSupportedException
+import java.io.PrintStream
 import java.nio.file.StandardCopyOption
-import kotlin.io.path.deleteIfExists
-import kotlin.io.path.moveTo
+import kotlin.io.path.*
 
 object UpdateChecker {
     val updateGetter = UpdateGetter()
@@ -62,55 +61,90 @@ object UpdateChecker {
     fun scheduleCopyUpdateAtShutdown(jarName: String) {
         Runtime.getRuntime().addShutdownHook(Thread {
             try {
-                println("Attempting to apply Skytils update.")
-                val oldJar = Skytils.jarFile
-                if (oldJar == null || !oldJar.exists() || oldJar.isDirectory) {
-                    println("Old jar file not found.")
-                    return@Thread
-                }
-                println("Copying updated jar to mods.")
-                val newJar = File(File(Skytils.modDir, "updates"), jarName)
-                println("Copying to mod folder")
-                val nameNoExtension = jarName.substringBeforeLast(".")
-                val newExtension = jarName.substringAfterLast(".")
-                val newLocation = File(
-                    oldJar.parent,
-                    "${if (oldJar.name.startsWith("!")) "!" else ""}${nameNoExtension}${if (oldJar.endsWith(".temp.jar") && newExtension == oldJar.extension) ".temp.jar" else ".$newExtension"}"
-                )
-                try {
-                    newJar.toPath().moveTo(newLocation.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-                } catch (e: AtomicMoveNotSupportedException) {
-                    e.printStackTrace()
-                    newJar.toPath().moveTo(newLocation.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                }
-                newJar.toPath().resolveSibling("${newJar.name}.asc").deleteIfExists()
-                if (oldJar.delete()) {
-                    println("successfully deleted the files. skipping install tasks")
-                    return@Thread
-                }
-                println("Running delete task")
-                val taskFile = File(File(Skytils.modDir, "updates"), "tasks").listFiles()?.last()
-                if (taskFile == null) {
-                    println("Task doesn't exist")
-                    return@Thread
-                }
-                val runtime = Utils.getJavaRuntime()
-                if (Util.getOSType() == Util.EnumOS.OSX) {
-                    val sipStatus = Runtime.getRuntime().exec("csrutil status")
-                    sipStatus.waitFor()
-                    if (!sipStatus.inputStream.use { it.bufferedReader().readText() }
-                            .contains("System Integrity Protection status: disabled.")) {
-                        println("SIP is NOT disabled, opening Finder.")
-                        UDesktop.open(oldJar.parentFile)
-                        return@Thread
+                val logFile = File(Skytils.modDir, "updates/latest.log")
+                logFile.writeBytes(byteArrayOf())
+                PrintStream(logFile.outputStream(), true).use { logPrintStream ->
+                    fun log(message: Any?) {
+                        println(message)
+                        logPrintStream.println(message)
+                    }
+
+                    fun logStackTrace(e: Throwable) {
+                        e.printStackTrace()
+                        e.printStackTrace(logPrintStream)
+                    }
+
+                    try {
+                        log("${System.currentTimeMillis()} - Attempting to apply Skytils update.")
+                        log("Attempting to apply Skytils update.")
+                        val oldJar = Skytils.jarFile
+                        if (oldJar == null || !oldJar.exists() || oldJar.isDirectory) {
+                            log("Old jar file not found.")
+                            return@Thread
+                        }
+                        log("Copying updated jar to mods.")
+                        val newJar = Skytils.modDir.toPath().resolve("updates").resolve(jarName)
+                        log("Copying to mod folder")
+                        val nameNoExtension = jarName.substringBeforeLast(".")
+                        val newExtension = jarName.substringAfterLast(".")
+                        val newLocation = Path(
+                            oldJar.parent,
+                            "${if (oldJar.name.startsWith("!")) "!" else ""}${nameNoExtension}${if (oldJar.endsWith(".temp.jar") && newExtension == oldJar.extension) ".temp.jar" else ".$newExtension"}"
+                        )
+
+                        log("New location exists? ${newLocation.exists()}")
+
+                        runCatching {
+                            // these options are platform-dependent
+                            newJar.moveTo(newLocation, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+                        }.onFailure {
+                            logStackTrace(it)
+                            log("Atomic move failed. Falling back to non-atomic move.")
+                            runCatching {
+                                newJar.moveTo(newLocation, StandardCopyOption.REPLACE_EXISTING)
+                            }.onFailure {
+                                logStackTrace(it)
+                                log("Move failed. Falling back to copy.")
+                                newJar.copyTo(newLocation, overwrite = true)
+                                log("Copy successful.")
+                            }
+                        }
+                        /*
+                        This should be done in UpdateGui now that the issue is fixed
+                        log("Deleting signature file")
+                        newJar.resolveSibling("${jarName}.asc").deleteIfExists()
+                        */
+                        if (oldJar.delete()) {
+                            log("successfully deleted the files. skipping install tasks")
+                            return@Thread
+                        }
+                        log("Running delete task")
+                        val taskFile = File(File(Skytils.modDir, "updates"), "tasks").listFiles()?.last()
+                        if (taskFile == null) {
+                            log("Task doesn't exist")
+                            return@Thread
+                        }
+                        val runtime = Utils.getJavaRuntime()
+                        if (Util.getOSType() == Util.EnumOS.OSX) {
+                            val sipStatus = Runtime.getRuntime().exec("csrutil status")
+                            sipStatus.waitFor()
+                            if (!sipStatus.inputStream.use { it.bufferedReader().readText() }
+                                    .contains("System Integrity Protection status: disabled.")) {
+                                log("SIP is NOT disabled, opening Finder.")
+                                UDesktop.open(oldJar.parentFile)
+                                return@Thread
+                            }
+                        }
+                        log("Using runtime $runtime")
+                        Runtime.getRuntime().exec("\"$runtime\" -jar \"${taskFile.absolutePath}\" delete \"${oldJar.absolutePath}\"")
+                        log("Successfully applied Skytils update.")
+                    } catch (ex: Throwable) {
+                        log("Failed to apply Skytils Update.")
+                        logStackTrace(ex)
                     }
                 }
-                println("Using runtime $runtime")
-                Runtime.getRuntime().exec("\"$runtime\" -jar \"${taskFile.absolutePath}\" delete \"${oldJar.absolutePath}\"")
-                println("Successfully applied Skytils update.")
-            } catch (ex: Throwable) {
-                println("Failed to apply Skytils Update.")
-                ex.printStackTrace()
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         })
     }
