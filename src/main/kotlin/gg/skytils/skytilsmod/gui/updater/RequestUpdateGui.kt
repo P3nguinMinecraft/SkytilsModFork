@@ -68,7 +68,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 width = RelativeConstraint()
             }
             .childOf(changelogWrapper)
-        SimpleButton("Update")
+        SimpleButton("Update and Restart")
             .constrain {
                 x = CenterConstraint()
                 y = SiblingConstraint(5f)
@@ -77,7 +77,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             }.onMouseClick {
                 Skytils.displayScreen = UpdateGui(true)
             } childOf window
-        SimpleButton("Update Later")
+        SimpleButton("Update after Restart")
             .constrain {
                 x = CenterConstraint()
                 y = SiblingConstraint(5f)
