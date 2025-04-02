@@ -34,12 +34,10 @@ import kotlin.math.roundToInt
 
 object ScanUtils {
     @OptIn(ExperimentalSerializationApi::class)
-    val roomList by lazy {
-        json.decodeFromStream<Set<RoomData>>(
-            mc.resourceManager.getResource(
-                ResourceLocation("catlas:rooms.json")
-            ).inputStream
-        )
+    val roomList: Set<RoomData> by lazy {
+        mc.resourceManager.getResource(
+            ResourceLocation("catlas:rooms.json")
+        ).inputStream.use(json::decodeFromStream)
     }
 
     fun getRoomData(x: Int, z: Int): RoomData? {
