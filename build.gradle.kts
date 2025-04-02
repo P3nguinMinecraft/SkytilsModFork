@@ -40,8 +40,8 @@ group = "gg.skytils"
 repositories {
     mavenLocal()
     mavenCentral()
-    maven("https://repo.sk1er.club/repository/maven-public/")
-    maven("https://repo.sk1er.club/repository/maven-releases/")
+    maven("https://repo.essential.gg/repository/maven-public/")
+    maven("https://repo.essential.gg/repository/maven-releases/")
     maven("https://repo.hypixel.net/repository/Hypixel/")
     maven("https://jitpack.io") {
         mavenContent {
