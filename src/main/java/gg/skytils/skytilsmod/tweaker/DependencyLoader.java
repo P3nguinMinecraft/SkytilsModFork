@@ -82,7 +82,7 @@ public class DependencyLoader {
 
         try {
             String brotli4jPlatform = getBrotli4jPlatform();
-            loadDependency(String.format("com/aayushatharva/brotli4j/native-%s/1.16.0/native-%s-1.16.0.jar", brotli4jPlatform, brotli4jPlatform), false);
+            loadDependency(String.format("com/aayushatharva/brotli4j/native-%s/1.18.0/native-%s-1.18.0.jar", brotli4jPlatform, brotli4jPlatform), false);
             Brotli4jLoader.ensureAvailability();
             hasNativeBrotli = true;
             System.out.println("Native Brotli loaded");
