@@ -32,6 +32,7 @@ import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.commands.impl.RepartyCommand
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
+import gg.skytils.skytilsmod.gui.ProtectItemGui
 import gg.skytils.skytilsmod.gui.features.PotionNotificationsGui
 import gg.skytils.skytilsmod.gui.features.SpiritLeapNamesGui
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorCommandHandler
@@ -3146,6 +3147,7 @@ object Config : Vigilant(
         if (ModChecker.canShowNotifications) {
             EssentialAPI.getNotifications().push("Protect Items Help", "Hold the item you'd like to protect, and then run /protectitem.", 5f)
         } else UChat.chat("${Skytils.prefix} §bHold the item you'd like to protect, and then run /protectitem.")
+        Skytils.displayScreen = ProtectItemGui()
     }
 
     @Property(
