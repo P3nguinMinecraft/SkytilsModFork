@@ -112,7 +112,10 @@ dependencies {
         isTransitive = false
     }
 
-    shadowMe("dev.dediamondpro:minemark-elementa:1.2.3")
+    shadowMe("dev.dediamondpro:minemark-elementa:1.2.3") {
+        excludeKotlin()
+        exclude(module = "elementa-1.8.9-forge")
+    }
 
     shadowMeMod("com.github.Skytils:AsmHelper:91ecc2bd9c") {
         exclude(module = "kotlin-reflect")
@@ -125,37 +128,38 @@ dependencies {
     shadowMe(platform(kotlin("bom")))
     shadowMe(platform(ktor("bom", "2.3.12", addSuffix = false)))
 
-    shadowMe(ktor("serialization-kotlinx-json"))
+    shadowMe(ktor("serialization-kotlinx-json")) { excludeKotlin() }
 
     shadowMe("org.jetbrains.kotlinx:kotlinx-serialization-json") {
         version {
             strictly("[1.5.1,)")
             prefer("1.6.2")
         }
+        excludeKotlin()
     }
 
-    shadowMe(ktorClient("core"))
-    shadowMe(ktorClient("cio"))
-    shadowMe(ktorClient("content-negotiation"))
-    shadowMe(ktorClient("encoding"))
+    shadowMe(ktorClient("core")) { excludeKotlin() }
+    shadowMe(ktorClient("cio")) { excludeKotlin() }
+    shadowMe(ktorClient("content-negotiation")) { excludeKotlin() }
+    shadowMe(ktorClient("encoding")) { excludeKotlin() }
 
-    shadowMe(ktorServer("core"))
-    shadowMe(ktorServer("cio"))
-    shadowMe(ktorServer("content-negotiation"))
-    shadowMe(ktorServer("compression"))
-    shadowMe(ktorServer("cors"))
-    shadowMe(ktorServer("conditional-headers"))
-    shadowMe(ktorServer("auto-head-response"))
-    shadowMe(ktorServer("default-headers"))
-    shadowMe(ktorServer("host-common"))
-    shadowMe(ktorServer("auth"))
+    shadowMe(ktorServer("core")) { excludeKotlin() }
+    shadowMe(ktorServer("cio")) { excludeKotlin() }
+    shadowMe(ktorServer("content-negotiation")) { excludeKotlin() }
+    shadowMe(ktorServer("compression")) { excludeKotlin() }
+    shadowMe(ktorServer("cors")) { excludeKotlin() }
+    shadowMe(ktorServer("conditional-headers")) { excludeKotlin() }
+    shadowMe(ktorServer("auto-head-response")) { excludeKotlin() }
+    shadowMe(ktorServer("default-headers")) { excludeKotlin() }
+    shadowMe(ktorServer("host-common")) { excludeKotlin() }
+    shadowMe(ktorServer("auth")) { excludeKotlin() }
 
     shadowMe("org.brotli:dec:0.1.2")
     shadowMe("com.aayushatharva.brotli4j:brotli4j:1.18.0")
 
-    shadowMe(project(":events"))
-    shadowMe(project(":hypixel-api:types"))
-    shadowMe(project(":ws-shared"))
+    shadowMe(project(":events")) { excludeKotlin() }
+    shadowMe(project(":hypixel-api:types")) { excludeKotlin() }
+    shadowMe(project(":ws-shared")) { excludeKotlin() }
 
     shadowMe("org.bouncycastle:bcpg-jdk18on:1.78.1") {
         exclude(module = "bcprov-jdk18on")
@@ -323,3 +327,9 @@ fun DependencyHandler.ktor(module: String, version: String? = null, addSuffix: B
 fun DependencyHandler.ktorClient(module: String, version: String? = null) = ktor("client-${module}", version)
 
 fun DependencyHandler.ktorServer(module: String, version: String? = null) = ktor("server-${module}", version)
+
+fun <T : ModuleDependency> T.excludeKotlin(): T {
+    exclude(group = "org.jetbrains.kotlin")
+    exclude(module = "kotlinx-coroutines-core")
+    return this
+}
