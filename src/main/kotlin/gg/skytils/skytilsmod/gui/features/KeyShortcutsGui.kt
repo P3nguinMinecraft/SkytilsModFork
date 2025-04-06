@@ -85,7 +85,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             addNewShortcut()
         }
 
-        KeyShortcuts.shortcuts.forEach {
+        KeyShortcuts.shortcuts.sortedBy(KeyShortcuts.KeybindShortcut::message).forEach {
             addNewShortcut(it.message, it.keyCode, it.modifiers, it.enabled)
         }
     }
