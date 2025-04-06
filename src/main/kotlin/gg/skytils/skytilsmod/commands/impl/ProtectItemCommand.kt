@@ -23,7 +23,7 @@ import gg.skytils.skytilsmod.Skytils.Companion.successPrefix
 import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
-import gg.skytils.skytilsmod.gui.ProtectItemGui
+import gg.skytils.skytilsmod.gui.features.ProtectItemGui
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.entity.EntityPlayerSP

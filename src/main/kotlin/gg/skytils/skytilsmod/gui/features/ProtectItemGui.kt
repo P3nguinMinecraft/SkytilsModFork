@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.gui
+package gg.skytils.skytilsmod.gui.features
 
 import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
@@ -30,25 +30,25 @@ import gg.essential.elementa.dsl.basicColorConstraint
 import gg.essential.elementa.dsl.childOf
 import gg.essential.elementa.dsl.constrain
 import gg.essential.elementa.dsl.pixels
-import gg.essential.elementa.dsl.toConstraint
 import gg.essential.elementa.events.UIClickEvent
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.state.State
 import gg.essential.universal.UChat
 import gg.essential.vigilance.utils.onLeftClick
-import gg.skytils.skytilsmod.Skytils.Companion.successPrefix
+import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.ItemProtectStrategy
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
 import gg.skytils.skytilsmod.gui.constraints.FixedChildBasedRangeConstraint
 import gg.skytils.skytilsmod.gui.profile.components.InventoryComponent
 import gg.skytils.skytilsmod.gui.profile.components.SlotComponent
-import gg.skytils.skytilsmod.gui.profile.components.WardrobeComponent.ArmorComponent
+import gg.skytils.skytilsmod.gui.profile.components.WardrobeComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
 import net.minecraft.item.ItemStack
 import java.awt.Color
+import kotlin.collections.forEach
 
-class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialAPI.getGuiUtil().getGuiScale()) {
+class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialAPI.Companion.getGuiUtil().getGuiScale()) {
 
     val protectedColor = Color(75, 227, 62, 190)
     val unprotectedColor = Color(255, 0, 0, 190)
@@ -66,20 +66,20 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
         height = (4 * (16 + 2)).pixels
     }.apply {
         parseInv(inventoryState.get())
-        Window.enqueueRenderOperation {
+        Window.Companion.enqueueRenderOperation {
             children.filterIsInstance<SlotComponent>().forEach(::setup)
         }
     } childOf window
 
     val armorState: State<List<ItemStack?>> = BasicState(mc.thePlayer.inventory.armorInventory.reversed())
-    val armorComponent = ArmorComponent(armorState, true).constrain {
+    val armorComponent = WardrobeComponent.ArmorComponent(armorState, true).constrain {
         x = SubtractiveConstraint(inventoryComponent.constraints.x, 50.pixels)
         y = CramSiblingConstraint()
         width = ChildBasedMaxSizeConstraint()
         height = FixedChildBasedRangeConstraint()
     }.apply {
         parseSlots(armorState.get())
-        Window.enqueueRenderOperation {
+        Window.Companion.enqueueRenderOperation {
             children.filterIsInstance<SlotComponent>().forEach(::setup)
         }
     } childOf window
@@ -88,7 +88,12 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
         if (slot.item != null) {
             slot.constrain {
                 color = basicColorConstraint {
-                    if (FavoriteStrategy.worthProtecting(slot.item, ItemUtil.getExtraAttributes(slot.item), ItemProtectStrategy.ProtectType.DROPKEYININVENTORY))
+                    if (FavoriteStrategy.worthProtecting(
+                            slot.item,
+                            ItemUtil.getExtraAttributes(slot.item),
+                            ItemProtectStrategy.ProtectType.DROPKEYININVENTORY
+                        )
+                    )
                         protectedColor
                     else
                         unprotectedColor
@@ -106,25 +111,25 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
         if (extraAttributes.hasKey("uuid")) {
             val uuid = extraAttributes.getString("uuid")
             if (FavoriteStrategy.favoriteUUIDs.remove(uuid)) {
-                PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-                UChat.chat("$successPrefix §cI will no longer protect your ${item.displayName}§a!")
+                PersistentSave.Companion.markDirty<FavoriteStrategy.FavoriteStrategySave>()
+                UChat.chat("${Skytils.Companion.successPrefix} §cI will no longer protect your ${item.displayName}§a!")
                 return true
             } else {
                 FavoriteStrategy.favoriteUUIDs.add(uuid)
-                PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-                UChat.chat("$successPrefix §aI will now protect your ${item.displayName}!")
+                PersistentSave.Companion.markDirty<FavoriteStrategy.FavoriteStrategySave>()
+                UChat.chat("${Skytils.Companion.successPrefix} §aI will now protect your ${item.displayName}!")
                 return true
             }
         } else {
             val itemId = ItemUtil.getSkyBlockItemID(item) ?: return false
             if (FavoriteStrategy.favoriteItemIds.remove(itemId)) {
-                PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-                UChat.chat("$successPrefix §cI will no longer protect all of your ${itemId}s!")
+                PersistentSave.Companion.markDirty<FavoriteStrategy.FavoriteStrategySave>()
+                UChat.chat("${Skytils.Companion.successPrefix} §cI will no longer protect all of your ${itemId}s!")
                 return true
             } else {
                 FavoriteStrategy.favoriteItemIds.add(itemId)
-                PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-                UChat.chat("$successPrefix §aI will now protect all of your ${itemId}s!")
+                PersistentSave.Companion.markDirty<FavoriteStrategy.FavoriteStrategySave>()
+                UChat.chat("${Skytils.Companion.successPrefix} §aI will now protect all of your ${itemId}s!")
                 return true
             }
         }
