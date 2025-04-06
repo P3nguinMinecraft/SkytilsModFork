@@ -163,10 +163,10 @@ dependencies {
     compileOnly("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
 
-    compileOnly("net.hypixel:mod-api-forge:1.0.1.1") {
+    compileOnly("net.hypixel:mod-api-forge:1.0.1.2") {
         exclude(group = "me.djtheredstoner", module = "DevAuth-forge-legacy")
     }
-    shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.1")
+    shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.2")
 
     shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-rc.1")!!)
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
