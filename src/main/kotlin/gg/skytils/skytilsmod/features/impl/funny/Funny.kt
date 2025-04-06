@@ -55,7 +55,9 @@ object Funny {
         val classification = suspiciousEntryPoints.mapTo(hashSetOf()) { it.modId }
         val machineLearningModel = ModList(suspiciousEntryPoints).modList().keys
         val llmHallucinations = setOf("od")
-        val cheetos = classification - machineLearningModel - llmHallucinations
+        val cheetos = (classification - machineLearningModel).let { llm ->
+            if (Skytils.MOD_ID !in llm) llm - llmHallucinations else llm
+        }
 
         if (cheetos.isNotEmpty()) {
             Skytils.sendMessageQueue.addFirst("/lobby ptl")
