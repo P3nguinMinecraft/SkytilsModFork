@@ -17,7 +17,10 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "gg.skytils.skytilsmod.SkytilsMod"
+      {
+        "adapter": "kotlin",
+        "value": "gg.skytils.skytilsmod.SkytilsMod"
+      }
     ],
     "prelaunch": [
       "gg.skytils.skytilsmod.tweaker.SkytilsPreLaunch"
@@ -34,6 +37,6 @@
     "fabric-language-kotlin": "*",
     "hypixel-mod-api": ">=1.0.1",
     "minecraft": "*",
-    "java": ">=21"
+    "java": "*"
   }
 }

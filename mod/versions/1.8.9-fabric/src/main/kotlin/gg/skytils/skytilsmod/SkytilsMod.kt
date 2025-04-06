@@ -20,7 +20,6 @@ package gg.skytils.skytilsmod
 
 import net.fabricmc.api.ClientModInitializer
 
-// TODO: fix fabric.mod.json
 // TODO: call loadComplete
 object SkytilsMod : ClientModInitializer {
     override fun onInitializeClient() {
