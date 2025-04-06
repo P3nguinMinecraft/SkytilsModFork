@@ -57,7 +57,7 @@ object KeyShortcuts : EventSubscriber, PersistentSave(File(Skytils.modDir, "keys
     private fun handleInput(keyCode: Int) {
         val modifiers = Modifiers.getBitfield(Modifiers.getPressed())
         for (s in shortcuts) {
-            if (s.keyCode == 0) continue
+            if (s.keyCode == 0 || !s.enabled) continue
             if (s.keyCode == keyCode && s.modifiers == modifiers) {
                 if (s.message.startsWith("/") && runClientCommand(
                         s.message
@@ -94,11 +94,12 @@ object KeyShortcuts : EventSubscriber, PersistentSave(File(Skytils.modDir, "keys
     }
 
     @Serializable
-    data class KeybindShortcut(val message: String, val keyCode: Int, val modifiers: Int = 0) {
-        constructor(message: String, keyCode: Int, modifiers: List<Modifiers>) : this(
+    data class KeybindShortcut(val message: String, val keyCode: Int, val modifiers: Int = 0, var enabled: Boolean = true) {
+        constructor(message: String, keyCode: Int, modifiers: List<Modifiers>, enabled: Boolean) : this(
             message,
             keyCode,
-            Modifiers.getBitfield(modifiers)
+            Modifiers.getBitfield(modifiers),
+            enabled
         )
     }
 

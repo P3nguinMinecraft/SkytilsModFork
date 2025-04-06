@@ -343,6 +343,43 @@ object RenderUtil {
         UGraphics.color4f(1f, 1f, 1f, 1f)
     }
 
+    fun draw3DLineStrip(
+        points: Iterable<Vec3>,
+        width: Int,
+        color: Color,
+        partialTicks: Float,
+        matrixStack: UMatrixStack,
+        alphaMultiplier: Float = 1f
+    ) {
+        val render = mc.renderViewEntity
+        val worldRenderer = UGraphics.getFromTessellator()
+        val realX = interpolate(render.posX, render.lastTickPosX, partialTicks)
+        val realY = interpolate(render.posY, render.lastTickPosY, partialTicks)
+        val realZ = interpolate(render.posZ, render.lastTickPosZ, partialTicks)
+        matrixStack.push()
+        matrixStack.translate(-realX, -realY, -realZ)
+        UGraphics.enableBlend()
+        UGraphics.enableAlpha()
+        UGraphics.disableLighting()
+        UGraphics.tryBlendFuncSeparate(770, 771, 1, 0)
+        GL11.glLineWidth(width.toFloat())
+        UGraphics.color4f(
+            color.red / 255f,
+            color.green / 255f,
+            color.blue / 255f,
+            (color.alpha * alphaMultiplier / 255f).coerceAtMost(1f)
+        )
+        worldRenderer.beginWithActiveShader(UGraphics.DrawMode.LINE_STRIP, DefaultVertexFormats.POSITION)
+        points.forEach {
+            worldRenderer.pos(matrixStack, it.x, it.y, it.z).endVertex()
+        }
+        worldRenderer.drawDirect()
+        matrixStack.pop()
+        UGraphics.disableBlend()
+        UGraphics.enableAlpha()
+        UGraphics.color4f(1f, 1f, 1f, 1f)
+    }
+
     fun drawLabel(
         pos: Vec3,
         text: String,

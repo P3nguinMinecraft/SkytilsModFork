@@ -43,7 +43,7 @@ import java.awt.Point
 import kotlin.math.abs
 
 object IcePathSolver : EventSubscriber {
-    private val steps: MutableList<Point?> = ArrayList()
+    private val steps: MutableList<Point> = ArrayList()
     private var silverfishChestPos: BlockPos? = null
     private var roomFacing: EnumFacing? = null
     private var grid: Array<IntArray>? = null
@@ -128,18 +128,10 @@ object IcePathSolver : EventSubscriber {
         if (!Skytils.config.icePathSolver) return
         if (silverfishChestPos != null && roomFacing != null && grid != null && silverfish?.isEntityAlive == true) {
             GlStateManager.disableCull()
-            steps.zipWithNext().forEach { (point, point2) ->
-                val pos = getVec3RelativeToGrid(point!!.x, point.y)
-                val pos2 = getVec3RelativeToGrid(point2!!.x, point2.y)
-                RenderUtil.draw3DLine(
-                    pos!!.addVector(0.5, 0.5, 0.5),
-                    pos2!!.addVector(0.5, 0.5, 0.5),
-                    5,
-                    Color.RED,
-                    event.partialTicks,
-                    UMatrixStack.Compat.get()
-                )
-            }
+
+            val points = steps.map { getVec3RelativeToGrid(it.x, it.y)!!.addVector(0.5, 0.5, 0.5) }
+            RenderUtil.draw3DLineStrip(points, 5, Color.RED, event.partialTicks, UMatrixStack.Compat.get())
+
             GlStateManager.enableCull()
         }
     }
@@ -206,7 +198,7 @@ object IcePathSolver : EventSubscriber {
      * @link https://stackoverflow.com/a/55271133
      * @author ofekp
      */
-    private fun solve(iceCave: Array<IntArray>, startX: Int, startY: Int, endX: Int, endY: Int): ArrayList<Point?> {
+    private fun solve(iceCave: Array<IntArray>, startX: Int, startY: Int, endX: Int, endY: Int): ArrayList<Point> {
         val startPoint = Point(startX, startY)
         val queue = ArrayDeque<Point>()
         val iceCaveColors = Array(
@@ -225,7 +217,7 @@ object IcePathSolver : EventSubscriber {
                         currPos.x, currPos.y
                     )
                     if (nextPos.getY() == endY.toDouble() && nextPos.getX() == endX.toDouble()) {
-                        val steps = ArrayList<Point?>()
+                        val steps = ArrayList<Point>()
                         // we found the end point
                         var tmp = currPos // if we start from nextPos we will count one too many edges
                         var count = 0

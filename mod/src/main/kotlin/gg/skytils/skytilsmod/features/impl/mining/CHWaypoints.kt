@@ -38,6 +38,7 @@ import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod._event.LocationChangeEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory
@@ -49,6 +50,8 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
@@ -66,9 +69,17 @@ object CHWaypoints : EventSubscriber {
         Regex(".*(?<user>[a-zA-Z0-9_]{3,16}):.* (?<x>[0-9]{1,3}),? (?<z>[0-9]{1,3}).*")
     val chWaypointsList = hashMapOf<String, CHInstance>()
     class CHInstance {
+        val createTime = System.currentTimeMillis()
         val waypoints = hashMapOf<CHWaypointType, BlockPos>()
     }
 
+    init {
+        tickTimer(20 * 60 * 5) {
+            chWaypointsList.entries.removeAll {
+                System.currentTimeMillis() > it.value.createTime + 1000 * 60 * 5
+            }
+        }
+    }
 
     override fun setup() {
         register(::onLocationChange)
@@ -82,9 +93,18 @@ object CHWaypoints : EventSubscriber {
 
     fun onLocationChange(event: LocationChangeEvent) {
         if (event.packet.mode.getOrNull() == SkyblockIsland.CrystalHollows.mode) {
-            Skytils.IO.launch {
-                WSClient.sendPacket(C2SPacketCHWaypointsSubscribe(event.packet.serverName))
+            val instance = chWaypointsList[event.packet.serverName]
+            if (instance != null) {
+                for ((type, position) in instance.waypoints) {
+                    val loc = CrystalHollowsMap.Locations.entries.find { it.packetType == type } ?: continue
+
+                    val locationObject = loc.loc
+                    locationObject.locX = position.x.toDouble()
+                    locationObject.locY = position.y.toDouble()
+                    locationObject.locZ = position.z.toDouble()
+                }
             }
+            WSClient.sendPacketAsync(C2SPacketCHWaypointsSubscribe(event.packet.serverName))
         }
     }
 
@@ -151,10 +171,23 @@ object CHWaypoints : EventSubscriber {
             && mc.thePlayer != null && unformatted.startsWith("[NPC] King Yolkar:")
         ) {
             val yolkar = CrystalHollowsMap.Locations.KingYolkar
-            if (!yolkar.loc.exists()) {
-                yolkar.loc.set()
-                yolkar.sendThroughWS()
-            } else yolkar.loc.set()
+
+            val nametag = mc.theWorld!!.loadedEntityList.find { it is EntityArmorStand && it.customNameTag == "§6King Yolkar" }
+
+            if (nametag != null) {
+                val shifted = nametag.positionVector.subtract(200.0, 0.0, 200.0)
+
+                val shouldSendThroughWS =
+                        yolkar.loc.locX != shifted.x ||
+                        yolkar.loc.locY != shifted.y ||
+                        yolkar.loc.locZ != shifted.z
+
+                yolkar.loc.setExact(shifted.x, shifted.y, shifted.z)
+
+                if (shouldSendThroughWS) {
+                    yolkar.sendThroughWS()
+                }
+            }
         }
         if (unformatted.startsWith("You died") || unformatted.startsWith("☠ You were killed")) {
             waypointDelayTicks =
@@ -274,7 +307,8 @@ object CHWaypoints : EventSubscriber {
             fun sendThroughWS() {
                 if (loc.exists()) {
                     WSClient.wsClient.launch {
-                        WSClient.sendPacket(C2SPacketCHWaypoint(serverId = SBInfo.server ?: "", serverTime = mc.theWorld.worldTime, packetType, loc.locX!!.toInt(), loc.locY!!.toInt(), loc.locZ!!.toInt()))
+                        val worldTime = mc.theWorld?.realWorldTime ?: return@launch
+                        WSClient.sendPacket(C2SPacketCHWaypoint(serverId = SBInfo.server ?: "", serverTime = worldTime, packetType, loc.locX!!.toInt(), loc.locY!!.toInt(), loc.locZ!!.toInt()))
                     }
                 }
             }
@@ -377,6 +411,20 @@ object CHWaypoints : EventSubscriber {
             locX = (locMinX + locMaxX) / 2
             locY = (locMinY + locMaxY) / 2
             locZ = (locMinZ + locMaxZ) / 2
+        }
+
+        fun setExact(x: Double, y: Double, z: Double) {
+            locX = x
+            locMinX = x
+            locMaxX = x
+
+            locY = y
+            locMinY = y
+            locMaxY = y
+
+            locZ = z
+            locMinZ = z
+            locMaxZ = z
         }
 
         fun exists(): Boolean {

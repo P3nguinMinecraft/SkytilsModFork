@@ -191,7 +191,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
                 else -> error("Invalid foundRoomSecrets value")
             }
 
-            if (CatlasConfig.mapRoomSecrets == 2 && hasSecrets) {
+            if (hasSecrets && (CatlasConfig.mapRoomSecrets == 2 || CatlasConfig.mapRoomSecrets == 3 && room.state != RoomState.GREEN)) {
                 GlStateManager.pushMatrix()
                 GlStateManager.translate(
                     xOffsetCheck + halfRoom.toFloat(),

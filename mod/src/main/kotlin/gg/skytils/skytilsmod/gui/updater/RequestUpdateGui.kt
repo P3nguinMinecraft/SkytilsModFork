@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.gui.updater
 
+import dev.dediamondpro.minemark.elementa.MineMarkComponent
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.ScrollComponent
@@ -29,7 +30,6 @@ import gg.essential.elementa.dsl.basicHeightConstraint
 import gg.essential.elementa.dsl.childOf
 import gg.essential.elementa.dsl.constrain
 import gg.essential.elementa.dsl.pixels
-import gg.essential.elementa.markdown.MarkdownComponent
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.UpdateChecker
 import gg.skytils.skytilsmod.gui.components.SimpleButton
@@ -62,26 +62,26 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 height = basicHeightConstraint { window.getHeight() - 90 - authorText.getBottom() }
                 width = RelativeConstraint(0.7f)
             } childOf window
-        MarkdownComponent(updateObj.body.replace("*", ""))
+        MineMarkComponent(updateObj.body)
             .constrain {
                 height = RelativeConstraint()
                 width = RelativeConstraint()
             }
             .childOf(changelogWrapper)
-        SimpleButton("Update")
+        SimpleButton("Update and Restart")
             .constrain {
                 x = CenterConstraint()
                 y = SiblingConstraint(5f)
-                width = 100.pixels()
+                width = 150.pixels()
                 height = 20.pixels()
             }.onMouseClick {
                 Skytils.displayScreen = UpdateGui(true)
             } childOf window
-        SimpleButton("Update Later")
+        SimpleButton("Update after Restart")
             .constrain {
                 x = CenterConstraint()
                 y = SiblingConstraint(5f)
-                width = 100.pixels()
+                width = 150.pixels()
                 height = 20.pixels()
             }.onMouseClick {
                 Skytils.displayScreen = UpdateGui(false)
@@ -90,7 +90,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             .constrain {
                 x = CenterConstraint()
                 y = SiblingConstraint(5f)
-                width = 100.pixels()
+                width = 150.pixels()
                 height = 20.pixels()
             }.onMouseClick {
                 UpdateChecker.updateGetter.updateObj = null

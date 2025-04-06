@@ -53,17 +53,23 @@ object Funny {
         val suspiciousEntryPoints = Loader.instance().activeModList
         val classification = suspiciousEntryPoints.mapTo(hashSetOf()) { it.modId }
         val machineLearningModel = ModList(suspiciousEntryPoints).modList().keys
-        if (classification.size != machineLearningModel.size) {
+        val llmHallucinations = setOf("od")
+        val cheetos = (classification - machineLearningModel).let { llm ->
+            if (Skytils.MOD_ID !in llm) llm - llmHallucinations else llm
+        }
+
+        if (cheetos.isNotEmpty()) {
             Skytils.sendMessageQueue.addFirst("/lobby ptl")
 
             tickTimer(10) {
-                val cheetos = classification - machineLearningModel
-
                 UChat.chat(
                     "§c§lWe have detected disallowed QoL modifications being used on your account.\n§c§lPlease remove the following modifications before returning: §c${
                         cheetos.joinToString(
                             ", "
-                        )
+                        ) {
+                            val mod = suspiciousEntryPoints.find { m -> m.modId == it }
+                            "${it}${if (mod != null) " (${mod.name})" else ""}"
+                        }
                     }."
                 )
                 UMessage(

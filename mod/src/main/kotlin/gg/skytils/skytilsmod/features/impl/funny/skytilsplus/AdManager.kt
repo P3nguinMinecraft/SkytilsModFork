@@ -36,6 +36,7 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import gg.skytils.skytilsmod.utils.setHoverText
 import net.minecraft.util.ResourceLocation
 import kotlin.random.Random
 
@@ -71,7 +72,8 @@ object AdManager : EventSubscriber {
         if (!Utils.isBSMod || SkytilsPlus.redeemed) return
         tickTimer(60) {
             UTextComponent(addColor("Your play session today is powered by BSMod! Click me to try BSMod+ today for free!".toCharArray().joinToString("") { if (Random.nextDouble() > .5) it.uppercase() else it.lowercase() }, 0))
-                .setClick(MCClickEventAction.SUGGEST_COMMAND, "/bsmod+ redeem FREETRIAL").chat()
+                .setClick(MCClickEventAction.SUGGEST_COMMAND, "/bsmod+ redeem FREETRIAL")
+                .setHoverText("Redeem your free trial today! No payment method necessary.").chat()
         }
     }
 }

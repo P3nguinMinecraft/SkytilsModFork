@@ -77,7 +77,7 @@ object MimicDetector : EventSubscriber {
                         //#else
                         //$$ ?.getSubNbt("SkullOwner")
                         //#endif
-                        ?.getString("Id") == "bcb486a4-0cb5-35db-93f0-039fbdde03f0"
+                        ?.getString("Id") == "ae55953f-605e-3c71-a813-310c028de150"
                 }) {
                 ScoreCalculation.mimicKilled.set(true)
                 if (Skytils.config.scoreCalculationAssist) {

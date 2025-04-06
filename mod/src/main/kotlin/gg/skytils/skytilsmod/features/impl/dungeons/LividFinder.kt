@@ -28,16 +28,17 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.structure.GuiElement
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorEnumDyeColor
+import gg.skytils.skytilsmod.core.tickTask
+import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import gg.skytils.skytilsmod.utils.printDevMessage
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.sync.Mutex
 import net.minecraft.block.BlockStainedGlass
-import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.item.EnumDyeColor
@@ -52,8 +53,33 @@ object LividFinder : EventSubscriber {
     private var foundLivid = false
     var livid: Entity? = null
     private var lividTag: Entity? = null
-    private var lividJob: Job? = null
     private val lividBlock = BlockPos(13, 107, 25)
+    private var lock = Mutex()
+
+    //https://wiki.hypixel.net/Livid
+    val dyeToChar: Map<EnumDyeColor, EnumChatFormatting> = mapOf(
+        EnumDyeColor.WHITE to EnumChatFormatting.WHITE,
+        EnumDyeColor.MAGENTA to EnumChatFormatting.LIGHT_PURPLE,
+        EnumDyeColor.RED to EnumChatFormatting.RED,
+        EnumDyeColor.GRAY to EnumChatFormatting.GRAY,
+        EnumDyeColor.GREEN to EnumChatFormatting.DARK_GREEN,
+        EnumDyeColor.LIME to EnumChatFormatting.GREEN,
+        EnumDyeColor.BLUE to EnumChatFormatting.BLUE,
+        EnumDyeColor.PURPLE to EnumChatFormatting.DARK_PURPLE,
+        EnumDyeColor.YELLOW to EnumChatFormatting.YELLOW
+    )
+
+    val charToName: Map<EnumChatFormatting, String> = mapOf(
+        EnumChatFormatting.YELLOW to "Arcade",
+        EnumChatFormatting.WHITE to "Vendetta",
+        EnumChatFormatting.GRAY to "Doctor",
+        EnumChatFormatting.DARK_GREEN to "Frog",
+        EnumChatFormatting.DARK_PURPLE to "Purple",
+        EnumChatFormatting.RED to "Hockey",
+        EnumChatFormatting.LIGHT_PURPLE to "Crossed",
+        EnumChatFormatting.GREEN to "Smile",
+        EnumChatFormatting.BLUE to "Scream"
+    )
 
     override fun setup() {
         register(::onTick)
@@ -64,20 +90,22 @@ object LividFinder : EventSubscriber {
 
     fun onTick(event: TickEvent) {
         if (mc.thePlayer == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
-
-        if (Skytils.config.lividFinderType == 1 && !foundLivid && mc.thePlayer.isPotionActive(Potion.blindness)) {
-            if (lividJob == null || lividJob?.isCancelled == true || lividJob?.isCompleted == true) {
+        val blindnessDuration = mc.thePlayer.getActivePotionEffect(Potion.blindness)?.duration
+        if ((!foundLivid || DungeonFeatures.dungeonFloor == "M5") && blindnessDuration != null) {
+            if (lock.tryLock()) {
                 printDevMessage("Starting livid job", "livid")
-                lividJob = Skytils.launch {
-                    while (mc.thePlayer.isPotionActive(Potion.blindness)) {
-                        delay(1)
+                tickTimer(blindnessDuration) {
+                    runCatching {
+                        if (mc.thePlayer.ticksExisted > blindnessDuration) {
+                            val state = mc.theWorld.getBlockState(lividBlock)
+                            val color = state.getValue(BlockStainedGlass.COLOR)
+                            val mapped = dyeToChar[color]
+                            getLivid(color, mapped)
+                        } else printDevMessage("Player changed worlds?", "livid")
                     }
-                    val state = mc.theWorld.getBlockState(lividBlock)
-                    val color = state.getValue(BlockStainedGlass.COLOR)
-                    val (a, otherColor) = getLividColors(color)
-                    getLivid(color, a, otherColor)
+                    lock.unlock()
                 }
-            }
+            } else printDevMessage("Livid job already started", "livid")
         }
 
         if (lividTag?.isDead == true || livid?.isDead == true) {
@@ -89,16 +117,13 @@ object LividFinder : EventSubscriber {
         if (mc.thePlayer == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
         if (event.pos == lividBlock) {
             printDevMessage("Livid block changed", "livid")
-            if (Skytils.config.lividFinderType == 0) {
-                printDevMessage("block detection started", "livid")
-                val color = event.update.getValue(BlockStainedGlass.COLOR)
-                val (mapped, other) = getLividColors(color)
-                Skytils.launch {
-                    while (mc.thePlayer.isPotionActive(Potion.blindness)) {
-                        delay(1)
-                    }
-                    getLivid(color, mapped, other)
-                }
+            printDevMessage("block detection started", "livid")
+            val color = event.update.getValue(BlockStainedGlass.COLOR)
+            val mapped = dyeToChar[color]
+            printDevMessage("before blind ${color}", "livid")
+            val blindnessDuration = mc.thePlayer.getActivePotionEffect(Potion.blindness)?.duration
+            tickTimer(blindnessDuration ?: 2) {
+                getLivid(color, mapped)
                 printDevMessage("block detection done", "livid")
             }
         }
@@ -106,9 +131,9 @@ object LividFinder : EventSubscriber {
 
     fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*>) {
         if (!Utils.inDungeons) return
-        if (event.entity == lividTag) {
+        if ((event.entity == lividTag) || (lividTag == null && event.entity == livid)) {
             val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
-            val aabb = AxisAlignedBB(
+            val aabb = livid?.entityBoundingBox ?: AxisAlignedBB(
                 x - 0.5,
                 y - 2,
                 z - 0.5,
@@ -116,6 +141,7 @@ object LividFinder : EventSubscriber {
                 y,
                 z + 0.5
             )
+
             RenderUtil.drawOutlinedBoundingBox(
                 aabb,
                 Color(255, 107, 11, 255),
@@ -130,53 +156,18 @@ object LividFinder : EventSubscriber {
         foundLivid = false
     }
 
-    fun getLividColors(color: EnumDyeColor): Pair<EnumChatFormatting?, EnumChatFormatting> {
-        printDevMessage("Block color: $color", "livid")
-        val mappedColor = when (color) {
-            EnumDyeColor.WHITE -> EnumChatFormatting.WHITE
-            EnumDyeColor.MAGENTA -> EnumChatFormatting.LIGHT_PURPLE
-            EnumDyeColor.PINK -> EnumChatFormatting.LIGHT_PURPLE
-            EnumDyeColor.RED -> EnumChatFormatting.RED
-            EnumDyeColor.SILVER -> EnumChatFormatting.GRAY
-            EnumDyeColor.GRAY -> EnumChatFormatting.GRAY
-            EnumDyeColor.GREEN -> EnumChatFormatting.DARK_GREEN
-            EnumDyeColor.LIME -> EnumChatFormatting.GREEN
-            EnumDyeColor.BLUE -> EnumChatFormatting.BLUE
-            EnumDyeColor.PURPLE -> EnumChatFormatting.DARK_PURPLE
-            EnumDyeColor.YELLOW -> EnumChatFormatting.YELLOW
-            else -> null
+    fun getLivid(blockColor: EnumDyeColor, mappedColor: EnumChatFormatting?) {
+        val lividType = charToName[mappedColor]
+        if (lividType == null) {
+            UChat.chat("${Skytils.failPrefix} §cBlock color ${blockColor.name} is not mapped correctly. Please report this to discord.gg/skytils")
+            return
         }
-        val otherColor =
-            (color as AccessorEnumDyeColor).chatColor
-        printDevMessage("${mappedColor}Mapped color§r, ${otherColor}other color", "livid")
-        return mappedColor to otherColor
-    }
 
-    fun getLivid(blockColor: EnumDyeColor, mappedColor: EnumChatFormatting?, otherColor: EnumChatFormatting) {
         for (entity in mc.theWorld.loadedEntityList) {
             if (entity !is EntityArmorStand) continue
-            val fallBackColor = entity.name.startsWith("$otherColor﴾ $otherColor§lLivid")
-            if ((mappedColor != null && entity.name.startsWith("$mappedColor﴾ $mappedColor§lLivid")) || fallBackColor) {
-                if (fallBackColor && !(mappedColor != null && entity.name.startsWith("$mappedColor﴾ $mappedColor§lLivid"))) {
-                    UChat.chat("§bBlock color ${blockColor.name} should be mapped to ${otherColor}${otherColor.name}§b. Please report this to discord.gg/skytils")
-                }
+            if (entity.customNameTag.startsWith("$mappedColor﴾ $mappedColor§lLivid")) {
                 lividTag = entity
-                val aabb = AxisAlignedBB(
-                    lividTag!!.posX - 0.5,
-                    lividTag!!.posY - 2,
-                    lividTag!!.posZ - 0.5,
-                    lividTag!!.posX + 0.5,
-                    lividTag!!.posY,
-                    lividTag!!.posZ + 0.5
-                )
-                livid = mc.theWorld.loadedEntityList.find {
-                    val coll = it.entityBoundingBox ?: return@find false
-                    return@find it is EntityOtherPlayerMP && it.name.endsWith(" Livid") && aabb.isVecInside(
-                        coll.minVec
-                    ) && aabb.isVecInside(
-                        coll.maxVec
-                    )
-                }
+                livid = mc.theWorld.playerEntities.find { it.name == "$lividType Livid" }
                 foundLivid = true
                 return
             }
@@ -205,7 +196,6 @@ object LividFinder : EventSubscriber {
         }
 
         override fun demoRender() {
-
             val leftAlign = scaleX < sr.scaledWidth / 2f
             val text = "§r§f﴾ Livid §e6.9M§c❤ §f﴿"
             val alignment = if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT

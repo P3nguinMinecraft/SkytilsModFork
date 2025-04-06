@@ -33,6 +33,7 @@ import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.asm.SkytilsTransformer
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory.web
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
@@ -52,6 +53,7 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.util.*
+import net.minecraft.world.World
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.common.MinecraftForge
 import org.objectweb.asm.tree.MethodInsnNode
@@ -92,6 +94,7 @@ object Utils {
     var random = Random()
 
     val isBSMod by lazy {
+        if ("noBS" + Calendar.getInstance().get(Calendar.YEAR) in SuperSecretSettings.settings) return@lazy false
         val cal = Calendar.getInstance()
         return@lazy cal.get(Calendar.MONTH) == Calendar.APRIL && cal.get(Calendar.DAY_OF_MONTH) == 1
     }
@@ -380,13 +383,13 @@ fun <E> List<E>.getLastOrNull(index: Int) = getOrNull(lastIndex - index)
 fun <T> Iterator<T>.nextOrNull(): T? = if (hasNext()) next() else null
 
 inline val Vec3.x
-    get() = this.xCoord
+    inline get() = this.xCoord
 
 inline val Vec3.y
-    get() = this.yCoord
+    inline get() = this.yCoord
 
 inline val Vec3.z
-    get() = this.zCoord
+    inline get() = this.zCoord
 
 operator fun Vec3.plus(other: Vec3): Vec3 = add(other)
 operator fun Vec3.minus(other: Vec3): Vec3 = subtract(other)
@@ -407,3 +410,6 @@ fun <T> List<T>.elementPairs() = sequence {
         for (j in i + 1..<arr.size)
             yield(arr[i] to arr[j])
 }
+
+inline val World.realWorldTime: Long
+    inline get() = (worldInfo as AccessorWorldInfo).realWorldTime

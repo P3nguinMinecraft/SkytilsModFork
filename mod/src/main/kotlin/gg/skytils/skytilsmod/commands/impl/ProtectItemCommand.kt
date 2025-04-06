@@ -18,10 +18,12 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
+import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.successPrefix
 import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
+import gg.skytils.skytilsmod.gui.features.ProtectItemGui
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.entity.EntityPlayerSP
@@ -40,6 +42,12 @@ object ProtectItemCommand : BaseCommand("protectitem") {
             return
         }
         if (!Utils.inSkyblock) throw WrongUsageException("You must be in Skyblock to use this command!")
+
+        if (subcommand == "gui") {
+            Skytils.displayScreen = ProtectItemGui()
+            return
+        }
+
         val item = player.heldItem
             ?: throw WrongUsageException("You must hold an item to use this command")
         val extraAttributes = ItemUtil.getExtraAttributes(item)

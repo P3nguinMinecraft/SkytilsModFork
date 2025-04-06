@@ -49,6 +49,15 @@ object SkytilsPlus : EventSubscriber {
                     }
                     Skytils.displayScreen = GachaGui()
                 }
+                "IHATEGACHA" -> {
+                    if (redeemed) {
+                        UChat.chat("${Skytils.failPrefix} §cYou have already redeemed a code.")
+                        return
+                    }
+
+                    UChat.chat("${Skytils.successPrefix} §aYour §lWISH§r §a for a §f§lLIFETIME §aof BSMod+ has been granted!")
+                    redeemed = true
+                }
                 null -> {
                     UChat.chat("${Skytils.failPrefix} §cYou need to provide a code.")
                 }

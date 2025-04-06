@@ -86,7 +86,7 @@ class CommandAliasesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reo
             "What are aliases? Aliases are little shortcuts for commands. For example, /slay could be short for /skytilsslayer. Want to give it a try? Click 'Add Alias', enter 'slay' for 'Alias Name' and 'skytilsslayer' as the executed command! Then, run the command /slay Sychic! Aliases will also append any arguments that you supply."
         )
 
-        for (name in CommandAliases.aliases) {
+        CommandAliases.aliases.entries.sortedBy { it.key }.forEach { name ->
             addNewAlias(name.key, name.value)
         }
     }

@@ -450,7 +450,7 @@ object ItemFeatures : EventSubscriber {
 
                 val req = extraAttr.getString("dungeon_skill_req")
 
-                val floor: String = if (req.isEmpty() && tier == 0) "§aE" else {
+                val floor: String = if (req.isEmpty() && tier == 0) "§aE" else if (req.isEmpty()) "§bF${tier}" else {
                     val (dungeon, level) = req.split(':', limit = 2)
                     val levelReq = level.toIntOrNull() ?: 0
                     if (dungeon == "CATACOMBS") {

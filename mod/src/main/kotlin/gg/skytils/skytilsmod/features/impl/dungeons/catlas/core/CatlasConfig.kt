@@ -234,7 +234,7 @@ object CatlasConfig : Vigilant(
         type = PropertyType.SELECTOR,
         description = "Shows total secrets of rooms on map.",
         category = "Rooms",
-        options = ["Off", "On", "Replace Checkmark"],
+        options = ["Off", "On", "Replace Checkmark", "Replace Uncleared Checkmark"],
         i18nName = "catlas.config.rooms..room_secrets",
         i18nCategory = "catlas.config.rooms"
     )

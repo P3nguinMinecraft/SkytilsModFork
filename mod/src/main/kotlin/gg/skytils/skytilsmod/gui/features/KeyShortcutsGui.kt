@@ -31,6 +31,7 @@ import gg.essential.elementa.constraints.SiblingConstraint
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.OutlineEffect
 import gg.essential.universal.UKeyboard
+import gg.essential.vigilance.gui.settings.CheckboxComponent
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.KeyShortcuts
@@ -84,12 +85,12 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             addNewShortcut()
         }
 
-        KeyShortcuts.shortcuts.forEach {
-            addNewShortcut(it.message, it.keyCode, it.modifiers)
+        KeyShortcuts.shortcuts.sortedBy(KeyShortcuts.KeybindShortcut::message).forEach {
+            addNewShortcut(it.message, it.keyCode, it.modifiers, it.enabled)
         }
     }
 
-    private fun addNewShortcut(command: String = "", keyCode: Int = 0, modifiers: Int = 0) {
+    private fun addNewShortcut(command: String = "", keyCode: Int = 0, modifiers: Int = 0, enabled: Boolean = true) {
         val modifiersList = KeyShortcuts.Modifiers.fromBitfield(modifiers)
         val container = UIContainer().childOf(scrollComponent).constrain {
             x = CenterConstraint()
@@ -98,8 +99,13 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             height = 9.5.percent()
         }.effect(OutlineEffect(Color(0, 243, 255), 1f))
 
-        val commandToRun = (UITextInput("Executed Command").childOf(container).constrain {
+        val toggle = CheckboxComponent(enabled).childOf(container).constrain {
             x = 5.pixels()
+            y = CenterConstraint()
+        }
+
+        val commandToRun = (UITextInput("Executed Command").childOf(container).constrain {
+            x = SiblingConstraint(5f)
             y = CenterConstraint()
             width = 70.percent()
         }.onLeftClick {
@@ -126,7 +132,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             components.remove(container)
         }
         val entry =
-            Entry(container, commandToRun, keybindButton, keyCode, modifiersList)
+            Entry(container, commandToRun, keybindButton, keyCode, modifiersList, toggle)
 
         keybindButton.onLeftClick {
             clickedButton = entry
@@ -144,7 +150,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             val keyCode = entry.keyCode
             if (command.isBlank() || keyCode == 0) continue
 
-            KeyShortcuts.shortcuts.add(KeyShortcuts.KeybindShortcut(command, keyCode, entry.modifiers))
+            KeyShortcuts.shortcuts.add(KeyShortcuts.KeybindShortcut(command, keyCode, entry.modifiers, entry.toggle.checked))
         }
 
         PersistentSave.markDirty<KeyShortcuts>()
@@ -205,7 +211,8 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
         val input: UITextInput,
         val button: SimpleButton,
         var keyCode: Int,
-        var modifiers: List<KeyShortcuts.Modifiers>
+        var modifiers: List<KeyShortcuts.Modifiers>,
+        val toggle: CheckboxComponent
     ) {
         fun getDisplayString() =
             "${

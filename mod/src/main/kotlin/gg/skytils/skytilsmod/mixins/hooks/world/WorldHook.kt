@@ -18,8 +18,8 @@
 package gg.skytils.skytilsmod.mixins.hooks.world
 
 import gg.skytils.skytilsmod.Skytils
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.realWorldTime
 import net.minecraft.world.World
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
@@ -30,7 +30,6 @@ fun lightningSkyColor(orig: Int): Int {
 fun fixTime(world: Any, cir: CallbackInfoReturnable<Long>) {
     if (Utils.isOnHypixel && Skytils.config.fixWorldTime) {
         world as World
-        cir.returnValue =
-            (world.worldInfo as AccessorWorldInfo).realWorldTime
+        cir.returnValue = world.realWorldTime
     }
 }

@@ -57,7 +57,7 @@ class LegalGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), ReopenableGU
                     jar.entries().iterator().forEach { entry ->
                         if (entry.name.startsWith("assets/skytils/legal/") && !entry.isDirectory) {
                             async {
-                                licenses[entry.name.substringAfterLast("/").substringBeforeLast(".")] = jar.getInputStream(entry).reader().readText()
+                                licenses[entry.name.substringAfterLast("/").substringBeforeLast(".")] = jar.getInputStream(entry).use { it.bufferedReader().readText() }
                             }.start()
                         }
                     }

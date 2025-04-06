@@ -100,7 +100,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
             categories.addAll(json.decodeFromString<CategoryList>(data).categories)
 
         } else if (Base64.isBase64(str)) {
-            json.decodeFromStream<JsonElement>(Base64InputStream(str.byteInputStream())).let { element ->
+            Base64InputStream(str.byteInputStream()).use<_, JsonElement>(json::decodeFromStream).let { element ->
                 when (element) {
                     is JsonObject -> {
                         categories.addAll(
@@ -217,7 +217,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
             else -> throw IllegalArgumentException("Unknown version $version")
         }
 
-        return json.decodeFromStream<CategoryList>(inputStream)
+        return inputStream.use(json::decodeFromStream)
     }
 
     fun getStringFromWaypoints(categories: Set<WaypointCategory>, version: Int): String {

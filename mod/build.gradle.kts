@@ -36,12 +36,17 @@ val isLegacyFabric = project.platform.isFabric && project.platform.mcVersion == 
 repositories {
     mavenLocal()
     mavenCentral()
-    maven("https://repo.sk1er.club/repository/maven-public/")
-    maven("https://repo.sk1er.club/repository/maven-releases/")
+    maven("https://repo.essential.gg/repository/maven-public/")
+    maven("https://repo.essential.gg/repository/maven-releases/")
     maven("https://repo.hypixel.net/repository/Hypixel/")
     maven("https://jitpack.io") {
         mavenContent {
             includeGroupAndSubgroups("com.github")
+        }
+    }
+    maven("https://maven.dediamondpro.dev/releases") {
+        mavenContent {
+            includeGroup("dev.dediamondpro")
         }
     }
     if (isLegacyFabric) maven("https://repo.legacyfabric.net/repository/legacyfabric/")
@@ -118,6 +123,8 @@ dependencies {
         isTransitive = false
     }
 
+    shadowMe("dev.dediamondpro:minemark-elementa:1.2.3")
+
     shadowMeMod("com.github.Skytils:AsmHelper:91ecc2bd9c") {
         exclude(module = "kotlin-reflect")
         exclude(module = "kotlin-stdlib-jdk8")
@@ -155,7 +162,7 @@ dependencies {
     shadowMe(ktorServer("auth"))
 
     shadowMe("org.brotli:dec:0.1.2")
-    shadowMe("com.aayushatharva.brotli4j:brotli4j:1.16.0")
+    shadowMe("com.aayushatharva.brotli4j:brotli4j:1.18.0")
 
     shadowMe(project(":events:$platform"))
     shadowMe(project(":vigilance"))
@@ -168,15 +175,15 @@ dependencies {
     compileOnly("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
     if (platform.isLegacyForge) {
-        compileOnly("net.hypixel:mod-api-forge:1.0.1.1") {
+        compileOnly("net.hypixel:mod-api-forge:1.0.1.2") {
             exclude(group = "me.djtheredstoner", module = "DevAuth-forge-legacy")
         }
-        shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.1")
+        shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.2")
     } else {
         compileOnly("net.hypixel:mod-api:1.0.1")
     }
 
-    shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-beta.4")!!)
+    shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-rc.1")!!)
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
     compileOnly("org.spongepowered:mixin:0.8.5")
 }

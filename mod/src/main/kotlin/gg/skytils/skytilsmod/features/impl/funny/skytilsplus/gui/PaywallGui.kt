@@ -20,37 +20,22 @@ package gg.skytils.skytilsmod.features.impl.funny.skytilsplus.gui
 
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
-import gg.essential.elementa.components.UIBlock
-import gg.essential.elementa.components.UIContainer
 import gg.essential.elementa.components.UIImage
 import gg.essential.elementa.components.UIText
 import gg.essential.elementa.constraints.CenterConstraint
 import gg.essential.elementa.constraints.SiblingConstraint
 import gg.essential.elementa.dsl.childOf
 import gg.essential.elementa.dsl.constrain
-import gg.essential.elementa.dsl.percent
 import gg.essential.elementa.dsl.pixels
-import gg.essential.vigilance.gui.VigilancePalette
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.MC
-import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import gg.skytils.skytilsmod.utils.TabListUtils
-import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.splitToWords
-import kotlinx.coroutines.*
-import net.minecraft.client.audio.PositionedSoundRecord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.minecraft.client.gui.GuiScreen
-import net.minecraft.util.ResourceLocation
-import net.minecraftforge.client.ClientCommandHandler
-import net.minecraftforge.fml.common.Loader
-import java.time.Instant
-import kotlin.random.Random
-import kotlin.random.nextLong
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
 
 class PaywallGui(val passthrough: GuiScreen) : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
 
