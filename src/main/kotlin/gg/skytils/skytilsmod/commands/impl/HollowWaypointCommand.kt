@@ -43,7 +43,9 @@ object HollowWaypointCommand : BaseCommand("skytilshollowwaypoint", listOf("sthw
 
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         if (!Skytils.config.crystalHollowWaypoints) {
-            UChat.chat("$failPrefix §cCrystal Hollows Waypoints is currently disabled.")
+            UChat.chat("$prefix §cCrystal Hollows Waypoints were disabled, but running this command enabled them for you.")
+            Skytils.config.crystalHollowWaypoints = true
+            Skytils.config.markDirty()
         }
         if (args.isEmpty()) {
             val message = UMessage("$prefix §eWaypoints:\n")
