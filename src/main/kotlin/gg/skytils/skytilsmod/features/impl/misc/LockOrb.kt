@@ -19,6 +19,7 @@ package gg.skytils.skytilsmod.features.impl.misc
 
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
+import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.events.impl.PacketEvent
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.Utils
@@ -46,7 +47,7 @@ object LockOrb {
                 val remainingTime = orbTimeRegex.find(name)?.groupValues?.get(1)?.toInt() ?: continue
                 if (remainingTime >= Skytils.config.powerOrbDuration) {
                     if (orbEntity.getDistanceSqToEntity(mc.thePlayer) <= (orb.radius * orb.radius)) {
-                        mc.thePlayer.playSound("random.orb", 0.8f, 1f)
+                        SoundQueue.addToQueue("random.orb", 0.8f, 1f)
                         event.isCanceled = true
                     }
                 }

@@ -33,6 +33,7 @@ import gg.essential.vigilance.gui.VigilancePalette
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.MC
+import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.gui.components.SimpleButton
@@ -129,7 +130,7 @@ class GachaGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
         }.onLeftClick {
             hide(true)
             gacha.unhide()
-            Utils.playLoudSound("skytils:bsmod.gacha_roll", 1.0)
+            SoundQueue.addToQueue("skytils:bsmod.gacha_roll", 1f, isLoud = true)
             Skytils.launch {
                 withTimeoutOrNull(5.seconds) {
                     while (true) {

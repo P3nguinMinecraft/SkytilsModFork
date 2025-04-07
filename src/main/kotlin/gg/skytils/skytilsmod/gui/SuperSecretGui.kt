@@ -36,6 +36,7 @@ import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.gui.components.HelpComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
+import gg.skytils.skytilsmod.utils.Utils.checkThreadAndQueue
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
@@ -53,7 +54,9 @@ class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopen
     init {
         SuperSecretSettings.add("chamberofsecrets")
         SuperSecretSettings.dirty = true
-        UMinecraft.getMinecraft().soundHandler.playSound(catSound)
+        checkThreadAndQueue {
+            UMinecraft.getMinecraft().soundHandler.playSound(catSound)
+        }
         UIText("Shhhhhhh.. It's a secret...").childOf(window).constrain {
             x = CenterConstraint()
             y = RelativeConstraint(0.075f)

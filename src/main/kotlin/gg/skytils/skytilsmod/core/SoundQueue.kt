@@ -78,7 +78,7 @@ object SoundQueue {
      * @param ticks the amount of ticks to delay the sound by
      * @param isLoud whether or not the sound should bypass the user's volume settings
      */
-    class QueuedSound(
+    data class QueuedSound(
         val sound: String,
         val pitch: Float,
         val volume: Float = 1f,
