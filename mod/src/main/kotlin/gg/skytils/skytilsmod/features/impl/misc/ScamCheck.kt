@@ -56,7 +56,13 @@ object ScamCheck : EventSubscriber {
         if (!Utils.inSkyblock || !Skytils.config.scamCheck) return
         when (val packet = event.packet) {
             is S2DPacketOpenWindow -> {
-                if (tradingRegex.matches(packet.windowTitle.unformattedText)) {
+                val windowTitle =
+                    //#if MC<12000
+                    packet.windowTitle.formattedText
+                    //#else
+                    //$$ packet.name.string
+                    //#endif
+                if (tradingRegex.matches(windowTitle)) {
                     tradingWindowId = packet.windowId
                     scamChecked = false
                 }
@@ -83,7 +89,10 @@ object ScamCheck : EventSubscriber {
         val firstLore = ItemUtil.getItemLore(tradingWith).find { it.matches(tradingWithRegex) } ?: return
         val otherParty = firstLore.replace(tradingWithRegex, "$1")
         val worldUUID = mc.theWorld?.playerEntities?.find {
-            it.uniqueID.version() == 4 && it.name == otherParty
+            it.uniqueID.version() == 4 && otherParty == it.name
+            //#if MC>=11600
+            //$$ .string
+            //#endif
         }?.uniqueID
         Skytils.IO.launch {
             val uuid = worldUUID ?: runCatching { MojangUtil.getUUIDFromUsername(otherParty) }.getOrNull()
