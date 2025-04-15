@@ -30,6 +30,8 @@ import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.ItemProtectStrategy
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.displayNameStr
+import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import gg.skytils.skytilsmod.utils.toStringIfTrue
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.ContainerChest
@@ -50,19 +52,22 @@ object ProtectItems : EventSubscriber {
 
     fun onCloseWindow(event: GuiContainerCloseWindowEvent) {
         if (!Utils.inSkyblock) return
-        if (mc.thePlayer.inventory.itemStack != null) {
-            val item = mc.thePlayer.inventory.itemStack
-            val extraAttr = ItemUtil.getExtraAttributes(item)
-            val strategy = ItemProtectStrategy.findValidStrategy(item, extraAttr, ItemProtectStrategy.ProtectType.USERCLOSEWINDOW) ?: return
-            for (slot in event.container.inventorySlots) {
-                if (slot.inventory !== mc.thePlayer.inventory || slot.hasStack || !slot.isItemValid(item)) continue
-                mc.playerController.windowClick(event.container.windowId, slot.slotNumber, 0, 0, mc.thePlayer)
-                notifyStopped(null, "dropping", strategy)
-                return
-            }
-            notifyStopped(null, "closing the window on", strategy)
-            event.cancelled = true
+        val item =
+            //#if MC==10809
+            mc.thePlayer?.inventory?.itemStack ?: return
+            //#else
+            //$$ event.container.cursorStack
+            //#endif
+        val extraAttr = ItemUtil.getExtraAttributes(item)
+        val strategy = ItemProtectStrategy.findValidStrategy(item, extraAttr, ItemProtectStrategy.ProtectType.USERCLOSEWINDOW) ?: return
+        for (slot in event.container.inventorySlots) {
+            if (slot.inventory !== mc.thePlayer?.inventory || slot.hasStack || !slot.isItemValid(item)) continue
+            mc.playerController?.windowClick(event.container.windowId, slot.slotNumber, 0, SlotActionType.PICKUP, mc.thePlayer)
+            notifyStopped(null, "dropping", strategy)
+            return
         }
+        notifyStopped(null, "closing the window on", strategy)
+        event.cancelled = true
     }
 
     fun onDropItem(event: ItemTossEvent) {
@@ -81,13 +86,13 @@ object ProtectItems : EventSubscriber {
                 var extraAttr = ItemUtil.getExtraAttributes(item)
                 if (chestName.startsWith("Salvage")) {
                     var inSalvageGui = false
-                    if (item.displayName.contains("Salvage") || item.displayName.contains("Essence")) {
+                    if (item.displayNameStr.contains("Salvage") || item.displayNameStr.contains("Essence")) {
                         val salvageItem = inv.getStackInSlot(13) ?: return
                         item = salvageItem
                         extraAttr = ItemUtil.getExtraAttributes(item) ?: return
                         inSalvageGui = true
                     }
-                    if (inSalvageGui || event.slot!!.inventory === mc.thePlayer.inventory) {
+                    if (inSalvageGui || event.slot!!.inventory === mc.thePlayer?.inventory) {
                         val strategy = ItemProtectStrategy.findValidStrategy(
                             item,
                             extraAttr,
@@ -103,11 +108,11 @@ object ProtectItems : EventSubscriber {
                     if (!chestName.contains("Auction")) {
                         val sellItem = inv.getStackInSlot(49)
                         if (sellItem != null) {
-                            if (sellItem.item === Item.getItemFromBlock(Blocks.hopper) && sellItem.displayName.contains(
+                            if (sellItem.item === hopperItem && sellItem.displayNameStr.contains(
                                     "Sell Item"
                                 ) || ItemUtil.getItemLore(sellItem).any { s: String -> s.contains("buyback") }
                             ) {
-                                if (event.slotId != 49 && event.slot!!.inventory === mc.thePlayer.inventory) {
+                                if (event.slotId != 49 && event.slot!!.inventory === mc.thePlayer?.inventory) {
                                     val strategy = ItemProtectStrategy.findValidStrategy(
                                         item,
                                         extraAttr,
@@ -137,10 +142,15 @@ object ProtectItems : EventSubscriber {
                 }
             }
         }
-        if (event.slotId == -999 && mc.thePlayer.inventory.itemStack != null && event.clickType != 5) {
-            val item = mc.thePlayer.inventory.itemStack
-            val extraAttr = ItemUtil.getExtraAttributes(item)
-            val strategy = ItemProtectStrategy.findValidStrategy(item, extraAttr, ItemProtectStrategy.ProtectType.CLICKOUTOFWINDOW)
+        val cursorStack =
+            //#if MC==10809
+            mc.thePlayer?.inventory?.itemStack
+            //#else
+            //$$ event.container.cursorStack
+            //#endif
+        if (event.slotId == -999 && cursorStack != null && event.clickType != 5) {
+            val extraAttr = ItemUtil.getExtraAttributes(cursorStack)
+            val strategy = ItemProtectStrategy.findValidStrategy(cursorStack, extraAttr, ItemProtectStrategy.ProtectType.CLICKOUTOFWINDOW)
             if (strategy != null) {
                 notifyStopped(event, "dropping", strategy)
                 return
@@ -163,4 +173,10 @@ object ProtectItems : EventSubscriber {
         event?.cancelled = true
     }
 
+    private val hopperItem =
+        //#if MC==10809
+        Item.getItemFromBlock(Blocks.hopper)
+        //#else
+        //$$ Blocks.HOPPER.asItem()
+        //#endif
 }
