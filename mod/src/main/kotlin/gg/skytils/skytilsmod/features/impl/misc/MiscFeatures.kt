@@ -67,6 +67,7 @@ import gg.skytils.skytilsmod.utils.Utils.equalsOneOf
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import net.minecraft.block.BlockEndPortalFrame
 import net.minecraft.client.Minecraft
 import net.minecraft.client.entity.EntityOtherPlayerMP
@@ -432,7 +433,7 @@ object MiscFeatures : EventSubscriber {
                     it.contains("-click", true)
                 }) return
             event.cancelled = true
-            mc.playerController.windowClick(chest.windowId, event.slotId, 2, 3, mc.thePlayer)
+            mc.playerController.windowClick(chest.windowId, event.slotId, 2, SlotActionType.CLONE, mc.thePlayer)
         }
     }
 

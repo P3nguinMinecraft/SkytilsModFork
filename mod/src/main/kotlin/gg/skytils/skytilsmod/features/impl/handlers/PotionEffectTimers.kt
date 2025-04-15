@@ -34,6 +34,7 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.serialization.Serializable
@@ -152,7 +153,7 @@ object PotionEffectTimers : PersistentSave(File(Skytils.modDir, "potionEffectTim
                             event.container.windowId,
                             slot.slotNumber,
                             0,
-                            4,
+                            SlotActionType.THROW,
                             mc.thePlayer
                         )
                     }

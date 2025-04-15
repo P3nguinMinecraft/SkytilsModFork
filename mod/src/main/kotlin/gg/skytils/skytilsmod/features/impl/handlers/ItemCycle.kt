@@ -29,6 +29,7 @@ import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -86,7 +87,7 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
 
         val swapTo = itemLocations[cycle.swapTo] ?: return
 
-        mc.playerController.windowClick(event.container.windowId, swapTo, event.slotId - 36, 2, mc.thePlayer)
+        mc.playerController.windowClick(event.container.windowId, swapTo, event.slotId - 36, SlotActionType.SWAP, mc.thePlayer)
 
         event.cancelled = true
     }

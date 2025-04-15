@@ -45,6 +45,7 @@ import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.getSlot
+import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiEditSign
 import net.minecraft.item.ItemStack
@@ -120,7 +121,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 (event.screen as AccessorGuiContainer).invokeHandleMouseClick(
                     (event.screen as GuiChest).getSlot(
                         29
-                    ), 29, 2, 3
+                    ), 29, 2, SlotActionType.CLONE
                 )
                 event.cancelled = true
             } else if (Utils.equalsOneOf(
@@ -132,7 +133,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 (event.screen as AccessorGuiContainer).invokeHandleMouseClick(
                     (event.screen as GuiChest).getSlot(
                         11
-                    ), 11, 2, 3
+                    ), 11, 2, SlotActionType.CLONE
                 )
                 event.cancelled = true
             }

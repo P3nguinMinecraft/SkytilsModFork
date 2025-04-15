@@ -27,6 +27,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloor
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.inventory.ContainerChest
@@ -74,7 +75,7 @@ object TerminalFeatures : EventSubscriber {
                 ))
             ) {
                 event.cancelled = true
-                mc.playerController.windowClick(event.container.windowId, event.slotId, 0, 4, mc.thePlayer)
+                mc.playerController.windowClick(event.container.windowId, event.slotId, 0, SlotActionType.THROW, mc.thePlayer)
             }
         }
     }
