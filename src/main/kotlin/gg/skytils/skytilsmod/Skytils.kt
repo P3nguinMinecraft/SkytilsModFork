@@ -115,17 +115,14 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
-import org.apache.commons.codec.binary.Base64
 import sun.misc.Unsafe
 import java.io.File
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
-import java.security.KeyFactory
 import java.security.KeyStore
-import java.security.cert.CertificateFactory
+import java.security.PrivateKey
 import java.security.cert.X509Certificate
-import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
@@ -238,25 +235,29 @@ class Skytils {
             UnionX509TrustManager(backingManager, ourManager)
         }
 
-        val certificate by lazy {
-            val certFactory = CertificateFactory.getInstance("X.509")
-            val certInputStream = Skytils::class.java.getResourceAsStream("/cert.pem") ?: error("Certificate not found")
-            val certificate = certInputStream.use(certFactory::generateCertificate) as X509Certificate
+        val certificates by lazy {
+            val ks = KeyStore.getInstance(KeyStore.getDefaultType())
+            Skytils::class.java.getResourceAsStream("/skytilsclientcerts.jks").use {
+                ks.load(it, "skytilsontop".toCharArray())
+            }
 
-            val keyFile = Skytils::class.java.getResourceAsStream("/cert.key") ?: error("Key file not found")
-            val keyContent = keyFile.use { it.bufferedReader().readText() }
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replace("\r", "")
-                .replace("\n", "")
-                .trim()
+            val certificatesAndKeys = mutableListOf<CertificateAndKey>()
 
-            val keyBytes = Base64.decodeBase64(keyContent)
-            val keySpec = PKCS8EncodedKeySpec(keyBytes)
-            val keyFactory = KeyFactory.getInstance("RSA")
-            val privateKey = keyFactory.generatePrivate(keySpec)
+            ks.aliases().iterator().forEach { alias ->
+                if (ks.isKeyEntry(alias)) {
+                    val key = ks.getKey(alias, "skytilsontop".toCharArray())
+                    if (key is PrivateKey) {
+                        val certChain = ks.getCertificateChain(alias)?.filterIsInstance<X509Certificate>()
+                        if (certChain != null && certChain.isNotEmpty()) {
+                            certificatesAndKeys.add(CertificateAndKey(certChain.toTypedArray(), key))
+                        }
+                    }
+                }
+            }
 
-            return@lazy CertificateAndKey(arrayOf(certificate), privateKey)
+            if (certificatesAndKeys.isEmpty()) error("No certificate and private key pairs found in the keystore")
+
+            return@lazy certificatesAndKeys
         }
 
         val client = HttpClient(CIO) {
@@ -288,7 +289,7 @@ class Skytils {
                     socketTimeout = 10000
                 }
                 https {
-                    certificates += certificate
+                    this.certificates += Companion.certificates
                     trustManager = Skytils.trustManager
                 }
             }
