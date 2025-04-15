@@ -27,6 +27,7 @@ import gg.skytils.skytilsmod.events.impl.PacketEvent
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorHypixelModAPI
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.ifNull
+import gg.skytils.skytilsmod.utils.printDevMessage
 import io.netty.buffer.Unpooled
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,7 +70,7 @@ object ServerPayloadInterceptor {
             val registry = HypixelModAPI.getInstance().registry
             val id = event.packet.channelName
             if (registry.isRegistered(id)) {
-                println("Received Hypixel packet $id")
+                printDevMessage("Received Hypixel packet $id", "hypixelmodapi")
                 val data = event.packet.bufferData
                 synchronized(data) {
                     data.retain()
@@ -100,7 +101,7 @@ object ServerPayloadInterceptor {
             val registry = HypixelModAPI.getInstance().registry
             val id = event.packet.channelName
             if (registry.isRegistered(id)) {
-                println("Sent Hypixel packet $id")
+                printDevMessage("Sent Hypixel packet $id", "hypixelmodapi")
                 HypixelPacketEvent.SendEvent(id).postAndCatch()
             }
         }
@@ -133,6 +134,11 @@ object ServerPayloadInterceptor {
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    fun onHypixelPacketFail(event: HypixelPacketEvent.FailedEvent) {
+        printDevMessage("${Skytils.failPrefix} Mod API request failed: ${event.reason}", "hypixelmodapi")
     }
 
     fun ServerboundVersionedPacket.toCustomPayload(): C17PacketCustomPayload {

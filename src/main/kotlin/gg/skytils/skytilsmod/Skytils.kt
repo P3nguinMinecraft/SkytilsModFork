@@ -25,7 +25,6 @@ import gg.skytils.skytilsmod.commands.impl.*
 import gg.skytils.skytilsmod.commands.stats.impl.CataCommand
 import gg.skytils.skytilsmod.commands.stats.impl.SlayerCommand
 import gg.skytils.skytilsmod.core.*
-import gg.skytils.skytilsmod.events.impl.HypixelPacketEvent
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
 import gg.skytils.skytilsmod.events.impl.PacketEvent
 import gg.skytils.skytilsmod.features.impl.crimson.KuudraChestProfit
@@ -579,11 +578,6 @@ class Skytils {
 
         if (config.connectToWS)
             WSClient.openConnection()
-    }
-
-    @SubscribeEvent
-    fun onHypixelPacketFail(event: HypixelPacketEvent.FailedEvent) {
-        UChat.chat("$failPrefix Mod API request failed: ${event.reason}")
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
