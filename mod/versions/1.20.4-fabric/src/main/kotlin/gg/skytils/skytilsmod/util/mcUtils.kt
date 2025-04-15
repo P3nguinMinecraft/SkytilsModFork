@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.sktyils.skytilsmod.util
+package gg.skytils.skytilsmod.util
 
 import net.minecraft.text.Text
 
