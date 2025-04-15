@@ -63,6 +63,7 @@ object WSClient {
                     keepAliveTime = 60000
                 }
                 https {
+                    certificates += Skytils.certificate
                     trustManager = Skytils.trustManager
                 }
             }

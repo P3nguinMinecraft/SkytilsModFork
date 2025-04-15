@@ -84,6 +84,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
+import io.ktor.network.tls.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
@@ -114,12 +115,17 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
+import org.apache.commons.codec.binary.Base64
 import sun.misc.Unsafe
 import java.io.File
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.security.KeyFactory
 import java.security.KeyStore
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
@@ -232,6 +238,27 @@ class Skytils {
             UnionX509TrustManager(backingManager, ourManager)
         }
 
+        val certificate by lazy {
+            val certFactory = CertificateFactory.getInstance("X.509")
+            val certInputStream = Skytils::class.java.getResourceAsStream("/cert.pem") ?: error("Certificate not found")
+            val certificate = certInputStream.use(certFactory::generateCertificate) as X509Certificate
+
+            val keyFile = Skytils::class.java.getResourceAsStream("/cert.key") ?: error("Key file not found")
+            val keyContent = keyFile.use { it.bufferedReader().readText() }
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replace("\r", "")
+                .replace("\n", "")
+                .trim()
+
+            val keyBytes = Base64.decodeBase64(keyContent)
+            val keySpec = PKCS8EncodedKeySpec(keyBytes)
+            val keyFactory = KeyFactory.getInstance("RSA")
+            val privateKey = keyFactory.generatePrivate(keySpec)
+
+            return@lazy CertificateAndKey(arrayOf(certificate), privateKey)
+        }
+
         val client = HttpClient(CIO) {
             install(ContentEncoding) {
                 customEncoder(BrotliEncoder, 1.0F)
@@ -261,6 +288,7 @@ class Skytils {
                     socketTimeout = 10000
                 }
                 https {
+                    certificates += certificate
                     trustManager = Skytils.trustManager
                 }
             }
