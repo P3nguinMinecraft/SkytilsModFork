@@ -21,7 +21,6 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.events.impl.GuiContainerEvent
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.inventory.ContainerChest
@@ -32,7 +31,6 @@ import net.minecraft.network.play.server.S30PacketWindowItems
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import kotlin.random.Random
 
 object StartsWithSequenceSolver {
 
@@ -95,7 +93,7 @@ object StartsWithSequenceSolver {
 
     @SubscribeEvent
     fun onDrawSlot(event: GuiContainerEvent.DrawSlotEvent.Pre) {
-        if (!Utils.inDungeons || !Skytils.config.startsWithSequenceTerminalSolver) return
+        if (!TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
         if (event.container is ContainerChest && event.chestName.startsWith("What starts with:")) {
             val slot = event.slot
             if (shouldClick.size > 0 && !shouldClick.contains(slot.slotNumber) && slot.inventory !== mc.thePlayer.inventory) {
@@ -106,7 +104,7 @@ object StartsWithSequenceSolver {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     fun onSlotClick(event: GuiContainerEvent.SlotClickEvent) {
-        if (!Utils.inDungeons || !Skytils.config.startsWithSequenceTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.startsWithSequenceTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
         if (event.container is ContainerChest && event.chestName.startsWith("What starts with:")) {
             if (shouldClick.isNotEmpty() && !shouldClick.contains(event.slotId)) event.isCanceled = true
         }
@@ -114,7 +112,7 @@ object StartsWithSequenceSolver {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     fun onTooltip(event: ItemTooltipEvent) {
-        if (event.toolTip == null || !Utils.inDungeons || !Skytils.config.startsWithSequenceTerminalSolver) return
+        if (event.toolTip == null || !TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
         val container = mc.thePlayer?.openContainer
         if (container is ContainerChest) {
             val chestName = container.lowerChestInventory.displayName.unformattedText

@@ -41,9 +41,7 @@ import net.minecraft.world.World
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import java.awt.Color
 import kotlin.math.floor
-import kotlin.random.Random
 
 object BoulderSolver {
     var boulderChest: BlockPos? = null

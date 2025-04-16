@@ -21,7 +21,6 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.events.impl.GuiContainerEvent
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.EnumDyeColor
@@ -32,7 +31,6 @@ import net.minecraft.network.play.server.S30PacketWindowItems
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import kotlin.random.Random
 
 object SelectAllColorSolver {
 
@@ -99,8 +97,7 @@ object SelectAllColorSolver {
 
     @SubscribeEvent
     fun onDrawSlot(event: GuiContainerEvent.DrawSlotEvent.Pre) {
-        if (!Utils.inDungeons) return
-        if (!Skytils.config.selectAllColorTerminalSolver) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.selectAllColorTerminalSolver) return
         if (event.container is ContainerChest) {
             if (event.chestName.startsWith("Select all the")) {
                 val slot = event.slot
@@ -113,7 +110,7 @@ object SelectAllColorSolver {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     fun onSlotClick(event: GuiContainerEvent.SlotClickEvent) {
-        if (!Utils.inDungeons || !Skytils.config.selectAllColorTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.selectAllColorTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
         if (event.container is ContainerChest && event.chestName.startsWith("Select all the")) {
             if (shouldClick.isNotEmpty() && !shouldClick.contains(event.slotId)) event.isCanceled = true
         }

@@ -40,7 +40,6 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
 import java.util.*
-import kotlin.random.Random
 
 /**
  * Original code was taken from Danker's Skyblock Mod under GPL 3.0 license and modified by the Skytils team
