@@ -4538,7 +4538,7 @@ object Config : Vigilant(
 
         registerListener("connectToWS") { state: Boolean ->
             if (state) {
-                if (mc.theWorld != null) {
+                if (mc.theWorld != null && !WSClient.connected) {
                     WSClient.openConnection()
                 }
             } else {

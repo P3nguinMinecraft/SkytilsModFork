@@ -70,6 +70,8 @@ object WSClient {
         }
     }
 
+    val connected get() = session != null
+
     fun openConnection(): Job {
         if (session != null) error("Session already open")
 

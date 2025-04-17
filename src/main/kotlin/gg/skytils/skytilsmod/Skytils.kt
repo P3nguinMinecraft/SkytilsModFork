@@ -576,8 +576,13 @@ class Skytils {
             TrophyFish.loadFromApi()
         }
 
-        if (config.connectToWS)
-            WSClient.openConnection()
+        if (config.connectToWS) {
+            if (WSClient.connected) {
+                WSClient.closeConnection().invokeOnCompletion {
+                    WSClient.openConnection()
+                }
+            } else WSClient.openConnection()
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
