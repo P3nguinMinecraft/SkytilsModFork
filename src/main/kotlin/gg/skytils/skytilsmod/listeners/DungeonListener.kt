@@ -109,6 +109,7 @@ object DungeonListener {
 
         })
         .build()
+    private val inProgressSpiritChecks = hashSetOf<String>()
 
     val partyCountPattern = Regex("§r {9}§r§b§lParty §r§f\\((?<count>[1-5])\\)§r")
     private val classPattern =
@@ -470,14 +471,18 @@ object DungeonListener {
     fun checkSpiritPet(teammate: DungeonTeammate) {
         val name = teammate.playerName
         if (hutaoFans.getIfPresent(name) != null) return
-        IO.launch {
-            runCatching {
-                val uuid = teammate.player?.uniqueID ?: MojangUtil.getUUIDFromUsername(name) ?: return@runCatching
-                API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())?.pets_data?.pets?.any(Pet::isSpirit)?.let {
-                    hutaoFans[name] = it
+        if (inProgressSpiritChecks.add(name)) {
+            IO.launch {
+                runCatching {
+                    val uuid = teammate.player?.uniqueID ?: MojangUtil.getUUIDFromUsername(name) ?: return@runCatching
+                    API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())?.pets_data?.pets?.any(Pet::isSpirit)?.let {
+                        hutaoFans[name] = it
+                    }
+                }.onFailure {
+                    it.printStackTrace()
                 }
-            }.onFailure {
-                it.printStackTrace()
+            }.invokeOnCompletion {
+                inProgressSpiritChecks.remove(name)
             }
         }
     }
