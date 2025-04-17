@@ -21,6 +21,7 @@ import com.google.common.collect.ComparisonChain
 import com.google.common.collect.Ordering
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import net.minecraft.client.network.NetworkPlayerInfo
+import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minecraft.world.WorldSettings
 
@@ -29,6 +30,15 @@ val NetworkPlayerInfo.text: String
         playerTeam,
         gameProfile.name
     )
+
+val S38PacketPlayerListItem.AddPlayerData.text: String
+    get() = displayName?.formattedText ?: ScorePlayerTeam.formatPlayerName(
+        team,
+        profile.name
+    )
+
+val S38PacketPlayerListItem.AddPlayerData.team
+    get() = mc.theWorld?.scoreboard?.getPlayersTeam(profile.name)
 
 
 object TabListUtils {

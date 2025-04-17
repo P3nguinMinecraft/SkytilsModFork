@@ -53,16 +53,16 @@ import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonEnd
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonRoom
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonRoomSecret
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonStart
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.hypixel.modapi.packet.impl.clientbound.ClientboundPartyInfoPacket
 import net.hypixel.modapi.packet.impl.serverbound.ServerboundPartyInfoPacket
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.play.server.S02PacketChat
+import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.event.world.WorldEvent
@@ -76,7 +76,7 @@ object DungeonListener {
     val deads = hashSetOf<DungeonTeammate>()
     val disconnected = hashSetOf<String>()
     val missingPuzzles = hashSetOf<String>()
-    val completedPuzzles = hashSetOf<String>()
+    val terminalStatePuzzles = hashSetOf<String>()
     val hutaoFans: Cache<String, Boolean> = Caffeine.newBuilder()
         .weakKeys()
         .weakValues()
@@ -110,7 +110,7 @@ object DungeonListener {
     val partyCountPattern = Regex("§r {9}§r§b§lParty §r§f\\((?<count>[1-5])\\)§r")
     private val classPattern =
         Regex("§r(?:§.)+(?:\\[.+] )?(?<name>\\w+?)(?:§.)* (?:§r(?:§[\\da-fklmno]){1,2}.+ )?§r§f\\(§r§d(?:(?<class>Archer|Berserk|Healer|Mage|Tank) (?<lvl>\\w+)|§r§7EMPTY|§r§cDEAD)§r§f\\)§r")
-    private val missingPuzzlePattern = Regex("§r (?<puzzle>.+): §r§7\\[§r§6§l✦§r§7] ?§r")
+    private val puzzleRegex = Regex("§r (?<puzzle>.+): §r§7\\[§r(?:§a§l(?<completed>✔)|§c§l(?<failed>✖)|§6§l(?<missing>✦))§r§7] ?§r")
     private val deathRegex = Regex("§r§c ☠ §r§7(?:You were |(?:§.)+(?<username>\\w+)§r)(?<reason>.*) and became a ghost§r§7\\.§r")
     private val reconnectedRegex = Regex("§r§c ☠ §r§7(?:§.)+(?<username>\\w+) §r§7reconnected§r§7.§r")
     private val reviveRegex = Regex("^§r§a ❣ §r§7(?:§.)+(?<username>\\w+)§r§a was revived")
@@ -128,7 +128,7 @@ object DungeonListener {
             deads.clear()
             disconnected.clear()
             missingPuzzles.clear()
-            completedPuzzles.clear()
+            terminalStatePuzzles.clear()
             teamCached.clear()
             printDevMessage("closed room queue world load", "dungeonws")
             outboundRoomQueue.cancel()
@@ -140,11 +140,9 @@ object DungeonListener {
     fun onLocationUpdate(event: LocationChangeEvent) {
         if (event.packet.mode.getOrNull() == "dungeon") {
             printDevMessage("closed room queue", "dungeonws")
-            outboundRoomQueue.also {
-                outboundRoomQueue = Channel(UNLIMITED) {
-                    printDevMessage("failed to deliver $it", "dungeonws")
-                }
-                it.cancel()
+            outboundRoomQueue.cancel()
+            outboundRoomQueue = Channel(UNLIMITED) {
+                printDevMessage("failed to deliver $it", "dungeonws")
             }
         }
     }
@@ -269,6 +267,46 @@ object DungeonListener {
                 }
             }
         }
+        else if (event.packet is S38PacketPlayerListItem) {
+            val action = event.packet.action
+            val entries = event.packet.entries
+
+            if (action != S38PacketPlayerListItem.Action.ADD_PLAYER && action != S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME) return
+
+            for (entry in entries) {
+                val text = entry.text
+                if ('✦' in text || '✔' in text || '✖' in text) {
+                    puzzleRegex.find(text)?.let { match ->
+                        val puzzleName = match.groups["puzzle"]!!.value
+                        if (puzzleName != "???") {
+                            when {
+                                match.groups["missing"] != null -> {
+                                    printDevMessage("found missing puzzle $puzzleName", "dungeonlistener")
+                                    if (puzzleName in terminalStatePuzzles) {
+                                        DungeonEvent.PuzzleEvent.Reset(puzzleName).postAndCatch()
+                                        terminalStatePuzzles.remove(puzzleName)
+                                        missingPuzzles.add(puzzleName)
+                                    }
+                                    if (puzzleName !in missingPuzzles) {
+                                        DungeonEvent.PuzzleEvent.Discovered(puzzleName).postAndCatch()
+                                        missingPuzzles.add(puzzleName)
+                                    }
+                                }
+                                match.groups["completed"] != null || match.groups["failed"] != null -> {
+                                    printDevMessage("found completed/failed puzzle $puzzleName", "dungeonlistener")
+                                    if (puzzleName in missingPuzzles) {
+                                        DungeonEvent.PuzzleEvent.Completed(puzzleName).postAndCatch()
+                                        terminalStatePuzzles.add(puzzleName)
+                                        missingPuzzles.remove(puzzleName)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -285,41 +323,6 @@ object DungeonListener {
     }
 
     init {
-        tickTimer(4, repeats = true) {
-            if (!Utils.inDungeons) return@tickTimer
-            val localMissingPuzzles = TabListUtils.tabEntries.mapNotNull {
-                val name = it.second
-                if (name.contains("✦")) {
-                    val matcher = missingPuzzlePattern.find(name)
-                    if (matcher != null) {
-                        val puzzleName = matcher.groups["puzzle"]!!.value
-                        if (puzzleName != "???") {
-                            return@mapNotNull puzzleName
-                        }
-                    }
-                }
-                return@mapNotNull null
-            }
-            if (missingPuzzles.size != localMissingPuzzles.size || !missingPuzzles.containsAll(localMissingPuzzles)) {
-                val newPuzzles = localMissingPuzzles.filter { it !in missingPuzzles }
-                val localCompletedPuzzles = missingPuzzles.filter { it !in localMissingPuzzles }
-                val resetPuzzles = localMissingPuzzles.filter { it in completedPuzzles }
-
-                resetPuzzles.forEach {
-                    DungeonEvent.PuzzleEvent.Reset(it).postAndCatch()
-                }
-                newPuzzles.forEach {
-                    DungeonEvent.PuzzleEvent.Discovered(it).postAndCatch()
-                }
-                localCompletedPuzzles.forEach {
-                    DungeonEvent.PuzzleEvent.Completed(it).postAndCatch()
-                }
-                missingPuzzles.clear()
-                missingPuzzles.addAll(localMissingPuzzles)
-                completedPuzzles.clear()
-                completedPuzzles.addAll(localCompletedPuzzles)
-            }
-        }
         tickTimer(2, repeats = true) {
             if (Utils.inDungeons && mc.thePlayer != null && mc.thePlayer.ticksExisted >= 100 && (DungeonTimer.scoreShownAt == -1L || System.currentTimeMillis() - DungeonTimer.scoreShownAt < 1500)) {
                 val tabEntries = TabListUtils.tabEntries
