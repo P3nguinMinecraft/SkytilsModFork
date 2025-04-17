@@ -78,7 +78,8 @@ object MapUpdater {
                     if (room is Room) {
                         room.uniqueRoom?.state = mapTile.state
                         if (room.state == RoomState.GREEN) {
-                            room.uniqueRoom?.foundSecrets = room.uniqueRoom?.foundSecrets?.coerceAtLeast(room.data.secrets)
+                            val secretThreshold = room.data.secrets
+                            room.uniqueRoom?.foundSecrets = room.uniqueRoom?.foundSecrets?.coerceAtLeast(secretThreshold) ?: secretThreshold
                         }
                     }
                 }
