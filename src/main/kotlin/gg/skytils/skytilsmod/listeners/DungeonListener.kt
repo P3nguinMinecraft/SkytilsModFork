@@ -25,7 +25,6 @@ import gg.essential.universal.UChat
 import gg.skytils.hypixel.types.skyblock.Pet
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.IO
-import gg.skytils.skytilsmod.Skytils.Companion.failPrefix
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.commands.impl.RepartyCommand
 import gg.skytils.skytilsmod.core.API
@@ -45,6 +44,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.CooldownTracker
 import gg.skytils.skytilsmod.features.impl.handlers.SpiritLeap
 import gg.skytils.skytilsmod.listeners.ServerPayloadInterceptor.getResponse
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorChatComponentText
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorNetHandlerPlayClient
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.addSuffix
 import gg.skytils.skytilsmod.utils.NumberUtil.romanToDecimal
@@ -60,11 +60,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.hypixel.modapi.packet.impl.clientbound.ClientboundPartyInfoPacket
 import net.hypixel.modapi.packet.impl.serverbound.ServerboundPartyInfoPacket
+import net.minecraft.client.entity.AbstractClientPlayer
+import net.minecraft.client.resources.DefaultPlayerSkin
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.play.server.S02PacketChat
+import net.minecraft.network.play.server.S13PacketDestroyEntities
 import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.ClientChatReceivedEvent
+import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -72,7 +76,6 @@ import kotlin.jvm.optionals.getOrNull
 
 object DungeonListener {
     val team = hashMapOf<String, DungeonTeammate>()
-    private val teamCached = hashMapOf<String, Pair<DungeonClass, Int>>()
     val deads = hashSetOf<DungeonTeammate>()
     val disconnected = hashSetOf<String>()
     val missingPuzzles = hashSetOf<String>()
@@ -119,7 +122,8 @@ object DungeonListener {
     private val witherDoorOpenedRegex = Regex("^(?:\\[.+?] )?(?<name>\\w+) opened a WITHER door!$")
     private const val bloodOpenedString = "§r§cThe §r§c§lBLOOD DOOR§r§c has been opened!§r"
     var outboundRoomQueue = Channel<C2SPacketDungeonRoom>(UNLIMITED)
-    var isSoloDungeon = false
+    // 1 + i * 4
+    private val playerEntryNames = mapOf("!A-b" to 1, "!A-f" to 5, "!A-j" to 9, "!A-n" to 13, "!A-r" to 17)
 
     @SubscribeEvent
     fun onWorldLoad(event: WorldEvent.Unload) {
@@ -129,10 +133,8 @@ object DungeonListener {
             disconnected.clear()
             missingPuzzles.clear()
             terminalStatePuzzles.clear()
-            teamCached.clear()
             printDevMessage("closed room queue world load", "dungeonws")
             outboundRoomQueue.cancel()
-            isSoloDungeon = false
         }
     }
 
@@ -292,6 +294,7 @@ object DungeonListener {
                                         missingPuzzles.add(puzzleName)
                                     }
                                 }
+
                                 match.groups["completed"] != null || match.groups["failed"] != null -> {
                                     printDevMessage("found completed/failed puzzle $puzzleName", "dungeonlistener")
                                     if (puzzleName in missingPuzzles) {
@@ -303,9 +306,103 @@ object DungeonListener {
                             }
                         }
                     }
+                    continue
                 }
 
+                val old = (event.handler as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]
+                if (old != null && action == S38PacketPlayerListItem.Action.ADD_PLAYER) {
+                    printDevMessage("player ${entry.text} already exists in the list but was added", "dungeonlistener")
+                }
+                val pos = playerEntryNames[old?.gameProfile?.name ?: entry.profile.name]
+                if (pos != null) {
+                    val matcher = classPattern.find(text)
+                    if (matcher == null) {
+                        println("$text didn't match!")
+                        // TODO: monitor how leaving the dungeon works
+                        team.values.find { it.tabEntryIndex == pos }?.let {
+                            println("Removing ${it.playerName} from team due to not matching ${DungeonTimer.dungeonStartTime}")
+                            team.remove(it.playerName)
+                        }
+                        continue
+                    }
+                    val name = matcher.groups["name"]!!.value
+                    if (name in disconnected) {
+                        println("Skipping over entry $name due to player being disconnected")
+                        continue
+                    }
+
+                    val dungeonClass = matcher.groups["class"]?.value?.let { DungeonClass.getClassFromName(it) }
+                    val classLevel = matcher.groups["lvl"]?.value?.romanToDecimal()
+                    val teammate = team.computeIfAbsent(name) {
+                        DungeonTeammate(
+                            name,
+                            DungeonClass.EMPTY,
+                            0,
+                            pos,
+                            old?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+                        ).also {
+                            if (old == null) {
+                                printDevMessage("could not get network player info for $name $action", "dungeonlistener")
+                                tickTimer(1) {
+                                    printDevMessage("setting skin for ${name}", "dungeonlistener")
+                                    it.skin = event.handler.uuidToPlayerInfo[entry.profile.id]?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+                                }
+                            }
+                            println("Added $it to list")
+                        }
+                    }
+                    println("Processing update for $name")
+
+                    if (dungeonClass != null && classLevel != null) {
+                        teammate.dungeonClass = dungeonClass
+                        teammate.classLevel = classLevel
+                    }
+
+                    teammate.tabEntryIndex = pos
+
+                    teammate.player = mc.theWorld.playerEntities.find {
+                        it.name == teammate.playerName && it.uniqueID.version() == 4
+                    }
+
+                    old?.locationSkin?.let { teammate.skin = it }
+
+                    if ("§r§cDEAD§r§f)§r" in text) {
+                        markDead(teammate)
+                    } else {
+                        markRevived(teammate)
+                    }
+
+                    CooldownTracker.updateCooldownReduction()
+                    checkSpiritPet(teammate)
+
+                    tickTimer(1) {
+                        val self = team[mc.thePlayer.name]
+                        val alives = team.values.filterNot {
+                            it.dead || it == self || it in deads
+                        }.sortedBy {
+                            it.tabEntryIndex
+                        }
+
+                        alives.forEachIndexed { i, teammate ->
+                            teammate.mapPlayer.icon = "icon-$i"
+                            printDevMessage("Setting icon for ${teammate.playerName} to icon-$i", "dungeonlistener")
+                        }
+                        self?.mapPlayer?.icon = "icon-${alives.size}"
+                    }
+                }
             }
+        } else if (event.packet is S13PacketDestroyEntities) {
+            event.packet.entityIDs.map(mc.theWorld::getEntityByID).filter { it is EntityPlayer }.forEach { entity ->
+                team[entity.name]?.player = null
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onJoinWorld(event: EntityJoinWorldEvent) {
+        // S0CPacketSpawnPlayer
+        if (event.entity is AbstractClientPlayer && event.entity.uniqueID.version() == 4) {
+            team[event.entity.name]?.player = event.entity as EntityPlayer
         }
     }
 
@@ -318,140 +415,6 @@ object DungeonListener {
             event.message.siblings.forEach {
                 if (it !is AccessorChatComponentText) return@forEach
                 it.text = it.text.replace(secretsRegex, "")
-            }
-        }
-    }
-
-    init {
-        tickTimer(2, repeats = true) {
-            if (Utils.inDungeons && mc.thePlayer != null && mc.thePlayer.ticksExisted >= 100 && (DungeonTimer.scoreShownAt == -1L || System.currentTimeMillis() - DungeonTimer.scoreShownAt < 1500)) {
-                val tabEntries = TabListUtils.tabEntries
-                var partyCount: Int? = null
-                if (tabEntries.isNotEmpty() && tabEntries[0].second.contains("§r§b§lParty §r§f(")) {
-                    partyCount = partyCountPattern.find(tabEntries[0].second)?.groupValues?.get(1)?.toIntOrNull()
-                    if (partyCount != null) {
-                        // we can just keep disconnected players here i think
-                        if (team.size != partyCount) {
-                            println("Recomputing team as party size has changed ${team.size} -> $partyCount")
-                            team.values.filter { it.dungeonClass != DungeonClass.EMPTY }.forEach {
-                                teamCached[it.playerName] = it.dungeonClass to it.classLevel
-                            }
-                            team.clear()
-                        } else if (team.size > 5) {
-                            UChat.chat("$failPrefix §cSomething isn't right! I got more than 5 members. Expected $partyCount members but got ${team.size}")
-                            println("Got more than 5 players on the team??")
-                            team.values.filter { it.dungeonClass != DungeonClass.EMPTY }.forEach {
-                                teamCached[it.playerName] = it.dungeonClass to it.classLevel
-                            }
-                            team.clear()
-                        }
-                    } else {
-                        println("Couldn't get party count")
-                    }
-                } else {
-                    println("Couldn't get party text")
-                }
-
-                if (partyCount != null && (team.isEmpty() || (DungeonTimer.dungeonStartTime != -1L && team.values.any { it.dungeonClass == DungeonClass.EMPTY  }))) {
-                    printDevMessage("Parsing party", "dungeonlistener")
-                    println("There are $partyCount members in this party")
-                    for (i in 0..<5) {
-                        val pos = 1 + i * 4
-                        if (pos >= tabEntries.size) {
-                            println("Tried to get index $pos but doesn't exist!")
-                            break
-                        }
-                        val (entry, text) = tabEntries[pos]
-                        val matcher = classPattern.find(text)
-                        if (matcher == null) {
-                            println("Skipping over entry $text due to it not matching")
-                            continue
-                        }
-                        val name = matcher.groups["name"]!!.value
-                        if (name in disconnected) {
-                            println("Skipping over entry $name due to player being disconnected")
-                            continue
-                        }
-
-                        if (matcher.groups["class"] != null) {
-                            val dungeonClass = matcher.groups["class"]!!.value
-                            val classLevel = matcher.groups["lvl"]!!.value.romanToDecimal()
-                            println("Parsed teammate $name, they are a $dungeonClass $classLevel")
-                            team[name] =
-                                DungeonTeammate(
-                                    name,
-                                    DungeonClass.getClassFromName(
-                                        dungeonClass
-                                    ), classLevel,
-                                    pos,
-                                    entry.locationSkin
-                                )
-                        } else {
-                            println("Parsed teammate $name with value EMPTY, $text")
-                            if (name in teamCached) {
-                                val cache = teamCached[name]!!
-                                team[name] = DungeonTeammate(
-                                    name,
-                                    cache.first, cache.second,
-                                    pos,
-                                    entry.locationSkin
-                                )
-                                println("Got old teammate $name with value EMPTY, using values from cache instead ${cache}")
-                            } else {
-                                team[name] = DungeonTeammate(
-                                    name,
-                                    DungeonClass.EMPTY, 0,
-                                    pos,
-                                    entry.locationSkin
-                                )
-                            }
-                        }
-
-                        team[name]?.mapPlayer?.icon = "icon-${(i + (partyCount-1)) % (partyCount)}}"
-                    }
-
-                    if (partyCount != team.size) {
-                        UChat.chat("$failPrefix §cSomething isn't right! I expected $partyCount members but got ${team.size}")
-                    }
-
-                    if (DungeonTimer.dungeonStartTime != -1L && System.currentTimeMillis() - DungeonTimer.dungeonStartTime >= 2000 && team.values.any { it.dungeonClass == DungeonClass.EMPTY }) {
-                        UChat.chat("$failPrefix §cSomething isn't right! One or more of your party members has an empty class! Could the server be lagging?")
-                    }
-
-                    if (team.isNotEmpty()) {
-                        CooldownTracker.updateCooldownReduction()
-                        checkSpiritPet()
-                    }
-                } else {
-                    val self = team[mc.thePlayer.name]
-                    for (teammate in team.values) {
-                        if (tabEntries.size <= teammate.tabEntryIndex) continue
-                        val entry = tabEntries[teammate.tabEntryIndex].second
-                        if (!entry.contains(teammate.playerName)) {
-                            println("Expected ${teammate.playerName} at ${teammate.tabEntryIndex}, got $entry")
-                            continue
-                        }
-                        teammate.player = mc.theWorld.playerEntities.find {
-                            it.name == teammate.playerName && it.uniqueID.version() == 4
-                        }
-                        if (self?.dead != true) {
-                            if (entry.endsWith("§r§cDEAD§r§f)§r")) markDead(teammate)
-                            else markRevived(teammate)
-                        }
-                    }
-
-                    val alives = team.values.filterNot {
-                        it.dead || it == self || it in deads
-                    }.sortedBy {
-                        it.tabEntryIndex
-                    }
-
-                    alives.forEachIndexed { i, teammate ->
-                        teammate.mapPlayer.icon = "icon-$i"
-                        printDevMessage("Setting icon for ${teammate.playerName} to icon-$i", "dungeonlistener")
-                    }
-                    self?.mapPlayer?.icon = "icon-${alives.size}"
-                }
             }
         }
     }
@@ -504,19 +467,15 @@ object DungeonListener {
         }
     }
 
-    fun checkSpiritPet() {
-        val teamCopy = team.values.toList()
+    fun checkSpiritPet(teammate: DungeonTeammate) {
+        val name = teammate.playerName
+        if (hutaoFans.getIfPresent(name) != null) return
         IO.launch {
             runCatching {
-                for (teammate in teamCopy) {
-                    val name = teammate.playerName
-                    if (hutaoFans.getIfPresent(name) != null) continue
-                    val uuid = teammate.player?.uniqueID ?: MojangUtil.getUUIDFromUsername(name) ?: continue
-                    API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())?.pets_data?.pets?.any(Pet::isSpirit)?.let {
-                        hutaoFans[name] = it
-                    }
+                val uuid = teammate.player?.uniqueID ?: MojangUtil.getUUIDFromUsername(name) ?: return@runCatching
+                API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())?.pets_data?.pets?.any(Pet::isSpirit)?.let {
+                    hutaoFans[name] = it
                 }
-                printDevMessage(hutaoFans.asMap().toString(), "spiritpet")
             }.onFailure {
                 it.printStackTrace()
             }
@@ -525,10 +484,10 @@ object DungeonListener {
 
     data class DungeonTeammate(
         val playerName: String,
-        val dungeonClass: DungeonClass,
-        val classLevel: Int,
-        val tabEntryIndex: Int,
-        val skin: ResourceLocation
+        var dungeonClass: DungeonClass,
+        var classLevel: Int,
+        var tabEntryIndex: Int,
+        var skin: ResourceLocation
     ) {
         var player: EntityPlayer? = null
             set(value) {
@@ -541,7 +500,7 @@ object DungeonListener {
         var deaths = 0
         var lastLivingStateChange: Long? = null
 
-        val mapPlayer = DungeonMapPlayer(this, skin)
+        val mapPlayer = DungeonMapPlayer(this)
 
         fun canRender() = player != null && player!!.health > 0 && !dead
     }

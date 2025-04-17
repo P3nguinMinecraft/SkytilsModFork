@@ -23,7 +23,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EnumPlayerModelParts
 import net.minecraft.util.ResourceLocation
 
-data class DungeonMapPlayer(val teammate: DungeonListener.DungeonTeammate, val skin: ResourceLocation) {
+data class DungeonMapPlayer(val teammate: DungeonListener.DungeonTeammate) {
+    inline val skin get() = teammate.skin
     var mapX = 0
     var mapZ = 0
     var yaw = 0f

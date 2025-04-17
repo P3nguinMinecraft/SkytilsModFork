@@ -99,6 +99,7 @@
   ],
   "verbose": true,
   "client": [
+    "accessors.AccessorNetHandlerPlayClient",
     "gui.MixinGuiEditSign",
     "renderer.MixinModelBiped",
     "util.MixinMouseHelper"
