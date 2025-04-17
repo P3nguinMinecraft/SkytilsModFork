@@ -31,7 +31,6 @@ import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
 import gg.skytils.skytilsmod.events.impl.skyblock.DungeonEvent
-import gg.skytils.skytilsmod.events.impl.skyblock.LocationChangeEvent
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
@@ -72,7 +71,6 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import kotlin.jvm.optionals.getOrNull
 
 object DungeonListener {
     val team = hashMapOf<String, DungeonTeammate>()
@@ -134,19 +132,6 @@ object DungeonListener {
             disconnected.clear()
             incompletePuzzles.clear()
             terminalStatePuzzles.clear()
-            printDevMessage("closed room queue world load", "dungeonws")
-            outboundRoomQueue.cancel()
-        }
-    }
-
-    @SubscribeEvent
-    fun onLocationUpdate(event: LocationChangeEvent) {
-        if (event.packet.mode.getOrNull() == "dungeon") {
-            printDevMessage("closed room queue", "dungeonws")
-            outboundRoomQueue.cancel()
-            outboundRoomQueue = Channel(UNLIMITED) {
-                printDevMessage("failed to deliver $it", "dungeonws")
-            }
         }
     }
 
