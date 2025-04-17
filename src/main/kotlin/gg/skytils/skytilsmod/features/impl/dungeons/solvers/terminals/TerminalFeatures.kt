@@ -37,7 +37,7 @@ object TerminalFeatures {
     fun isInPhase3(): Boolean {
         return ((SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != -1L) &&
                         DungeonTimer.terminalClearTime == -1L && dungeonFloorNumber == 7)
-                || ItemUtil.getSkyBlockItemID(mc.thePlayer.heldItem) == "PUZZLE_CUBE"
+                || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.thePlayer?.heldItem) == "PUZZLE_CUBE")
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
