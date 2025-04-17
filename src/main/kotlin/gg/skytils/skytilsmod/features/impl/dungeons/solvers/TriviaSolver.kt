@@ -20,23 +20,18 @@ package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.failPrefix
-import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.core.DataFetcher
 import gg.skytils.skytilsmod.events.impl.skyblock.DungeonEvent
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.*
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.util.ChatComponentText
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderLivingEvent
-import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.input.Keyboard
 import kotlin.math.floor
 
 object TriviaSolver {
@@ -53,7 +48,7 @@ object TriviaSolver {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ClientChatReceivedEvent) {
-        if (event.type == 2.toByte() || !Skytils.config.triviaSolver || !Utils.inDungeons || !DungeonListener.missingPuzzles.contains("Quiz")) return
+        if (event.type == 2.toByte() || !Skytils.config.triviaSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Quiz")) return
         val formatted = event.message.formattedText
 
         if (formatted == "§r§4[STATUE] Oruo the Omniscient§r§f: §r§fI am §r§4Oruo the Omniscient§r§f. I have lived many lives. I have learned all there is to know.§r" && triviaSolutions.size == 0) {
@@ -101,7 +96,7 @@ object TriviaSolver {
     @SubscribeEvent
     fun onRenderArmorStandPre(event: RenderLivingEvent.Pre<EntityArmorStand>) {
         val answer = correctAnswer ?: return
-        if (!Skytils.config.triviaSolver || !DungeonListener.missingPuzzles.contains("Quiz") || event.entity !is EntityArmorStand) return
+        if (!Skytils.config.triviaSolver || !DungeonListener.incompletePuzzles.contains("Quiz") || event.entity !is EntityArmorStand) return
 
         val name = event.entity.customNameTag
 

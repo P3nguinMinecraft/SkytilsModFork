@@ -33,7 +33,7 @@ fun removeBlazeSmokeParticle(
     zOffset: Double,
     p_175688_14_: IntArray
 ): Boolean {
-    return !Utils.inDungeons || particleType != EnumParticleTypes.SMOKE_LARGE || !DungeonListener.missingPuzzles.contains(
+    return !Utils.inDungeons || particleType != EnumParticleTypes.SMOKE_LARGE || !DungeonListener.incompletePuzzles.contains(
         "Higher Or Lower"
     )
 }

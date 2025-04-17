@@ -81,7 +81,7 @@ object CreeperSolver {
 
     init {
         tickTimer(20, repeats = true) {
-            if (Skytils.config.creeperBeamsSolver && Utils.inDungeons && DungeonListener.missingPuzzles.contains(
+            if (Skytils.config.creeperBeamsSolver && Utils.inDungeons && DungeonListener.incompletePuzzles.contains(
                     "Creeper Beams"
                 )
             ) {
@@ -92,7 +92,7 @@ object CreeperSolver {
 
     @SubscribeEvent
     fun onWorldRender(event: RenderWorldLastEvent) {
-        if (Skytils.config.creeperBeamsSolver && solutionPairs.isNotEmpty() && !creeper!!.isDead && DungeonListener.missingPuzzles.contains(
+        if (Skytils.config.creeperBeamsSolver && solutionPairs.isNotEmpty() && !creeper!!.isDead && DungeonListener.incompletePuzzles.contains(
                 "Creeper Beams"
             )
         ) {

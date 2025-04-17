@@ -54,7 +54,7 @@ object TicTacToeSolver {
     init {
         tickTimer(20, repeats = true) {
             if (!Utils.inDungeons || !Skytils.config.ticTacToeSolver || mc.thePlayer == null) return@tickTimer
-            if (SuperSecretSettings.azooPuzzoo || DungeonListener.missingPuzzles.contains("Tic Tac Toe")) {
+            if (SuperSecretSettings.azooPuzzoo || DungeonListener.incompletePuzzles.contains("Tic Tac Toe")) {
                 updatePuzzleState()
             } else {
                 bestMove = null

@@ -24,7 +24,6 @@ import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.Skytils.Companion.prefix
 import gg.skytils.skytilsmod.core.DataFetcher
 import gg.skytils.skytilsmod.listeners.DungeonListener
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.entity.item.EntityArmorStand
@@ -47,7 +46,7 @@ object ThreeWeirdosSolver {
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ClientChatReceivedEvent) {
         if (event.type == 2.toByte()) return
-        if (!Skytils.config.threeWeirdosSolver || !Utils.inDungeons || !DungeonListener.missingPuzzles.contains("Three Weirdos")) return
+        if (!Skytils.config.threeWeirdosSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Three Weirdos")) return
         val formatted = event.message.formattedText
         if (formatted.startsWith("§a§lPUZZLE SOLVED!") && "wasn't fooled by " in formatted) {
             riddleNPC = null

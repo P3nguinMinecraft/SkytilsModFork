@@ -26,7 +26,6 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.events.impl.skyblock.DungeonEvent
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.coroutines.launch
@@ -51,7 +50,7 @@ object BlazeSolver {
 
     init {
         tickTimer(4, repeats = true) {
-            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.missingPuzzles.contains(
+            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.incompletePuzzles.contains(
                     "Higher Or Lower"
                 )
             ) {
@@ -59,7 +58,7 @@ object BlazeSolver {
             }
         }
         tickTimer(20, repeats = true) {
-            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.missingPuzzles.contains(
+            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.incompletePuzzles.contains(
                     "Higher Or Lower"
                 )
             ) {

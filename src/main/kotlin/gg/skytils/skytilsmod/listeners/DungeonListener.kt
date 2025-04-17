@@ -78,7 +78,7 @@ object DungeonListener {
     val team = hashMapOf<String, DungeonTeammate>()
     val deads = hashSetOf<DungeonTeammate>()
     val disconnected = hashSetOf<String>()
-    val missingPuzzles = hashSetOf<String>()
+    val incompletePuzzles = hashSetOf<String>()
     val terminalStatePuzzles = hashSetOf<String>()
     val hutaoFans: Cache<String, Boolean> = Caffeine.newBuilder()
         .weakKeys()
@@ -132,7 +132,7 @@ object DungeonListener {
             team.clear()
             deads.clear()
             disconnected.clear()
-            missingPuzzles.clear()
+            incompletePuzzles.clear()
             terminalStatePuzzles.clear()
             printDevMessage("closed room queue world load", "dungeonws")
             outboundRoomQueue.cancel()
@@ -288,20 +288,20 @@ object DungeonListener {
                                     if (puzzleName in terminalStatePuzzles) {
                                         DungeonEvent.PuzzleEvent.Reset(puzzleName).postAndCatch()
                                         terminalStatePuzzles.remove(puzzleName)
-                                        missingPuzzles.add(puzzleName)
+                                        incompletePuzzles.add(puzzleName)
                                     }
-                                    if (puzzleName !in missingPuzzles) {
+                                    if (puzzleName !in incompletePuzzles) {
                                         DungeonEvent.PuzzleEvent.Discovered(puzzleName).postAndCatch()
-                                        missingPuzzles.add(puzzleName)
+                                        incompletePuzzles.add(puzzleName)
                                     }
                                 }
 
                                 match.groups["completed"] != null || match.groups["failed"] != null -> {
                                     printDevMessage("found completed/failed puzzle $puzzleName", "dungeonlistener")
-                                    if (puzzleName in missingPuzzles) {
+                                    if (puzzleName in incompletePuzzles) {
                                         DungeonEvent.PuzzleEvent.Completed(puzzleName).postAndCatch()
                                         terminalStatePuzzles.add(puzzleName)
-                                        missingPuzzles.remove(puzzleName)
+                                        incompletePuzzles.remove(puzzleName)
                                     }
                                 }
                             }

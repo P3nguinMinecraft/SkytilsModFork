@@ -23,7 +23,6 @@ import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -61,7 +60,7 @@ object WaterBoardSolver {
             if (!Skytils.config.waterBoardSolver || !Utils.inDungeons) return@tickTimer
             val player = mc.thePlayer ?: return@tickTimer
             val world = mc.theWorld ?: return@tickTimer
-            if (DungeonListener.missingPuzzles.contains("Water Board") && variant == -1 && (job == null || job?.isCancelled == true || job?.isCompleted == true)) {
+            if (DungeonListener.incompletePuzzles.contains("Water Board") && variant == -1 && (job == null || job?.isCancelled == true || job?.isCompleted == true)) {
                 job = Skytils.launch {
                     prevInWaterRoom = inWaterRoom
                     inWaterRoom = false
@@ -228,7 +227,7 @@ object WaterBoardSolver {
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorldLastEvent) {
-        if (!Skytils.config.waterBoardSolver || !DungeonListener.missingPuzzles.contains("Water Board")) return
+        if (!Skytils.config.waterBoardSolver || !DungeonListener.incompletePuzzles.contains("Water Board")) return
         if (chestPos == null || roomFacing == null || variant == -1) return
         val leverStates = LeverBlock.entries.associateWithTo(EnumMap(LeverBlock::class.java)) {
             getLeverToggleState(it.leverPos)
