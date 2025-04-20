@@ -159,6 +159,7 @@ enum class SkyblockIsland(val displayName: String, val mode: String) {
     DarkAuction("Dark Auction", "dark_auction"),
     JerryWorkshop("Jerry's Workshop", "winter"),
     KuudraHollow("Kuudra's Hollow", "kuudra"),
+    GlaciteMineshafts("Glacite Mineshafts", "mineshaft"),
     TheRift("The Rift", "rift"),
     Unknown("(Unknown)", "");
 
