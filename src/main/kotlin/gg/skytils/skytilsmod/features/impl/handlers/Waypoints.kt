@@ -144,7 +144,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")) {
         } else {
             try {
                 val genericArray = json.decodeFromString<JsonArray>(str)
-                val foundWaypoints = hashMapOf<String, HashSet<Waypoint>>()
+                val foundWaypoints = hashMapOf<SkyblockIsland, HashSet<Waypoint>>()
 
                 for (element in genericArray) {
                     val obj = element.jsonObject
@@ -169,7 +169,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")) {
 
                     val name = (obj["name"] ?: options?.get("name"))?.jsonPrimitive?.content ?: "Unnamed"
                     val color = obj["color"]?.jsonPrimitive?.content?.let(Utils::colorFromString) ?: Color(r ?: 1f, g ?: 0f, b ?: 0f)
-                    val island = (obj["island"] ?: obj["mode"])?.jsonPrimitive?.content ?: SkyblockIsland.CrystalHollows.mode
+                    val island = SkyblockIsland.byMode[((obj["island"] ?: obj["mode"])?.jsonPrimitive?.content)] ?: if (Utils.isOnHypixel) SkyblockIsland.current else SkyblockIsland.CrystalHollows
 
                     foundWaypoints.getOrPut(island) { hashSetOf() }.add(Waypoint(name, pos.x, pos.y, pos.z, true, color, System.currentTimeMillis()))
                 }
@@ -180,7 +180,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")) {
                             name = null,
                             waypoints = waypoints,
                             isExpanded = true,
-                            island = SkyblockIsland.entries.find { it.mode == island } ?: SkyblockIsland.Unknown
+                            island = island
                         )
                     )
                 }
