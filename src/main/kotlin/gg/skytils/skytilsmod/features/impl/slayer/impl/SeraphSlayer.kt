@@ -65,11 +65,13 @@ class SeraphSlayer(entity: EntityEnderman) :
                 )
             }?.let { suspect ->
                 printDevMessage(
-                    "Found suspect glyph, $lastYangGlyphSwitchTicks switched, ${suspect.ticksExisted} existed, ${
-                        entity.getDistanceSqToEntity(
-                            suspect
-                        )
-                    } distance", "slayer", "seraph", "seraphGlyph"
+                    {
+                        "Found suspect glyph, $lastYangGlyphSwitchTicks switched, ${suspect.ticksExisted} existed, ${
+                            entity.getDistanceSqToEntity(
+                                suspect
+                            )
+                        } distance"
+                    }, "slayer", "seraph", "seraphGlyph"
                 )
                 thrownEntity = suspect
             }
@@ -82,7 +84,7 @@ class SeraphSlayer(entity: EntityEnderman) :
                 if (e.inventory[4]?.item == Item.getItemFromBlock(Blocks.beacon)) {
                     val time = System.currentTimeMillis() - 50
                     printDevMessage(
-                        "Found beacon armor stand, time diff ${time - lastYangGlyphSwitch}",
+                        { "Found beacon armor stand, time diff ${time - lastYangGlyphSwitch}" },
                         "slayer",
                         "seraph",
                         "seraphGlyph"
@@ -108,7 +110,7 @@ class SeraphSlayer(entity: EntityEnderman) :
                 } else if (e.entityBoundingBox.expand(2.0, 3.0, 2.0)
                         .intersectsWith(entity.entityBoundingBox)
                 ) {
-                    printDevMessage("Found nearby armor stand", "slayer", "seraph", "seraphGlyph", "seraphFixation")
+                    printDevMessage({ "Found nearby armor stand" }, "slayer", "seraph", "seraphGlyph", "seraphFixation")
                     if (e.inventory.any {
                             it?.takeIf { it.item == Items.skull }
                                 ?.let { ItemUtil.getSkullTexture(it) } == "eyJ0aW1lc3RhbXAiOjE1MzQ5NjM0MzU5NjIsInByb2ZpbGVJZCI6ImQzNGFhMmI4MzFkYTRkMjY5NjU1ZTMzYzE0M2YwOTZjIiwicHJvZmlsZU5hbWUiOiJFbmRlckRyYWdvbiIsInNpZ25hdHVyZVJlcXVpcmVkIjp0cnVlLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWIwNzU5NGUyZGYyNzM5MjFhNzdjMTAxZDBiZmRmYTExMTVhYmVkNWI5YjIwMjllYjQ5NmNlYmE5YmRiYjRiMyJ9fX0="
@@ -128,9 +130,9 @@ class SeraphSlayer(entity: EntityEnderman) :
             return
         }
         thrownEntity?.let { entity ->
-            printDevMessage("Glyph Entity exists", "slayer", "seraph", "seraphGlyph")
+            printDevMessage({ "Glyph Entity exists" }, "slayer", "seraph", "seraphGlyph")
             if (event.update.block is BlockBeacon && entity.position.distanceSq(event.pos) <= 3.5 * 3.5) {
-                printDevMessage("Beacon entity near beacon block!", "slayer", "seraph", "seraphGlyph")
+                printDevMessage({ "Beacon entity near beacon block!" }, "slayer", "seraph", "seraphGlyph")
                 thrownLocation = event.pos
                 thrownEntity = null
                 if (Config.yangGlyphPing && Config.yangGlyphPingOnLand) GuiManager.createTitle(
@@ -148,7 +150,7 @@ class SeraphSlayer(entity: EntityEnderman) :
                     30
                 )
                 printDevMessage(
-                    "Beacon was close to slayer, $lastYangGlyphSwitchTicks", "slayer", "seraph", "seraphGlyph"
+                    { "Beacon was close to slayer, $lastYangGlyphSwitchTicks" }, "slayer", "seraph", "seraphGlyph"
                 )
                 thrownLocation = event.pos
                 lastYangGlyphSwitchTicks = -1

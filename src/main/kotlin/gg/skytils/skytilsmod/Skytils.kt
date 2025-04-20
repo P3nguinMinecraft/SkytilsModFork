@@ -593,8 +593,8 @@ class Skytils {
         }
         if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is S3DPacketDisplayScoreboard && event.packet.func_149371_c() == 1) {
             Utils.skyblock = event.packet.func_149370_d() == "SBScoreboard"
-            printDevMessage("score ${event.packet.func_149370_d()}", "utils")
-            printDevMessage("sb ${Utils.inSkyblock}", "utils")
+            printDevMessage({ "score ${event.packet.func_149370_d()}" }, "utils")
+            printDevMessage({ "sb ${Utils.inSkyblock}" }, "utils")
         }
         if (event.packet is S1CPacketEntityMetadata && mc.thePlayer != null) {
             val nameObj = event.packet.func_149376_c()?.find { it.dataValueId == 2 } ?: return
@@ -618,7 +618,7 @@ class Skytils {
             val name = playerData?.displayName?.formattedText ?: playerData?.profile?.name ?: return@forEach
             areaRegex.matchEntire(name)?.let { result ->
                 Utils.dungeons = Utils.inSkyblock && result.groups["area"]?.value == "Dungeon"
-                printDevMessage("dungeons ${Utils.inDungeons} action ${event.packet.action}", "utils")
+                printDevMessage({ "dungeons ${Utils.inDungeons} action ${event.packet.action}" }, "utils")
                 if (Utils.inDungeons)
                     ScoreCalculation.updateText(ScoreCalculation.totalScore.get())
                 return@forEach

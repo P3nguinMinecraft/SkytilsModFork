@@ -77,17 +77,17 @@ class AbstractClientPlayerHook(player: Any) {
             that.entityBoundingBox.expand(1.0, 2.5, 1.0)
         ) { entity: Entity? ->
             printDevMessage(
-                "entity name ${entity?.name}",
+                { "entity name ${entity?.name}" },
                 "summonskins"
             );entity is EntityArmorStand && entity.hasCustomName()
         }
-        printDevMessage("nearby ${nearbyEntities.size}", "summonskins")
+        printDevMessage({ "nearby ${nearbyEntities.size}" }, "summonskins")
         for (entity in nearbyEntities) {
             val name = entity.customNameTag
             val type = typeRegex.matchEntire(name)?.let { result ->
                 return@let result.groups["type"]?.value ?: return@let null
             } ?: return null
-            printDevMessage("summon type: $type", "summonskins")
+            printDevMessage({ "summon type: $type" }, "summonskins")
             return type.lowercase().replace(' ', '_')
         }
         return null
@@ -104,7 +104,7 @@ class AbstractClientPlayerHook(player: Any) {
                         return
                     }
                     // TODO Add support for resource packs
-                    printDevMessage("summon type ${summonType.getCompleted()}", "summonskins")
+                    printDevMessage({ "summon type ${summonType.getCompleted()}" }, "summonskins")
                     correctSkin = skintextureMap[summonType.getCompleted()]?.resource
                         ?: (if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.thePlayer.locationSkin else sychicSkin).also {
                             UChat.chat(

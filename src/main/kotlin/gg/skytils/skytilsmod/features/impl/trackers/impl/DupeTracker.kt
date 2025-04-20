@@ -78,8 +78,8 @@ object DupeTracker : Tracker("duped_items") {
                         )
                     }
                 dupeChecking.clear()
-                printDevMessage("Cleared dupe check", "dupecheck")
-                printDevMessage("Is auction $inAuctionBrowser", "dupecheck")
+                printDevMessage({ "Cleared dupe check" }, "dupecheck")
+                printDevMessage({ "Is auction $inAuctionBrowser" }, "dupecheck")
             }
 
             is S2EPacketCloseWindow -> {
@@ -101,7 +101,7 @@ object DupeTracker : Tracker("duped_items") {
                         val idItem = IdentifiableItem(itemId, uuid)
                         val prev = dupeChecking.putIfAbsent(idItem, slotId) ?: return
                         if (prev != slotId) {
-                            printDevMessage("Dupe set ${item.displayName}, $idItem $slotId", "dupecheck")
+                            printDevMessage({ "Dupe set ${item.displayName}, $idItem $slotId" }, "dupecheck")
                             dupedUUIDs.add(idItem)
                             dirty = true
                         }
@@ -120,7 +120,7 @@ object DupeTracker : Tracker("duped_items") {
                             val idItem = IdentifiableItem(itemId, uuid)
                             val prev = dupeChecking.putIfAbsent(idItem, i) ?: continue
                             if (prev != i) {
-                                printDevMessage("Dupe window ${stack.displayName}, $idItem $i", "dupecheck")
+                                printDevMessage({ "Dupe window ${stack.displayName}, $idItem $i" }, "dupecheck")
                                 dupedUUIDs.add(idItem)
                                 dirty = true
                             }

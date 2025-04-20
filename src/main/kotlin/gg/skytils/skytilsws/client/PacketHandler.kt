@@ -103,7 +103,7 @@ object PacketHandler : IPacketHandler {
                         }
                     }
                 } else {
-                    printDevMessage("$packet serverId: ${packet.serverId} != $currentServer", "chwaypoints")
+                    printDevMessage({ "$packet serverId: ${packet.serverId} != $currentServer" }, "chwaypoints")
                     val instance = chWaypointsList.getOrPut(packet.serverId) { CHInstance() }
                     instance.waypoints[packet.type] = BlockPos(packet.x, packet.y, packet.z)
                 }

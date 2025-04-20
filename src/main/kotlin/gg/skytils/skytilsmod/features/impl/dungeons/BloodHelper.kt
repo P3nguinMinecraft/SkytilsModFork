@@ -69,7 +69,7 @@ object BloodHelper {
             mobs.entries.removeAll { (mob, bloodMob) ->
                 return@removeAll mob.isDead.also {
                     printDevMessage(
-                        (System.currentTimeMillis() - bloodMob.start).toString(),
+                        { (System.currentTimeMillis() - bloodMob.start).toString() },
                         "bloodHelper"
                     )
                 }

@@ -56,7 +56,7 @@ object Catlas {
     fun reset() {
         outboundRoomQueue.also {
             outboundRoomQueue = Channel(UNLIMITED) {
-                printDevMessage("failed to deliver $it", "dungeonws")
+                printDevMessage({ "failed to deliver $it" }, "dungeonws")
             }
             it.cancel()
         }

@@ -276,7 +276,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")) {
         }.flatMap { category ->
             category.waypoints.filter { it.enabled }
         }
-        printDevMessage("Waypoints computed for ${SBInfo.mode} (${currIsland}), num: ${visibleWaypoints.size}", "waypoints")
+        printDevMessage({ "Waypoints computed for ${SBInfo.mode} (${currIsland}), num: ${visibleWaypoints.size}" }, "waypoints")
     }
 
     @SubscribeEvent

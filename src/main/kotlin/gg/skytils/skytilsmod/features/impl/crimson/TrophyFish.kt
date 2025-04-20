@@ -56,11 +56,11 @@ object TrophyFish {
     @SubscribeEvent
     fun onChat(event: ClientChatReceivedEvent) {
         if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.CrimsonIsle.mode || !Config.trophyFishTracker) return
-        printDevMessage(event.message.formattedText, "trophyspam")
+        printDevMessage({ event.message.formattedText }, "trophyspam")
         trophyFishRegex.matchEntire(event.message.formattedText.stripControlCodes())?.destructured?.let { (type, tier) ->
-            printDevMessage("Found trophy fish of $type of tier $tier", "trophy")
+            printDevMessage({ "Found trophy fish of $type of tier $tier" }, "trophy")
             val fish = TrophyFish.entries.find { it.actualName.lowercase() == type.lowercase() } ?: return@let
-            printDevMessage("Trophy fish type: ${fish.name}", "trophy")
+            printDevMessage({ "Trophy fish type: ${fish.name}" }, "trophy")
             val field = when (tier.lowercase()) {
                 "diamond" -> Fish::diamond
                 "gold" -> Fish::gold
@@ -69,7 +69,7 @@ object TrophyFish {
                 else -> return@let
             }
             trophyFish[fish.name]?.let { data ->
-                printDevMessage("Updating ${fish.actualName} $tier to ${field.get(data) + 1}", "trophy")
+                printDevMessage({ "Updating ${fish.actualName} $tier to ${field.get(data) + 1}" }, "trophy")
                 field.set(data, field.get(data) + 1)
             }
         }

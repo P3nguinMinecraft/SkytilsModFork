@@ -96,8 +96,8 @@ object GriffinBurrows {
         }
         if (!Skytils.config.experimentBurrowEstimation) return
         if (lastSoundTrail.size >= 2 && lastParticleTrail.size >= 2 && System.currentTimeMillis() - BurrowEstimation.lastTrailCreated > 1000) {
-            printDevMessage("Trail found $lastParticleTrail", "griffinguess")
-            printDevMessage("Sound trail $lastSoundTrail", "griffinguess")
+            printDevMessage({ "Trail found $lastParticleTrail" }, "griffinguess")
+            printDevMessage({ "Sound trail $lastSoundTrail" }, "griffinguess")
 
             // chat did I get a 5 on the exam?
             // https://apcentral.collegeboard.org/media/pdf/statistics-formula-sheet-and-tables-2020.pdf
@@ -125,21 +125,21 @@ object GriffinBurrows {
 
             if (r < 0.95) UChat.chat("${Skytils.failPrefix} §cWarning: low correlation, r = $r. Burrow guess may be incorrect.")
 
-            printDevMessage("Slope $slope, xbar $xMean, sx $xStd, ybar $yMean, sy $yStd, r $r", "griffinguess")
+            printDevMessage({ "Slope $slope, xbar $xMean, sx $xStd, ybar $yMean, sy $yStd, r $r" }, "griffinguess")
 
             val trail = lastParticleTrail.asReversed()
 
             // formula for distance guess comes from soopyboo32
             val distanceGuess = E / slope
-            printDevMessage("Distance guess $distanceGuess", "griffinguess")
+            printDevMessage({ "Distance guess $distanceGuess" }, "griffinguess")
 
             val directionVector = trail[0].subtract(trail[1]).normalize()
-            printDevMessage("Direction vector $directionVector", "griffinguess")
+            printDevMessage({ "Direction vector $directionVector" }, "griffinguess")
 
             val guessPos = trail.last().add(
                 directionVector * distanceGuess
             )
-            printDevMessage("Guess pos $guessPos", "griffinguess")
+            printDevMessage({ "Guess pos $guessPos" }, "griffinguess")
 
             // offset of 300 blocks for both x and z
             // x ranges from 195 to -281
@@ -170,7 +170,7 @@ object GriffinBurrows {
                     particleBurrows[lastDugParticleBurrow] ?: return
                 recentlyDugParticleBurrows.add(lastDugParticleBurrow)
                 particleBurrows.remove(particleBurrow.blockPos)
-                printDevMessage("Removed $particleBurrow", "griffin")
+                printDevMessage({ "Removed $particleBurrow" }, "griffin")
                 lastDugParticleBurrow = null
             }
         }
@@ -209,7 +209,7 @@ object GriffinBurrows {
                 }
             if (mc.theWorld.getBlockState(pos).block !== Blocks.grass) return
             particleBurrows[pos]?.blockPos?.let {
-                printDevMessage("Clicked on $it", "griffin")
+                printDevMessage({ "Clicked on $it" }, "griffin")
                 lastDugParticleBurrow = it
             }
         }
@@ -263,7 +263,7 @@ object GriffinBurrows {
                         if (type == EnumParticleTypes.DRIP_LAVA && count == 2 && speed == -.5f && xOffset == 0f && yOffset == 0f && zOffset == 0f && isLongDistance) {
                             lastParticleTrail.add(vec3)
                             BurrowEstimation.lastTrailCreated = System.currentTimeMillis()
-                            printDevMessage("Found trail point $x $y $z", "griffinguess")
+                            printDevMessage({ "Found trail point $x $y $z" }, "griffinguess")
                         } else {
                             val type = ParticleType.getParticleType(this) ?: return
                             val pos = BlockPos(x, y, z).down()
@@ -271,7 +271,7 @@ object GriffinBurrows {
                             BurrowEstimation.guesses.keys.associateWith { guess ->
                                 (pos.x - guess.x) * (pos.x - guess.x) + (pos.z - guess.z) * (pos.z - guess.z)
                             }.minByOrNull { it.value }?.let { (guess, distance) ->
-                                // printDevMessage("Nearest guess is $distance blocks^2 away", "griffin", "griffinguess")
+                                // printDevMessage({ "Nearest guess is $distance blocks^2 away" }, "griffin", "griffinguess")
                                 if (distance <= 25 * 25) {
                                     BurrowEstimation.guesses.remove(guess)
                                 }
@@ -301,7 +301,7 @@ object GriffinBurrows {
                 (entity as? EntityArmorStand)?.let { armorStand ->
                     if (event.packet.itemStack?.item != Items.arrow) return
                     if (armorStand.getDistanceSq(mc.thePlayer?.position) >= 27) return
-                    printDevMessage("Found armor stand with arrow", "griffin", "griffinguess")
+                    printDevMessage({ "Found armor stand with arrow" }, "griffin", "griffinguess")
                     val yaw = Math.toRadians(armorStand.rotationYaw.toDouble())
                     val lookVec = Vec3(
                         -sin(yaw),
@@ -316,7 +316,7 @@ object GriffinBurrows {
             is S29PacketSoundEffect -> {
                 if (!Skytils.config.burrowEstimation || SBInfo.mode != SkyblockIsland.Hub.mode) return
                 if (event.packet.soundName != "note.harp" || event.packet.volume != 1f) return
-                printDevMessage("Found note harp sound ${event.packet.pitch} ${event.packet.volume} ${event.packet.x} ${event.packet.y} ${event.packet.z}", "griffinguess")
+                printDevMessage({ "Found note harp sound ${event.packet.pitch} ${event.packet.volume} ${event.packet.x} ${event.packet.y} ${event.packet.z}" }, "griffinguess")
                 if (lastSpadeUse != -1L && System.currentTimeMillis() - lastSpadeUse < 1000) {
                     lastSoundTrail.add(Vec3(event.packet.x, event.packet.y, event.packet.z) to event.packet.pitch.toDouble())
                 }
@@ -325,7 +325,7 @@ object GriffinBurrows {
                     .associateWith { arrow ->
                         arrow.pos.squareDistanceTo(event.packet.x, event.packet.y, event.packet.z)
                     }.minByOrNull { it.value } ?: return
-                printDevMessage("Nearest arrow is $distance blocks away ${arrow.pos}", "griffin", "griffinguess")
+                printDevMessage({ "Nearest arrow is $distance blocks away ${arrow.pos}" }, "griffin", "griffinguess")
                 if (distance > 25) return
                 val guessPos = arrow.pos.add(
                     arrow.directionVector * BurrowEstimation.getDistanceFromPitch(event.packet.pitch.toDouble())

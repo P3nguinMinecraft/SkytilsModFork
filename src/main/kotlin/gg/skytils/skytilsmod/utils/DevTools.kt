@@ -27,7 +27,7 @@ object DevTools {
 
 
     fun getToggle(toggle: String): Boolean {
-        return if (allToggle) allToggle else toggles.getOrDefault(toggle.lowercase(), false)
+        return allToggle || toggles.getOrDefault(toggle.lowercase(), false)
     }
 
     fun toggle(toggle: String) {
@@ -50,4 +50,12 @@ fun printDevMessage(string: String, toggle: String) {
 
 fun printDevMessage(string: String, vararg toggles: String) {
     if (toggles.any { DevTools.getToggle(it) }) UChat.chat(string)
+}
+
+fun printDevMessage(func: () -> String, toggle: String) {
+    if (DevTools.getToggle(toggle)) UChat.chat(func())
+}
+
+fun printDevMessage(func: () -> String, vararg toggles: String) {
+    if (toggles.any { DevTools.getToggle(it) }) UChat.chat(func())
 }

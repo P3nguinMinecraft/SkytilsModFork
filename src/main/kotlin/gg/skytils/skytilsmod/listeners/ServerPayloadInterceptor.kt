@@ -70,7 +70,7 @@ object ServerPayloadInterceptor {
             val registry = HypixelModAPI.getInstance().registry
             val id = event.packet.channelName
             if (registry.isRegistered(id)) {
-                printDevMessage("Received Hypixel packet $id", "hypixelmodapi")
+                printDevMessage({ "Received Hypixel packet $id" }, "hypixelmodapi")
                 val data = event.packet.bufferData
                 synchronized(data) {
                     data.retain()
@@ -101,7 +101,7 @@ object ServerPayloadInterceptor {
             val registry = HypixelModAPI.getInstance().registry
             val id = event.packet.channelName
             if (registry.isRegistered(id)) {
-                printDevMessage("Sent Hypixel packet $id", "hypixelmodapi")
+                printDevMessage({ "Sent Hypixel packet $id" }, "hypixelmodapi")
                 HypixelPacketEvent.SendEvent(id).postAndCatch()
             }
         }
@@ -138,7 +138,7 @@ object ServerPayloadInterceptor {
 
     @SubscribeEvent
     fun onHypixelPacketFail(event: HypixelPacketEvent.FailedEvent) {
-        printDevMessage("${Skytils.failPrefix} Mod API request failed: ${event.reason}", "hypixelmodapi")
+        printDevMessage({ "${Skytils.failPrefix} Mod API request failed: ${event.reason}" }, "hypixelmodapi")
     }
 
     fun ServerboundVersionedPacket.toCustomPayload(): C17PacketCustomPayload {

@@ -70,7 +70,7 @@ object PartyAddons {
             }
             playerPattern.findAll(message.substringAfter(": ")).forEach {
                 it.destructured.let { (rank, name, status) ->
-                    printDevMessage("Found Party Member: rank=$rank, name=$name, status=$status", "PartyAddons")
+                    printDevMessage({ "Found Party Member: rank=$rank, name=$name, status=$status" }, "PartyAddons")
                     party.add(
                         PartyMember(
                             name,

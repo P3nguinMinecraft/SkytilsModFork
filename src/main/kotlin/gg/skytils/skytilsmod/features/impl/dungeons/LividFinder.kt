@@ -117,7 +117,7 @@ object LividFinder {
             printDevMessage("block detection started", "livid")
             val color = event.update.getValue(BlockStainedGlass.COLOR)
             val mapped = dyeToChar[color]
-            printDevMessage("before blind ${color}", "livid")
+            printDevMessage({ "before blind ${color}" }, "livid")
             val blindnessDuration = mc.thePlayer.getActivePotionEffect(Potion.blindness)?.duration
             tickTimer(blindnessDuration ?: 2) {
                 getLivid(color, mapped)

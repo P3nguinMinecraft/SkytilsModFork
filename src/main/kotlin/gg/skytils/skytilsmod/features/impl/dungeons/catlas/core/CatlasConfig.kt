@@ -610,7 +610,7 @@ object CatlasConfig : Vigilant(
     init {
         initialize()
         setCategoryDescription(
-            "Map", "Catlas is a fork of works created by SkyblockAddons, UnclaimedBloom6, and Harry282"
+            "Map", "Catlas is a fork of works created by SkyblockAddons contributors (including Phoube and TirelessTraveler), UnclaimedBloom6, and Harry282"
         )
     }
 

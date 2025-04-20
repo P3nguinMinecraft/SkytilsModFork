@@ -231,13 +231,13 @@ object DungeonListener {
                                 while (DungeonTimer.dungeonStartTime != -1L) {
                                     for (packet in outboundRoomQueue) {
                                         WSClient.sendPacketAsync(packet)
-                                        printDevMessage(packet.toString(), "dungeonws")
+                                        printDevMessage({ packet.toString() }, "dungeonws")
                                     }
                                     printDevMessage("escaped loop", "dungeonws")
                                 }
                             }.also {
                                 it.invokeOnCompletion {
-                                    printDevMessage("loop exit $it", "dungeonws")
+                                    printDevMessage({ "loop exit $it" }, "dungeonws")
                                 }
                             }
                         }
@@ -269,7 +269,7 @@ object DungeonListener {
                         if (puzzleName != "???") {
                             when {
                                 match.groups["missing"] != null -> {
-                                    printDevMessage("found missing puzzle $puzzleName", "dungeonlistener")
+                                    printDevMessage({ "found missing puzzle $puzzleName" }, "dungeonlistener")
                                     if (puzzleName in terminalStatePuzzles) {
                                         DungeonEvent.PuzzleEvent.Reset(puzzleName).postAndCatch()
                                         terminalStatePuzzles.remove(puzzleName)
@@ -282,7 +282,7 @@ object DungeonListener {
                                 }
 
                                 match.groups["completed"] != null || match.groups["failed"] != null -> {
-                                    printDevMessage("found completed/failed puzzle $puzzleName", "dungeonlistener")
+                                    printDevMessage({ "found completed/failed puzzle $puzzleName" }, "dungeonlistener")
                                     if (puzzleName in incompletePuzzles) {
                                         DungeonEvent.PuzzleEvent.Completed(puzzleName).postAndCatch()
                                         terminalStatePuzzles.add(puzzleName)
@@ -297,7 +297,7 @@ object DungeonListener {
 
                 val old = (event.handler as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]
                 if (old != null && action == S38PacketPlayerListItem.Action.ADD_PLAYER) {
-                    printDevMessage("player ${entry.text} already exists in the list but was added", "dungeonlistener")
+                    printDevMessage({ "player ${entry.text} already exists in the list but was added" }, "dungeonlistener")
                 }
                 val pos = playerEntryNames[old?.gameProfile?.name ?: entry.profile.name]
                 if (pos != null) {
@@ -328,9 +328,9 @@ object DungeonListener {
                             old?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
                         ).also {
                             if (old == null) {
-                                printDevMessage("could not get network player info for $name $action", "dungeonlistener")
+                                printDevMessage({ "could not get network player info for $name $action" }, "dungeonlistener")
                                 tickTimer(1) {
-                                    printDevMessage("setting skin for ${name}", "dungeonlistener")
+                                    printDevMessage({ "setting skin for ${name}" }, "dungeonlistener")
                                     it.skin = event.handler.uuidToPlayerInfo[entry.profile.id]?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
                                 }
                             }
@@ -371,7 +371,7 @@ object DungeonListener {
 
                         alives.forEachIndexed { i, teammate ->
                             teammate.mapPlayer.icon = "icon-$i"
-                            printDevMessage("Setting icon for ${teammate.playerName} to icon-$i", "dungeonlistener")
+                            printDevMessage({ "Setting icon for ${teammate.playerName} to icon-$i" }, "dungeonlistener")
                         }
                         self?.mapPlayer?.icon = "icon-${alives.size}"
                     }
@@ -422,8 +422,8 @@ object DungeonListener {
                 ScoreCalculation.firstDeathHadSpirit.set(hutaoIsCool)
                 hutaoIsCool
             } else false
-            printDevMessage(isFirstDeath.toString(), "spiritpet")
-            printDevMessage(ScoreCalculation.firstDeathHadSpirit.toString(), "spiritpet")
+            printDevMessage({ isFirstDeath.toString() }, "spiritpet")
+            printDevMessage({ ScoreCalculation.firstDeathHadSpirit.toString() }, "spiritpet")
             if (Skytils.config.dungeonDeathCounter) {
                 tickTimer(1) {
                     UChat.chat(
@@ -446,7 +446,7 @@ object DungeonListener {
     }
 
     fun markAllRevived() {
-        printDevMessage("${Skytils.prefix} §fdebug: marking all teammates as revived", "scorecalc")
+        printDevMessage({ "${Skytils.prefix} §fdebug: marking all teammates as revived" }, "scorecalc")
         deads.clear()
         team.values.forEach {
             it.dead = false
