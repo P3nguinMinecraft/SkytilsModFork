@@ -374,7 +374,7 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
                     }
                     "cheater" -> {
                         if (Skytils.deobfEnvironment) {
-                            UChat.chat(DungeonInfo.uniqueRooms.sortedByDescending { it.mainRoom.data.type }.map { it.name })
+                            UChat.chat(DungeonInfo.uniqueRooms.entries.sortedByDescending { it.value.mainRoom.data.type }.map { it.key })
                         }
                     }
                     "cheaterpre" -> {

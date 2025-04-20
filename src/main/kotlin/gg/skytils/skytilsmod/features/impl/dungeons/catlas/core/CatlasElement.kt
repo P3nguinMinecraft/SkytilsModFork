@@ -160,7 +160,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             else -> 10.0 // neu
         }
 
-        DungeonInfo.uniqueRooms.forEach { unq ->
+        DungeonInfo.uniqueRooms.values.forEach { unq ->
             val room = unq.mainRoom
             if (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED) return@forEach
             val halfRoom = (DungeonMapColorParser.halfRoom.takeUnless { it == -1 } ?: 8)

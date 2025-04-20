@@ -218,7 +218,8 @@ object DungeonListener {
                                 ServerboundPartyInfoPacket().getResponse<ClientboundPartyInfoPacket>()
                             }
                             val partyMembers = party.await().members.ifEmpty { setOf(mc.thePlayer.uniqueID) }.mapTo(hashSetOf()) { it.toString() }
-                            val entrance = DungeonInfo.uniqueRooms.first { it.mainRoom.data.type == RoomType.ENTRANCE }
+                            val entrance = DungeonInfo.uniqueRooms["Entrance"] ?: error("Entrance not found")
+                            assert(entrance.mainRoom.data.type == RoomType.ENTRANCE)
                             printDevMessage("hi", "dungeonws")
                             launch(IO.coroutineContext) {
                                 WSClient.sendPacketAsync(C2SPacketDungeonStart(

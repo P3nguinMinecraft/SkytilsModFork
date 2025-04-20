@@ -143,7 +143,7 @@ object Catlas {
 
     @SubscribeEvent
     fun onPuzzleReset(event: DungeonEvent.PuzzleEvent.Reset) {
-        val mapRoom = DungeonInfo.uniqueRooms.find { room ->
+        val mapRoom = DungeonInfo.uniqueRooms.values.find { room ->
             room.mainRoom.data.type == RoomType.PUZZLE && Puzzle.fromName(room.name)?.tabName == event.puzzle
         }
 

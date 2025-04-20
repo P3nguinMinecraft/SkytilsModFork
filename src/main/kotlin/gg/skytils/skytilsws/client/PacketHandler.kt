@@ -63,7 +63,7 @@ object PacketHandler : IPacketHandler {
                 }
             }
             is S2CPacketDungeonRoomSecret -> {
-                DungeonInfo.uniqueRooms.find { it.mainRoom.data.name == packet.roomId }?.let {
+                DungeonInfo.uniqueRooms[packet.roomId]?.let {
                     if (packet.secretCount > (it.foundSecrets ?: -1)) {
                         it.foundSecrets = packet.secretCount
                     }
