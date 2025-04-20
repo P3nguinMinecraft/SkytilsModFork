@@ -85,6 +85,7 @@ object SBInfo {
         server = null
         serverType = null
         lastLocationPacket = null
+        location = ""
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -95,6 +96,7 @@ object SBInfo {
                 server = event.packet.serverName
                 serverType = event.packet.serverType.orElse(null)
                 lastLocationPacket = event.packet
+                location = ""
                 println(event.packet)
                 LocationChangeEvent(event.packet).postAndCatch()
             }
