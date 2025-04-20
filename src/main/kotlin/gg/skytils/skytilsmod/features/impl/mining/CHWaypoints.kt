@@ -278,6 +278,7 @@ object CHWaypoints {
             it.loc.reset()
         }
         waypoints.clear()
+        waypointDelayTicks = 50
     }
 
 
