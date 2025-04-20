@@ -75,7 +75,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             height = 50.pixels()
         }
 
-        val isOnUnknownIsland = SkyblockIsland.entries.none { it.mode == SBInfo.mode }
+        val isOnUnknownIsland = SkyblockIsland.current == SkyblockIsland.Unknown
         val hasAnyUnknownWaypoint = Waypoints.categories.any { it.island == SkyblockIsland.Unknown }
         val options = SkyblockIsland.entries
             .mapNotNull { if (it == SkyblockIsland.Unknown && !isOnUnknownIsland && !hasAnyUnknownWaypoint) null else it.displayName }

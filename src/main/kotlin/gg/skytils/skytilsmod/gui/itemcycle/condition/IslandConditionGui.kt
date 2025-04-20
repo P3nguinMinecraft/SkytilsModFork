@@ -104,7 +104,7 @@ class IslandConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cy
 
             cond.negated = negationDropdown.getValue() == 1
             cond.islands = islands.getText().split(",")
-                .mapNotNullTo(hashSetOf()) { SkyblockIsland.entries.find { isl -> isl.mode == it } }
+                .mapNotNullTo(hashSetOf()) { SkyblockIsland.byMode[it] }
 
             mc.displayGuiScreen(ItemCycleConditionGui(cycle))
             PersistentSave.markDirty<ItemCycle>()

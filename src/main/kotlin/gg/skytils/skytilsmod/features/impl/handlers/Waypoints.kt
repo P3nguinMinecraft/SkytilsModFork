@@ -120,7 +120,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")) {
                 }
             }
         } else if (sbeWaypointFormat.containsMatchIn(str)) {
-            val island = SkyblockIsland.entries.find { it.mode == SBInfo.mode } ?: SkyblockIsland.CrystalHollows
+            val island = SkyblockIsland.byMode[SBInfo.mode] ?: SkyblockIsland.CrystalHollows
             val waypoints = sbeWaypointFormat.findAll(str.trim().replace("\n", "")).map {
                 Waypoint(
                     it.groups["name"]!!.value,
@@ -270,14 +270,13 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")) {
             printDevMessage("Waypoints unloaded from compute, reason: SB check", "waypoints")
             return
         }
-        val mode = SBInfo.mode
-        val isUnknownIsland = SkyblockIsland.entries.none { it.mode == mode }
+        val currIsland = SkyblockIsland.current
         visibleWaypoints = categories.filter {
-            it.island.mode == mode || (isUnknownIsland && it.island == SkyblockIsland.Unknown)
+            it.island == currIsland
         }.flatMap { category ->
             category.waypoints.filter { it.enabled }
         }
-        printDevMessage("Waypoints computed for ${mode}, num: ${visibleWaypoints.size}", "waypoints")
+        printDevMessage("Waypoints computed for ${SBInfo.mode} (${currIsland}), num: ${visibleWaypoints.size}", "waypoints")
     }
 
     @SubscribeEvent

@@ -160,6 +160,10 @@ enum class SkyblockIsland(val displayName: String, val mode: String) {
     TheRift("The Rift", "rift"),
     Unknown("(Unknown)", "");
 
+    companion object {
+        val byMode = entries.associateBy { it.mode }
+    }
+
     object ModeSerializer : KSerializer<SkyblockIsland> {
         override val descriptor: SerialDescriptor =
             PrimitiveSerialDescriptor("SkyblockIsland", PrimitiveKind.STRING)
@@ -196,3 +200,7 @@ enum class SkyblockIsland(val displayName: String, val mode: String) {
         }
     }
 }
+
+
+/** Returns the current island based on the mode, or [SkyblockIsland.Unknown] if not found */
+val SkyblockIsland.Companion.current get() = SkyblockIsland.byMode[SBInfo.mode] ?: SkyblockIsland.Unknown
