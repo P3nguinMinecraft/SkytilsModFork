@@ -130,6 +130,7 @@ skytils.config.dungeons.terminal_solvers.block_incorrect_terminal_clicks=Block I
 skytils.config.dungeons.terminal_solvers.middle_click_on_terminals=Middle Click on Terminals
 skytils.config.dungeons.terminal_solvers.change_all_to_same_color_solver=Change All to Same Color Solver
 skytils.config.dungeons.terminal_solvers.change_all_to_same_color_solver_mode=Change All to Same Color Solver Mode
+skytils.config.dungeons.terminal_solvers.change_all_to_same_color_solver_lock=Change All to Same Color Lock
 skytils.config.dungeons.terminal_solvers.click_in_order_solver=Click in Order Solver
 skytils.config.dungeons.terminal_solvers.click_in_order_first_color=Click in Order First Color
 skytils.config.dungeons.terminal_solvers.click_in_order_second_color=Click in Order Second Color

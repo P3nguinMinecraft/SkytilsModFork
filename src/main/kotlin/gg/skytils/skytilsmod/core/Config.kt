@@ -1404,6 +1404,16 @@ object Config : Vigilant(
     var changeToSameColorMode = 0
 
     @Property(
+        type = PropertyType.SWITCH, name = "Change All to Same Color Solver Lock",
+        description = "Locks the first selected target color in place.",
+        category = "Dungeons", subcategory = "Terminal Solvers",
+        i18nName = "skytils.config.dungeons.terminal_solvers.change_all_to_same_color_solver_lock",
+        i18nCategory = "skytils.config.dungeons",
+        i18nSubcategory = "skytils.config.dungeons.terminal_solvers"
+    )
+    var changeToSameColorLock = false
+
+    @Property(
         type = PropertyType.SWITCH, name = "Click in Order Solver",
         description = "Shows the items to click on the Click in Order terminal.",
         category = "Dungeons", subcategory = "Terminal Solvers",
@@ -4448,6 +4458,7 @@ object Config : Vigilant(
         addDependency("clickInOrderSecond", "clickInOrderTerminalSolver")
         addDependency("clickInOrderThird", "clickInOrderTerminalSolver")
         addDependency("changeToSameColorMode", "changeAllSameColorTerminalSolver")
+        addDependency("changeToSameColorLock", "changeAllSameColorTerminalSolver")
         addDependency("predictAlignmentClicks", "alignmentTerminalSolver")
         addDependency("predictSimonClicks", "simonSaysSolver")
 

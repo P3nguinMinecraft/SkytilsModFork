@@ -24,9 +24,11 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.EnumDyeColor
+import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -43,6 +45,12 @@ object ChangeAllToSameColorSolver {
             c.metadata to i
         }
     private var mostCommon = EnumDyeColor.RED.metadata
+    private var isLocked = false
+
+    @SubscribeEvent
+    fun onWindowClose(event: GuiOpenEvent) {
+        if (event.gui as? GuiContainer == null) isLocked = false
+    }
 
     @SubscribeEvent
     fun onForegroundEvent(event: GuiContainerEvent.ForegroundDrawnEvent) {
@@ -50,12 +58,16 @@ object ChangeAllToSameColorSolver {
         val grid = event.container.inventorySlots.filter {
             it.inventory == event.container.lowerChestInventory && it.stack?.displayName?.startsWith("§a") == true
         }
-        val counts = ordering.keys.associateWith { c -> grid.count { it.stack?.metadata == c } }
-        val currentPath = counts[mostCommon]!!
-        val (candidate, maxCount) = counts.maxBy { it.value }
 
-        if (maxCount > currentPath) {
-            mostCommon = candidate
+        if (!Skytils.config.changeToSameColorLock || !isLocked) {
+            val counts = ordering.keys.associateWith { c -> grid.count { it.stack?.metadata == c } }
+            val currentPath = counts[mostCommon]!!
+            val (candidate, maxCount) = counts.maxBy { it.value }
+
+            if (maxCount > currentPath) {
+                mostCommon = candidate
+            }
+            isLocked = true
         }
 
         val targetIndex = ordering[mostCommon]!!
