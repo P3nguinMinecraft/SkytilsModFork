@@ -228,7 +228,7 @@ object DungeonListener {
                                     members = partyMembers,
                                     startTime = DungeonTimer.dungeonStartTime,
                                     entranceLoc = entrance.mainRoom.z * entrance.mainRoom.x
-                                ))
+                                )).join()
                                 while (DungeonTimer.dungeonStartTime != -1L) {
                                     for (packet in outboundRoomQueue) {
                                         WSClient.sendPacketAsync(packet)
