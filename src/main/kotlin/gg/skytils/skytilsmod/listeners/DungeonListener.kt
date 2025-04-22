@@ -345,7 +345,14 @@ object DungeonListener {
                         teammate.classLevel = classLevel
                     }
 
-                    teammate.tabEntryIndex = pos
+                    if (teammate.tabEntryIndex != pos) {
+                        println("Updating ${teammate.playerName} tab entry index from ${teammate.tabEntryIndex} to $pos")
+                        team.values.find { it.tabEntryIndex == pos }?.let {
+                            println("Removing $it from team due to tab entry index collision")
+                            team.remove(it.playerName)
+                        }
+                        teammate.tabEntryIndex = pos
+                    }
 
                     teammate.player = mc.theWorld.playerEntities.find {
                         it.name == teammate.playerName && it.uniqueID.version() == 4
