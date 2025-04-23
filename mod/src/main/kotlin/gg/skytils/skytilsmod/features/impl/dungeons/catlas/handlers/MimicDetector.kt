@@ -54,7 +54,11 @@ object MimicDetector : EventSubscriber {
     fun onEntityDeath(event: LivingEntityDeathEvent) {
         if (!Utils.inDungeons) return
         val entity = event.entity as? EntityZombie ?: return
+        //#if MC==10809
         if (entity.isChild && (0..3).all { entity.getCurrentArmor(it) == null }) {
+        //#else
+        //$$ if (entity.isBaby && entity.armorItems.all { it == ItemStack.EMPTY }) {
+        //#endif
             if (!ScoreCalculation.mimicKilled.get()) {
                 ScoreCalculation.mimicKilled.set(true)
                 if (Skytils.config.scoreCalculationAssist) {

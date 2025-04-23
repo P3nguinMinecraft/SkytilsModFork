@@ -20,7 +20,6 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers
 
 import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
-import gg.skytils.skytilsmod.Skytils.IO
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloorNumber
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
@@ -30,10 +29,13 @@ import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.printDevMessage
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonRoom
-import kotlinx.coroutines.launch
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraft.world.World
+
+//#if MC>=12000
+//$$ import net.minecraft.world.chunk.ChunkStatus
+//#endif
 
 /**
  * Handles everything related to scanning the dungeon. Running [scan] will update the instance of [DungeonInfo].
@@ -124,7 +126,17 @@ object DungeonScanner {
     }
 
     private fun scanRoom(world: World, x: Int, z: Int, row: Int, column: Int): Tile? {
-        val height = world.getChunkFromChunkCoords(x shr 4, z shr 4).getHeightValue(x and 15, z and 15)
+        //#if MC==10809
+        val chunk = mc.theWorld!!.getChunkFromChunkCoords(x shr 4, z shr 4)
+        //#else
+        //$$ val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
+        //#endif
+        val height =
+            //#if MC==10809
+            chunk.getHeightValue(x and 15, z and 15)
+            //#else
+            //$$ chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
+            //#endif
         if (height == 0) return null
 
         val rowEven = row and 1 == 0

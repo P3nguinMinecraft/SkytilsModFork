@@ -44,12 +44,12 @@ object MapUpdater {
                 player.mapZ = vec4b.mapZ
                 player.yaw = vec4b.yaw
             }
-            if (player.isOurMarker || name == mc.thePlayer.name) {
-                player.yaw = mc.thePlayer.rotationYaw
+            if (player.isOurMarker || name == mc.thePlayer!!.name) {
+                player.yaw = mc.thePlayer!!.rotationYaw
                 player.mapX =
-                    ((mc.thePlayer.posX - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
+                    ((mc.thePlayer!!.posX - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
                 player.mapZ =
-                    ((mc.thePlayer.posZ - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
+                    ((mc.thePlayer!!.posZ - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
             }
         }
     }
@@ -94,11 +94,20 @@ object MapUpdater {
                     if (mapTile is Door && mapTile.type == DoorType.WITHER) {
                         room.opened = false
                     } else if (!room.opened) {
-                        val chunk = mc.theWorld.getChunkFromChunkCoords(
+                        //#if MC==10809
+                        val chunk = mc.theWorld!!.getChunkFromChunkCoords(
+                        //#else
+                        //$$ val chunk = mc.world!!.getChunk(room.x shr 4, room.z shr 4)
+                        //#endif
                             room.x shr 4,
                             room.z shr 4
                         )
+
+                        //#if MC==10809
                         if (chunk.isLoaded) {
+                        //#else
+                        //$$ if (mc.world!!.chunkManager.getChunk(xPos shr 4, zPos shr 4, ChunkStatus.FULL, false) != null) {
+                        //#endif
                             if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air)
                             room.opened = true
                         } else if (mapTile is Door && mapTile.state == RoomState.DISCOVERED) {

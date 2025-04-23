@@ -170,7 +170,7 @@ object Catlas : EventSubscriber {
                 val guess = world.mapStorage.loadData(MapData::class.java, "map_${id}") as MapData? ?: return
                 if (guess.mapDecorations.any { it.value.func_176110_a() == 1.toByte() }) {
                 //#else
-                //$$ val guess = FilledMapItem.loadMapData(id, world) ?: return
+                //$$ val guess = FilledMapItem.getMapState(id, world) ?: return
                 //$$ if (guess.icons.any { it.type == MapIcon.Type.PLAYER }) {
                 //#endif
                     DungeonInfo.guessMapData = guess

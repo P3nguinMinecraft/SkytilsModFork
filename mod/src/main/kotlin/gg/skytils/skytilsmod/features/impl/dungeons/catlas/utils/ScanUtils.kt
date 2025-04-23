@@ -32,10 +32,18 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import kotlin.math.roundToInt
 
+//#if MC>=12000
+//$$ import net.minecraft.world.Heightmap
+//#endif
+
 object ScanUtils {
     @OptIn(ExperimentalSerializationApi::class)
     val roomList: Set<RoomData> by lazy {
+        //#if MC==10809
         mc.resourceManager.getResource(
+        //#else
+        //$$ mc.resourceManager.getResourceOrThrow(
+        //#endif
             ResourceLocation("catlas:rooms.json")
         ).inputStream.use(json::decodeFromStream)
     }
@@ -63,7 +71,11 @@ object ScanUtils {
 
     fun getCore(x: Int, z: Int): Int {
         val sb = StringBuilder(150)
+        //#if MC==10809
         val chunk = mc.theWorld!!.getChunkFromChunkCoords(x shr 4, z shr 4)
+        //#else
+        //$$ val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
+        //#endif
         val height =
             //#if MC==10809
             chunk.getHeightValue(x and 15, z and 15)
@@ -77,7 +89,7 @@ object ScanUtils {
             //#if MC==10809
             val id = Block.getIdFromBlock(chunk.getBlock(BlockPos(x, y, z)))
             //#else
-            //$$ TODO: Check if this is the same value post-flattening (it likely isn't)
+            // TODO: Check if this is the same value post-flattening (it likely isn't)
             //$$ val id = Block.getRawIdFromState(chunk.getBlockState(BlockPos(x, y, z)))
             //#endif
             if (id == 0 && bedrock >= 2 && y < 69) {
