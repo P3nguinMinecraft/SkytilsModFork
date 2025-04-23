@@ -63,13 +63,13 @@ object CommandAliases : PersistentSave(File(Skytils.modDir, "commandaliases.json
                 }
             } else {
                 val candidate = event.message.substring(1).trim()
-                val replacement = aliases.keys.find { candidate.startsWith(it) } ?: return
-                val args = candidate.removePrefix(replacement).trim()
+                val replacement = aliases.entries.find { candidate == it.key || candidate.startsWith(it.key + ' ') } ?: return
+                val args = candidate.removePrefix(replacement.key).trim()
                 event.cancelled = true
                 try {
                     val msg =
-                        if (Skytils.config.commandAliasMode == 0) "/${replacement} $args" else "/${
-                            replacement.format(
+                        if (Skytils.config.commandAliasMode == 0) "/${replacement.value} $args" else "/${
+                            replacement.value.format(
                                 *args.split(" ").toTypedArray()
                             )
                         }"

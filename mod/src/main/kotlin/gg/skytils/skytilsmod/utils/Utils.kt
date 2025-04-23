@@ -61,6 +61,8 @@ import java.awt.Color
 import java.io.File
 import java.io.IOException
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.notExists
 import kotlin.math.floor
 
 //#if FABRIC
@@ -204,13 +206,15 @@ object Utils {
     @Throws(IOException::class)
     fun getJavaRuntime(): String {
         val os = System.getProperty("os.name")
-        val java = "${System.getProperty("java.home")}${File.separator}bin${File.separator}${
-            if (os != null && os.lowercase().startsWith("windows")) "java.exe" else "java"
-        }"
-        if (!File(java).isFile) {
+        val java = Path(System.getProperty("java.home"))
+            .resolve("bin")
+            .resolve(if (os != null && os.lowercase().startsWith("windows")) "java.exe" else "java")
+
+        if (java.notExists()) {
             throw IOException("Unable to find suitable java runtime at $java")
         }
-        return java
+
+        return java.toAbsolutePath().toString()
     }
 
     fun checkBossName(floor: String, bossName: String): Boolean {

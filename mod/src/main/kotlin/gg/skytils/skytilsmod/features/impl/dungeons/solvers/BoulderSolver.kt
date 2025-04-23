@@ -70,7 +70,7 @@ object BoulderSolver : EventSubscriber {
     }
 
     fun onRenderWorld(event: WorldDrawEvent) {
-        if (!Skytils.config.boulderSolver || !DungeonListener.missingPuzzles.contains("Boulder")) return
+        if (!Skytils.config.boulderSolver || !DungeonListener.incompletePuzzles.contains("Boulder")) return
         if (boulderChest == null) return
         val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
         if (roomVariant >= 0) {
@@ -132,7 +132,7 @@ object BoulderSolver : EventSubscriber {
     class BoulderPush(var x: Int, var y: Int, var direction: BoulderPushDirection)
 
     fun update() {
-        if (!Skytils.config.boulderSolver || !DungeonListener.missingPuzzles.contains("Boulder")) return
+        if (!Skytils.config.boulderSolver || !DungeonListener.incompletePuzzles.contains("Boulder")) return
         val player = mc.thePlayer
         val world: World? = mc.theWorld
         if ((job == null || job?.isCancelled == true || job?.isCompleted == true) && Utils.inDungeons && world != null && player != null && roomVariant != -2) {

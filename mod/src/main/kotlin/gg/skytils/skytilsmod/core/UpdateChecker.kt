@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.core
 
+import com.sun.jna.Platform
 import gg.essential.universal.UDesktop
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -35,10 +36,10 @@ import io.ktor.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.minecraft.client.gui.GuiMainMenu
-import net.minecraft.util.Util
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
 import java.io.File
 import java.io.PrintStream
@@ -110,11 +111,6 @@ object UpdateChecker : EventSubscriber {
                                 log("Copy successful.")
                             }
                         }
-                        /*
-                        This should be done in UpdateGui now that the issue is fixed
-                        log("Deleting signature file")
-                        newJar.resolveSibling("${jarName}.asc").deleteIfExists()
-                        */
                         if (oldJar.delete()) {
                             log("successfully deleted the files. skipping install tasks")
                             return@Thread
@@ -126,19 +122,26 @@ object UpdateChecker : EventSubscriber {
                             return@Thread
                         }
                         val runtime = Utils.getJavaRuntime()
-                        if (Util.getOSType() == Util.EnumOS.OSX) {
+
+                        if (Platform.isMac()) {
                             val sipStatus = Runtime.getRuntime().exec("csrutil status")
                             sipStatus.waitFor()
                             if (!sipStatus.inputStream.use { it.bufferedReader().readText() }
                                     .contains("System Integrity Protection status: disabled.")) {
-                                log("SIP is NOT disabled, opening Finder.")
-                                UDesktop.open(oldJar.parentFile)
-                                return@Thread
+                                log("SIP is NOT disabled, opening Finder just in case.")
+                                if (ProcessBuilder("open", "-R", oldJar.absolutePath).start().waitFor() != 0) {
+                                    log("Failed to use Finder reveal, falling back to Desktop.")
+                                    UDesktop.open(oldJar.parentFile)
+                                }
                             }
                         }
                         log("Using runtime $runtime")
-                        Runtime.getRuntime().exec("\"$runtime\" -jar \"${taskFile.absolutePath}\" delete \"${oldJar.absolutePath}\"")
-                        log("Successfully applied Skytils update.")
+                        // I think all JVM implementations will auto-escape
+                        ProcessBuilder(runtime, "-jar", taskFile.absolutePath, "delete", oldJar.absolutePath)
+                            .redirectErrorStream(true)
+                            .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile))
+                            .start()
+                        log("Successfully launched Skytils update task.")
                     } catch (ex: Throwable) {
                         log("Failed to apply Skytils Update.")
                         logStackTrace(ex)

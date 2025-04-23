@@ -75,7 +75,7 @@ object PacketHandler : IPacketHandler {
                 }
             }
             is S2CPacketDungeonRoomSecret -> {
-                DungeonInfo.uniqueRooms.find { it.mainRoom.data.name == packet.roomId }?.let {
+                DungeonInfo.uniqueRooms[packet.roomId]?.let {
                     if (packet.secretCount > (it.foundSecrets ?: -1)) {
                         it.foundSecrets = packet.secretCount
                     }
@@ -115,7 +115,7 @@ object PacketHandler : IPacketHandler {
                         }
                     }
                 } else {
-                    printDevMessage("$packet serverId: ${packet.serverId} != $currentServer", "chwaypoints")
+                    printDevMessage({ "$packet serverId: ${packet.serverId} != $currentServer" }, "chwaypoints")
                     val instance = chWaypointsList.getOrPut(packet.serverId) { CHInstance() }
                     instance.waypoints[packet.type] = BlockPos(packet.x, packet.y, packet.z)
                 }

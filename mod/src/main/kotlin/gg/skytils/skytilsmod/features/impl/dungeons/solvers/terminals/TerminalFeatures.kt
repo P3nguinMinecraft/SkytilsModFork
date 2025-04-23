@@ -25,6 +25,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloorNumber
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
+import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
@@ -35,7 +36,9 @@ import net.minecraft.inventory.ContainerChest
 object TerminalFeatures : EventSubscriber {
 
     fun isInPhase3(): Boolean {
-        return (SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != -1L) && DungeonTimer.terminalClearTime == -1L && dungeonFloorNumber == 7
+        return ((SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != -1L) &&
+                        DungeonTimer.terminalClearTime == -1L && dungeonFloorNumber == 7)
+                || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.thePlayer?.heldItem) == "PUZZLE_CUBE")
     }
 
     override fun setup() {
@@ -45,7 +48,7 @@ object TerminalFeatures : EventSubscriber {
     }
 
     fun onSlotClickHigh(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inDungeons || !Skytils.config.blockIncorrectTerminalClicks || event.container !is ContainerChest) return
+        if (!isInPhase3() || !Skytils.config.blockIncorrectTerminalClicks || event.container !is ContainerChest) return
         if (event.chestName == "Correct all the panes!") {
             if (event.slot?.stack?.displayName?.stripControlCodes()?.startsWith("On") == true) {
                 event.cancelled = true
@@ -54,8 +57,7 @@ object TerminalFeatures : EventSubscriber {
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inDungeons) return
-        if (!Skytils.config.middleClickTerminals) return
+        if (!isInPhase3() || !Skytils.config.middleClickTerminals) return
         if (event.container is ContainerChest) {
             val chestName = event.chestName
             if (Utils.equalsOneOf(
@@ -81,13 +83,12 @@ object TerminalFeatures : EventSubscriber {
     }
 
     fun onTooltip(event: gg.skytils.event.impl.item.ItemTooltipEvent) {
-        if (!Utils.inDungeons) return
+        if (!isInPhase3()) return
         val chest = mc.thePlayer?.openContainer as? ContainerChest ?: return
 
         val inv = chest.lowerChestInventory
         val chestName = inv.displayName.unformattedText
         if (chestName == "Click the button on time!" || chestName == "Correct all the panes!") {
-            event.tooltip.clear()
         }
     }
 }

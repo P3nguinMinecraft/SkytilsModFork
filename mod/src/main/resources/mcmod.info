@@ -9,7 +9,7 @@
   "updateUrl": "https://github.com/Skytils/SkytilsMod/releases/latest",
   "authorList": ["My-Name-Is-Jeff", "Sychic"],
   "credits": "",
-  "logoFile": "",
+  "logoFile": "assets/skytils/logo.png",
   "screenshots": [],
   "dependencies": []
 }

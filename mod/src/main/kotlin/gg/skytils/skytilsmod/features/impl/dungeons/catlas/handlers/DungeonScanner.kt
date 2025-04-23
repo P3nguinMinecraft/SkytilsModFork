@@ -101,7 +101,7 @@ object DungeonScanner {
                     DungeonInfo.dungeonList[z * 11 + x] = it
                     if (it is Room && it.data.name != "Unknown") {
                         SBInfo.server?.let { server ->
-                            printDevMessage("Sending room data to channel: ${it.data.name}", "dungeonws")
+                            printDevMessage({ "Sending room data to channel: ${it.data.name}" }, "dungeonws")
                             val result = DungeonListener.outboundRoomQueue.trySend(
                                 C2SPacketDungeonRoom(server, it.data.name, xPos, zPos, x, z, it.core, it.isSeparator)
                             )
@@ -181,7 +181,7 @@ object DungeonScanner {
                     } else {
                         Room(x, z, it.data).apply {
                             isSeparator = true
-                            uniqueRoom = DungeonInfo.uniqueRooms.find { it.name == data.name }
+                            uniqueRoom = DungeonInfo.uniqueRooms[data.name]
                         }
                     }
                 }

@@ -88,7 +88,7 @@ object SimonSaysSolver : EventSubscriber {
                         clickNeeded += 2
                     } else if (clickInOrder[clickNeeded] != pos) {
                         if (Skytils.config.blockIncorrectTerminalClicks) {
-                            printDevMessage("Prevented click on $pos", "simon")
+                            printDevMessage({ "Prevented click on $pos" }, "simon")
                             event.cancelled = true
                         }
                     } else {
@@ -106,11 +106,11 @@ object SimonSaysSolver : EventSubscriber {
         if (Utils.inDungeons && Skytils.config.simonSaysSolver && TerminalFeatures.isInPhase3()) {
             if ((pos.y in 120..123) && pos.z in 92..95) {
                 if (pos.x == 111) {
-                    printDevMessage("Block at $pos changed to ${state.block.localizedName} from ${old.block.localizedName}", "simon")
+                    printDevMessage({ "Block at $pos changed to ${state.block.localizedName} from ${old.block.localizedName}" }, "simon")
                     if (state.block === Blocks.obsidian && old.block === Blocks.sea_lantern) {
                         if (!clickInOrder.contains(pos)) {
                             clickInOrder.add(pos)
-                        } else printDevMessage("Duplicate block at $pos", "simon")
+                        } else printDevMessage({ "Duplicate block at $pos" }, "simon")
                     }
                 } else if (pos.x == 110) {
                     if (state.block === Blocks.air) {

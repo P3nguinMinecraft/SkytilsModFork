@@ -167,11 +167,11 @@ class DemonlordSlayer(entity: EntityBlaze) :
                             if (demon is EntitySkeleton) {
                                 quazii = demon
                                 quaziiTimer = it as EntityArmorStand
-                                printDevMessage("Quazii", "slayer")
+                                printDevMessage({ "Quazii" }, "slayer")
                             } else if (demon is EntityPigZombie) {
                                 typhoeus = demon
                                 typhoeusTimer = it as EntityArmorStand
-                                printDevMessage("Typhoeus", "slayer")
+                                printDevMessage({ "Typhoeus" }, "slayer")
                             }
                         }
                     }
@@ -203,7 +203,7 @@ class DemonlordSlayer(entity: EntityBlaze) :
     override fun blockChange(event: BlockStateUpdateEvent) {
         if (totemEntity != null && event.old.block == Blocks.stained_hardened_clay && event.update.block is BlockAir) {
             totemEntity = null
-            printDevMessage("removed totem entity", "totem")
+            printDevMessage({ "removed totem entity" }, "totem")
             return
         } else if ((thrownEntity?.position?.distanceSq(event.pos) ?: 0.0) < 9.0
             && event.old.block is BlockAir && event.update.block == Blocks.stained_hardened_clay

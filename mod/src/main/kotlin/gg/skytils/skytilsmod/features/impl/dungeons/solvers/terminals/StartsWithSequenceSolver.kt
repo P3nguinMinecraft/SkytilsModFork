@@ -101,7 +101,7 @@ object StartsWithSequenceSolver : EventSubscriber {
     }
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
-        if (!Utils.inDungeons || !Skytils.config.startsWithSequenceTerminalSolver) return
+        if (!TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
         if (event.container is ContainerChest && event.chestName.startsWith("What starts with:")) {
             val slot = event.slot
             if (shouldClick.size > 0 && !shouldClick.contains(slot.slotNumber) && slot.inventory !== mc.thePlayer.inventory) {
@@ -111,14 +111,14 @@ object StartsWithSequenceSolver : EventSubscriber {
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inDungeons || !Skytils.config.startsWithSequenceTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.startsWithSequenceTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
         if (event.container is ContainerChest && event.chestName.startsWith("What starts with:")) {
             if (shouldClick.isNotEmpty() && !shouldClick.contains(event.slotId)) event.cancelled = true
         }
     }
 
     fun onTooltip(event: ItemTooltipEvent) {
-        if (!Utils.inDungeons || !Skytils.config.startsWithSequenceTerminalSolver) return
+        if (!TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
         val container = mc.thePlayer?.openContainer
         if (container is ContainerChest) {
             val chestName = container.lowerChestInventory.displayName.unformattedText

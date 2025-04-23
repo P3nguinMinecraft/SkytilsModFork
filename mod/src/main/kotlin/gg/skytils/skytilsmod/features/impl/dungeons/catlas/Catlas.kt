@@ -41,8 +41,12 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MimicDetecto
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.ScanUtils
 import gg.skytils.skytilsmod.listeners.DungeonListener
+import gg.skytils.skytilsmod.listeners.DungeonListener.outboundRoomQueue
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.printDevMessage
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import net.minecraft.network.play.server.S34PacketMaps
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.storage.MapData
@@ -55,6 +59,12 @@ import net.minecraft.world.storage.MapData
 object Catlas : EventSubscriber {
 
     fun reset() {
+        outboundRoomQueue.also {
+            outboundRoomQueue = Channel(UNLIMITED) {
+                printDevMessage({ "failed to deliver $it" }, "dungeonws")
+            }
+            it.cancel()
+        }
         DungeonInfo.reset()
         MapUtils.calibrated = false
         DungeonScanner.hasScanned = false
@@ -144,7 +154,7 @@ object Catlas : EventSubscriber {
     }
 
     fun onPuzzleReset(event: DungeonPuzzleResetEvent) {
-        val mapRoom = DungeonInfo.uniqueRooms.find { room ->
+        val mapRoom = DungeonInfo.uniqueRooms.values.find { room ->
             room.mainRoom.data.type == RoomType.PUZZLE && Puzzle.fromName(room.name)?.tabName == event.puzzle
         }
 

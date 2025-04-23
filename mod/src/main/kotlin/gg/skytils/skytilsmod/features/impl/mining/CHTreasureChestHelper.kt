@@ -73,13 +73,13 @@ object CHTreasureChestHelper : EventSubscriber {
     fun onBlockChange(event: BlockStateUpdateEvent) {
         if (!Skytils.config.chTreasureHelper || mc.thePlayer == null || SBInfo.mode != SkyblockIsland.CrystalHollows.mode) return
         if (((event.old.block == Blocks.air || event.old.block == Blocks.stone) && event.update.block == Blocks.chest)) {
-            printDevMessage("Distance ${event.pos} ${mc.thePlayer.getDistanceSq(event.pos)}", "chtreasure")
+            printDevMessage({ "Distance ${event.pos} ${mc.thePlayer.getDistanceSq(event.pos)}" }, "chtreasure")
             if (mc.thePlayer.entityBoundingBox.expand(8.0, 8.0, 8.0).isPosInside(event.pos)) {
                 val diff = System.currentTimeMillis() - lastFoundChest
                 if (diff < 1000 && found > 0) {
                     found--
                     chests[event.pos] = CHTreasureChest(event.pos)
-                    printDevMessage("chest found at $diff", "chtreasure")
+                    printDevMessage({ "chest found at $diff" }, "chtreasure")
                 } else found = 0
             }
         } else if (event.old.block == Blocks.chest && event.update.block == Blocks.air) {
@@ -138,7 +138,7 @@ object CHTreasureChestHelper : EventSubscriber {
                                 probable.particle!!.zCoord + 0.1
                             )
                             printDevMessage(
-                                "$count ${if (isLongDistance) "long-distance" else ""} ${type.particleName} particles with $speed speed at $x, $y, $z, offset by $xOffset, $yOffset, $zOffset",
+                                { "$count ${if (isLongDistance) "long-distance" else ""} ${type.particleName} particles with $speed speed at $x, $y, $z, offset by $xOffset, $yOffset, $zOffset" },
                                 "chtreasure"
                             )
                         }
@@ -164,7 +164,7 @@ object CHTreasureChestHelper : EventSubscriber {
                     } ?: return
                     if (sound == "random.orb") probable.progress++
                     else probable.progress = 0
-                    printDevMessage("sound $sound, $pitch pitch, $volume volume, at $x, $y, $z", "chtreasure")
+                    printDevMessage({ "sound $sound, $pitch pitch, $volume volume, at $x, $y, $z" }, "chtreasure")
                 }
             }
         }

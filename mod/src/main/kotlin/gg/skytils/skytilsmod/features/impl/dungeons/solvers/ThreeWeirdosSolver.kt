@@ -48,9 +48,8 @@ object ThreeWeirdosSolver : EventSubscriber {
         register(::onChat, EventPriority.Highest)
         register(::onWorldChange)
     }
-
     fun onChat(event: ChatMessageReceivedEvent) {
-        if (!Skytils.config.threeWeirdosSolver || !Utils.inDungeons || !DungeonListener.missingPuzzles.contains("Three Weirdos")) return
+        if (!Skytils.config.threeWeirdosSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Three Weirdos")) return
         val formatted = event.message.formattedText
         if (formatted.startsWith("§a§lPUZZLE SOLVED!") && "wasn't fooled by " in formatted) {
             riddleNPC = null

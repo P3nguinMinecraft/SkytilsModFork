@@ -97,7 +97,8 @@ object DungeonTimer : EventSubscriber {
             }
 
             bloodOpenTime != -1L && bloodClearTime == -1L && message == "§r§c[BOSS] The Watcher§r§f: That will be enough for now.§r" -> {
-                DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.let {
+                DungeonInfo.uniqueRooms["Blood"]?.let {
+                    assert(it.mainRoom.data.type == RoomType.BLOOD)
                     if (it.mainRoom.state > RoomState.CLEARED) {
                         it.mainRoom.state = RoomState.CLEARED
                     }

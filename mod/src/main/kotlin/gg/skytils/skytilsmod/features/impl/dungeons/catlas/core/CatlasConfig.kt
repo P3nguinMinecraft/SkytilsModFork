@@ -20,10 +20,8 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.core
 
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
-import gg.skytils.skytilsmod.utils.DungeonClass
 import java.awt.Color
 import java.io.File
-import java.util.EnumMap
 
 object CatlasConfig : Vigilant(
     File("./config/skytils/catlas/config.toml"),
@@ -155,6 +153,21 @@ object CatlasConfig : Vigilant(
         i18nSubcategory = "catlas.config.map.size"
     )
     var playerHeadScale = 1f
+
+    @Property(
+        name = "Head Class Border Scale",
+        type = PropertyType.DECIMAL_SLIDER,
+        description = "Scale of the class colour outline on the player head",
+        category = "Map",
+        subcategory = "Size",
+        maxF = 1f,
+        minF = 0f,
+        decimalPlaces = 2,
+        i18nName = "catlas.config.map.size.head_border_scale",
+        i18nCategory = "catlas.config.map",
+        i18nSubcategory = "catlas.config.map.size"
+    )
+    var playerBorderPercentage = 0.2f
 
     @Property(
         name = "Player Name Scale",
@@ -597,7 +610,7 @@ object CatlasConfig : Vigilant(
     init {
         initialize()
         setCategoryDescription(
-            "Map", "Catlas is a fork of works created by SkyblockAddons, UnclaimedBloom6, and Harry282"
+            "Map", "Catlas is a fork of works created by SkyblockAddons contributors (including Phoube and TirelessTraveler), UnclaimedBloom6, and Harry282"
         )
     }
 

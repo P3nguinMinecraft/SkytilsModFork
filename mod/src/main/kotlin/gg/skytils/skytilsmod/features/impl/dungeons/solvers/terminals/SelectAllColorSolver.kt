@@ -105,8 +105,7 @@ object SelectAllColorSolver : EventSubscriber {
     }
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
-        if (!Utils.inDungeons) return
-        if (!Skytils.config.selectAllColorTerminalSolver) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.selectAllColorTerminalSolver) return
         if (event.container is ContainerChest) {
             if (event.chestName.startsWith("Select all the")) {
                 val slot = event.slot
@@ -118,7 +117,7 @@ object SelectAllColorSolver : EventSubscriber {
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inDungeons || !Skytils.config.selectAllColorTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.selectAllColorTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
         if (event.container is ContainerChest && event.chestName.startsWith("Select all the")) {
             if (shouldClick.isNotEmpty() && !shouldClick.contains(event.slotId)) event.cancelled = true
         }

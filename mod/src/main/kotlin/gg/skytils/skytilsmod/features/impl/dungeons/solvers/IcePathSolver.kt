@@ -52,7 +52,7 @@ object IcePathSolver : EventSubscriber {
 
     init {
         tickTimer(20, repeats = true) {
-            if (!Utils.inDungeons || !Skytils.config.icePathSolver || mc.thePlayer == null || "Ice Path" !in DungeonListener.missingPuzzles) return@tickTimer
+            if (!Utils.inDungeons || !Skytils.config.icePathSolver || mc.thePlayer == null || "Ice Path" !in DungeonListener.incompletePuzzles) return@tickTimer
             if (silverfishChestPos != null && roomFacing != null && silverfish != null) {
                 if (grid == null) {
                     grid = getGridLayout()

@@ -154,7 +154,7 @@ object DungeonFeatures : EventSubscriber {
             if (event.pos == lastBlockPos) {
                 lastLitUpTime =
                     if (event.update.block === Blocks.sea_lantern && event.old.block === Blocks.coal_block) System.currentTimeMillis() else -1L
-                printDevMessage("change light $lastLitUpTime", "spiritbear")
+                printDevMessage({ "change light $lastLitUpTime" }, "spiritbear")
             }
         } else if (isInTerracottaPhase && Skytils.config.terracottaRespawnTimer && dungeonFloor?.endsWith('6') == true) {
             if (event.old.block == Blocks.air && event.update.block == Blocks.flower_pot) {
@@ -172,20 +172,20 @@ object DungeonFeatures : EventSubscriber {
                         if (packet.blockPosition == lastBlockPos) {
                             lastLitUpTime =
                                 if (packet.blockState.block === Blocks.sea_lantern) System.currentTimeMillis() else -1L
-                            printDevMessage("light $lastLitUpTime", "spiritbear")
+                            printDevMessage({ "light $lastLitUpTime" }, "spiritbear")
                         }
                     }
 
                     is S02PacketChat -> {
                         if (lastLitUpTime != -1L && packet.chatComponent.formattedText == "§r§a§lA §r§5§lSpirit Bear §r§a§lhas appeared!§r") {
-                            printDevMessage("chat ${System.currentTimeMillis() - lastLitUpTime}", "spiritbear")
+                            printDevMessage({ "chat ${System.currentTimeMillis() - lastLitUpTime}" }, "spiritbear")
                             lastLitUpTime = -1L
                         }
                     }
 
                     is S0CPacketSpawnPlayer -> {
                         if (lastLitUpTime != -1L && packet.player.version() == 2) {
-                            printDevMessage("spawn ${System.currentTimeMillis() - lastLitUpTime}", "spiritbear")
+                            printDevMessage({ "spawn ${System.currentTimeMillis() - lastLitUpTime}" }, "spiritbear")
                             //lastLitUpTime = -1L
                         }
                     }

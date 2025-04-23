@@ -83,31 +83,31 @@ open class Slayer<T : EntityLivingBase>(
                     nearby.displayName.formattedText.startsWith("§8[§7Lv") -> continue
                     nameStart.any { nearby.displayName.formattedText.startsWith(it) } -> {
                         printDevMessage(
-                            "expected tier $currentTier, hp $expectedHealth - spawned hp ${entity.baseMaxHealth.toInt()}",
+                            { "expected tier $currentTier, hp $expectedHealth - spawned hp ${entity.baseMaxHealth.toInt()}" },
                             "slayer"
                         )
                         if (expectedHealth == entity.baseMaxHealth.toInt()) {
-                            printDevMessage("hp matched", "slayer")
+                            printDevMessage({ "hp matched" }, "slayer")
                             potentialNameEntities.add(nearby as EntityArmorStand)
                         }
                     }
 
                     nearby.displayName.formattedText.matches(SlayerFeatures.timerRegex) -> {
-                        printDevMessage("timer regex matched", "slayer")
+                        printDevMessage({ "timer regex matched" }, "slayer")
                         potentialTimerEntities.add(nearby as EntityArmorStand)
                     }
                 }
             }
             (this@Slayer as? DemonlordSlayer)?.let {
                 if (potentialTimerEntities.removeIf { it == quaziiTimer || it == typhoeusTimer }) {
-                    printDevMessage("Ignored demon timers", "slayer")
+                    printDevMessage({ "Ignored demon timers" }, "slayer")
                 }
             }
             if (potentialNameEntities.size == 1 && potentialTimerEntities.size == 1) {
                 return@tickTask potentialNameEntities.first() to potentialTimerEntities.first()
             } else {
                 printDevMessage(
-                    "not the right entity! (${potentialNameEntities.size}, ${potentialTimerEntities.size})",
+                    { "not the right entity! (${potentialNameEntities.size}, ${potentialTimerEntities.size})" },
                     "slayer"
                 )
                 SlayerFeatures.slayer = null

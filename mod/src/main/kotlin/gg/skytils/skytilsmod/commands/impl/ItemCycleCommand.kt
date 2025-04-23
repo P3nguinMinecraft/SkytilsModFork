@@ -63,7 +63,7 @@ object ItemCycleCommand : BaseCommand("skytilsitemcycle", aliases = listOf("stic
                         val negated = args.getOrNull(4)?.toBoolean() ?: false
                         when (args.getOrNull(3)) {
                             "island" -> {
-                                val islands = args.getOrNull(5)?.split(",")?.mapNotNullTo(hashSetOf()) { SkyblockIsland.entries.find { isl -> isl.mode == it } } ?: throw WrongUsageException("You must specify an island mode.")
+                                val islands = args.getOrNull(5)?.split(",")?.mapNotNullTo(hashSetOf()) { SkyblockIsland.byMode[it] } ?: throw WrongUsageException("You must specify an island mode.")
                                 val cond = ItemCycle.Cycle.Condition.IslandCondition(islands, negated)
                                 cycle.conditions.add(cond)
                                 UTextComponent("$successPrefix §fAdded a new island condition with id ${cond.uuid} to cycle")

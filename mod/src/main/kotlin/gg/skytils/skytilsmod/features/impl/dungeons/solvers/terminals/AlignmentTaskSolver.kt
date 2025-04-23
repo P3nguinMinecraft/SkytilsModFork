@@ -154,21 +154,21 @@ object AlignmentTaskSolver : EventSubscriber {
 
                 if (Skytils.config.blockIncorrectTerminalClicks) {
                     if (clicks != null && clicks == pending) {
-                        printDevMessage("Click packet on $pos was cancelled, rot: ${entity.rotation}, clicks: ${clicks}, pending: $pending", "predictalignment")
+                        printDevMessage({ "Click packet on $pos was cancelled, rot: ${entity.rotation}, clicks: ${clicks}, pending: $pending" }, "predictalignment")
                         event.cancelled = true
                     } else {
                         val blockBehind = mc.theWorld?.getBlockState(pos.offset(entity.horizontalFacing.opposite))
                         if (blockBehind?.block == Blocks.sea_lantern) {
-                            printDevMessage("Click packet on $pos was cancelled, reason: lantern", "predictalignment")
+                            printDevMessage({ "Click packet on $pos was cancelled, reason: lantern" }, "predictalignment")
                             event.cancelled = true
                         }
-                        printDevMessage("Allowed click on ${pos}, rot: ${entity.rotation}, clicks ${clicks}, pending $pending", "predictalignment")
+                        printDevMessage({ "Allowed click on ${pos}, rot: ${entity.rotation}, clicks ${clicks}, pending $pending" }, "predictalignment")
                     }
                 }
 
                 if (!event.cancelled && Skytils.config.predictAlignmentClicks) {
                     pendingClicks[pos] = pending + 1
-                    printDevMessage("Pending clicks on $pos: ${pendingClicks[pos]}, rot: ${entity.rotation}", "predictalignment")
+                    printDevMessage({ "Pending clicks on $pos: ${pendingClicks[pos]}, rot: ${entity.rotation}" }, "predictalignment")
                 }
             }
         }
@@ -185,14 +185,14 @@ object AlignmentTaskSolver : EventSubscriber {
                     val currentRot = entity.rotation
                     val delta = getTurnsNeeded(currentRot, newRot)
                     val newPending = pending - delta
-                    printDevMessage("$pos moved from $currentRot to $newRot, delta: $delta, current pending ${pending}, new pending $newPending", "predictalignment")
+                    printDevMessage({ "$pos moved from $currentRot to $newRot, delta: $delta, current pending ${pending}, new pending $newPending" }, "predictalignment")
                     pendingClicks[pos] = newPending
 
                     val space = grid.find { it.framePos == pos } ?: return
                     val turns = getTurnsNeeded(newRot, directionSet.getOrElse(space.coords) { 0 })
                     val currentClicks = clicks[pos]
                     if (turns != currentClicks) {
-                        printDevMessage("Synced clicks on $pos from $currentClicks to $turns", "predictalignment")
+                        printDevMessage({ "Synced clicks on $pos from $currentClicks to $turns" }, "predictalignment")
                         clicks[pos] = turns
                     }
                 }

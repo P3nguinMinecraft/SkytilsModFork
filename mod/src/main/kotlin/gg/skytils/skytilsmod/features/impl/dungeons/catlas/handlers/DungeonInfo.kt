@@ -24,7 +24,7 @@ import net.minecraft.world.storage.MapData
 object DungeonInfo {
     // 6 x 6 room grid, 11 x 11 with connections
     val dungeonList = Array<Tile>(121) { Unknown(0, 0) }
-    val uniqueRooms = mutableSetOf<UniqueRoom>()
+    val uniqueRooms = mutableMapOf<String, UniqueRoom>()
     var roomCount = 0
     val puzzles = mutableMapOf<Puzzle, Boolean>()
 

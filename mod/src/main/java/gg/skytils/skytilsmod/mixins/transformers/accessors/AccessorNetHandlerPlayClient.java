@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,25 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package gg.skytils.skytilsmod.mixins.hooks.entity
 
-import gg.skytils.skytilsmod.listeners.DungeonListener
-import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.util.EnumParticleTypes
-import net.minecraft.world.World
+package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-fun removeBlazeSmokeParticle(
-    world: World,
-    particleType: EnumParticleTypes,
-    xCoord: Double,
-    yCoord: Double,
-    zCoord: Double,
-    xOffset: Double,
-    yOffset: Double,
-    zOffset: Double,
-    p_175688_14_: IntArray
-): Boolean {
-    return !Utils.inDungeons || particleType != EnumParticleTypes.SMOKE_LARGE || !DungeonListener.incompletePuzzles.contains(
-        "Higher Or Lower"
-    )
+import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.network.play.INetHandlerPlayClient;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
+
+import java.util.Map;
+import java.util.UUID;
+
+@Mixin(NetHandlerPlayClient.class)
+public interface AccessorNetHandlerPlayClient extends INetHandlerPlayClient {
+    @Accessor("playerInfoMap")
+    Map<UUID, NetworkPlayerInfo> getUUIDToPlayerInfo();
 }

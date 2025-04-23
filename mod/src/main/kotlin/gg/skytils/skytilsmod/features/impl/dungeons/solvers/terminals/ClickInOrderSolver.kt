@@ -55,7 +55,7 @@ object ClickInOrderSolver : EventSubscriber {
     }
 
     fun onBackgroundDrawn(event: GuiContainerBackgroundDrawnEvent) {
-        if (!Utils.inDungeons || !Skytils.config.clickInOrderTerminalSolver || event.container !is ContainerChest) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.clickInOrderTerminalSolver || event.container !is ContainerChest) return
         val invSlots = event.container.inventorySlots
         if (event.chestName == "Click in order!") {
             for (i in menuSlots) {
@@ -90,7 +90,7 @@ object ClickInOrderSolver : EventSubscriber {
     }
 
     fun onDrawSlotLow(event: GuiContainerPreDrawSlotEvent) {
-        if (!Utils.inDungeons) return
+        if (!TerminalFeatures.isInPhase3()) return
         if (!Skytils.config.clickInOrderTerminalSolver) return
         if (event.container is ContainerChest) {
             val fr = mc.fontRendererObj
@@ -118,7 +118,7 @@ object ClickInOrderSolver : EventSubscriber {
     }
 
     fun onTooltip(event: ItemTooltipEvent) {
-        if (!Utils.inDungeons || !Skytils.config.clickInOrderTerminalSolver) return
+        if (!TerminalFeatures.isInPhase3() || !Skytils.config.clickInOrderTerminalSolver) return
         val chest = mc.thePlayer?.openContainer as? ContainerChest ?: return
         val chestName = chest.lowerChestInventory.displayName.unformattedText
         if (chestName == "Click in order!") {

@@ -51,11 +51,11 @@ class Room(override val x: Int, override val z: Int, var data: RoomData) : Tile 
     }
 
     fun addToUnique(row: Int, column: Int, roomName: String = data.name) {
-        val unique = DungeonInfo.uniqueRooms.find { it.name == roomName }
+        val unique = DungeonInfo.uniqueRooms[roomName]
 
         if (unique == null) {
             UniqueRoom(column, row, this).let {
-                DungeonInfo.uniqueRooms.add(it)
+                DungeonInfo.uniqueRooms[roomName] = it
                 uniqueRoom = it
             }
         } else {

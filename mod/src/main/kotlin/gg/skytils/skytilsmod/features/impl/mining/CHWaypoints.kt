@@ -281,6 +281,7 @@ object CHWaypoints : EventSubscriber {
             it.loc.reset()
         }
         waypoints.clear()
+        waypointDelayTicks = 50
     }
 
 

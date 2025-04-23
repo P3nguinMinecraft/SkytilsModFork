@@ -81,7 +81,7 @@ object FarmingFeatures : EventSubscriber {
                 animalFound = false
             } else if (unformatted.startsWith("Return to the Trapper soon to get a new animal to hunt!")) {
                 if (trapperCooldownExpire > 0 && System.currentTimeMillis() > trapperCooldownExpire) {
-                    Utils.playLoudSound("note.pling", 1.0)
+                    SoundQueue.addToQueue("note.pling", 1f, isLoud = true)
                     UChat.chat("$prefix §bTrapper cooldown has already expired!")
                     trapperCooldownExpire = -1
                 }

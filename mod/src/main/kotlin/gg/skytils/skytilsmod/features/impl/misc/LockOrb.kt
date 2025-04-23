@@ -22,6 +22,7 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.PacketSendEvent
+import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.entity.item.EntityArmorStand
@@ -50,7 +51,7 @@ object LockOrb : EventSubscriber {
                 val remainingTime = orbTimeRegex.find(name)?.groupValues?.get(1)?.toInt() ?: continue
                 if (remainingTime >= Skytils.config.powerOrbDuration) {
                     if (orbEntity.getDistanceSqToEntity(mc.thePlayer) <= (orb.radius * orb.radius)) {
-                        mc.thePlayer.playSound("random.orb", 0.8f, 1f)
+                        SoundQueue.addToQueue("random.orb", 0.8f, 1f)
                         event.cancelled = true
                     }
                 }

@@ -78,7 +78,8 @@ object MapUpdater {
                     if (room is Room) {
                         room.uniqueRoom?.state = mapTile.state
                         if (room.state == RoomState.GREEN) {
-                            room.uniqueRoom?.foundSecrets = room.uniqueRoom?.foundSecrets?.coerceAtLeast(room.data.secrets)
+                            val secretThreshold = room.data.secrets
+                            room.uniqueRoom?.foundSecrets = room.uniqueRoom?.foundSecrets?.coerceAtLeast(secretThreshold) ?: secretThreshold
                         }
                     }
                 }
@@ -102,11 +103,10 @@ object MapUpdater {
                             room.opened = true
                         } else if (mapTile is Door && mapTile.state == RoomState.DISCOVERED) {
                             if (room.type == DoorType.BLOOD) {
-                                val bloodRoom = DungeonInfo.uniqueRooms.find { r ->
-                                    r.mainRoom.data.type == RoomType.BLOOD
-                                }
+                                val bloodRoom = DungeonInfo.uniqueRooms["Blood"]
 
                                 if (bloodRoom != null && bloodRoom.mainRoom.state != RoomState.UNOPENED) {
+                                    assert(bloodRoom.mainRoom.data.type == RoomType.BLOOD)
                                     room.opened = true
                                 }
                             } else {

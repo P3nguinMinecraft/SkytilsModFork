@@ -27,7 +27,6 @@ import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.network.ClientDisconnectEvent
 import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
-import gg.skytils.skytilsmod._event.HypixelPacketFailedEvent
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.commands.impl.*
@@ -88,6 +87,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
+import io.ktor.network.tls.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
@@ -108,6 +108,8 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
@@ -224,6 +226,31 @@ object Skytils : CoroutineScope, EventSubscriber {
         UnionX509TrustManager(backingManager, ourManager)
     }
 
+    val certificates by lazy {
+        val ks = KeyStore.getInstance(KeyStore.getDefaultType())
+        Skytils::class.java.getResourceAsStream("/skytilsclientcerts.jks").use {
+            ks.load(it, "skytilsontop".toCharArray())
+        }
+
+        val certificatesAndKeys = mutableListOf<CertificateAndKey>()
+
+        ks.aliases().iterator().forEach { alias ->
+            if (ks.isKeyEntry(alias)) {
+                val key = ks.getKey(alias, "skytilsontop".toCharArray())
+                if (key is PrivateKey) {
+                    val certChain = ks.getCertificateChain(alias)?.filterIsInstance<X509Certificate>()
+                    if (certChain != null && certChain.isNotEmpty()) {
+                        certificatesAndKeys.add(CertificateAndKey(certChain.toTypedArray(), key))
+                    }
+                }
+            }
+        }
+
+        if (certificatesAndKeys.isEmpty()) error("No certificate and private key pairs found in the keystore")
+
+        return@lazy certificatesAndKeys
+    }
+
     val client = HttpClient(CIO) {
         install(ContentEncoding) {
             customEncoder(BrotliEncoder, 1.0F)
@@ -253,6 +280,7 @@ object Skytils : CoroutineScope, EventSubscriber {
                 socketTimeout = 10000
             }
             https {
+                this.certificates += certificates
                 trustManager = Skytils.trustManager
             }
         }
@@ -538,10 +566,6 @@ object Skytils : CoroutineScope, EventSubscriber {
     }
 
 
-    fun onHypixelPacketFail(event: HypixelPacketFailedEvent) {
-        UChat.chat("$failPrefix Mod API request failed: ${event.reason}")
-    }
-
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (event.packet is S01PacketJoinGame) {
             IO.launch {
@@ -550,6 +574,7 @@ object Skytils : CoroutineScope, EventSubscriber {
             if (config.connectToWS)
                 WSClient.openConnection()
         }
+
         if (event.packet is S1CPacketEntityMetadata && mc.thePlayer != null) {
             val nameObj = event.packet.func_149376_c()?.find { it.dataValueId == 2 }?.`object` ?: return
             val entity = mc.theWorld?.getEntityByID(event.packet.entityId)
@@ -627,6 +652,5 @@ object Skytils : CoroutineScope, EventSubscriber {
         register(::onPacket)
         register(::onSendPacket)
         register(::onGuiChange)
-        register(::onHypixelPacketFail)
     }
 }

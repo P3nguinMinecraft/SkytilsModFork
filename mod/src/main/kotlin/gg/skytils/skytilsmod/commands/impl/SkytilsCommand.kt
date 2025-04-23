@@ -35,6 +35,8 @@ import gg.skytils.skytilsmod.core.UpdateChecker
 import gg.skytils.skytilsmod.features.impl.dungeons.PartyFinderStats
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.Catlas
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
+import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.Room
+import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.RoomState
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
@@ -375,7 +377,17 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
                     }
                     "cheater" -> {
                         if (Skytils.deobfEnvironment) {
-                            UChat.chat(DungeonInfo.uniqueRooms.sortedByDescending { it.mainRoom.data.type }.map { it.name })
+                            UChat.chat(DungeonInfo.uniqueRooms.entries.sortedByDescending { it.value.mainRoom.data.type }.map { it.key })
+                        }
+                    }
+                    "cheaterpre" -> {
+                        if (Skytils.deobfEnvironment) {
+                            DungeonInfo.dungeonList.forEach {
+                                if (it.state > RoomState.PREVISITED) {
+                                    it.state = RoomState.PREVISITED
+                                    (it as? Room)?.uniqueRoom?.state = RoomState.PREVISITED
+                                }
+                            }
                         }
                     }
                     else -> {

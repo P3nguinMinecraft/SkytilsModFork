@@ -106,7 +106,7 @@ object MasterMode7Features : EventSubscriber {
             val drag =
                 WitherKingDragons.entries.find { it.blockPos.x == x.toInt() && it.blockPos.z == z.toInt() } ?: return
             if (spawningDragons.add(drag)) {
-                printDevMessage("${drag.name} spawning $x $y $z", "witherkingdrags")
+                printDevMessage({ "${drag.name} spawning $x $y $z" }, "witherkingdrags")
             }
         } else if (event.packet is S2APacketParticles) {
             event.packet.apply {
@@ -131,7 +131,7 @@ object MasterMode7Features : EventSubscriber {
                     .minByOrNull { entity.getXZDistSq(it.blockPos) } ?: return
             (entity as ExtensionEntityLivingBase).skytilsHook.colorMultiplier = type.color
             (entity as ExtensionEntityLivingBase).skytilsHook.masterDragonType = type
-            printDevMessage("${type.name} spawned", "witherkingdrags")
+            printDevMessage({ "${type.name} spawned" }, "witherkingdrags")
             dragonMap[entity.entityId] = type
         }
     }
@@ -139,7 +139,7 @@ object MasterMode7Features : EventSubscriber {
     fun onDeath(event: LivingEntityDeathEvent) {
         if (event.entity is EntityDragon) {
             val item = (event.entity as ExtensionEntityLivingBase).skytilsHook.masterDragonType ?: return
-            printDevMessage("${item.name} died", "witherkingdrags")
+            printDevMessage({ "${item.name} died" }, "witherkingdrags")
             spawningDragons.remove(item)
             killedDragons.add(item)
         }

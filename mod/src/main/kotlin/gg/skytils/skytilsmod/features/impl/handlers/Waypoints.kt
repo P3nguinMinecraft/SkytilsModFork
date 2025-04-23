@@ -127,7 +127,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
                 }
             }
         } else if (sbeWaypointFormat.containsMatchIn(str)) {
-            val island = SkyblockIsland.entries.find { it.mode == SBInfo.mode } ?: SkyblockIsland.CrystalHollows
+            val island = SkyblockIsland.byMode[SBInfo.mode] ?: SkyblockIsland.CrystalHollows
             val waypoints = sbeWaypointFormat.findAll(str.trim().replace("\n", "")).map {
                 Waypoint(
                     it.groups["name"]!!.value,
@@ -151,7 +151,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
         } else {
             try {
                 val genericArray = json.decodeFromString<JsonArray>(str)
-                val foundWaypoints = hashMapOf<String, HashSet<Waypoint>>()
+                val foundWaypoints = hashMapOf<SkyblockIsland, HashSet<Waypoint>>()
 
                 for (element in genericArray) {
                     val obj = element.jsonObject
@@ -176,7 +176,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
 
                     val name = (obj["name"] ?: options?.get("name"))?.jsonPrimitive?.content ?: "Unnamed"
                     val color = obj["color"]?.jsonPrimitive?.content?.let(Utils::colorFromString) ?: Color(r ?: 1f, g ?: 0f, b ?: 0f)
-                    val island = (obj["island"] ?: obj["mode"])?.jsonPrimitive?.content ?: SkyblockIsland.CrystalHollows.mode
+                    val island = SkyblockIsland.byMode[((obj["island"] ?: obj["mode"])?.jsonPrimitive?.content)] ?: if (Utils.isOnHypixel) SkyblockIsland.current else SkyblockIsland.CrystalHollows
 
                     foundWaypoints.getOrPut(island) { hashSetOf() }.add(Waypoint(name, pos.x, pos.y, pos.z, true, color, System.currentTimeMillis()))
                 }
@@ -187,7 +187,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
                             name = null,
                             waypoints = waypoints,
                             isExpanded = true,
-                            island = SkyblockIsland.entries.find { it.mode == island } ?: SkyblockIsland.Unknown
+                            island = island
                         )
                     )
                 }
@@ -277,14 +277,13 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
             printDevMessage("Waypoints unloaded from compute, reason: SB check", "waypoints")
             return
         }
-        val mode = SBInfo.mode
-        val isUnknownIsland = SkyblockIsland.entries.none { it.mode == mode }
+        val currIsland = SkyblockIsland.current
         visibleWaypoints = categories.filter {
-            it.island.mode == mode || (isUnknownIsland && it.island == SkyblockIsland.Unknown)
+            it.island == currIsland
         }.flatMap { category ->
             category.waypoints.filter { it.enabled }
         }
-        printDevMessage("Waypoints computed for ${mode}, num: ${visibleWaypoints.size}", "waypoints")
+        printDevMessage({ "Waypoints computed for ${SBInfo.mode} (${currIsland}), num: ${visibleWaypoints.size}" }, "waypoints")
     }
 
     fun onWorldChange(event: WorldUnloadEvent) {

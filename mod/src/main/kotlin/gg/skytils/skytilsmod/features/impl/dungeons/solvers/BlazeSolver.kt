@@ -35,7 +35,6 @@ import gg.skytils.skytilsmod._event.DungeonPuzzleResetEvent
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.coroutines.launch
@@ -46,7 +45,6 @@ import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import kotlin.random.Random
 
 object BlazeSolver : EventSubscriber {
     var orderedBlazes = arrayListOf<ShootableBlaze>()
@@ -57,7 +55,7 @@ object BlazeSolver : EventSubscriber {
 
     init {
         tickTimer(4, repeats = true) {
-            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.missingPuzzles.contains(
+            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.incompletePuzzles.contains(
                     "Higher Or Lower"
                 )
             ) {
@@ -65,7 +63,7 @@ object BlazeSolver : EventSubscriber {
             }
         }
         tickTimer(20, repeats = true) {
-            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.missingPuzzles.contains(
+            if (Skytils.config.blazeSolver && Utils.inDungeons && DungeonListener.incompletePuzzles.contains(
                     "Higher Or Lower"
                 )
             ) {

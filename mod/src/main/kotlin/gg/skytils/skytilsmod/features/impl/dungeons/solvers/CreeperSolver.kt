@@ -59,10 +59,10 @@ object CreeperSolver : EventSubscriber {
                 it != null && !it.isInvisible && it.maxHealth == 20f && it.health == 20f && !it.hasCustomName()
             }?.firstOrNull()
         } else if (solutionPairs.isEmpty()) {
-            val creeper = this.creeper!!.entityBoundingBox
-            val validBox = creeper.expand(0.5, 0.5, 0.5).offset(0.0, 77 - creeper.minY, 0.0)
+            val baseBlock = BlockPos(this.creeper!!.posX, 75.0, this.creeper!!.posZ).toBoundingBox()
+            val validBox = AxisAlignedBB(baseBlock.minX, baseBlock.minY, baseBlock.minZ, baseBlock.maxX, baseBlock.maxY + 2, baseBlock.maxZ)
 
-            val roomBB = creeper.expand(14.0, 10.0, 13.0)
+            val roomBB = this.creeper!!.entityBoundingBox.expand(14.0, 10.0, 13.0)
             val candidates = BlockPos.getAllInBox(BlockPos(roomBB.minVec), BlockPos(roomBB.maxVec)).filter {
                 it.y > 68 && mc.theWorld?.getBlockState(it)?.block in candidateBlocks
             }
@@ -82,7 +82,7 @@ object CreeperSolver : EventSubscriber {
 
     init {
         tickTimer(20, repeats = true) {
-            if (Skytils.config.creeperBeamsSolver && Utils.inDungeons && DungeonListener.missingPuzzles.contains(
+            if (Skytils.config.creeperBeamsSolver && Utils.inDungeons && DungeonListener.incompletePuzzles.contains(
                     "Creeper Beams"
                 )
             ) {
@@ -92,7 +92,7 @@ object CreeperSolver : EventSubscriber {
     }
 
     fun onWorldRender(event: WorldDrawEvent) {
-        if (Skytils.config.creeperBeamsSolver && solutionPairs.isNotEmpty() && !creeper!!.isDead && DungeonListener.missingPuzzles.contains(
+        if (Skytils.config.creeperBeamsSolver && solutionPairs.isNotEmpty() && !creeper!!.isDead && DungeonListener.incompletePuzzles.contains(
                 "Creeper Beams"
             )
         ) {
@@ -128,10 +128,10 @@ object CreeperSolver : EventSubscriber {
                     second.zCoord + 1
                 )
                 RenderUtil.drawFilledBoundingBox(
-                    matrixStack, aabb1.expand(0.01, 0.01, 0.01), color, 0.5f
+                    matrixStack, aabb1.expand(0.01, 0.01, 0.01), color, 0.8f
                 )
                 RenderUtil.drawFilledBoundingBox(
-                    matrixStack, aabb2.expand(0.01, 0.01, 0.01), color, 0.5f
+                    matrixStack, aabb2.expand(0.01, 0.01, 0.01), color, 0.8f
                 )
             }
             if (!blendEnabled) UGraphics.disableBlend()

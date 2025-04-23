@@ -22,18 +22,18 @@ import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.item.ItemTooltipEvent
 import gg.skytils.event.impl.screen.GuiContainerForegroundDrawnEvent
 import gg.skytils.event.impl.screen.GuiContainerSlotClickEvent
+import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.EnumDyeColor
-import kotlin.random.Random
 
 object ChangeAllToSameColorSolver : EventSubscriber {
     private val ordering =
@@ -47,12 +47,19 @@ object ChangeAllToSameColorSolver : EventSubscriber {
             c.metadata to i
         }
     private var mostCommon = EnumDyeColor.RED.metadata
+    private var isLocked = false
 
     override fun setup() {
         register(::onForegroundEvent)
         register(::onSlotClick, EventPriority.High)
         register(::onTooltip, EventPriority.Lowest)
+        register(::onWindowClose)
     }
+
+    fun onWindowClose(event: ScreenOpenEvent) {
+        if (event.screen as? GuiContainer == null) isLocked = false
+    }
+
 
     fun onForegroundEvent(event: GuiContainerForegroundDrawnEvent) {
         if (!Utils.inDungeons || !Skytils.config.changeAllSameColorTerminalSolver || event.container !is ContainerChest || event.chestName != "Change all to same color!") return
@@ -60,12 +67,16 @@ object ChangeAllToSameColorSolver : EventSubscriber {
         val grid = container.inventorySlots.filter {
             it.inventory == container.lowerChestInventory && it.stack?.displayName?.startsWith("§a") == true
         }
-        val counts = ordering.keys.associateWith { c -> grid.count { it.stack?.metadata == c } }
-        val currentPath = counts[mostCommon]!!
-        val (candidate, maxCount) = counts.maxBy { it.value }
 
-        if (maxCount > currentPath) {
-            mostCommon = candidate
+        if (!Skytils.config.changeToSameColorLock || !isLocked) {
+            val counts = ordering.keys.associateWith { c -> grid.count { it.stack?.metadata == c } }
+            val currentPath = counts[mostCommon]!!
+            val (candidate, maxCount) = counts.maxBy { it.value }
+
+            if (maxCount > currentPath) {
+                mostCommon = candidate
+            }
+            isLocked = true
         }
 
         val targetIndex = ordering[mostCommon]!!

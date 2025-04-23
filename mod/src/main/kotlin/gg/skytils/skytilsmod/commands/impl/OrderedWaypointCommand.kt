@@ -30,6 +30,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.Waypoints
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.current
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.command.WrongUsageException
 import kotlin.random.Random
@@ -40,7 +41,7 @@ object OrderedWaypointCommand : BaseCommand("skytilsorderedwaypoint") {
     var trackedIsland: SkyblockIsland? = null
     var trackedSet: MutableList<Waypoint>? = null
 
-    private val categoryComparator: Comparator<WaypointCategory> = Comparator.comparing<WaypointCategory?, String?> {
+    private val categoryComparator: Comparator<WaypointCategory> = Comparator.comparing<WaypointCategory, String> {
         it.name ?: ""
     }.thenBy {
         it.isExpanded
@@ -54,9 +55,9 @@ object OrderedWaypointCommand : BaseCommand("skytilsorderedwaypoint") {
     override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
         if (!Utils.inSkyblock) throw WrongUsageException("You must be in Skyblock to use this command!")
         if (args.isEmpty()) {
-            val isUnknownIsland = SkyblockIsland.entries.none { it.mode == SBInfo.mode }
+            val currIsland = SkyblockIsland.current
             categoryCache = Waypoints.categories.filter {
-                it.island.mode == SBInfo.mode || (isUnknownIsland && it.island == SkyblockIsland.Unknown)
+                it.island == currIsland
             }.sortedWith(categoryComparator)
         }
         when (args.getOrNull(0)) {

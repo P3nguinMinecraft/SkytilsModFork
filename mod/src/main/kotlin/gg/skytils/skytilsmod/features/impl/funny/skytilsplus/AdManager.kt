@@ -25,6 +25,7 @@ import gg.skytils.event.impl.screen.GuiContainerBackgroundDrawnEvent
 import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils.mc
+import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
 import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.gui.PaywallGui
@@ -64,7 +65,7 @@ object AdManager : EventSubscriber {
 
         if (System.currentTimeMillis() - lastAdBreak > 1000 * 60) {
             lastAdBreak = System.currentTimeMillis()
-            Utils.playLoudSound("skytils:bsmod.sparkle_adbreak", 1.0)
+            SoundQueue.addToQueue("skytils:bsmod.sparkle_adbreak", 1f, isLoud = true)
         }
     }
 

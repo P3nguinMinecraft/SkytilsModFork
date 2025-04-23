@@ -55,7 +55,7 @@ object TriviaSolver : EventSubscriber {
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
-        if (!Skytils.config.triviaSolver || !Utils.inDungeons || !DungeonListener.missingPuzzles.contains("Quiz")) return
+        if (!Skytils.config.triviaSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Quiz")) return
         val formatted = event.message.formattedText
 
         if (formatted == "§r§4[STATUE] Oruo the Omniscient§r§f: §r§fI am §r§4Oruo the Omniscient§r§f. I have lived many lives. I have learned all there is to know.§r" && triviaSolutions.size == 0) {
@@ -102,7 +102,7 @@ object TriviaSolver : EventSubscriber {
 
     fun onRenderArmorStandPre(event: LivingEntityPreRenderEvent<*>) {
         val answer = correctAnswer ?: return
-        if (!Skytils.config.triviaSolver || !DungeonListener.missingPuzzles.contains("Quiz") || event.entity !is EntityArmorStand) return
+        if (!Skytils.config.triviaSolver || !DungeonListener.incompletePuzzles.contains("Quiz") || event.entity !is EntityArmorStand) return
 
         val name = event.entity.customNameTag
 

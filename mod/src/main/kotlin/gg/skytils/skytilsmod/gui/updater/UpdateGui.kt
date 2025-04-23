@@ -155,12 +155,10 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
             }
             val fileSaved = File(directory, url.pathSegments.last().decodeURLPart())
             val writeChannel = fileSaved.writeChannel()
-            writeChannel.close(runCatching {
-                if (mc.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyTo(writeChannel) == 0L) {
-                    failed = true
-                    return null
-                }
-            }.exceptionOrNull())
+            if (mc.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyAndClose(writeChannel) == 0L) {
+                failed = true
+                return null
+            }
             println("Downloaded update to $fileSaved")
             return fileSaved
         } catch (ex: Exception) {

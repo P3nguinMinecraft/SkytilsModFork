@@ -23,6 +23,7 @@ import com.google.common.collect.Ordering
 //#endif
 import gg.skytils.skytilsmod.Skytils.mc
 import net.minecraft.client.network.NetworkPlayerInfo
+import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.scoreboard.ScorePlayerTeam
 //#if MC<11400
 import net.minecraft.world.WorldSettings
@@ -46,8 +47,17 @@ val NetworkPlayerInfo.text: String
     //$$ }
     //#endif
 
-object TabListUtils {
+val S38PacketPlayerListItem.AddPlayerData.text: String
+    get() = displayName?.formattedText ?: ScorePlayerTeam.formatPlayerName(
+        team,
+        profile.name
+    )
 
+val S38PacketPlayerListItem.AddPlayerData.team
+    get() = mc.theWorld?.scoreboard?.getPlayersTeam(profile.name)
+
+
+object TabListUtils {
     //#if MC<11400
     private val playerInfoOrdering = object : Ordering<NetworkPlayerInfo>() {
         override fun compare(p1: NetworkPlayerInfo?, p2: NetworkPlayerInfo?): Int {

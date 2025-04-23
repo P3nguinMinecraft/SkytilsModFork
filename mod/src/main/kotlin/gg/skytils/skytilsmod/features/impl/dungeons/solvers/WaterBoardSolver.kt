@@ -67,7 +67,7 @@ object WaterBoardSolver : EventSubscriber {
             if (!Skytils.config.waterBoardSolver || !Utils.inDungeons) return@tickTimer
             val player = mc.thePlayer ?: return@tickTimer
             val world = mc.theWorld ?: return@tickTimer
-            if (DungeonListener.missingPuzzles.contains("Water Board") && variant == -1 && (job == null || job?.isCancelled == true || job?.isCompleted == true)) {
+            if (DungeonListener.incompletePuzzles.contains("Water Board") && variant == -1 && (job == null || job?.isCancelled == true || job?.isCompleted == true)) {
                 job = Skytils.launch {
                     prevInWaterRoom = inWaterRoom
                     inWaterRoom = false
@@ -233,7 +233,7 @@ object WaterBoardSolver : EventSubscriber {
     }
 
     fun onRenderWorld(event: WorldDrawEvent) {
-        if (!Skytils.config.waterBoardSolver || !DungeonListener.missingPuzzles.contains("Water Board")) return
+        if (!Skytils.config.waterBoardSolver || !DungeonListener.incompletePuzzles.contains("Water Board")) return
         if (chestPos == null || roomFacing == null || variant == -1) return
         val leverStates = LeverBlock.entries.associateWithTo(EnumMap(LeverBlock::class.java)) {
             getLeverToggleState(it.leverPos)

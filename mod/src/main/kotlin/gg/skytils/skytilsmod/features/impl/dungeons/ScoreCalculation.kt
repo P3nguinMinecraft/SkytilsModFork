@@ -88,11 +88,11 @@ object ScoreCalculation: EventSubscriber {
     var clearedPercentage = BasicState(0)
     val totalRoomMap = mutableMapOf<Int, Int>()
     val totalRooms = (clearedPercentage.zip(completedRooms)).map { (clear, complete) ->
-        printDevMessage("total clear $clear complete $complete", "scorecalcroom")
+        printDevMessage({ "total clear $clear complete $complete" }, "scorecalcroom")
         val a = if (clear > 0 && complete > 0) {
             (100 * (complete / clear.toDouble())).roundToInt()
         } else 0
-        printDevMessage("total? $a", "scorecalcroom")
+        printDevMessage({ "total? $a" }, "scorecalcroom")
         if (a == 0) return@map 0
         totalRoomMap[a] = (totalRoomMap[a] ?: 0) + 1
         totalRoomMap.toList().maxByOrNull { it.second }!!.first
@@ -102,9 +102,9 @@ object ScoreCalculation: EventSubscriber {
     }
     val calcingClearPercentage = calcingCompletedRooms.map { complete ->
         val total = totalRooms.get()
-        printDevMessage("total $total complete $complete", "scorecalcroom")
+        printDevMessage({ "total $total complete $complete" }, "scorecalcroom")
         val a = if (total > 0) (complete / total.toDouble()).coerceAtMost(1.0) else 0.0
-        printDevMessage("calced room clear $a", "scorecalcroom")
+        printDevMessage({ "calced room clear $a" }, "scorecalcroom")
         a
     }
     val roomClearScore = calcingClearPercentage.map {
@@ -135,7 +135,7 @@ object ScoreCalculation: EventSubscriber {
 
 
     val discoveryScore = (roomClearScore.zip(secretScore)).map { (clear, secret) ->
-        printDevMessage("clear $clear secret $secret", "scorecalcexplore")
+        printDevMessage({ "clear $clear secret $secret" }, "scorecalcexplore")
         if (DungeonFeatures.dungeonFloor == "E") (clear * 0.7).toInt() + (secret * 0.7).toInt()
         else clear.toInt() + secret.toInt()
     }
@@ -151,7 +151,7 @@ object ScoreCalculation: EventSubscriber {
     // puzzle stuff
     var missingPuzzles = BasicState(0).also {
         it.onSetValue {
-            printDevMessage("missing puzzles $it", "scorecalcpuzzle")
+            printDevMessage({ "missing puzzles $it" }, "scorecalcpuzzle")
         }
     }
     var failedPuzzles = BasicState(0)
@@ -161,7 +161,7 @@ object ScoreCalculation: EventSubscriber {
     }
 
     val skillScore = (calcingClearPercentage.zip(deathPenalty.zip(puzzlePenalty))).map { (clear, penalties) ->
-        printDevMessage("puzzle penalty ${penalties.second}", "scorecalcpuzzle")
+        printDevMessage({ "puzzle penalty ${penalties.second}" }, "scorecalcpuzzle")
         if (DungeonFeatures.dungeonFloor == "E")
             ((20.0 + clear * 80.0 - penalties.first - penalties.second) * 0.7).toInt()
         else (20.0 + clear * 80.0 - penalties.first - penalties.second).toInt()
@@ -210,9 +210,9 @@ object ScoreCalculation: EventSubscriber {
 
     val totalScore =
         ((skillScore.zip(discoveryScore)).zip(speedScore.zip(bonusScore))).map { (first, second) ->
-            printDevMessage("skill score ${first.first}", "scorecalcpuzzle")
-            printDevMessage(
-                "skill ${first.first} disc ${first.second} speed ${second.first} bonus ${second.second}",
+            printDevMessage({ "skill score ${first.first}" }, "scorecalcpuzzle")
+            printDevMessage({
+                "skill ${first.first} disc ${first.second} speed ${second.first} bonus ${second.second}" },
                 "scorecalctotal"
             )
             if (DungeonFeatures.dungeonFloor == "E")
@@ -366,7 +366,7 @@ object ScoreCalculation: EventSubscriber {
                 name.contains("Puzzles:") -> {
                     val matcher = missingPuzzlePattern.find(name) ?: return@forEach
                     missingPuzzles.set(matcher.groups["count"]?.value?.toIntOrNull() ?: 0)
-                    printDevMessage("puzzles ${missingPuzzles.get()}", "scorecalcpuzzle")
+                    printDevMessage({ "puzzles ${missingPuzzles.get()}" }, "scorecalcpuzzle")
                     updateText(totalScore.get())
                 }
 
@@ -389,7 +389,7 @@ object ScoreCalculation: EventSubscriber {
                         val matcher = secretsFoundPercentagePattern.find(name) ?: return@forEach
                         val percentagePer = (matcher.groups["percentage"]?.value?.toDoubleOrNull()
                             ?: 0.0)
-                        printDevMessage("percent $percentagePer", "scorecalcsecrets")
+                        printDevMessage({ "percent $percentagePer" }, "scorecalcsecrets")
                         totalSecrets.set(
                             if (foundSecrets.get() > 0 && percentagePer > 0) floor(100f / percentagePer * foundSecrets.get() + 0.5).toInt() else 0
                         )
@@ -407,8 +407,8 @@ object ScoreCalculation: EventSubscriber {
                 name.contains("Completed Rooms") -> {
                     val matcher = roomCompletedPattern.find(name) ?: return@forEach
                     completedRooms.set(matcher.groups["count"]?.value?.toIntOrNull() ?: return@forEach)
-                    printDevMessage("count ${completedRooms.get()} percent ${clearedPercentage.get()}", "scorecalc")
-                    printDevMessage("Total rooms: ${totalRooms.get()}", "scorecalc")
+                    printDevMessage({ "count ${completedRooms.get()} percent ${clearedPercentage.get()}" }, "scorecalc")
+                    printDevMessage({ "Total rooms: ${totalRooms.get()}" }, "scorecalc")
                 }
             }
         }
@@ -423,7 +423,7 @@ object ScoreCalculation: EventSubscriber {
             ) firstDeathHadSpirit.set(
                 true
             )
-            printDevMessage("you died. spirit: ${firstDeathHadSpirit.get()}", "scorecalcdeath")
+            printDevMessage({ "you died. spirit: ${firstDeathHadSpirit.get()}" }, "scorecalcdeath")
         }
     }
 

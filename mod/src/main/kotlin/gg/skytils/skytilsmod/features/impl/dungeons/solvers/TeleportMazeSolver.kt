@@ -28,7 +28,6 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.DevTools
 import gg.skytils.skytilsmod.utils.RenderUtil
@@ -66,7 +65,7 @@ object TeleportMazeSolver : EventSubscriber {
     }
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (!Skytils.config.teleportMazeSolver || !Utils.inDungeons || !DungeonListener.missingPuzzles.contains("Teleport Maze")) return
+        if (!Skytils.config.teleportMazeSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Teleport Maze")) return
         if (mc.thePlayer == null || mc.theWorld == null) return
         event.packet.apply {
             when (this) {
@@ -129,7 +128,7 @@ object TeleportMazeSolver : EventSubscriber {
     }
 
     fun onWorldRender(event: WorldDrawEvent) {
-        if (!Skytils.config.teleportMazeSolver || steppedPads.isEmpty() || !DungeonListener.missingPuzzles.contains("Teleport Maze")) return
+        if (!Skytils.config.teleportMazeSolver || steppedPads.isEmpty() || !DungeonListener.incompletePuzzles.contains("Teleport Maze")) return
         val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
         val matrixStack = UMatrixStack()
 

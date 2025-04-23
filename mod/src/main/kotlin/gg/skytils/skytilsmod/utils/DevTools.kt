@@ -36,11 +36,7 @@ object DevTools {
         getToggleState(toggle).getUntracked()
 
     fun getToggleState(toggle: String) = memo {
-        if (allToggleState()) {
-            true
-        } else {
-            toggles()[toggle] ?: false
-        }
+        allToggleState() || (toggles()[toggle] ?: false)
     }
 
     operator fun get(toggle: String) = memo {
@@ -63,4 +59,12 @@ fun printDevMessage(string: String, toggle: String) {
 
 fun printDevMessage(string: String, vararg toggles: String) {
     if (toggles.any { DevTools.getToggle(it) }) UChat.chat(string)
+}
+
+fun printDevMessage(func: () -> String, toggle: String) {
+    if (DevTools.getToggle(toggle)) UChat.chat(func())
+}
+
+fun printDevMessage(func: () -> String, vararg toggles: String) {
+    if (toggles.any { DevTools.getToggle(it) }) UChat.chat(func())
 }

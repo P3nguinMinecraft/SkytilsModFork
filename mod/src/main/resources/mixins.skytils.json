@@ -96,6 +96,7 @@
   ],
   "verbose": true,
   "client": [
+    "accessors.AccessorNetHandlerPlayClient",
     "events.MixinGuiIngame",
     "events.MixinNetHandlerPlayClient",
     "events.MixinNetworkManager",
