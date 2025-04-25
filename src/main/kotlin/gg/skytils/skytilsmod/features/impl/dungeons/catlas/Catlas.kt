@@ -101,7 +101,7 @@ object Catlas {
                     it.state = RoomState.PREVISITED
                 }
             }
-            DungeonListener.team[mc.thePlayer.name]?.mapPlayer?.yaw = mc.thePlayer.rotationYaw
+            MapUpdater.updatePlayersUsingEntity()
         }
     }
 

@@ -54,6 +54,18 @@ object MapUpdater {
         }
     }
 
+    fun updatePlayersUsingEntity() {
+        DungeonListener.team.forEach { (name, team) ->
+            team.player?.let {
+                team.mapPlayer.yaw = it.rotationYaw
+                team.mapPlayer.mapX =
+                    ((it.posX - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
+                team.mapPlayer.mapZ =
+                    ((it.posZ - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
+            }
+        }
+    }
+
     fun updateRooms(mapData: MapData) {
         DungeonMapColorParser.updateMap(mapData)
 
