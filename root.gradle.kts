@@ -20,3 +20,16 @@ plugins {
     kotlin("jvm") apply false
     id("gg.essential.multi-version.root") apply false
 }
+
+buildscript {
+    configurations {
+        all {
+            resolutionStrategy {
+                dependencySubstitution {
+                    substitute(module("com.github.replaymod:preprocessor")).using(module("com.github.skytils:preprocessor:0a04a5668b0db4fbb4efefaaf0e3fd73f695ee28"))
+                    substitute(module("com.github.Fallen-Breath:remap")).using(module("com.github.Skytils:remap:2480d8a1b9"))
+                }
+            }
+        }
+    }
+}
