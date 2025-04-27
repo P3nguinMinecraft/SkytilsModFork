@@ -24,14 +24,7 @@ private typealias Handler<T> = suspend (T) -> Unit
 
 enum class EventPriority {
     Lowest {
-        override val next: EventPriority = this
-
-        override suspend fun <T : Event> post(event: T) {
-            handlers[event.javaClass]?.forEach { handler ->
-                @Suppress("UNCHECKED_CAST")
-                (handler as Handler<T>).invoke(event)
-            }
-        }
+        override val next: EventPriority? = null
     },
     Low {
         override val next: EventPriority = Lowest
@@ -48,7 +41,7 @@ enum class EventPriority {
 
     @PublishedApi
     internal val handlers = mutableMapOf<Class<out Event>, MutableList<Handler<*>>>()
-    internal abstract val next: EventPriority
+    internal abstract val next: EventPriority?
 
     @PublishedApi
     internal inline fun <reified T : Event> subscribe(noinline block: Handler<T>) =
@@ -60,11 +53,19 @@ enum class EventPriority {
         }
 
     internal open suspend fun <T : Event> post(event: T) {
-        handlers[event.javaClass]?.forEach { handler ->
-            @Suppress("UNCHECKED_CAST")
-            (handler as Handler<T>).invoke(event)
-        }
+        invokeHandlers(event)
         if (!event.continuePropagation()) return
-        next.post(event)
+        next?.post(event)
+    }
+
+    internal suspend fun <T : Event> invokeHandlers(event: T) {
+        handlers[event.javaClass]?.forEach { handler ->
+            runCatching {
+                @Suppress("UNCHECKED_CAST")
+                (handler as Handler<T>).invoke(event)
+            }.onFailure {
+                uncaughtExceptionHandler(it)
+            }
+        }
     }
 }

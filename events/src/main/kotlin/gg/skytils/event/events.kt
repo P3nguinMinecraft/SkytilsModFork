@@ -18,7 +18,6 @@
 
 package gg.skytils.event
 
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -58,4 +57,8 @@ suspend inline fun <reified T : Event> await(repetitions: Int, priority: EventPr
     repeat(repetitions) {
         await<T>(priority)
     }
+}
+
+var uncaughtExceptionHandler: (Throwable) -> Unit = { throwable ->
+    throwable.printStackTrace()
 }
