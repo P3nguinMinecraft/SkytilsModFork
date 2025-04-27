@@ -24,6 +24,7 @@ import gg.essential.universal.UDesktop
 import gg.essential.universal.UKeyboard
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
+import gg.skytils.event.impl.network.ClientConnectEvent
 import gg.skytils.event.impl.network.ClientDisconnectEvent
 import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
@@ -567,14 +568,6 @@ object Skytils : CoroutineScope, EventSubscriber {
 
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (event.packet is S01PacketJoinGame) {
-            IO.launch {
-                TrophyFish.loadFromApi()
-            }
-            if (config.connectToWS)
-                WSClient.openConnection()
-        }
-
         if (event.packet is S1CPacketEntityMetadata && mc.thePlayer != null) {
             val nameObj = event.packet.func_149376_c()?.find { it.dataValueId == 2 }?.`object` ?: return
             val entity = mc.theWorld?.getEntityByID(event.packet.entityId)
@@ -583,6 +576,14 @@ object Skytils : CoroutineScope, EventSubscriber {
                 entity.skytilsHook.onNewDisplayName(nameObj as String)
             }
         }
+    }
+
+    fun onConnect(event: ClientConnectEvent) {
+        IO.launch {
+            TrophyFish.loadFromApi()
+        }
+        if (config.connectToWS)
+            WSClient.openConnection()
     }
 
     fun onDisconnect(event: ClientDisconnectEvent) {
@@ -648,6 +649,7 @@ object Skytils : CoroutineScope, EventSubscriber {
 
     override fun setup() {
         register(::onTick, gg.skytils.event.EventPriority.Highest)
+        register(::onConnect)
         register(::onDisconnect)
         register(::onPacket)
         register(::onSendPacket)
