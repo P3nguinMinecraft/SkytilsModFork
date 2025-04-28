@@ -310,13 +310,11 @@ tasks {
                     /*"-Xuse-k2"*/
                 )
             languageVersion = "1.9"
+            apiVersion = "1.9"
         }
         kotlinDaemonJvmArguments.set(
             listOf(
                 "-Xmx2G",
-                "-Dkotlin.enableCacheBuilding=true",
-                "-Dkotlin.useParallelTasks=true",
-                "-Dkotlin.enableFastIncremental=true",
                 //"-Xbackend-threads=0"
             )
         )

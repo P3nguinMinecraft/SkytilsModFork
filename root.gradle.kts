@@ -29,6 +29,7 @@ buildscript {
                 dependencySubstitution {
                     substitute(module("com.github.replaymod:preprocessor")).using(module("com.github.skytils:preprocessor:0a04a5668b0db4fbb4efefaaf0e3fd73f695ee28"))
                     substitute(module("com.github.Fallen-Breath:remap")).using(module("com.github.Skytils:remap:2480d8a1b9"))
+                    substitute(module("org.jetbrains.kotlin:kotlin=metadata-jvm:1.9.23")).using(module("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0"))
                 }
             }
         }
