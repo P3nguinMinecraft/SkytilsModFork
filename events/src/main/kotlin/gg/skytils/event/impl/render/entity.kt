@@ -24,8 +24,12 @@ import net.minecraft.client.render.entity.LivingEntityRenderer
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 
-//#if MC>12000
+//#if MC>=12000
 import net.minecraft.client.render.entity.model.EntityModel
+//#endif
+
+//#if MC>=12100
+//$$ import net.minecraft.client.render.entity.state.LivingEntityRenderState
 //#endif
 
 /**
@@ -35,14 +39,22 @@ class LivingEntityPreRenderEvent
 //#if MC<12000
 //$$     <T : LivingEntity>
     //#else
+    //#if MC<12100
     <T : LivingEntity, M: EntityModel<T>>
+    //#else
+    //$$ <T : LivingEntity, S : LivingEntityRenderState, M : EntityModel<in S>>
+    //#endif
     //#endif
     (
         val entity: T,
         //#if MC<12000
         //$$ val renderer: LivingEntityRenderer<T>,
         //#else
+        //#if MC<12100
         val renderer: LivingEntityRenderer<T, M>,
+        //#else
+        //$$ val renderer: LivingEntityRenderer<T, S, M>,
+        //#endif
         //#endif
         val x: Double, val y: Double, val z: Double, val partialTicks: Float
     ) : CancellableEvent()

@@ -36,12 +36,20 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 //#endif
 
+//#if MC>=12100
+//$$ import net.minecraft.client.render.entity.state.LivingEntityRenderState;
+//#endif
+
 @Mixin(LivingEntityRenderer.class)
 public class MixinRendererLivingEntity
         //#if MC<12000
         //$$ <T extends LivingEntity>
         //#else
+        //#if MC<12100
         <T extends LivingEntity, M extends EntityModel<T>>
+        //#else
+        //$$ <T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>>
+        //#endif
         //#endif
 {
     //#if MC<12000
@@ -60,14 +68,22 @@ public class MixinRendererLivingEntity
         //#if MC<12000
         //$$ LivingEntityPreRenderEvent<T>
         //#else
+        //#if MC<12100
         LivingEntityPreRenderEvent<T, M>
+        //#else
+        //$$ LivingEntityPreRenderEvent<T, S, M>
+        //#endif
         //#endif
                 event =
                 new LivingEntityPreRenderEvent<>(entity,
                     //#if MC<12000
                     //$$ (LivingEntityRenderer<T>) (Object) this,
                     //#else
+                    //#if MC<12100
                     (LivingEntityRenderer<T, M>) (Object) this,
+                    //#else
+                    //$$ (LivingEntityRenderer<T, S, M>) (Object) this,
+                    //#endif
                     //#endif
                     renderX, renderY, renderZ, partialTicks);
         if (EventsKt.postCancellableSync(event)) {
