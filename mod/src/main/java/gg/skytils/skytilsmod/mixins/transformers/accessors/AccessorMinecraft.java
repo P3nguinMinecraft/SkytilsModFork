@@ -18,13 +18,13 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.Timer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(Minecraft.class)
+@Mixin(MinecraftClient.class)
 public interface AccessorMinecraft {
-    @Accessor
-    Timer getTimer();
+    @Accessor("renderTickCounter")
+    RenderTickCounter getTimer();
 }

@@ -42,9 +42,9 @@ import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 import java.awt.Color
 import java.util.TreeSet
@@ -71,7 +71,7 @@ object DungeonChestProfit : EventSubscriber {
     fun onGUIDrawnEvent(event: GuiContainerForegroundDrawnEvent) {
         if (!Skytils.config.dungeonChestProfit) return
         if ((!Utils.inDungeons || DungeonTimer.scoreShownAt == -1L) && SBInfo.mode != SkyblockIsland.DungeonHub.mode) return
-        val inv = (event.container as? ContainerChest ?: return).lowerChestInventory
+        val inv = (event.container as? GenericContainerScreenHandler ?: return).inventory
 
         if (event.chestName == "Croesus") {
             DungeonChest.entries.forEach(DungeonChest::reset)
@@ -80,13 +80,13 @@ object DungeonChestProfit : EventSubscriber {
 
         if (event.chestName.endsWith(" Chest")) {
             val chestType = DungeonChest.getFromName(event.chestName) ?: return
-            val openChest = inv.getStackInSlot(31) ?: return
+            val openChest = inv.getStack(31) ?: return
             if (openChest.displayNameStr == "§aOpen Reward Chest") {
                 chestType.price = getChestPrice(ItemUtil.getItemLore(openChest))
                 chestType.value = 0.0
                 chestType.items.clear()
                 for (i in 9..17) {
-                    val lootSlot = inv.getStackInSlot(i) ?: continue
+                    val lootSlot = inv.getStack(i) ?: continue
                     val identifier = AuctionData.getIdentifier(lootSlot)
                     val value = if (identifier != null) {
                         AuctionData.lowestBINs[identifier] ?: 0.0
@@ -98,17 +98,17 @@ object DungeonChestProfit : EventSubscriber {
                     chestType.items.add(DungeonChestLootItem(lootSlot, value))
                 }
             }
-            GlStateManager.pushMatrix()
-            GlStateManager.translate(
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4412(
                 (-(event.gui as AccessorGuiContainer).guiLeft).toDouble(),
                 -(event.gui as AccessorGuiContainer).guiTop.toDouble(),
                 299.0
             )
             drawChestProfit(chestType)
-            GlStateManager.popMatrix()
+            RenderSystem.popMatrix()
         } else if (croesusChestRegex.matches(event.chestName)) {
             for (i in 10..16) {
-                val openChest = inv.getStackInSlot(i) ?: continue
+                val openChest = inv.getStack(i) ?: continue
                 val chestType = DungeonChest.getFromName(openChest.displayNameStr.stripControlCodes()) ?: continue
                 val lore = ItemUtil.getItemLore(openChest)
 
@@ -136,9 +136,9 @@ object DungeonChestProfit : EventSubscriber {
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
         if (!Skytils.config.croesusChestHighlight) return
         if (SBInfo.mode != SkyblockIsland.DungeonHub.mode) return
-        if (event.container !is ContainerChest || event.slot.inventory == mc.thePlayer.inventory) return
+        if (event.container !is GenericContainerScreenHandler || event.slot.inventory == mc.player.inventory) return
         val stack = event.slot.stack ?: return
-        if (stack.item == Items.skull) {
+        if (stack.item == Items.PLAYER_HEAD) {
             val name = stack.displayNameStr
             if (!(name == "§cThe Catacombs" || name == "§cMaster Mode The Catacombs")) return
             val lore = ItemUtil.getItemLore(stack)
@@ -209,8 +209,8 @@ object DungeonChestProfit : EventSubscriber {
         if (chest.items.size > 0) {
             val leftAlign = element.scaleX < UResolution.scaledWidth / 2f
             val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            GlStateManager.color(1f, 1f, 1f, 1f)
-            GlStateManager.disableLighting()
+            RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+            RenderSystem.method_4406()
             var drawnLines = 1
             val profit = chest.profit
 
@@ -231,7 +231,7 @@ object DungeonChestProfit : EventSubscriber {
                 ScreenRenderer.fontRenderer.drawString(
                     line,
                     if (leftAlign) element.scaleX else element.scaleX + element.width,
-                    element.scaleY + drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT,
+                    element.scaleY + drawnLines * ScreenRenderer.fontRenderer.field_0_2811,
                     CommonColors.WHITE,
                     alignment,
                     textShadow_
@@ -247,7 +247,7 @@ object DungeonChestProfit : EventSubscriber {
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if ((!Utils.inDungeons && SBInfo.mode != SkyblockIsland.DungeonHub.mode) || event.container !is ContainerChest) return
+        if ((!Utils.inDungeons && SBInfo.mode != SkyblockIsland.DungeonHub.mode) || event.container !is GenericContainerScreenHandler) return
         if (Skytils.config.kismetRerollThreshold != 0 && !rerollBypass && event.slotId == 50 && event.chestName.endsWith(
                 " Chest"
             )
@@ -308,14 +308,14 @@ object DungeonChestProfit : EventSubscriber {
             if (toggled && (Utils.inDungeons || SBInfo.mode == SkyblockIsland.DungeonHub.mode)) {
                 val leftAlign = scaleX < sr.scaledWidth / 2f
                 textShadow_ = textShadow
-                GlStateManager.color(1f, 1f, 1f, 1f)
-                GlStateManager.disableLighting()
+                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+                RenderSystem.method_4406()
                 DungeonChest.entries.filter { it.items.isNotEmpty() }.forEachIndexed { i, chest ->
                     val profit = chest.value - chest.price
                     ScreenRenderer.fontRenderer.drawString(
                         "${chest.displayText}§f: §${(if (profit > 0) "a" else "c")}${NumberUtil.format(profit.toLong())}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (i * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                        (i * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                         chest.displayColor,
                         if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT,
                         textShadow
@@ -329,9 +329,9 @@ object DungeonChestProfit : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * DungeonChest.entries.size
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * DungeonChest.entries.size
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Obsidian Chest: +300M")
+            get() = ScreenRenderer.fontRenderer.getWidth("Obsidian Chest: +300M")
 
         override val toggled: Boolean
             get() = Skytils.config.dungeonChestProfit

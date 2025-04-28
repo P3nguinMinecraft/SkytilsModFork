@@ -18,11 +18,11 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(EntityArmorStand.class)
+@Mixin(ArmorStandEntity.class)
 public interface AccessorEntityArmorStand {
     @Invoker
     void invokeSetShowArms(boolean bl);

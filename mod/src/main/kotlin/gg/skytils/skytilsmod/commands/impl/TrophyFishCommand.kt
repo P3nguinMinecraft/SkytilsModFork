@@ -28,7 +28,7 @@ import gg.skytils.skytilsmod.utils.MojangUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.minecraft.client.entity.EntityPlayerSP
+import net.minecraft.client.network.ClientPlayerEntity
 
 object TrophyFishCommand : BaseCommand("trophy", aliases = listOf("tf", "trophyfish")) {
 
@@ -53,7 +53,7 @@ object TrophyFishCommand : BaseCommand("trophy", aliases = listOf("tf", "trophyf
         }
     }
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         when(args.getOrNull(0)) {
             "reload" -> {
                 val text = UMessage("${Skytils.prefix} §9Loading data...").mutable()

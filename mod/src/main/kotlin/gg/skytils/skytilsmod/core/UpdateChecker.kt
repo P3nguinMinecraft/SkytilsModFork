@@ -39,7 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.minecraft.client.gui.GuiMainMenu
+import net.minecraft.client.gui.screen.TitleScreen
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
 import java.io.File
 import java.io.PrintStream
@@ -188,7 +188,7 @@ object UpdateChecker : EventSubscriber {
     }
 
     fun onGuiOpen(e: ScreenOpenEvent) {
-        if (e.screen !is GuiMainMenu) return
+        if (e.screen !is TitleScreen) return
         if (updateGetter.updateObj == null) return
         if (UpdateGui.complete) return
         Skytils.displayScreen = RequestUpdateGui()

@@ -19,9 +19,9 @@
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiMainMenuHookKt;
-import net.minecraft.client.gui.GuiMainMenu;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiYesNoCallback;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.class_411;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,10 +30,10 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.Calendar;
 
-@Mixin(GuiMainMenu.class)
-public class MixinGuiMainMenu extends GuiScreen implements GuiYesNoCallback {
-    @Inject(method = "initGui", at = @At(value = "INVOKE", target = "Ljava/util/Calendar;setTime(Ljava/util/Date;)V", shift = At.Shift.AFTER, remap = false), locals = LocalCapture.CAPTURE_FAILSOFT)
+@Mixin(TitleScreen.class)
+public class MixinGuiMainMenu extends Screen implements class_411 {
+    @Inject(method = "init", at = @At(value = "INVOKE", target = "Ljava/util/Calendar;setTime(Ljava/util/Date;)V", shift = At.Shift.AFTER, remap = false), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void setSplashText(CallbackInfo ci, Calendar calendar) {
-        GuiMainMenuHookKt.setSplashText((GuiMainMenu) (Object) this, calendar);
+        GuiMainMenuHookKt.setSplashText((TitleScreen) (Object) this, calendar);
     }
 }

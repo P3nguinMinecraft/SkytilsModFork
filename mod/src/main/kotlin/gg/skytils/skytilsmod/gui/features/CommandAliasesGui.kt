@@ -37,7 +37,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.CommandAliases
 import gg.skytils.skytilsmod.gui.ReopenableGUI
 import gg.skytils.skytilsmod.gui.components.HelpComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import net.minecraft.util.ChatAllowedCharacters
+import net.minecraft.SharedConstants
 import java.awt.Color
 
 class CommandAliasesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), ReopenableGUI {
@@ -71,7 +71,7 @@ class CommandAliasesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reo
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("Add Alias").childOf(bottomButtons).constrain {
@@ -123,13 +123,13 @@ class CommandAliasesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reo
         aliasName.apply {
             onKeyType { _, keyCode ->
                 if (keyCode == UKeyboard.KEY_TAB) commandInput.grabWindowFocus()
-                setText(getText().filter(ChatAllowedCharacters::isAllowedCharacter).take(255))
+                setText(getText().filter(SharedConstants::isValidChar).take(255))
             }
         }
         commandInput.apply {
             onKeyType { _, keyCode ->
                 if (keyCode == UKeyboard.KEY_TAB) aliasName.grabWindowFocus()
-                setText(getText().filter(ChatAllowedCharacters::isAllowedCharacter).take(255))
+                setText(getText().filter(SharedConstants::isValidChar).take(255))
             }
         }
 

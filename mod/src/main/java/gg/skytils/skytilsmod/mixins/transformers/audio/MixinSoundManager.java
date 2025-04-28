@@ -19,17 +19,17 @@
 package gg.skytils.skytilsmod.mixins.transformers.audio;
 
 import gg.skytils.skytilsmod.mixins.hooks.audio.SoundManagerHookKt;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.audio.SoundCategory;
-import net.minecraft.client.audio.SoundManager;
-import net.minecraft.client.audio.SoundPoolEntry;
+import net.minecraft.client.sound.SoundInstance;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.client.sound.SoundSystem;
+import net.minecraft.sound.SoundEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(SoundManager.class)
+@Mixin(SoundSystem.class)
 public abstract class MixinSoundManager {
 
     @Inject(method = "getNormalizedVolume*", at = @At("HEAD"), cancellable = true)
@@ -37,8 +37,8 @@ public abstract class MixinSoundManager {
         SoundManagerHookKt.bypassPlayerVolume(cir);
     }
 
-    @Inject(method = "playSound", at = @At("HEAD"), cancellable = true)
-    private void stopPlayingUnknownSounds(ISound p_sound, CallbackInfo ci) {
+    @Inject(method = "play(Lnet/minecraft/client/sound/SoundInstance;)V", at = @At("HEAD"), cancellable = true)
+    private void stopPlayingUnknownSounds(SoundInstance p_sound, CallbackInfo ci) {
         SoundManagerHookKt.stopPlayingUnknownSounds(p_sound, ci);
     }
 }

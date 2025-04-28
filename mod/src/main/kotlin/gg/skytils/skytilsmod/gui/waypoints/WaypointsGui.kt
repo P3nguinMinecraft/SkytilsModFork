@@ -42,7 +42,7 @@ import gg.skytils.skytilsmod.gui.components.HelpComponent
 import gg.skytils.skytilsmod.gui.components.MultiCheckboxComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
 class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), ReopenableGUI {
@@ -57,7 +57,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
     private val categoryContainers = HashMap<UIContainer, Category>()
 
     init {
-        lastUpdatedPlayerPosition = Skytils.mc.thePlayer?.run { BlockPos(posX, posY + 0.5, posZ) } ?: BlockPos.ORIGIN
+        lastUpdatedPlayerPosition = Skytils.mc.player?.run { BlockPos(x, y + 0.5, z) } ?: BlockPos.ORIGIN
 
         scrollComponent = ScrollComponent(
             innerPadding = 4f,
@@ -238,7 +238,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("New Category").childOf(bottomButtons).constrain {
@@ -259,7 +259,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             x = SiblingConstraint(5f)
             y = 5.pixels(alignOpposite = true)
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
             tickTimer(2) {
                 Skytils.displayScreen = WaypointShareGui()
             }
@@ -271,7 +271,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             EssentialAPI.getNotifications()
                 .push("Unknown Island Detected", "You have waypoints on an unknown island. Would you like to transfer them to a different island?", 5f) {
                     onAction = {
-                        mc.displayGuiScreen(null)
+                        client.setScreen(null)
                         tickTimer(2) {
                             Skytils.displayScreen = WaypointUnknownGui()
                         }
@@ -707,13 +707,13 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             a.name.compareTo(b.name)
         }),
         CLOSEST("Closest", { a, b ->
-            val distanceA = lastUpdatedPlayerPosition.distanceSq(a.pos)
-            val distanceB = lastUpdatedPlayerPosition.distanceSq(b.pos)
+            val distanceA = lastUpdatedPlayerPosition.getSquaredDistance(a.pos)
+            val distanceB = lastUpdatedPlayerPosition.getSquaredDistance(b.pos)
             distanceA.compareTo(distanceB)
         }),
         FARTHEST("Farthest", { a, b ->
-            val distanceA = lastUpdatedPlayerPosition.distanceSq(a.pos)
-            val distanceB = lastUpdatedPlayerPosition.distanceSq(b.pos)
+            val distanceA = lastUpdatedPlayerPosition.getSquaredDistance(a.pos)
+            val distanceB = lastUpdatedPlayerPosition.getSquaredDistance(b.pos)
             distanceB.compareTo(distanceA)
         }),
         RECENT("Recent", { a, b ->

@@ -64,18 +64,18 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
     }
 
     fun onTick(event: TickEvent) {
-        if (cycles.isEmpty() || !Utils.inSkyblock || mc.thePlayer == null) return
+        if (cycles.isEmpty() || !Utils.inSkyblock || mc.player == null) return
 
         itemLocations.clear()
-        for (slot in mc.thePlayer.inventoryContainer.inventorySlots) {
+        for (slot in mc.player.playerScreenHandler.slots) {
             val item = slot.stack?.getIdentifier() ?: continue
 
-            itemLocations[item] = slot.slotNumber
+            itemLocations[item] = slot.id
         }
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inSkyblock || cycles.isEmpty() || event.clickType == 2 || event.container != mc.thePlayer.inventoryContainer) return
+        if (!Utils.inSkyblock || cycles.isEmpty() || event.clickType == 2 || event.container != mc.player.playerScreenHandler) return
 
         if (event.slotId !in 36..44) return
 
@@ -87,13 +87,13 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
 
         val swapTo = itemLocations[cycle.swapTo] ?: return
 
-        mc.playerController.windowClick(event.container.windowId, swapTo, event.slotId - 36, SlotActionType.SWAP, mc.thePlayer)
+        mc.interactionManager.clickSlot(event.container.syncId, swapTo, event.slotId - 36, SlotActionType.SWAP, mc.player)
 
         event.cancelled = true
     }
 
     fun ItemStack?.getIdentifier() = ItemUtil.getExtraAttributes(this).let {
-        if (it?.hasKey("uuid") == true) {
+        if (it?.contains("uuid") == true) {
             Cycle.ItemIdentifier(it.getString("uuid"), Cycle.ItemIdentifier.Type.SKYBLOCK_UUID)
         } else {
             val sbId = ItemUtil.getSkyBlockItemID(it)
@@ -103,7 +103,7 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
                 }
 
                 this != null -> {
-                    Cycle.ItemIdentifier(this.unlocalizedName, Cycle.ItemIdentifier.Type.VANILLA_ID)
+                    Cycle.ItemIdentifier(this.translationKey, Cycle.ItemIdentifier.Type.VANILLA_ID)
                 }
 
                 else -> null

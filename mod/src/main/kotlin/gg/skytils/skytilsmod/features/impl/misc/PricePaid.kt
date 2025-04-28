@@ -29,7 +29,7 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.utils.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.encodeToString
-import net.minecraft.network.play.server.S02PacketChat
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -48,9 +48,9 @@ object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepa
     }
 
     fun onPacket(event: PacketReceiveEvent<*>) {
-        if (!Utils.inSkyblock || lastBought == null || event.packet !is S02PacketChat || event.packet.type == 2.toByte()) return
-        val formatted = event.packet.chatComponent.formattedText
-        val unformatted = event.packet.chatComponent.unformattedText.stripControlCodes()
+        if (!Utils.inSkyblock || lastBought == null || event.packet !is GameMessageS2CPacket || event.packet.type == 2.toByte()) return
+        val formatted = event.packet.message.method_10865()
+        val unformatted = event.packet.message.string.stripControlCodes()
 
         if (formatted.startsWith("§r§eYou purchased ") && formatted.endsWith(" coins§r§e!§r")) {
             val (name, uuid, price) = lastBought ?: return
@@ -78,11 +78,11 @@ object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepa
 
     fun slotClick(event: GuiContainerSlotClickEvent) {
         if (SBInfo.lastOpenContainerName?.equals("BIN Auction View") == false) return
-        if (event.slotId != 31 || !event.slot!!.hasStack) return
+        if (event.slotId != 31 || !event.slot!!.hasStack()) return
         ItemUtil.getItemLore(event.slot!!.stack).firstNotNullOfOrNull {
             coinRegex.find(it)?.groupValues?.get(1)
         }?.let { price ->
-            val stack = event.gui.inventorySlots.getSlot(13).stack ?: return
+            val stack = event.gui.handler.getSlot(13).stack ?: return
             val uuid = ItemUtil.getExtraAttributes(stack)?.getString("uuid")
                 ?.ifEmpty { return } ?: return
             lastBought = Triple(

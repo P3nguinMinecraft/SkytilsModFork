@@ -43,9 +43,9 @@ import net.hypixel.modapi.packet.impl.clientbound.ClientboundHelloPacket
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket
 import net.hypixel.modapi.packet.impl.serverbound.ServerboundVersionedPacket
 import net.hypixel.modapi.serializer.PacketSerializer
-import net.minecraft.network.PacketBuffer
-import net.minecraft.network.play.client.C17PacketCustomPayload
-import net.minecraft.network.play.server.S3FPacketCustomPayload
+import net.minecraft.network.PacketByteBuf
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.minutes
 
@@ -72,12 +72,12 @@ object ServerPayloadInterceptor : EventSubscriber {
     }
 
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
-        if (event.packet is S3FPacketCustomPayload) {
+        if (event.packet is CustomPayloadS2CPacket) {
             val registry = HypixelModAPI.getInstance().registry
-            val id = event.packet.channelName
+            val id = event.packet.method_11456()
             if (registry.isRegistered(id)) {
                 printDevMessage({ "Received Hypixel packet $id" }, "hypixelmodapi")
-                val data = event.packet.bufferData
+                val data = event.packet.data
                 synchronized(data) {
                     data.retain()
                     runCatching {
@@ -102,9 +102,9 @@ object ServerPayloadInterceptor : EventSubscriber {
     }
 
     fun onSendPacket(event: PacketSendEvent<*>) {
-        if (event.packet is C17PacketCustomPayload) {
+        if (event.packet is CustomPayloadC2SPacket) {
             val registry = HypixelModAPI.getInstance().registry
-            val id = event.packet.channelName
+            val id = event.packet.method_0_5705()
             if (registry.isRegistered(id)) {
                 printDevMessage({ "Sent Hypixel packet $id" }, "hypixelmodapi")
                 postSync(HypixelPacketSendEvent(id))
@@ -120,14 +120,14 @@ object ServerPayloadInterceptor : EventSubscriber {
             if (modAPI.packetSender == null) {
                 println("Hypixel Mod API packet sender is not set, Skytils will set the packet sender.")
                 modAPI.setPacketSender {
-                    return@setPacketSender mc.netHandler?.addToSendQueue((it as ServerboundVersionedPacket).toCustomPayload()).ifNull {
+                    return@setPacketSender mc.networkHandler?.sendPacket((it as ServerboundVersionedPacket).toCustomPayload()).ifNull {
                         println("Failed to send packet ${it.identifier}")
                     } != null
                 }
                 didSetPacketSender = true
             }
             Skytils.launch {
-                while (mc.netHandler == null) {
+                while (mc.networkHandler == null) {
                     println("Waiting for client handler to be set.")
                     delay(50L)
                 }
@@ -145,16 +145,16 @@ object ServerPayloadInterceptor : EventSubscriber {
         printDevMessage({ "${Skytils.failPrefix} Mod API request failed: ${event.reason}" }, "hypixelmodapi")
     }
 
-    fun ServerboundVersionedPacket.toCustomPayload(): C17PacketCustomPayload {
-        val buffer = PacketBuffer(Unpooled.buffer())
+    fun ServerboundVersionedPacket.toCustomPayload(): CustomPayloadC2SPacket {
+        val buffer = PacketByteBuf(Unpooled.buffer())
         val serializer = PacketSerializer(buffer)
         this.write(serializer)
-        return C17PacketCustomPayload(this.identifier, buffer)
+        return CustomPayloadC2SPacket(this.identifier, buffer)
     }
 
     suspend fun <T : ClientboundHypixelPacket> ServerboundVersionedPacket.getResponse(): T = withTimeout(1.minutes) {
-        val packet: C17PacketCustomPayload = this@getResponse.toCustomPayload()
-        mc.netHandler?.addToSendQueue(packet)
+        val packet: CustomPayloadC2SPacket = this@getResponse.toCustomPayload()
+        mc.networkHandler?.sendPacket(packet)
         return@withTimeout receivedPackets.filter { it.identifier == this@getResponse.identifier }.first() as T
     }
 }

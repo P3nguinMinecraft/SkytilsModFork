@@ -82,7 +82,7 @@ class AddItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reope
             width = ChildBasedSizeConstraint()
             height = ChildBasedSizeConstraint()
         }.apply {
-            for ((i, item) in mc.thePlayer.inventory.mainInventory.withIndex()) {
+            for ((i, item) in client.player.inventory.field_7547.withIndex()) {
                 addChild(SlotComponent(item).constrain {
                     x = ((i % 9) * (16 + 2)).pixels
                     y = ((i / 9) * (16 + 2)).pixels
@@ -112,7 +112,7 @@ class AddItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reope
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(ItemCycleGui())
+            client.setScreen(ItemCycleGui())
         }
 
         SimpleButton("Create").childOf(bottomButtons).constrain {
@@ -126,7 +126,7 @@ class AddItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reope
                 chosenItem.get().getIdentifier() ?: return@onLeftClick
             )
 
-            mc.displayGuiScreen(ItemCycleGui())
+            client.setScreen(ItemCycleGui())
             PersistentSave.markDirty<ItemCycle>()
         }
     }

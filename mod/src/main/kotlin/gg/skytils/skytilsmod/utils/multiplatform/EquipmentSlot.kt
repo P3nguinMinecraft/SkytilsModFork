@@ -19,13 +19,13 @@
 package gg.skytils.skytilsmod.utils.multiplatform
 
 //#if MC<12000
-object EquipmentSlot {
-    val MAINHAND = 0
-    val FEET = 1
-    val LEGS = 2
-    val CHEST = 3
-    val HEAD = 4
-}
+//$$ object EquipmentSlot {
+//$$     val MAINHAND = 0
+//$$     val FEET = 1
+//$$     val LEGS = 2
+//$$     val CHEST = 3
+//$$     val HEAD = 4
+//$$ }
 //#else
-//$$ typealias EquipmentSlot = net.minecraft.entity.EquipmentSlot
+typealias EquipmentSlot = net.minecraft.entity.EquipmentSlot
 //#endif

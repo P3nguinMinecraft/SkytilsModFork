@@ -21,15 +21,15 @@ package gg.skytils.skytilsmod.mixins.transformers.events;
 import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.event.EventsKt;
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent;
-import net.minecraft.network.Packet;
-import net.minecraft.network.PacketThreadUtil;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.NetworkThreadUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(PacketThreadUtil.class)
+@Mixin(NetworkThreadUtils.class)
 public class MixinPacketThreadUtil {
-    @ModifyArg(method = "checkThreadAndEnqueue(Lnet/minecraft/network/Packet;Lnet/minecraft/network/INetHandler;Lnet/minecraft/util/IThreadListener;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/IThreadListener;addScheduledTask(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
+    @ModifyArg(method = "forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/util/thread/ThreadExecutor;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/thread/ThreadExecutor;submit(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
     private static Runnable processPacket(Runnable var1, @Local(argsOnly = true) Packet<?> packet) {
         return () -> {
             if (!EventsKt.postCancellableSync(new MainThreadPacketReceiveEvent(packet))) {

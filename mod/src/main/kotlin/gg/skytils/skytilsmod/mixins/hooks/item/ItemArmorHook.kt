@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 fun replaceArmorColor(stack: ItemStack, cir: CallbackInfoReturnable<Int>) {
     if (!Utils.inSkyblock) return
     val extraAttributes = getExtraAttributes(stack)
-    if (extraAttributes != null && extraAttributes.hasKey("uuid")) {
+    if (extraAttributes != null && extraAttributes.contains("uuid")) {
         val uuid = extraAttributes.getString("uuid")
         if (ArmorColor.armorColors.containsKey(uuid)) {
             cir.returnValue = ArmorColor.armorColors[uuid]!!.toInt()
@@ -37,7 +37,7 @@ fun replaceArmorColor(stack: ItemStack, cir: CallbackInfoReturnable<Int>) {
 fun hasCustomArmorColor(stack: ItemStack, cir: CallbackInfoReturnable<Boolean>) {
     if (!Utils.inSkyblock) return
     val extraAttributes = getExtraAttributes(stack)
-    if (extraAttributes != null && extraAttributes.hasKey("uuid")) {
+    if (extraAttributes != null && extraAttributes.contains("uuid")) {
         val uuid = extraAttributes.getString("uuid")
         if (ArmorColor.armorColors.containsKey(uuid)) {
             cir.returnValue = true

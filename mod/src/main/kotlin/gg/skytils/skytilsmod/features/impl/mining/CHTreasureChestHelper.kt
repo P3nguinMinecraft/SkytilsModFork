@@ -29,16 +29,16 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Blocks
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.network.play.server.S02PacketChat
-import net.minecraft.network.play.server.S29PacketSoundEffect
-import net.minecraft.network.play.server.S2APacketParticles
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumParticleTypes
-import net.minecraft.util.Vec3
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.block.Blocks
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.particle.ParticleType
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
@@ -56,14 +56,14 @@ object CHTreasureChestHelper : EventSubscriber {
         val pos: BlockPos,
         var progress: Int = 0,
         val time: Long = System.currentTimeMillis(),
-        var particle: Vec3? = null
+        var particle: Vec3d? = null
     ) {
-        val box = AxisAlignedBB(
+        val box = Box(
             pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble(),
             (pos.x + 1).toDouble(), (pos.y + 1).toDouble(), (pos.z + 1).toDouble()
         )
 
-        var particleBox: AxisAlignedBB? = null
+        var particleBox: Box? = null
     }
 
     override fun setup() {
@@ -71,10 +71,10 @@ object CHTreasureChestHelper : EventSubscriber {
     }
 
     fun onBlockChange(event: BlockStateUpdateEvent) {
-        if (!Skytils.config.chTreasureHelper || mc.thePlayer == null || SBInfo.mode != SkyblockIsland.CrystalHollows.mode) return
-        if (((event.old.block == Blocks.air || event.old.block == Blocks.stone) && event.update.block == Blocks.chest)) {
-            printDevMessage({ "Distance ${event.pos} ${mc.thePlayer.getDistanceSq(event.pos)}" }, "chtreasure")
-            if (mc.thePlayer.entityBoundingBox.expand(8.0, 8.0, 8.0).isPosInside(event.pos)) {
+        if (!Skytils.config.chTreasureHelper || mc.player == null || SBInfo.mode != SkyblockIsland.CrystalHollows.mode) return
+        if (((event.old.block == Blocks.AIR || event.old.block == Blocks.STONE) && event.update.block == Blocks.field_0_680)) {
+            printDevMessage({ "Distance ${event.pos} ${mc.player.method_5831(event.pos)}" }, "chtreasure")
+            if (mc.player.boundingBox.expand(8.0, 8.0, 8.0).isPosInside(event.pos)) {
                 val diff = System.currentTimeMillis() - lastFoundChest
                 if (diff < 1000 && found > 0) {
                     found--
@@ -82,7 +82,7 @@ object CHTreasureChestHelper : EventSubscriber {
                     printDevMessage({ "chest found at $diff" }, "chtreasure")
                 } else found = 0
             }
-        } else if (event.old.block == Blocks.chest && event.update.block == Blocks.air) {
+        } else if (event.old.block == Blocks.field_0_680 && event.update.block == Blocks.AIR) {
             chests.remove(event.pos)
         }
     }
@@ -91,9 +91,9 @@ object CHTreasureChestHelper : EventSubscriber {
         if (chests.isEmpty() || !Skytils.config.chTreasureHelper || SBInfo.mode != SkyblockIsland.CrystalHollows.mode) return
 
         when (val packet = event.packet) {
-            is C08PacketPlayerBlockPlacement -> {
-                if (chests.containsKey(packet.position)) {
-                    lastOpenedChest = packet.position
+            is PlayerInteractBlockC2SPacket -> {
+                if (chests.containsKey(packet.method_12548())) {
+                    lastOpenedChest = packet.method_12548()
                 }
             }
         }
@@ -103,8 +103,8 @@ object CHTreasureChestHelper : EventSubscriber {
         if (!Skytils.config.chTreasureHelper || SBInfo.mode != SkyblockIsland.CrystalHollows.mode) return
 
         when (val packet = event.packet) {
-            is S02PacketChat -> {
-                val formatted = packet.chatComponent.formattedText
+            is GameMessageS2CPacket -> {
+                val formatted = packet.message.method_10865()
                 if (packet.type != 2.toByte()) {
                     if (formatted == "§r§aYou uncovered a treasure chest!§r") {
                         lastFoundChest = System.currentTimeMillis()
@@ -120,33 +120,33 @@ object CHTreasureChestHelper : EventSubscriber {
                     }
                 }
             }
-            is S2APacketParticles -> {
+            is ParticleS2CPacket -> {
                 packet.apply {
-                    if (type == EnumParticleTypes.CRIT && isLongDistance && count == 1 && speed == 0f && xOffset == 0f && yOffset == 0f && zOffset == 0f) {
+                    if (type == ParticleType.CRIT && shouldForceSpawn() && count == 1 && speed == 0f && offsetX == 0f && offsetY == 0f && offsetZ == 0f) {
                         val probable = chests.values.minByOrNull {
-                            it.pos.distanceSq(x, y, z)
+                            it.pos.method_10261(x, y, z)
                         } ?: return
 
-                        if (probable.pos.distanceSqToCenter(x, y, z) < 2.5) {
-                            probable.particle = Vec3(x, y, z)
-                            probable.particleBox = AxisAlignedBB(
-                                probable.particle!!.xCoord,
-                                probable.particle!!.yCoord,
-                                probable.particle!!.zCoord,
-                                probable.particle!!.xCoord + 0.1,
-                                probable.particle!!.yCoord + 0.1,
-                                probable.particle!!.zCoord + 0.1
+                        if (probable.pos.getSquaredDistanceFromCenter(x, y, z) < 2.5) {
+                            probable.particle = Vec3d(x, y, z)
+                            probable.particleBox = Box(
+                                probable.particle!!.x,
+                                probable.particle!!.y,
+                                probable.particle!!.z,
+                                probable.particle!!.x + 0.1,
+                                probable.particle!!.y + 0.1,
+                                probable.particle!!.z + 0.1
                             )
                             printDevMessage(
-                                { "$count ${if (isLongDistance) "long-distance" else ""} ${type.particleName} particles with $speed speed at $x, $y, $z, offset by $xOffset, $yOffset, $zOffset" },
+                                { "$count ${if (shouldForceSpawn()) "long-distance" else ""} ${type.method_0_4941()} particles with $speed speed at $x, $y, $z, offset by $offsetX, $offsetY, $offsetZ" },
                                 "chtreasure"
                             )
                         }
                     }
                 }
             }
-            is S29PacketSoundEffect -> {
-                val sound = packet.soundName
+            is PlaySoundIdS2CPacket -> {
+                val sound = packet.method_11460()
                 val pitch = packet.pitch
                 val volume = packet.volume
                 val x = packet.x
@@ -159,8 +159,8 @@ object CHTreasureChestHelper : EventSubscriber {
                     ) && chests.isNotEmpty()
                 ) {
                     val probable = chests.values.minByOrNull {
-                        val rot = mc.thePlayer.getRotationFor(it.pos)
-                        abs(rot.first - mc.thePlayer.rotationYaw) + abs(rot.second - mc.thePlayer.rotationPitch)
+                        val rot = mc.player.getRotationFor(it.pos)
+                        abs(rot.first - mc.player.yaw) + abs(rot.second - mc.player.pitch)
                     } ?: return
                     if (sound == "random.orb") probable.progress++
                     else probable.progress = 0
@@ -176,7 +176,7 @@ object CHTreasureChestHelper : EventSubscriber {
         val matrixStack = UMatrixStack()
         val time = System.currentTimeMillis()
         chests.entries.removeAll { (pos, chest) ->
-            GlStateManager.disableCull()
+            RenderSystem.disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 chest.box.offset(-viewerX, -viewerY, -viewerZ).expand(0.01, 0.01, 0.01),
@@ -184,7 +184,7 @@ object CHTreasureChestHelper : EventSubscriber {
                 1f
             )
             RenderUtil.drawLabel(
-                Vec3(pos).addVector(0.5, 1.5, 0.5),
+                Vec3d(pos).add(0.5, 1.5, 0.5),
                 "${chest.progress}/5",
                 Color.ORANGE,
                 event.partialTicks,
@@ -198,7 +198,7 @@ object CHTreasureChestHelper : EventSubscriber {
                     1f
                 )
             }
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
             return@removeAll (time - chest.time) > (5 * 1000 * 60)
         }
     }

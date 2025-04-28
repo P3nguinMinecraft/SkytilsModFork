@@ -22,7 +22,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.misc.ItemFeatures
 import gg.skytils.skytilsmod.utils.RenderUtil.renderRarity
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.PlayerEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun renderRarityOnHotbar(
@@ -30,7 +30,7 @@ fun renderRarityOnHotbar(
     xPos: Int,
     yPos: Int,
     partialTicks: Float,
-    player: EntityPlayer,
+    player: PlayerEntity,
     ci: CallbackInfo
 ) {
     if (Utils.inSkyblock && Skytils.config.showItemRarity) {

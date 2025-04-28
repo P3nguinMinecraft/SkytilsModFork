@@ -19,18 +19,18 @@
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
 //#if MC==10809
-import net.minecraft.util.ChatComponentText;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.gen.Accessor;
-
-@Mixin(ChatComponentText.class)
-public interface AccessorChatComponentText {
-    @Accessor
-    String getText();
-
-    @Mutable
-    @Accessor
-    void setText(String text);
-}
+//$$ import net.minecraft.text.LiteralTextContent;
+//$$ import org.spongepowered.asm.mixin.Mixin;
+//$$ import org.spongepowered.asm.mixin.Mutable;
+//$$ import org.spongepowered.asm.mixin.gen.Accessor;
+//$$
+//$$ @Mixin(LiteralTextContent.class)
+//$$ public interface AccessorChatComponentText {
+//$$     @Accessor("string")
+//$$     String getText();
+//$$
+//$$     @Mutable
+//$$     @Accessor("string")
+//$$     void setText(String text);
+//$$ }
 //#endif

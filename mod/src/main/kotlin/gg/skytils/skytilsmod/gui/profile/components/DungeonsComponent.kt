@@ -32,9 +32,9 @@ import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.SkillUtils
 import gg.skytils.skytilsmod.utils.toTitleCase
-import net.minecraft.init.Items
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
-import net.minecraft.potion.Potion
+import net.minecraft.entity.effect.StatusEffect
 import java.awt.Color
 
 class DungeonsComponent(private val playerState: State<Player?>, private val profileState: State<Member?>) :
@@ -64,7 +64,7 @@ class DungeonsComponent(private val playerState: State<Player?>, private val pro
         } childOf classes
 
     val healer by DungeonClassComponent(
-        ItemComponent(ItemStack(Items.potionitem.setPotionEffect(Potion.heal.name), 1, 8261)),
+        ItemComponent(ItemStack(Items.field_8574.method_0_8264(StatusEffect.field_0_7281.translationKey), 1, 8261)),
         Color(65, 102, 245).constraint,
         "healer",
         profileState
@@ -76,7 +76,7 @@ class DungeonsComponent(private val playerState: State<Player?>, private val pro
     } childOf classes
 
     val mage by DungeonClassComponent(
-        ItemComponent(ItemStack(Items.blaze_rod)),
+        ItemComponent(ItemStack(Items.BLAZE_ROD)),
         Color(65, 102, 245).constraint,
         "mage",
         profileState
@@ -88,7 +88,7 @@ class DungeonsComponent(private val playerState: State<Player?>, private val pro
     } childOf classes
 
     val berserk by DungeonClassComponent(
-        ItemComponent(ItemStack(Items.iron_sword)),
+        ItemComponent(ItemStack(Items.IRON_SWORD)),
         Color(65, 102, 245).constraint,
         "berserk",
         profileState
@@ -100,7 +100,7 @@ class DungeonsComponent(private val playerState: State<Player?>, private val pro
     } childOf classes
 
     val archer by DungeonClassComponent(
-        ItemComponent(ItemStack(Items.bow)),
+        ItemComponent(ItemStack(Items.field_8102)),
         Color(65, 102, 245).constraint,
         "archer",
         profileState
@@ -112,7 +112,7 @@ class DungeonsComponent(private val playerState: State<Player?>, private val pro
     } childOf classes
 
     val tank by DungeonClassComponent(
-        ItemComponent(ItemStack(Items.leather_chestplate)),
+        ItemComponent(ItemStack(Items.field_8577)),
         Color(65, 102, 245).constraint,
         "tank",
         profileState
@@ -144,7 +144,7 @@ class DungeonsComponent(private val playerState: State<Player?>, private val pro
     val cata by XPComponent(
         ItemComponent(
             ItemUtil.setSkullTexture(
-                ItemStack(Items.skull, 1, 3),
+                ItemStack(Items.PLAYER_HEAD, 1, 3),
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTY0ZTFjM2UzMTVjOGQ4ZmZmYzM3OTg1YjY2ODFjNWJkMTZhNmY5N2ZmZDA3MTk5ZThhMDVlZmJlZjEwMzc5MyJ9fX0",
                 "00b3837d-9275-304c-8bf9-656659087e6b"
             )

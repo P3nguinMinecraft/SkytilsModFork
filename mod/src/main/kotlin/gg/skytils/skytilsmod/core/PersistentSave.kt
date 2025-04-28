@@ -21,7 +21,7 @@ package gg.skytils.skytilsmod.core
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.ensureFile
 import kotlinx.serialization.json.Json
-import net.minecraft.client.Minecraft
+import net.minecraft.client.MinecraftClient
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -33,7 +33,7 @@ abstract class PersistentSave(protected val saveFile: File) {
     var dirty = false
 
     protected val json: Json = Skytils.json
-    protected val mc: Minecraft = Skytils.mc
+    protected val mc: MinecraftClient = Skytils.mc
 
     abstract fun read(reader: Reader)
 

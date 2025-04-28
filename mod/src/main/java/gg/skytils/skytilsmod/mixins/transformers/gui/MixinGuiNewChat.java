@@ -21,14 +21,14 @@ package gg.skytils.skytilsmod.mixins.transformers.gui;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.features.impl.handlers.ChatTabs;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ChatLine;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiNewChat;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.TextRenderer;
+import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.class_0_686;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -44,44 +44,44 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-@Mixin(value = GuiNewChat.class, priority = 1001)
-public abstract class MixinGuiNewChat extends Gui {
+@Mixin(value = ChatHud.class, priority = 1001)
+public abstract class MixinGuiNewChat extends DrawContext {
 
 
-    private static final ChatLine skytils$placeholderLine = new ChatLine(0, new ChatComponentText("skytils placeholder"), 0);
+    private static final ChatHudLine skytils$placeholderLine = new ChatHudLine(0, new LiteralTextContent("skytils placeholder"), 0);
 
     @Shadow
     @Final
-    private Minecraft mc;
+    private MinecraftClient client;
 
     @Shadow
-    public abstract int getLineCount();
+    public abstract int getVisibleLineCount();
 
-    @WrapOperation(method = "setChatLine", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiUtilRenderComponents;splitText(Lnet/minecraft/util/IChatComponent;ILnet/minecraft/client/gui/FontRenderer;ZZ)Ljava/util/List;"))
-    private List<IChatComponent> filterDrawnTextComponents(IChatComponent p_178908_0_, int p_178908_1_, FontRenderer p_178908_2_, boolean p_178908_3_, boolean p_178908_4_, Operation<List<IChatComponent>> original) {
+    @WrapOperation(method = "addMessage(Lnet/minecraft/text/Text;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/ChatMessages;breakRenderedChatMessageLines(Lnet/minecraft/text/Text;ILnet/minecraft/client/TextRenderer;ZZ)Ljava/util/List;"))
+    private List<Text> filterDrawnTextComponents(Text p_178908_0_, int p_178908_1_, TextRenderer p_178908_2_, boolean p_178908_3_, boolean p_178908_4_, Operation<List<Text>> original) {
         return ChatTabs.INSTANCE.shouldAllow(p_178908_0_) ? original.call(p_178908_0_, p_178908_1_, p_178908_2_, p_178908_3_, p_178908_4_) : Collections.emptyList();
     }
 
-    @Redirect(method = "printChatMessageWithOptionalDeletion", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/IChatComponent;getUnformattedText()Ljava/lang/String;"))
-    private String printFormattedText(IChatComponent iChatComponent) {
-        return iChatComponent.getFormattedText();
+    @Redirect(method = "addMessage(Lnet/minecraft/text/Text;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/text/Text;getString()Ljava/lang/String;"))
+    private String printFormattedText(Text iChatComponent) {
+        return iChatComponent.method_10865();
     }
 
-    @Inject(method = "getChatComponent", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/GuiNewChat;scrollPos:I"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void stopOutsideWindow(int mouseX, int mouseY, CallbackInfoReturnable<IChatComponent> cir, ScaledResolution scaledresolution, int i, float f, int j, int k, int l) {
-        int line = k / this.mc.fontRendererObj.FONT_HEIGHT;
-        if (line >= getLineCount()) cir.setReturnValue(null);
+    @Inject(method = "getTextStyleAt", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/hud/ChatHud;scrolledLines:I"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void stopOutsideWindow(int mouseX, int mouseY, CallbackInfoReturnable<Text> cir, class_0_686 scaledresolution, int i, float f, int j, int k, int l) {
+        int line = k / this.client.textRenderer.field_0_2811;
+        if (line >= getVisibleLineCount()) cir.setReturnValue(null);
     }
 
-    @Inject(method = "deleteChatLine", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/ChatLine;getChatLineID()I"), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void stopDeleteCrash(int id, CallbackInfo ci, Iterator<ChatLine> iterator, ChatLine chatline) {
+    @Inject(method = "removeMessage", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHudLine;getId()I"), locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void stopDeleteCrash(int id, CallbackInfo ci, Iterator<ChatHudLine> iterator, ChatHudLine chatline) {
         if (chatline == null || skytils$placeholderLine == chatline) {
             iterator.remove();
         }
     }
 
-    @ModifyVariable(method = "deleteChatLine", at = @At("STORE"))
-    private ChatLine stopDeleteCrash(ChatLine chatLine) {
+    @ModifyVariable(method = "removeMessage", at = @At("STORE"))
+    private ChatHudLine stopDeleteCrash(ChatHudLine chatLine) {
         return chatLine == null ? skytils$placeholderLine : chatLine;
     }
 }

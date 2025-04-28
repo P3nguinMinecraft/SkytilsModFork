@@ -28,21 +28,21 @@ import gg.skytils.skytilsmod.utils.printDevMessage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.decoration.ArmorStandEntity
 
 /**
  * Represents a slayer entity
  *
  * [nameEntity] and [timerEntity] must be mutable as the entity changes for Inferno Demonlord
  */
-open class Slayer<T : EntityLivingBase>(
+open class Slayer<T : LivingEntity>(
     val entity: T,
     private val name: String,
     private vararg val nameStart: String,
 ) {
-    var nameEntity: EntityArmorStand? = null
-    var timerEntity: EntityArmorStand? = null
+    var nameEntity: ArmorStandEntity? = null
+    var timerEntity: ArmorStandEntity? = null
     val entityClass
         get() = entity.javaClass
     private val currentTier = SlayerFeatures.getTier(name)
@@ -61,12 +61,12 @@ open class Slayer<T : EntityLivingBase>(
 
     fun detectSlayerEntities() =
         tickTask(5) {
-            val nearbyArmorStands = entity.entityWorld.getEntitiesInAABBexcluding(
-                entity, entity.entityBoundingBox.expand(0.2, 3.0, 0.2)
+            val nearbyArmorStands = entity.world.getOtherEntities(
+                entity, entity.boundingBox.expand(0.2, 3.0, 0.2)
             ) { nearbyEntity: Entity? ->
-                if (nearbyEntity is EntityArmorStand) {
+                if (nearbyEntity is ArmorStandEntity) {
                     if (nearbyEntity.isInvisible && nearbyEntity.hasCustomName()) {
-                        if (nearbyEntity.inventory.any { it != null }) {
+                        if (nearbyEntity.armorItems.any { it != null }) {
                             // armor stand has equipment, abort!
                             return@getEntitiesInAABBexcluding false
                         }
@@ -76,25 +76,25 @@ open class Slayer<T : EntityLivingBase>(
                 }
                 false
             }
-            val potentialTimerEntities = arrayListOf<EntityArmorStand>()
-            val potentialNameEntities = arrayListOf<EntityArmorStand>()
+            val potentialTimerEntities = arrayListOf<ArmorStandEntity>()
+            val potentialNameEntities = arrayListOf<ArmorStandEntity>()
             for (nearby in nearbyArmorStands) {
                 when {
-                    nearby.displayName.formattedText.startsWith("§8[§7Lv") -> continue
-                    nameStart.any { nearby.displayName.formattedText.startsWith(it) } -> {
+                    nearby.displayName.method_10865().startsWith("§8[§7Lv") -> continue
+                    nameStart.any { nearby.displayName.method_10865().startsWith(it) } -> {
                         printDevMessage(
                             { "expected tier $currentTier, hp $expectedHealth - spawned hp ${entity.baseMaxHealth.toInt()}" },
                             "slayer"
                         )
                         if (expectedHealth == entity.baseMaxHealth.toInt()) {
                             printDevMessage({ "hp matched" }, "slayer")
-                            potentialNameEntities.add(nearby as EntityArmorStand)
+                            potentialNameEntities.add(nearby as ArmorStandEntity)
                         }
                     }
 
-                    nearby.displayName.formattedText.matches(SlayerFeatures.timerRegex) -> {
+                    nearby.displayName.method_10865().matches(SlayerFeatures.timerRegex) -> {
                         printDevMessage({ "timer regex matched" }, "slayer")
-                        potentialTimerEntities.add(nearby as EntityArmorStand)
+                        potentialTimerEntities.add(nearby as ArmorStandEntity)
                     }
                 }
             }

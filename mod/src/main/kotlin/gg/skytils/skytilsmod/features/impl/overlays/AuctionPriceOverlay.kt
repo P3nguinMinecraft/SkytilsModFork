@@ -46,16 +46,16 @@ import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.getSlot
 import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.gui.inventory.GuiEditSign
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.client.gui.screen.ingame.SignEditScreen
 import net.minecraft.item.ItemStack
-import net.minecraft.network.play.client.C12PacketUpdateSign
-import net.minecraft.util.BlockPos
+import net.minecraft.network.packet.c2s.play.UpdateSignC2SPacket
+import net.minecraft.util.math.BlockPos
 import kotlin.text.lowercase
 import kotlin.text.toDouble
 
 //#if MC<12000
-import net.minecraft.util.ChatComponentText
+//$$ import net.minecraft.text.LiteralTextContent
 //#endif
 
 object AuctionPriceOverlay : EventSubscriber {
@@ -69,7 +69,7 @@ object AuctionPriceOverlay : EventSubscriber {
         lastAuctionedStackState()?.let(AuctionData::getIdentifier)?.let(AuctionData.lowestBINs::get)
     }
     private val valueState: State<String> = memo {
-        val count = lastAuctionedStackState()?.stackSize ?: 0
+        val count = lastAuctionedStackState()?.count ?: 0
         lbinPriceState()?.let { valuePer ->
             "Clean Lowest BIN Price: §b${NumberUtil.nf.format((valuePer * count).toInt())}" +
                     if (count > 1) " §7(${NumberUtil.nf.format(valuePer.roundToPrecision(2))} each§7)" else ""
@@ -85,7 +85,7 @@ object AuctionPriceOverlay : EventSubscriber {
 
     fun onGuiOpen(event: ScreenOpenEvent) {
         if (!Utils.inSkyblock || !Skytils.config.betterAuctionPriceInput) return
-        if (event.screen is GuiEditSign && Utils.equalsOneOf(
+        if (event.screen is SignEditScreen && Utils.equalsOneOf(
                 SBInfo.lastOpenContainerName,
                 "Create Auction",
                 "Create BIN Auction"
@@ -94,24 +94,24 @@ object AuctionPriceOverlay : EventSubscriber {
             val sign =
                 (event.screen as AccessorGuiEditSign).tileSign
             //#if MC<12000
-            val signText = sign.signText
+            //$$ val signText = sign.texts
             //#else
-            //$$ val signText = sign.frontText.getMessages(false)
+            val signText = sign.frontText.getMessages(false)
             //#endif
             if (
                 sign != null && sign.pos.y == 0 &&
-                signText[1].unformattedText == "^^^^^^^^^^^^^^^" &&
-                signText[2].unformattedText == "Your auction" &&
-                signText[3].unformattedText == "starting bid"
+                signText[1].string == "^^^^^^^^^^^^^^^" &&
+                signText[2].string == "Your auction" &&
+                signText[3].string == "starting bid"
             ) {
-                event.screen = ElementaAuctionPriceScreen(sign.pos, signText.map { it.unformattedText }.toTypedArray())
+                event.screen = ElementaAuctionPriceScreen(sign.pos, signText.map { it.string }.toTypedArray())
             }
         }
     }
 
     fun onGuiKey(event: ScreenKeyInputEvent) {
         if (!Utils.inSkyblock || !Skytils.config.betterAuctionPriceInput) return
-        if (event.screen is GuiChest && event.keyCode == UKeyboard.KEY_ENTER) {
+        if (event.screen is GenericContainerScreen && event.keyCode == UKeyboard.KEY_ENTER) {
             if (Utils.equalsOneOf(
                     SBInfo.lastOpenContainerName,
                     "Create Auction",
@@ -119,7 +119,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 )
             ) {
                 (event.screen as AccessorGuiContainer).invokeHandleMouseClick(
-                    (event.screen as GuiChest).getSlot(
+                    (event.screen as GenericContainerScreen).getSlot(
                         29
                     ), 29, 2, SlotActionType.CLONE
                 )
@@ -131,7 +131,7 @@ object AuctionPriceOverlay : EventSubscriber {
                 )
             ) {
                 (event.screen as AccessorGuiContainer).invokeHandleMouseClick(
-                    (event.screen as GuiChest).getSlot(
+                    (event.screen as GenericContainerScreen).getSlot(
                         11
                     ), 11, 2, SlotActionType.CLONE
                 )
@@ -142,7 +142,7 @@ object AuctionPriceOverlay : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock || !Skytils.config.betterAuctionPriceInput) return
-        if (event.gui is GuiChest) {
+        if (event.gui is GenericContainerScreen) {
             if (Utils.equalsOneOf(
                     SBInfo.lastOpenContainerName,
                     "Create Auction",
@@ -151,9 +151,9 @@ object AuctionPriceOverlay : EventSubscriber {
             ) {
                 event.container.getSlot(13).stack?.let { auctionItem ->
                     //#if MC<12000
-                    if (auctionItem.displayName == "§a§l§nAUCTION FOR ITEM:") {
+                    //$$ if (auctionItem.name == "§a§l§nAUCTION FOR ITEM:") {
                     //#else
-                    //$$ if (auctionItem.name.string == "§a§l§nAUCTION FOR ITEM:") {
+                    if (auctionItem.name.string == "§a§l§nAUCTION FOR ITEM:") {
                     //#endif
                         lastAuctionedStackState.set(auctionItem)
                     }
@@ -178,7 +178,7 @@ object AuctionPriceOverlay : EventSubscriber {
             val input = inputState()
             if (isUndercutState()) {
                 val lbin = lbinPriceState() ?: return@State null
-                val count = lastAuctionedStackState()?.stackSize ?: 0
+                val count = lastAuctionedStackState()?.count ?: 0
                 var num = input.toDoubleOrNull() ?:  if (isProperCompactNumber(input)) {
                     getActualValueFromCompactNumber(input) ?: return@State null
                 } else return@State null
@@ -207,7 +207,7 @@ object AuctionPriceOverlay : EventSubscriber {
                         }
                         input.onKeyType { char, keyCode ->
                             if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) {
-                                mc?.displayGuiScreen(null)
+                                client?.setScreen(null)
                                 return@onKeyType
                             }
                         }
@@ -231,9 +231,9 @@ object AuctionPriceOverlay : EventSubscriber {
         override fun onScreenClose() {
             super.onScreenClose()
             //#if MC<12000
-            mc.netHandler?.addToSendQueue(C12PacketUpdateSign(pos, text.map { ChatComponentText(it) }.toTypedArray()))
+            //$$ client.networkHandler?.sendPacket(UpdateSignC2SPacket(pos, text.map { LiteralTextContent(it) }.toTypedArray()))
             //#else
-            //$$ client?.networkHandler?.sendPacket(UpdateSignC2SPacket(pos, true, text[0], text[1], text[2], text[3]))
+            client?.networkHandler?.sendPacket(UpdateSignC2SPacket(pos, true, text[0], text[1], text[2], text[3]))
             //#endif
         }
     }

@@ -23,8 +23,8 @@ import gg.skytils.skytilsmod.utils.ReflectionHelper
 import gg.skytils.skytilsmod.utils.ReflectionHelper.getFieldHelper
 import gg.skytils.skytilsmod.utils.countMatches
 import gg.skytils.skytilsmod.utils.startsWithAny
-import net.minecraft.crash.CrashReport
-import net.minecraft.crash.CrashReportCategory
+import net.minecraft.util.crash.CrashReport
+import net.minecraft.util.crash.CrashReportSection
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.transformer.Config
@@ -36,7 +36,7 @@ class CrashReportHook(private val crash: CrashReport) {
 
     fun checkSkytilsCrash(cir: CallbackInfoReturnable<String>, stringbuilder: StringBuilder) {
         runCatching {
-            if (!isSkytilsCrash && crash.causeStackTraceOrString.split("\n").any { line ->
+            if (!isSkytilsCrash && crash.causeAsString.split("\n").any { line ->
                     (line.contains("gg.skytils.skytilsmod") || line.contains("gg/skytils/skytilsmod")) && !line.contains(
                         "SkytilsSecurityManager"
                     ) && !line.contains(
@@ -57,7 +57,7 @@ class CrashReportHook(private val crash: CrashReport) {
             val prefixes = registry.values.map {
                 "${prefixField.get(it)}$"
             }
-            crash.crashCause.stackTrace.filter {
+            crash.cause.stackTrace.filter {
                 it.methodName.countMatches("$") >= 2 && it.methodName.startsWithAny(prefixes)
             }.mapNotNullTo(hashSetOf()) {
                 val method = ReflectionHelper.getClassHelper(it.className)?.declaredMethods?.find { m ->
@@ -100,8 +100,8 @@ class CrashReportHook(private val crash: CrashReport) {
         return if (isSkytilsCrash) "Did Sychic do that?" else comment
     }
 
-    fun addDataToCrashReport(crashReportCategory: CrashReportCategory) {
-        crashReportCategory.addCrashSectionCallable("Skytils Debug Info") {
+    fun addDataToCrashReport(crashReportCategory: CrashReportSection) {
+        crashReportCategory.add("Skytils Debug Info") {
             val hasBetterFPS = runCatching {
                 Class.forName("me.guichaguri.betterfps.BetterFpsHelper").getDeclaredField("VERSION")
                     .also { it.isAccessible = true }

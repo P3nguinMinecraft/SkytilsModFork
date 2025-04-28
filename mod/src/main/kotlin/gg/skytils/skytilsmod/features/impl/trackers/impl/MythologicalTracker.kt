@@ -36,9 +36,9 @@ import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.network.play.server.S02PacketChat
-import net.minecraft.network.play.server.S2FPacketSetSlot
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
 import java.io.Reader
 import java.io.Writer
 import java.util.*
@@ -124,9 +124,9 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock || (!Skytils.config.trackMythEvent && !Skytils.config.broadcastMythCreatureDrop)) return
         when (event.packet) {
-            is S02PacketChat -> {
+            is GameMessageS2CPacket -> {
                 if (event.packet.type == 2.toByte() || !Skytils.config.trackMythEvent) return
-                val unformatted = event.packet.chatComponent.unformattedText.stripControlCodes()
+                val unformatted = event.packet.message.string.stripControlCodes()
                 if (unformatted.startsWith("RARE DROP! You dug out a ")) {
                     rareDugDrop.matchEntire(unformatted)?.let {
                         (BurrowDrop.getFromName(it.groups[1]?.value ?: return) ?: return).droppedTimes++
@@ -161,19 +161,19 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
                 }
             }
 
-            is S2FPacketSetSlot -> {
-                val item = event.packet.func_149174_e() ?: return
-                if (event.packet.func_149175_c() != 0 || mc.thePlayer == null || mc.thePlayer.ticksExisted <= 1 || mc.thePlayer?.openContainer != mc.thePlayer?.inventoryContainer) return
+            is ScreenHandlerSlotUpdateS2CPacket -> {
+                val item = event.packet.stack ?: return
+                if (event.packet.syncId != 0 || mc.player == null || mc.player.age <= 1 || mc.player?.currentScreenHandler != mc.player?.playerScreenHandler) return
                 val drop = BurrowDrop.getFromId(AuctionData.getIdentifier(item)) ?: return
                 if (drop.isChat || drop.mobDrop) return
                 val extraAttr = ItemUtil.getExtraAttributes(item) ?: return
-                if (!extraAttr.hasKey("timestamp")) return
+                if (!extraAttr.contains("timestamp")) return
                 if (!seenUUIDs.add(extraAttr.getString("uuid"))) return
                 val time = extraAttr.getLong("timestamp")
                 if (System.currentTimeMillis() - time > 6000) return
                 if (Skytils.config.broadcastMythCreatureDrop) {
                     val text = "§6§lRARE DROP! ${drop.rarity.baseColor}${drop.itemName} §b(Skytils User Luck!)"
-                    if (Skytils.config.autoCopyRNGDrops) GuiScreen.setClipboardString(text.stripControlCodes())
+                    if (Skytils.config.autoCopyRNGDrops) Screen.method_0_2797(text.stripControlCodes())
                     UTextComponent(text)
                         .setClick(MCClickEventAction.RUN_COMMAND, "/skytilscopy ${text.stripControlCodes()}")
                         .setHoverText("§aClick to copy to clipboard.")
@@ -278,7 +278,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
                     ScreenRenderer.fontRenderer.drawString(
                         "${mob.mobName}§f: ${nf.format(mob.dugTimes)}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                         CommonColors.CYAN,
                         alignment,
                         textShadow
@@ -290,7 +290,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
                     ScreenRenderer.fontRenderer.drawString(
                         "${item.rarity.baseColor}${item.itemName}§f: §r${nf.format(item.droppedTimes)}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                         CommonColors.CYAN,
                         alignment,
                         textShadow
@@ -318,7 +318,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
                 ScreenRenderer.fontRenderer.drawString(
                     "${mob.mobName}§f: 100",
                     if (leftAlign) 0f else width.toFloat(),
-                    (drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                    (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                     CommonColors.CYAN,
                     alignment,
                     textShadow
@@ -329,7 +329,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
                 ScreenRenderer.fontRenderer.drawString(
                     "${item.rarity.baseColor}${item.itemName}§f: §r100",
                     if (leftAlign) 0f else width.toFloat(),
-                    (drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                    (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                     CommonColors.CYAN,
                     alignment,
                     textShadow
@@ -339,9 +339,9 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * 17
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * 17
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Crochet Tiger Plushie: 100")
+            get() = ScreenRenderer.fontRenderer.getWidth("Crochet Tiger Plushie: 100")
 
         override val toggled: Boolean
             get() = Skytils.config.trackMythEvent

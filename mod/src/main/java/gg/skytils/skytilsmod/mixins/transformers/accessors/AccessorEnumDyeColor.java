@@ -18,13 +18,13 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.DyeColor;
+import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(EnumDyeColor.class)
+@Mixin(DyeColor.class)
 public interface AccessorEnumDyeColor {
-    @Accessor
-    EnumChatFormatting getChatColor();
+    @Accessor("field_0_8583")
+    Formatting getChatColor();
 }

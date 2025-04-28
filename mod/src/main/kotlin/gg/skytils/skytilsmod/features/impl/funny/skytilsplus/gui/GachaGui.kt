@@ -180,10 +180,10 @@ class GachaGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                                 }.randomOrNull()?.first?.gameProfile?.name ?: "everyone")
                         )*/
                         if (Loader.isModLoaded("SkyblockExtras")) {
-                            if ("/sbeconnect" !in mc.ingameGUI.chatGUI.sentMessages) {
-                                this@GachaGui.sendChatMessage("/sbeconnect")
+                            if ("/sbeconnect" !in client.inGameHud.chatHud.messageHistory) {
+                                this@GachaGui.method_2230("/sbeconnect")
                                 tickTimer(100) {
-                                    this@GachaGui.sendChatMessage("/sbechat ${flex.replace("{name}", "every one")}")
+                                    this@GachaGui.method_2230("/sbechat ${flex.replace("{name}", "every one")}")
                                 }
                             }
                         }
@@ -202,7 +202,7 @@ class GachaGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                         y = SiblingConstraint(10f)
                     }.onLeftClick {
                         SkytilsPlus.markRedeemed()
-                        mc.displayGuiScreen(null)
+                        client.setScreen(null)
                     }
                 }
             }

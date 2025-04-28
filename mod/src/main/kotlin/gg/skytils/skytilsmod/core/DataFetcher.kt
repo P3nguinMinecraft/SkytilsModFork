@@ -45,8 +45,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
-import net.minecraft.item.EnumDyeColor
-import net.minecraft.util.BlockPos
+import net.minecraft.util.DyeColor
+import net.minecraft.util.math.BlockPos
 import kotlin.concurrent.fixedRateTimer
 import kotlin.reflect.jvm.jvmName
 
@@ -180,7 +180,7 @@ object DataFetcher {
                         Utils.checkThreadAndQueue {
                             SheepifyRebellion.skytilsPlusColors.clear()
                             SheepifyRebellion.skytilsPlusColors.putAll(this.entries.associate {
-                                it.key to (SheepifyRebellion.lookup[it.value.firstOrNull()] ?: EnumDyeColor.WHITE)
+                                it.key to (SheepifyRebellion.lookup[it.value.firstOrNull()] ?: DyeColor.WHITE)
                             })
                         }
                     }

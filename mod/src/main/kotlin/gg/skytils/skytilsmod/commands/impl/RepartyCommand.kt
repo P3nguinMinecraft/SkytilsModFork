@@ -21,8 +21,8 @@ import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.command.WrongUsageException
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.class_0_1374
 
 object RepartyCommand : BaseCommand("skytilsreparty", listOf("reparty", "rp")) {
 
@@ -50,8 +50,8 @@ object RepartyCommand : BaseCommand("skytilsreparty", listOf("reparty", "rp")) {
     @JvmField
     var partyThread: Thread? = null
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
-        if (!Utils.isOnHypixel) throw WrongUsageException("You must be on Hypixel to use this command.")
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
+        if (!Utils.isOnHypixel) throw class_0_1374("You must be on Hypixel to use this command.")
         if (args.isNotEmpty() && (args[0].startsWith("fail") || args[0] == "f")) {
             partyThread = Thread {
                 try {

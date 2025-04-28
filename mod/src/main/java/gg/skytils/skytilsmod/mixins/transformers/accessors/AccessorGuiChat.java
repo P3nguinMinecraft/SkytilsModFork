@@ -18,15 +18,15 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.screen.ChatScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(GuiChat.class)
+@Mixin(ChatScreen.class)
 public interface AccessorGuiChat {
-    @Accessor
+    @Accessor("originalChatText")
     String getDefaultInputFieldText();
 
-    @Accessor
+    @Accessor("originalChatText")
     void setDefaultInputFieldText(String text);
 }

@@ -18,49 +18,49 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.model.ModelDragon;
-import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.render.entity.EnderDragonEntityRenderer.DragonEntityModel;
+import net.minecraft.client.model.ModelPart;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ModelDragon.class)
+@Mixin(DragonEntityModel.class)
 public interface AccessorModelDragon {
-    @Accessor
+    @Accessor("delta")
     float getPartialTicks();
 
     @Accessor
-    ModelRenderer getHead();
+    ModelPart getHead();
+
+    @Accessor("neck")
+    ModelPart getSpine();
 
     @Accessor
-    ModelRenderer getSpine();
+    ModelPart getJaw();
 
     @Accessor
-    ModelRenderer getJaw();
+    ModelPart getBody();
 
     @Accessor
-    ModelRenderer getBody();
+    ModelPart getRearLeg();
 
     @Accessor
-    ModelRenderer getRearLeg();
+    ModelPart getFrontLeg();
 
     @Accessor
-    ModelRenderer getFrontLeg();
+    ModelPart getRearLegTip();
 
     @Accessor
-    ModelRenderer getRearLegTip();
+    ModelPart getFrontLegTip();
 
     @Accessor
-    ModelRenderer getFrontLegTip();
+    ModelPart getRearFoot();
 
     @Accessor
-    ModelRenderer getRearFoot();
+    ModelPart getFrontFoot();
 
     @Accessor
-    ModelRenderer getFrontFoot();
+    ModelPart getWing();
 
     @Accessor
-    ModelRenderer getWing();
-
-    @Accessor
-    ModelRenderer getWingTip();
+    ModelPart getWingTip();
 }

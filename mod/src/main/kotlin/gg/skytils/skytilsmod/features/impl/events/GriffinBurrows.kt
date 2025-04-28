@@ -36,16 +36,16 @@ import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows.BurrowEstimatio
 import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows.BurrowEstimation.lastSoundTrail
 import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows.BurrowEstimation.otherGrassData
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
-import net.minecraft.network.play.client.C07PacketPlayerDigging
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.network.play.server.S04PacketEntityEquipment
-import net.minecraft.network.play.server.S29PacketSoundEffect
-import net.minecraft.network.play.server.S2APacketParticles
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
+import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
 import net.minecraft.util.*
 import java.awt.Color
 import java.time.Duration
@@ -63,8 +63,8 @@ object GriffinBurrows : EventSubscriber {
     object BurrowEstimation {
         val arrows = mutableMapOf<Arrow, Instant>()
         val guesses = mutableMapOf<BurrowGuess, Instant>()
-        val lastParticleTrail = mutableListOf<Vec3>()
-        val lastSoundTrail = linkedSetOf<Pair<Vec3, Double>>()
+        val lastParticleTrail = mutableListOf<Vec3d>()
+        val lastSoundTrail = linkedSetOf<Pair<Vec3d, Double>>()
         var lastTrailCreated = -1L
 
         fun getDistanceFromPitch(pitch: Double) =
@@ -78,7 +78,7 @@ object GriffinBurrows : EventSubscriber {
             this::class.java.getResource("/assets/skytils/hub_grass_heights.bin")!!.readBytes()
         }
 
-        class Arrow(val directionVector: Vec3, val pos: Vec3)
+        class Arrow(val directionVector: Vec3d, val pos: Vec3d)
     }
 
     override fun setup() {
@@ -91,8 +91,8 @@ object GriffinBurrows : EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        hasSpadeInHotbar = mc.thePlayer != null && Utils.inSkyblock && (0..7).any {
-            mc.thePlayer.inventory.getStackInSlot(it).isSpade
+        hasSpadeInHotbar = mc.player != null && Utils.inSkyblock && (0..7).any {
+            mc.player.inventory.getStack(it).isSpade
         }
         if (!Skytils.config.burrowEstimation) return
         BurrowEstimation.guesses.entries.removeIf { (_, instant) ->
@@ -164,7 +164,7 @@ object GriffinBurrows : EventSubscriber {
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val unformatted = event.message.string.stripControlCodes()
         if (Skytils.config.showGriffinBurrows &&
             (unformatted.startsWith("You died") || unformatted.startsWith("☠ You were killed") ||
                     unformatted.startsWith("You dug out a Griffin Burrow! (") ||
@@ -179,7 +179,7 @@ object GriffinBurrows : EventSubscriber {
                 lastDugParticleBurrow = null
             }
         }
-        if (event.message.formattedText == "§r§6Poof! §r§eYou have cleared your griffin burrows!§r") {
+        if (event.message.method_10865() == "§r§6Poof! §r§eYou have cleared your griffin burrows!§r") {
             particleBurrows.clear()
             recentlyDugParticleBurrows.clear()
             lastDugParticleBurrow = null
@@ -193,10 +193,10 @@ object GriffinBurrows : EventSubscriber {
     }
 
     fun onSendPacket(event: PacketSendEvent<*>) {
-        if (!Utils.inSkyblock || !Skytils.config.showGriffinBurrows || mc.thePlayer == null || SBInfo.mode != SkyblockIsland.Hub.mode) return
-        if (mc.thePlayer.heldItem?.isSpade != true) return
+        if (!Utils.inSkyblock || !Skytils.config.showGriffinBurrows || mc.player == null || SBInfo.mode != SkyblockIsland.Hub.mode) return
+        if (mc.player.method_0_7087()?.isSpade != true) return
 
-        if (event.packet is C08PacketPlayerBlockPlacement && event.packet.position.y == -1) {
+        if (event.packet is PlayerInteractBlockC2SPacket && event.packet.method_12548().y == -1) {
             lastSpadeUse = System.currentTimeMillis()
             lastParticleTrail.clear()
             BurrowEstimation.lastTrailCreated = -1
@@ -205,13 +205,13 @@ object GriffinBurrows : EventSubscriber {
         } else {
             val pos =
                 when {
-                    event.packet is C07PacketPlayerDigging && event.packet.status == C07PacketPlayerDigging.Action.START_DESTROY_BLOCK -> {
-                        event.packet.position
+                    event.packet is PlayerActionC2SPacket && event.packet.action == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK -> {
+                        event.packet.pos
                     }
-                    event.packet is C08PacketPlayerBlockPlacement && event.packet.stack != null -> event.packet.position
+                    event.packet is PlayerInteractBlockC2SPacket && event.packet.method_0_5804() != null -> event.packet.method_12548()
                     else -> return
                 }
-            if (mc.theWorld.getBlockState(pos).block !== Blocks.grass) return
+            if (mc.world.getBlockState(pos).block !== Blocks.field_0_767) return
             particleBurrows[pos]?.blockPos?.let {
                 printDevMessage({ "Clicked on $it" }, "griffin")
                 lastDugParticleBurrow = it
@@ -257,17 +257,17 @@ object GriffinBurrows : EventSubscriber {
     fun onReceivePacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
         when (event.packet) {
-            is S2APacketParticles -> {
+            is ParticleS2CPacket -> {
                 if (Skytils.config.showGriffinBurrows && hasSpadeInHotbar) {
                     if (SBInfo.mode != SkyblockIsland.Hub.mode) return
                     event.packet.apply {
-                        if (type == EnumParticleTypes.DRIP_LAVA && count == 2 && speed == -.5f && xOffset == 0f && yOffset == 0f && zOffset == 0f && isLongDistance) {
+                        if (type == ParticleType.DRIP_LAVA && count == 2 && speed == -.5f && offsetX == 0f && offsetY == 0f && offsetZ == 0f && shouldForceSpawn()) {
                             lastParticleTrail.add(vec3)
                             BurrowEstimation.lastTrailCreated = System.currentTimeMillis()
                             printDevMessage({ "Found trail point $x $y $z" }, "griffinguess")
                         } else {
                             val type = ParticleType.getParticleType(this) ?: return
-                            val pos = BlockPos(x, y, z).down()
+                            val pos = BlockPos(x, y, z).method_10074()
                             if (recentlyDugParticleBurrows.contains(pos)) return
                             BurrowEstimation.guesses.keys.associateWith { guess ->
                                 (pos.x - guess.x) * (pos.x - guess.x) + (pos.z - guess.z) * (pos.z - guess.z)
@@ -296,30 +296,30 @@ object GriffinBurrows : EventSubscriber {
                     }
                 }
             }
-            is S04PacketEntityEquipment -> {
+            is EntityEquipmentUpdateS2CPacket -> {
                 if (!Skytils.config.burrowEstimation || SBInfo.mode != SkyblockIsland.Hub.mode || Skytils.config.experimentBurrowEstimation) return
-                val entity = mc.theWorld?.getEntityByID(event.packet.entityID)
-                (entity as? EntityArmorStand)?.let { armorStand ->
-                    if (event.packet.itemStack?.item != Items.arrow) return
-                    if (armorStand.getDistanceSq(mc.thePlayer?.position) >= 27) return
+                val entity = mc.world?.getEntityById(event.packet.entityId)
+                (entity as? ArmorStandEntity)?.let { armorStand ->
+                    if (event.packet.stack?.item != Items.ARROW) return
+                    if (armorStand.method_5831(mc.player?.blockPos) >= 27) return
                     printDevMessage({ "Found armor stand with arrow" }, "griffin", "griffinguess")
-                    val yaw = Math.toRadians(armorStand.rotationYaw.toDouble())
-                    val lookVec = Vec3(
+                    val yaw = Math.toRadians(armorStand.yaw.toDouble())
+                    val lookVec = Vec3d(
                         -sin(yaw),
                         0.0,
                         cos(yaw)
                     )
-                    val offset = Vec3(-sin(yaw + PI/2), 0.0, cos(yaw + PI/2)) * 0.9
-                    val origin = armorStand.positionVector.add(offset)
+                    val offset = Vec3d(-sin(yaw + PI/2), 0.0, cos(yaw + PI/2)) * 0.9
+                    val origin = armorStand.pos.add(offset)
                     BurrowEstimation.arrows.put(BurrowEstimation.Arrow(lookVec, origin), Instant.now())
                 }
             }
-            is S29PacketSoundEffect -> {
+            is PlaySoundIdS2CPacket -> {
                 if (!Skytils.config.burrowEstimation || SBInfo.mode != SkyblockIsland.Hub.mode) return
-                if (event.packet.soundName != "note.harp" || event.packet.volume != 1f) return
+                if (event.packet.method_11460() != "note.harp" || event.packet.volume != 1f) return
                 printDevMessage({ "Found note harp sound ${event.packet.pitch} ${event.packet.volume} ${event.packet.x} ${event.packet.y} ${event.packet.z}" }, "griffinguess")
                 if (lastSpadeUse != -1L && System.currentTimeMillis() - lastSpadeUse < 1000) {
-                    lastSoundTrail.add(Vec3(event.packet.x, event.packet.y, event.packet.z) to event.packet.pitch.toDouble())
+                    lastSoundTrail.add(Vec3d(event.packet.x, event.packet.y, event.packet.z) to event.packet.pitch.toDouble())
                 }
                 if (Skytils.config.experimentBurrowEstimation) return
                 val (arrow, distance) = BurrowEstimation.arrows.keys
@@ -364,15 +364,15 @@ object GriffinBurrows : EventSubscriber {
             val renderY = this.y - viewerY
             val renderZ = this.z - viewerZ
             val distSq = renderX * renderX + renderY * renderY + renderZ * renderZ
-            GlStateManager.disableDepth()
-            GlStateManager.disableCull()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
-                AxisAlignedBB(renderX, renderY, renderZ, renderX + 1, renderY + 1, renderZ + 1).expandBlock(),
+                Box(renderX, renderY, renderZ, renderX + 1, renderY + 1, renderZ + 1).expandBlock(),
                 this.color,
                 (0.1f + 0.005f * distSq.toFloat()).coerceAtLeast(0.2f)
             )
-            GlStateManager.disableTexture2D()
+            RenderSystem.method_4407()
             if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(renderX, renderY + 1, renderZ, this.color.rgb, 1.0f, partialTicks)
             RenderUtil.renderWaypointText(
                 waypointText,
@@ -382,10 +382,10 @@ object GriffinBurrows : EventSubscriber {
                 partialTicks,
                 matrixStack
             )
-            GlStateManager.disableLighting()
-            GlStateManager.enableTexture2D()
-            GlStateManager.enableDepth()
-            GlStateManager.enableCull()
+            RenderSystem.method_4406()
+            RenderSystem.method_4397()
+            RenderSystem.enableDepthTest()
+            RenderSystem.enableCull()
         }
     }
 
@@ -442,27 +442,27 @@ object GriffinBurrows : EventSubscriber {
     private val ItemStack?.isSpade
         get() = ItemUtil.getSkyBlockItemID(this) == "ANCESTRAL_SPADE"
 
-    private enum class ParticleType(val check: S2APacketParticles.() -> Boolean, val isBurrowType: Boolean = true) {
+    private enum class ParticleType(val check: ParticleS2CPacket.() -> Boolean, val isBurrowType: Boolean = true) {
         EMPTY({
-            type == EnumParticleTypes.CRIT_MAGIC && count == 4 && speed == 0.01f && xOffset == 0.5f && yOffset == 0.1f && zOffset == 0.5f
+            type == ParticleType.CRIT_MAGIC && count == 4 && speed == 0.01f && offsetX == 0.5f && offsetY == 0.1f && offsetZ == 0.5f
         }),
         MOB({
-            type == EnumParticleTypes.CRIT && count == 3 && speed == 0.01f && xOffset == 0.5f && yOffset == 0.1f && zOffset == 0.5f
+            type == ParticleType.CRIT && count == 3 && speed == 0.01f && offsetX == 0.5f && offsetY == 0.1f && offsetZ == 0.5f
 
         }),
         TREASURE({
-            type == EnumParticleTypes.DRIP_LAVA && count == 2 && speed == 0.01f && xOffset == 0.35f && yOffset == 0.1f && zOffset == 0.35f
+            type == ParticleType.DRIP_LAVA && count == 2 && speed == 0.01f && offsetX == 0.35f && offsetY == 0.1f && offsetZ == 0.35f
         }),
         FOOTSTEP({
-            type == EnumParticleTypes.FOOTSTEP && count == 1 && speed == 0.0f && xOffset == 0.05f && yOffset == 0.0f && zOffset == 0.05f
+            type == ParticleType.FOOTSTEP && count == 1 && speed == 0.0f && offsetX == 0.05f && offsetY == 0.0f && offsetZ == 0.05f
         }, false),
         ENCHANT({
-            type == EnumParticleTypes.ENCHANTMENT_TABLE && count == 5 && speed == 0.05f && xOffset == 0.5f && yOffset == 0.4f && zOffset == 0.5f
+            type == ParticleType.ENCHANTMENT_TABLE && count == 5 && speed == 0.05f && offsetX == 0.5f && offsetY == 0.4f && offsetZ == 0.5f
         }, false);
 
         companion object {
-            fun getParticleType(packet: S2APacketParticles): ParticleType? {
-                if (!packet.isLongDistance) return null
+            fun getParticleType(packet: ParticleS2CPacket): ParticleType? {
+                if (!packet.shouldForceSpawn()) return null
                 return entries.find {
                     it.check(packet)
                 }

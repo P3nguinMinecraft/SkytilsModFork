@@ -20,17 +20,17 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.core.Config;
 import gg.skytils.skytilsmod.utils.Utils;
-import net.minecraft.client.renderer.entity.RenderLightningBolt;
-import net.minecraft.entity.effect.EntityLightningBolt;
+import net.minecraft.client.render.entity.LightningEntityRenderer;
+import net.minecraft.entity.LightningEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(RenderLightningBolt.class)
+@Mixin(LightningEntityRenderer.class)
 public abstract class MixinRenderLightningBolt {
-    @Inject(method = "doRender", at = @At("HEAD"), cancellable = true)
-    private void onRenderLightning(EntityLightningBolt entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    private void onRenderLightning(LightningEntity entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
         if (Config.INSTANCE.getHideLightning() && Utils.INSTANCE.getInSkyblock()) {
             ci.cancel();
         }

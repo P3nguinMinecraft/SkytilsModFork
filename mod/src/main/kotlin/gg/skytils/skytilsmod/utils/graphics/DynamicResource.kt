@@ -19,15 +19,15 @@
 package gg.skytils.skytilsmod.utils.graphics
 
 import gg.skytils.skytilsmod.Skytils.mc
-import net.minecraft.client.renderer.texture.DynamicTexture
-import net.minecraft.util.ResourceLocation
+import net.minecraft.client.texture.NativeImageBackedTexture
+import net.minecraft.util.Identifier
 import java.awt.image.BufferedImage
 
 /**
  * Utility to create resources using a buffered image
  */
-class DynamicResource(val name: String, val image: BufferedImage) : DynamicTexture(image) {
-    val resource: ResourceLocation by lazy {
-        mc.textureManager.getDynamicTextureLocation(name, this)
+class DynamicResource(val name: String, val image: BufferedImage) : NativeImageBackedTexture(image) {
+    val resource: Identifier by lazy {
+        mc.textureManager.registerDynamicTexture(name, this)
     }
 }

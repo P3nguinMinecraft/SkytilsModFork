@@ -33,12 +33,12 @@ import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import gg.skytils.skytilsmod.utils.printDevMessage
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.monster.EntityZombie
-import net.minecraft.init.Items
-import net.minecraft.network.play.server.S14PacketEntity
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.Vec3
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.mob.ZombieEntity
+import net.minecraft.item.Items
+import net.minecraft.network.packet.s2c.play.EntityS2CPacket
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.Vec3d
 
 object BloodHelper : EventSubscriber {
     val watcherSkins = setOf(
@@ -52,10 +52,10 @@ object BloodHelper : EventSubscriber {
         "ewogICJ0aW1lc3RhbXAiIDogMTcxOTYwNTkyNDIwNSwKICAicHJvZmlsZUlkIiA6ICIzZDIxZTYyMTk2NzQ0Y2QwYjM3NjNkNTU3MWNlNGJlZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJTcl83MUJsYWNrYmlyZCIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9mNWYwZDc4ZmUzOGQxZDdmNzVmMDhjZGNmMmExODU1ZDZkYTAzMzdlMTE0YTNjNjNlM2JmM2M2MThiYzczMmIwIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=", //f3
         "ewogICJ0aW1lc3RhbXAiIDogMTU4OTU1MDkyNjM2MSwKICAicHJvZmlsZUlkIiA6ICI0ZDcwNDg2ZjUwOTI0ZDMzODZiYmZjOWMxMmJhYjRhZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJzaXJGYWJpb3pzY2hlIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzUxOTY3ZGI1ZTMxOTk5MTYyNTIwMjE5MDNjZjRlOTk1MmVmN2NlYzIyMGZhYWNhMWJhNzliYWZlNTkzOGJkODAiCiAgICB9CiAgfQp9" //f2,f1,e
     )
-    val watchers = mutableSetOf<EntityZombie>()
-    val mobs = hashMapOf<EntityArmorStand, BloodMob>()
+    val watchers = mutableSetOf<ZombieEntity>()
+    val mobs = hashMapOf<ArmorStandEntity, BloodMob>()
 
-    private var neededRender = listOf<Triple<String, AxisAlignedBB, Vec3>>()
+    private var neededRender = listOf<Triple<String, Box, Vec3d>>()
 
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
@@ -63,9 +63,9 @@ object BloodHelper : EventSubscriber {
             neededRender = emptyList()
             return
         } else {
-            watchers.removeIf { it.isDead }
+            watchers.removeIf { it.isRemoved }
             mobs.entries.removeAll { (mob, bloodMob) ->
-                return@removeAll mob.isDead.also {
+                return@removeAll mob.isRemoved.also {
                     printDevMessage(
                         { (System.currentTimeMillis() - bloodMob.start).toString() },
                         "bloodHelper"
@@ -76,13 +76,13 @@ object BloodHelper : EventSubscriber {
                 .mapIndexed { index, (_, mob) ->
                     Triple(
                         "${index + 1}",
-                        AxisAlignedBB(
-                            mob.finalPos!!.xCoord - 0.4,
-                            mob.finalPos!!.yCoord + 1,
-                            mob.finalPos!!.zCoord - 0.4,
-                            mob.finalPos!!.xCoord + 0.4,
-                            mob.finalPos!!.yCoord + 3,
-                            mob.finalPos!!.zCoord + 0.4
+                        Box(
+                            mob.finalPos!!.x - 0.4,
+                            mob.finalPos!!.y + 1,
+                            mob.finalPos!!.z - 0.4,
+                            mob.finalPos!!.x + 0.4,
+                            mob.finalPos!!.y + 3,
+                            mob.finalPos!!.z + 0.4
                         ),
                         mob.finalPos!!
                     )
@@ -102,9 +102,9 @@ object BloodHelper : EventSubscriber {
             )
             RenderUtil.renderWaypointText(
                 num,
-                pos.xCoord,
-                pos.yCoord + 2,
-                pos.zCoord,
+                pos.x,
+                pos.y + 2,
+                pos.z,
                 event.partialTicks,
                 matrixStack
             )
@@ -112,11 +112,11 @@ object BloodHelper : EventSubscriber {
     }
 
     fun onJoin(event: EntityJoinWorldEvent) {
-        if (event.entity !is EntityZombie) return
-        (event.entity as EntityZombie).apply {
+        if (event.entity !is ZombieEntity) return
+        (event.entity as ZombieEntity).apply {
             tickTimer(1) {
-                val helmet = getEquipmentInSlot(EquipmentSlot.HEAD)
-                if (helmet == null || helmet.item != Items.skull) return@tickTimer
+                val helmet = getEquippedStack(EquipmentSlot.HEAD)
+                if (helmet == null || helmet.item != Items.PLAYER_HEAD) return@tickTimer
                 val texture = ItemUtil.getSkullTexture(helmet)
                 if (texture == null || (watcherSkins.contains(texture))) return@tickTimer
                 printDevMessage("found watcher", "blood")
@@ -133,26 +133,26 @@ object BloodHelper : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || watchers.isEmpty()) return
-        if (event.packet !is S14PacketEntity.S17PacketEntityLookMove) return
+        if (event.packet !is EntityS2CPacket.RotateAndMoveRelative) return
         val entity = event.packet.getEntity(UMinecraft.getWorld() ?: return) ?: return
-        if (entity !is EntityArmorStand || entity.getEquipmentInSlot(EquipmentSlot.HEAD)?.item != Items.skull) return
+        if (entity !is ArmorStandEntity || entity.getEquippedStack(EquipmentSlot.HEAD)?.item != Items.PLAYER_HEAD) return
         mobs[entity]?.let { mob ->
             mob.deltas.add(
-                Vec3(
-                    event.packet.func_149062_c() / 32.0,
-                    event.packet.func_149061_d() / 32.0,
-                    event.packet.func_149064_e() / 32.0
+                Vec3d(
+                    event.packet.deltaX / 32.0,
+                    event.packet.deltaY / 32.0,
+                    event.packet.deltaZ / 32.0
                 )
             )
             if (mob.deltas.size == mob.limit) {
                 if (mob.firstWave) {
-                    mob.finalPos = entity.positionVector.add(mob.calcDelta(9.6))
+                    mob.finalPos = entity.pos.add(mob.calcDelta(9.6))
                 } else {
-                    mob.finalPos = entity.positionVector.add(mob.calcDelta(10.4))
+                    mob.finalPos = entity.pos.add(mob.calcDelta(10.4))
                 }
             }
         } ?: run {
-            if (watchers.any { it.getDistanceSqToEntity(entity) > 64.0 }) return
+            if (watchers.any { it.squaredDistanceTo(entity) > 64.0 }) return
             printDevMessage("blood mob close enough to watcher", "blood")
             mobs[entity] = BloodMob(
                 mobs.size < 4,
@@ -163,8 +163,8 @@ object BloodHelper : EventSubscriber {
 
     class BloodMob(
         val firstWave: Boolean = false,
-        val deltas: MutableList<Vec3> = mutableListOf(),
-        var finalPos: Vec3? = null,
+        val deltas: MutableList<Vec3d> = mutableListOf(),
+        var finalPos: Vec3d? = null,
         val start: Long,
     ) {
         val limit: Int = 3
@@ -173,10 +173,10 @@ object BloodHelper : EventSubscriber {
             deltas.take(limit).reduce { acc, vec3 -> acc.add(vec3) }
 
         fun calcDelta(scale: Double) = calcSpeed().normalize().run {
-            Vec3(
-                xCoord * scale,
-                yCoord * scale,
-                zCoord * scale
+            Vec3d(
+                x * scale,
+                y * scale,
+                z * scale
             )
         }
     }

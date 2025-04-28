@@ -28,12 +28,12 @@ import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.utils.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.network.play.server.S2APacketParticles
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumParticleTypes
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.particle.ParticleType
 import java.awt.Color
 import java.io.Reader
 import java.io.Writer
@@ -51,11 +51,11 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
 
     fun onReceivePacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (event.packet is S2APacketParticles) {
+        if (event.packet is ParticleS2CPacket) {
             if (Skytils.config.rareRelicFinder) {
                 event.packet.apply {
-                    if (particleType == EnumParticleTypes.SPELL_WITCH && particleCount == 2 && isLongDistance && particleSpeed == 0f && xOffset == 0.3f && yOffset == 0.3f && zOffset == 0.3f) {
-                        rareRelicLocations.add(BlockPos(xCoordinate, yCoordinate, zCoordinate))
+                    if (parameters == ParticleType.SPELL_WITCH && count == 2 && shouldForceSpawn() && speed == 0f && offsetX == 0.3f && offsetY == 0.3f && offsetZ == 0.3f) {
+                        rareRelicLocations.add(BlockPos(x, y, z))
                     }
                 }
             }
@@ -65,11 +65,11 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
     fun onSendPacket(event: PacketSendEvent<*>) {
         if (!Utils.inSkyblock) return
         if (SBInfo.mode != SkyblockIsland.SpiderDen.mode) return
-        if (event.packet is C08PacketPlayerBlockPlacement) {
-            val packet = event.packet as C08PacketPlayerBlockPlacement?
-            if (relicLocations.contains(packet!!.position)) {
-                foundRelics.add(packet.position)
-                rareRelicLocations.remove(packet.position)
+        if (event.packet is PlayerInteractBlockC2SPacket) {
+            val packet = event.packet as PlayerInteractBlockC2SPacket?
+            if (relicLocations.contains(packet!!.method_12548())) {
+                foundRelics.add(packet.method_12548())
+                rareRelicLocations.remove(packet.method_12548())
                 markDirty<RelicWaypoints>()
             }
         }
@@ -88,11 +88,11 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                 val y = relic.y - viewerY
                 val z = relic.z - viewerZ
                 val distSq = x * x + y * y + z * z
-                GlStateManager.disableDepth()
-                GlStateManager.disableCull()
+                RenderSystem.disableDepthTest()
+                RenderSystem.disableCull()
                 RenderUtil.drawFilledBoundingBox(
                     matrixStack,
-                    AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1),
+                    Box(x, y, z, x + 1, y + 1, z + 1),
                     Color(114, 245, 82),
                     1f
                 )
@@ -105,9 +105,9 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                     event.partialTicks
                 )
                 RenderUtil.renderWaypointText("Relic", relic, event.partialTicks, matrixStack)
-                GlStateManager.disableLighting()
-                GlStateManager.enableDepth()
-                GlStateManager.enableCull()
+                RenderSystem.method_4406()
+                RenderSystem.enableDepthTest()
+                RenderSystem.enableCull()
             }
         }
         if (Skytils.config.rareRelicFinder) {
@@ -116,11 +116,11 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                 val y = relic.y - viewerY
                 val z = relic.z - viewerZ
                 val distSq = x * x + y * y + z * z
-                GlStateManager.disableDepth()
-                GlStateManager.disableCull()
+                RenderSystem.disableDepthTest()
+                RenderSystem.disableCull()
                 RenderUtil.drawFilledBoundingBox(
                     matrixStack,
-                    AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1),
+                    Box(x, y, z, x + 1, y + 1, z + 1),
                     Color(152, 41, 222),
                     1f
                 )
@@ -133,9 +133,9 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                     event.partialTicks
                 )
                 RenderUtil.renderWaypointText("Rare Relic", relic, event.partialTicks, matrixStack)
-                GlStateManager.disableLighting()
-                GlStateManager.enableDepth()
-                GlStateManager.enableCull()
+                RenderSystem.method_4406()
+                RenderSystem.enableDepthTest()
+                RenderSystem.enableCull()
             }
         }
     }

@@ -93,16 +93,16 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGameOver
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.settings.KeyBinding
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.inventory.ContainerPlayer
-import net.minecraft.network.play.client.C01PacketChatMessage
-import net.minecraft.network.play.server.S01PacketJoinGame
-import net.minecraft.network.play.server.S1CPacketEntityMetadata
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.screen.DeathScreen
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.client.option.KeyBinding
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.screen.PlayerScreenHandler
+import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
+import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket
+import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
 import sun.misc.Unsafe
 import java.io.File
 import java.net.DatagramPacket
@@ -120,15 +120,15 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
 
 //#if FORGE
-import net.minecraftforge.common.MinecraftForge
+//$$ import net.minecraftforge.common.MinecraftForge
 //#if MC<11400
-import net.minecraftforge.client.ClientCommandHandler
-import net.minecraftforge.fml.common.Loader
+//$$ import net.minecraftforge.client.ClientCommandHandler
+//$$ import net.minecraftforge.fml.common.Loader
 //#endif
 //#endif
 
 //#if FABRIC
-//$$ import net.fabricmc.loader.api.FabricLoader
+import net.fabricmc.loader.api.FabricLoader
 //#endif
 
 object Skytils : CoroutineScope, EventSubscriber {
@@ -138,8 +138,8 @@ object Skytils : CoroutineScope, EventSubscriber {
     val VERSION = Reference.VERSION
 
     @JvmStatic
-    val mc: Minecraft by lazy {
-        Minecraft.getMinecraft()
+    val mc: MinecraftClient by lazy {
+        MinecraftClient.getInstance()
     }
 
     @JvmStatic
@@ -148,7 +148,7 @@ object Skytils : CoroutineScope, EventSubscriber {
     }
 
     val modDir by lazy {
-        File(File(mc.mcDataDir, "config"), "skytils").also {
+        File(File(mc.runDirectory, "config"), "skytils").also {
             it.mkdirs()
             File(it, "trackers").mkdirs()
         }
@@ -174,7 +174,7 @@ object Skytils : CoroutineScope, EventSubscriber {
     private var lastChatMessage = 0L
 
     @JvmField
-    var displayScreen: GuiScreen? = null
+    var displayScreen: Screen? = null
 
     @JvmField
     val threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
@@ -299,10 +299,10 @@ object Skytils : CoroutineScope, EventSubscriber {
         DataFetcher.preload()
         guiManager = GuiManager
         //#if FORGE
-        jarFile = Loader.instance().modList.find { it.modId == MOD_ID }?.source
-        mc.framebuffer.enableStencil()
+        //$$ jarFile = Loader.instance().modList.find { it.modId == MOD_ID }?.source
+        //$$ mc.framebuffer.enableStencil()
         //#else
-        //$$ jarFile = FabricLoader.getInstance().allMods.find { it.metadata.id == MOD_ID }?.origin?.paths?.firstOrNull()?.toFile()
+        jarFile = FabricLoader.getInstance().allMods.find { it.metadata.id == MOD_ID }?.origin?.paths?.firstOrNull()?.toFile()
         //#endif
 
         config.init()
@@ -437,41 +437,41 @@ object Skytils : CoroutineScope, EventSubscriber {
         if (cch !is AccessorCommandHandler) throw RuntimeException(
             "Skytils was unable to mixin to the CommandHandler. Please report this on our Discord at discord.gg/skytils."
         )
-        cch.registerCommand(SkytilsCommand)
+        cch.method_0_5866(SkytilsCommand)
 
-        cch.registerCommand(CataCommand)
-        cch.registerCommand(CalcXPCommand)
-        cch.registerCommand(FragBotCommand)
-        cch.registerCommand(HollowWaypointCommand)
-        cch.registerCommand(ItemCycleCommand)
-        cch.registerCommand(OrderedWaypointCommand)
-        cch.registerCommand(ScamCheckCommand)
-        cch.registerCommand(SlayerCommand)
-        cch.registerCommand(TrophyFishCommand)
+        cch.method_0_5866(CataCommand)
+        cch.method_0_5866(CalcXPCommand)
+        cch.method_0_5866(FragBotCommand)
+        cch.method_0_5866(HollowWaypointCommand)
+        cch.method_0_5866(ItemCycleCommand)
+        cch.method_0_5866(OrderedWaypointCommand)
+        cch.method_0_5866(ScamCheckCommand)
+        cch.method_0_5866(SlayerCommand)
+        cch.method_0_5866(TrophyFishCommand)
 
-        if (!cch.commands.containsKey("armorcolor")) {
-            cch.registerCommand(ArmorColorCommand)
+        if (!cch.method_0_6231().containsKey("armorcolor")) {
+            cch.method_0_5866(ArmorColorCommand)
         }
 
-        if (!cch.commands.containsKey("glintcustomize")) {
-            cch.registerCommand(GlintCustomizeCommand)
+        if (!cch.method_0_6231().containsKey("glintcustomize")) {
+            cch.method_0_5866(GlintCustomizeCommand)
         }
 
-        if (!cch.commands.containsKey("protectitem")) {
-            cch.registerCommand(ProtectItemCommand)
+        if (!cch.method_0_6231().containsKey("protectitem")) {
+            cch.method_0_5866(ProtectItemCommand)
         }
 
-        if (!cch.commands.containsKey("trackcooldown")) {
-            cch.registerCommand(TrackCooldownCommand)
+        if (!cch.method_0_6231().containsKey("trackcooldown")) {
+            cch.method_0_5866(TrackCooldownCommand)
         }
 
         cch.commandSet.add(RepartyCommand)
         cch.commandMap["skytilsreparty"] = RepartyCommand
-        if (config.overrideReparty || !cch.commands.containsKey("reparty")) {
+        if (config.overrideReparty || !cch.method_0_6231().containsKey("reparty")) {
             cch.commandMap["reparty"] = RepartyCommand
         }
 
-        if (config.overrideReparty || !cch.commands.containsKey("rp")) {
+        if (config.overrideReparty || !cch.method_0_6231().containsKey("rp")) {
             cch.commandMap["rp"] = RepartyCommand
         }
 
@@ -506,13 +506,13 @@ object Skytils : CoroutineScope, EventSubscriber {
         ScoreboardUtil.sidebarLines = ScoreboardUtil.fetchScoreboardLines().map { l -> ScoreboardUtil.cleanSB(l) }
         TabListUtils.tabEntries = TabListUtils.fetchTabEntries().map { e -> e to e.text }
         if (displayScreen != null) {
-            if (mc.thePlayer?.openContainer is ContainerPlayer) {
-                mc.displayGuiScreen(displayScreen)
+            if (mc.player?.currentScreenHandler is PlayerScreenHandler) {
+                mc.setScreen(displayScreen)
                 displayScreen = null
             }
         }
 
-        if (mc.thePlayer != null && sendMessageQueue.isNotEmpty() && System.currentTimeMillis() - lastChatMessage > 250) {
+        if (mc.player != null && sendMessageQueue.isNotEmpty() && System.currentTimeMillis() - lastChatMessage > 250) {
             val msg = sendMessageQueue.pollFirst()
             if (!msg.isNullOrBlank()) UChat.say(msg)
         }
@@ -526,22 +526,22 @@ object Skytils : CoroutineScope, EventSubscriber {
                 UDesktop.setClipboardString(ScoreboardUtil.sidebarLines.toString())
             }
             val openScreen = mc.currentScreen
-            if (UKeyboard.isKeyDown(UKeyboard.KEY_LMETA) && openScreen is GuiChest) {
+            if (UKeyboard.isKeyDown(UKeyboard.KEY_LMETA) && openScreen is GenericContainerScreen) {
                 //#if MC<11400
-                val container = openScreen.inventorySlots
+                //$$ val container = openScreen.handler
                 //#else
-                //$$ val container = openScreen.screenHandler
+                val container = openScreen.screenHandler
                 //#endif
-                (container as? ContainerChest)?.let { chest ->
+                (container as? GenericContainerScreenHandler)?.let { chest ->
                     UChat.chat("Copied container data to clipboard")
                     //#if MC<11400
-                    val name = chest.lowerChestInventory.name
+                    //$$ val name = chest.inventory.name
                     //#else
-                    //$$ val name = openScreen.title.string
+                    val name = openScreen.title.string
                     //#endif
                     UDesktop.setClipboardString(
                         "Name: '${name}', Items: ${
-                            chest.inventorySlots.filter { it.inventory == chest.lowerChestInventory }
+                            chest.slots.filter { it.inventory == chest.inventory }
                                 .map { it.stack?.serializeNBT() }
                         }"
                     )
@@ -553,12 +553,12 @@ object Skytils : CoroutineScope, EventSubscriber {
 
     init {
         tickTimer(20, repeats = true) {
-            if (mc.thePlayer != null) {
+            if (mc.player != null) {
                 if (DevTools.getToggle("sprint")) {
                     //#if MC<11400
-                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.keyCode, true)
+                    //$$ KeyBinding.method_1416(mc.options.sprintKey.method_1421(), true)
                     //#else
-                    //$$ mc.options.sprintKey?.isPressed = true
+                    mc.options.sprintKey?.isPressed = true
                     //#endif
 
                 }
@@ -568,9 +568,9 @@ object Skytils : CoroutineScope, EventSubscriber {
 
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (event.packet is S1CPacketEntityMetadata && mc.thePlayer != null) {
-            val nameObj = event.packet.func_149376_c()?.find { it.dataValueId == 2 }?.`object` ?: return
-            val entity = mc.theWorld?.getEntityByID(event.packet.entityId)
+        if (event.packet is EntityTrackerUpdateS2CPacket && mc.player != null) {
+            val nameObj = event.packet.trackedValues?.find { it.id() == 2 }?.value() ?: return
+            val entity = mc.world?.getEntityById(event.packet.id())
 
             if (entity is ExtensionEntityLivingBase) {
                 entity.skytilsHook.onNewDisplayName(nameObj as String)
@@ -593,7 +593,7 @@ object Skytils : CoroutineScope, EventSubscriber {
     }
 
     fun onSendPacket(event: PacketSendEvent<*>) {
-        if (event.packet is C01PacketChatMessage) {
+        if (event.packet is ChatMessageC2SPacket) {
             lastChatMessage = System.currentTimeMillis()
         }
     }
@@ -605,13 +605,13 @@ object Skytils : CoroutineScope, EventSubscriber {
         } else if (event.screen == null && config.reopenOptionsMenu) {
             if (old is ReopenableGUI || (old is AccessorSettingsGui && old.config is Config)) {
                 tickTimer(1) {
-                    if (mc.thePlayer?.openContainer is ContainerPlayer)
+                    if (mc.player?.currentScreenHandler is PlayerScreenHandler)
                         displayScreen = OptionsGui()
                 }
             }
         }
         if (old is AccessorGuiStreamUnavailable) {
-            if (config.twitchFix && event.screen == null && !(Utils.inSkyblock && old.parentScreen is GuiGameOver)) {
+            if (config.twitchFix && event.screen == null && !(Utils.inSkyblock && old.parentScreen is DeathScreen)) {
                 event.screen = old.parentScreen
             }
         }

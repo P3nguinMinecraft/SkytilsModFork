@@ -20,11 +20,11 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.SBInfo.mode
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Identifier
 
-val VISIBLE_CREEPER_ARMOR = ResourceLocation("skytils", "creeper_armor.png")
+val VISIBLE_CREEPER_ARMOR = Identifier("skytils", "creeper_armor.png")
 
-fun modifyChargedCreeperLayer(res: ResourceLocation): ResourceLocation {
+fun modifyChargedCreeperLayer(res: Identifier): Identifier {
     var res = res
     if (Utils.inSkyblock && Skytils.config.moreVisibleGhosts && mode == "mining_3") {
         res = VISIBLE_CREEPER_ARMOR

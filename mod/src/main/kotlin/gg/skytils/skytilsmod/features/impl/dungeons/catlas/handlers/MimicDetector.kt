@@ -31,9 +31,9 @@ import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonMimic
-import net.minecraft.entity.monster.EntityZombie
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
+import net.minecraft.entity.mob.ZombieEntity
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.BlockPos
 
 object MimicDetector : EventSubscriber {
     var mimicOpenTime = 0L
@@ -45,7 +45,7 @@ object MimicDetector : EventSubscriber {
     }
 
     fun onBlockChange(event: BlockStateUpdateEvent) {
-        if (Utils.inDungeons && event.old.block == Blocks.trapped_chest && event.update.block == Blocks.air) {
+        if (Utils.inDungeons && event.old.block == Blocks.TRAPPED_CHEST && event.update.block == Blocks.AIR) {
             mimicOpenTime = System.currentTimeMillis()
             mimicPos = event.pos
         }
@@ -53,11 +53,11 @@ object MimicDetector : EventSubscriber {
 
     fun onEntityDeath(event: LivingEntityDeathEvent) {
         if (!Utils.inDungeons) return
-        val entity = event.entity as? EntityZombie ?: return
+        val entity = event.entity as? ZombieEntity ?: return
         //#if MC==10809
-        if (entity.isChild && (0..3).all { entity.getCurrentArmor(it) == null }) {
+        //$$ if (entity.isBaby && (0..3).all { entity.method_0_7157(it) == null }) {
         //#else
-        //$$ if (entity.isBaby && entity.armorItems.all { it == ItemStack.EMPTY }) {
+        if (entity.isBaby && entity.armorItems.all { it == ItemStack.EMPTY }) {
         //#endif
             if (!ScoreCalculation.mimicKilled.get()) {
                 ScoreCalculation.mimicKilled.set(true)
@@ -73,13 +73,13 @@ object MimicDetector : EventSubscriber {
         if (ScoreCalculation.mimicKilled.get()) return
         if (mimicOpenTime == 0L) return
         if (System.currentTimeMillis() - mimicOpenTime < 750) return
-        if (mc.thePlayer!!.position.distanceSq(mimicPos) < 400) {
-            if (mc.theWorld!!.loadedEntityList.none {
-                    it is EntityZombie && it.isChild && it.getEquipmentInSlot(EquipmentSlot.HEAD)
+        if (mc.player!!.blockPos.getSquaredDistance(mimicPos) < 400) {
+            if (mc.world!!.entities.none {
+                    it is ZombieEntity && it.isBaby && it.getEquippedStack(EquipmentSlot.HEAD)
                         //#if MC==10809
-                        ?.getSubCompound("SkullOwner", false)
+                        //$$ ?.getOrCreateSubNbt("SkullOwner", false)
                         //#else
-                        //$$ ?.getSubNbt("SkullOwner")
+                        ?.getSubNbt("SkullOwner")
                         //#endif
                         ?.getString("Id") == "ae55953f-605e-3c71-a813-310c028de150"
                 }) {

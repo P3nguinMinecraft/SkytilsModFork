@@ -20,16 +20,16 @@ package gg.skytils.skytilsmod.mixins.transformers.events;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.skytilsmod._event.PacketSendEvent;
-import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.network.Packet;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.packet.Packet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(NetHandlerPlayClient.class)
+@Mixin(ClientPlayNetworkHandler.class)
 public class MixinNetHandlerPlayClient {
-    @Inject(method = "addToSendQueue", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "sendPacket", at = @At("HEAD"), cancellable = true)
     public void addToSendQueue(Packet<?> p_147297_1_, CallbackInfo ci) {
         if (EventsKt.postCancellableSync(new PacketSendEvent(p_147297_1_))) {
             ci.cancel();

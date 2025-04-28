@@ -28,8 +28,8 @@ import kotlinx.serialization.builtins.IntArraySerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.util.BlockPos
+import net.minecraft.nbt.NbtIo
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.util.Constants
 import java.awt.Color
 import java.util.*
@@ -176,9 +176,9 @@ fun Inventory.toMCItems() =
         if (data.isEmpty()) {
             emptyList()
         } else {
-            val list = CompressedStreamTools.readCompressed(Base64.decode(data).inputStream()).getTagList("i", Constants.NBT.TAG_COMPOUND)
-            (0 until list.tagCount()).map { idx ->
-                list.getCompoundTagAt(idx).takeUnless { it.hasNoTags() }?.let { ItemStack.loadItemStackFromNBT(it) }
+            val list = NbtIo.readCompressed(Base64.decode(data).inputStream()).getList("i", Constants.NBT.TAG_COMPOUND)
+            (0 until list.size()).map { idx ->
+                list.getCompound(idx).takeUnless { it.isEmpty }?.let { ItemStack.fromNbt(it) }
             }
         }
     }

@@ -18,12 +18,12 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.world.storage.WorldInfo;
+import net.minecraft.world.level.LevelProperties;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(WorldInfo.class)
+@Mixin(LevelProperties.class)
 public interface AccessorWorldInfo {
-    @Accessor("worldTime")
+    @Accessor("timeOfDay")
     long getRealWorldTime();
 }

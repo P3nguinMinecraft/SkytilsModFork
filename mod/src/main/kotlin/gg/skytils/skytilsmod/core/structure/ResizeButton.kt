@@ -21,26 +21,26 @@ package gg.skytils.skytilsmod.core.structure
 import gg.essential.universal.UResolution
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.widget.ClickableWidget
 import org.lwjgl.input.Mouse
 
 class ResizeButton(var x: Float, var y: Float, var element: GuiElement, val corner: Corner) :
-    GuiButton(-1, 0, 0, null) {
+    ClickableWidget(-1, 0, 0, null) {
     private var cornerOffsetX = 0f
     private var cornerOffsetY = 0f
-    override fun drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
+    override fun render(mc: MinecraftClient, mouseX: Int, mouseY: Int) {
         val scale = element.scale
         hovered = mouseX >= x && mouseY >= y && mouseX < x + SIZE * 2f * scale && mouseY < y + SIZE * 2f * scale
         val color = if (hovered) CommonColors.WHITE.toInt() else CommonColors.WHITE.toInt(70)
         RenderUtil.drawRect(0.0, 0.0, (SIZE * 2).toDouble(), (SIZE * 2).toDouble(), color)
     }
 
-    override fun mousePressed(mc: Minecraft, mouseX: Int, mouseY: Int): Boolean {
+    override fun clicked(mc: MinecraftClient, mouseX: Int, mouseY: Int): Boolean {
         val sr = UResolution
         val minecraftScale = sr.scaleFactor.toFloat()
         val floatMouseX = Mouse.getX() / minecraftScale
-        val floatMouseY = (mc.displayHeight - Mouse.getY()) / minecraftScale
+        val floatMouseY = (mc.field_0_2582 - Mouse.getY()) / minecraftScale
         cornerOffsetX = floatMouseX
         cornerOffsetY = floatMouseY
         return hovered

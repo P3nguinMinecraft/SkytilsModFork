@@ -22,26 +22,26 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures;
 import gg.skytils.skytilsmod.utils.Utils;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Items;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
+import net.minecraft.item.BowItem;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(ItemBow.class)
+@Mixin(BowItem.class)
 public abstract class MixinItemBow extends Item {
-    @WrapOperation(method = "onItemRightClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/InventoryPlayer;hasItem(Lnet/minecraft/item/Item;)Z"))
-    private boolean onItemRightClick$hasItem(InventoryPlayer instance, Item itemIn, Operation<Boolean> original) {
+    @WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;method_0_7937(Lnet/minecraft/item/Item;)Z"))
+    private boolean onItemRightClick$hasItem(PlayerInventory instance, Item itemIn, Operation<Boolean> original) {
         boolean hasItem = original.call(instance, itemIn);
 
-        if (itemIn != Items.arrow || hasItem || !Utils.INSTANCE.getInDungeons()) return hasItem;
+        if (itemIn != Items.ARROW || hasItem || !Utils.INSTANCE.getInDungeons()) return hasItem;
 
         ItemStack intended = DungeonFeatures.INSTANCE.getIntendedItemStack();
         ItemStack fake = DungeonFeatures.INSTANCE.getFakeDungeonMap();
         if (fake != null && intended != null) {
-            return intended.getItem() == itemIn && instance.getStackInSlot(8) == fake;
+            return intended.getItem() == itemIn && instance.getStack(8) == fake;
         }
 
         return false;

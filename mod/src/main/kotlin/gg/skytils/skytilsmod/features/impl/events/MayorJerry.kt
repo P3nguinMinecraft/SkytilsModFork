@@ -34,7 +34,7 @@ import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.init.Items
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -55,8 +55,8 @@ object MayorJerry : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
         if (!Skytils.config.hiddenJerryTimer && !Skytils.config.hiddenJerryAlert && !Skytils.config.trackHiddenJerry) return
-        val unformatted = event.message.unformattedText.stripControlCodes()
-        val formatted = event.message.formattedText
+        val unformatted = event.message.string.stripControlCodes()
+        val formatted = event.message.method_10865()
         if (formatted.startsWith("§b ☺ §e") && unformatted.contains("Jerry") && !unformatted.contains(
                 "Jerry Box"
             )
@@ -115,9 +115,9 @@ object MayorJerry : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Paul (0:30)")
+            get() = ScreenRenderer.fontRenderer.getWidth("Paul (0:30)")
 
         override val toggled: Boolean
             get() = Skytils.config.displayJerryPerks
@@ -128,7 +128,7 @@ object MayorJerry : EventSubscriber {
     }
 
     class JerryTimerGuiElement : GuiElement("Hidden Jerry Timer", x = 10, y = 10) {
-        private val villagerEgg = ItemStack(Items.spawn_egg, 1, 120)
+        private val villagerEgg = ItemStack(Items.SPAWN_EGG, 1, 120)
 
         override fun render() {
             if (Utils.inSkyblock && toggled && lastJerry != -1L) {
@@ -166,7 +166,7 @@ object MayorJerry : EventSubscriber {
         override val height: Int
             get() = 16
         override val width: Int
-            get() = 20 + ScreenRenderer.fontRenderer.getStringWidth("0:30")
+            get() = 20 + ScreenRenderer.fontRenderer.getWidth("0:30")
 
         override val toggled: Boolean
             get() = Skytils.config.hiddenJerryTimer

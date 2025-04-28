@@ -25,16 +25,16 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.block.BlockHalfStoneSlab
-import net.minecraft.block.BlockHalfWoodSlab
-import net.minecraft.block.BlockPlanks
-import net.minecraft.block.BlockStoneSlab
-import net.minecraft.entity.monster.EntityZombie
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
+import net.minecraft.class_0_229
+import net.minecraft.class_0_231
+import net.minecraft.class_0_267
+import net.minecraft.class_0_322
+import net.minecraft.entity.mob.ZombieEntity
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.BlockPos
 
-class RevenantSlayer(entity: EntityZombie) :
-    Slayer<EntityZombie>(entity, "Revenant Horror", "§c☠ §bRevenant Horror", "§c☠ §fAtoned Horror") {
+class RevenantSlayer(entity: ZombieEntity) :
+    Slayer<ZombieEntity>(entity, "Revenant Horror", "§c☠ §bRevenant Horror", "§c☠ §fAtoned Horror") {
 
     override fun set() {
         rev5PingTask.start()
@@ -48,36 +48,36 @@ class RevenantSlayer(entity: EntityZombie) :
     companion object {
         private fun createrev5PingTask() =
             tickTimer(4, repeats = true, register = false) {
-                if (Utils.inSkyblock && Config.rev5TNTPing && Skytils.mc.thePlayer != null) {
+                if (Utils.inSkyblock && Config.rev5TNTPing && Skytils.mc.player != null) {
                     if (SlayerFeatures.hasSlayerText) {
                         var under: BlockPos? = null
-                        if (Skytils.mc.thePlayer.onGround) {
+                        if (Skytils.mc.player.onGround) {
                             under = BlockPos(
-                                Skytils.mc.thePlayer.posX,
-                                Skytils.mc.thePlayer.posY - 0.5,
-                                Skytils.mc.thePlayer.posZ
+                                Skytils.mc.player.x,
+                                Skytils.mc.player.y - 0.5,
+                                Skytils.mc.player.z
                             )
                         } else {
-                            for (i in (Skytils.mc.thePlayer.posY - 0.5f).toInt() downTo 0 step 1) {
-                                val test = BlockPos(Skytils.mc.thePlayer.posX, i.toDouble(), Skytils.mc.thePlayer.posZ)
-                                if (Skytils.mc.theWorld.getBlockState(test).block !== Blocks.air) {
+                            for (i in (Skytils.mc.player.y - 0.5f).toInt() downTo 0 step 1) {
+                                val test = BlockPos(Skytils.mc.player.x, i.toDouble(), Skytils.mc.player.z)
+                                if (Skytils.mc.world.getBlockState(test).block !== Blocks.AIR) {
                                     under = test
                                     break
                                 }
                             }
                         }
                         if (under != null) {
-                            val blockUnder = Skytils.mc.theWorld.getBlockState(under)
+                            val blockUnder = Skytils.mc.world.getBlockState(under)
                             val isDanger = when {
-                                blockUnder.block === Blocks.stone_slab && blockUnder.getValue(BlockHalfStoneSlab.VARIANT) == BlockStoneSlab.EnumType.QUARTZ -> true
-                                blockUnder.block === Blocks.quartz_stairs || blockUnder.block === Blocks.acacia_stairs -> true
-                                blockUnder.block === Blocks.wooden_slab && blockUnder.getValue(BlockHalfWoodSlab.VARIANT) == BlockPlanks.EnumType.ACACIA -> true
-                                blockUnder.block === Blocks.stained_hardened_clay -> {
-                                    val color = Blocks.stained_hardened_clay.getMetaFromState(blockUnder)
+                                blockUnder.block === Blocks.field_0_643 && blockUnder.testProperty(class_0_229.field_0_1245) == class_0_322.class_0_323.QUARTZ -> true
+                                blockUnder.block === Blocks.QUARTZ_STAIRS || blockUnder.block === Blocks.ACACIA_STAIRS -> true
+                                blockUnder.block === Blocks.field_0_715 && blockUnder.testProperty(class_0_231.field_0_1323) == class_0_267.class_0_268.ACACIA -> true
+                                blockUnder.block === Blocks.STAINED_HARDENED_CLAY -> {
+                                    val color = Blocks.STAINED_HARDENED_CLAY.method_9593(blockUnder)
                                     color == 0 || color == 8 || color == 14
                                 }
 
-                                blockUnder.block === Blocks.bedrock -> true
+                                blockUnder.block === Blocks.BEDROCK -> true
                                 else -> false
                             }
                             if (isDanger) {

@@ -19,21 +19,21 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderHookKt;
-import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Render.class)
+@Mixin(EntityRenderer.class)
 public abstract class MixinRender<T extends Entity> {
     @Inject(method = "renderEntityOnFire", at = @At("HEAD"), cancellable = true)
     private void removeEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci) {
         RenderHookKt.removeEntityOnFire(entity, x, y, z, partialTicks, ci);
     }
 
-    @Inject(method = "renderLivingLabel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;translate(FFF)V", shift = At.Shift.AFTER))
+    @Inject(method = "renderLabel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4348(FFF)V", shift = At.Shift.AFTER))
     private void renderLivingLabel(T entityIn, String str, double x, double y, double z, int maxDistance, CallbackInfo ci) {
         RenderHookKt.renderLivingLabel(entityIn, str, x, y, z, maxDistance, ci);
     }

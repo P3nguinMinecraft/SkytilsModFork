@@ -18,13 +18,13 @@
 package gg.skytils.skytilsmod.core.structure
 
 import gg.skytils.skytilsmod.utils.RenderUtil
-import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.SoundHandler
-import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.sound.SoundManager
+import net.minecraft.client.gui.widget.ClickableWidget
+import com.mojang.blaze3d.systems.RenderSystem
 import java.awt.Color
 
-class LocationButton(var element: GuiElement) : GuiButton(-1, 0, 0, null) {
+class LocationButton(var element: GuiElement) : ClickableWidget(-1, 0, 0, null) {
     var x = 0f
     var y = 0f
     var x2 = 0f
@@ -44,27 +44,27 @@ class LocationButton(var element: GuiElement) : GuiButton(-1, 0, 0, null) {
         y2 = y + element.scaleHeight + 6
     }
 
-    override fun drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
+    override fun render(mc: MinecraftClient, mouseX: Int, mouseY: Int) {
         refreshLocations()
         hovered = mouseX >= x && mouseY >= y && mouseX < x2 && mouseY < y2
         val c = Color(255, 255, 255, if (hovered) 100 else 40)
         RenderUtil.drawRect(0.0, 0.0, (element.width + 4).toDouble(), (element.height + 4).toDouble(), c.rgb)
-        GlStateManager.translate(2f, 2f, 0f)
+        RenderSystem.method_4348(2f, 2f, 0f)
         element.demoRender()
-        GlStateManager.translate(-2f, -2f, 0f)
+        RenderSystem.method_4348(-2f, -2f, 0f)
         if (hovered) {
             lastHoveredElement = element
         }
     }
 
-    override fun mousePressed(mc: Minecraft, mouseX: Int, mouseY: Int): Boolean {
-        return enabled && visible && hovered
+    override fun clicked(mc: MinecraftClient, mouseX: Int, mouseY: Int): Boolean {
+        return active && visible && hovered
     }
 
     /**
      * get rid of clicking noise
      */
-    override fun playPressSound(soundHandlerIn: SoundHandler) {}
+    override fun playDownSound(soundHandlerIn: SoundManager) {}
 
     companion object {
         var lastHoveredElement: GuiElement? = null

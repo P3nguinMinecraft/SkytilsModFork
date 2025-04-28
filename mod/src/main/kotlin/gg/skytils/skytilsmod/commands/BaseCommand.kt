@@ -18,22 +18,22 @@
 
 package gg.skytils.skytilsmod.commands
 
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.command.CommandBase
-import net.minecraft.command.ICommandSender
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.class_0_1581
+import net.minecraft.server.command.CommandOutput
 
-abstract class BaseCommand(private val name: String, private val aliases: List<String> = emptyList()) : CommandBase() {
-    final override fun getCommandName(): String = name
-    final override fun getCommandAliases(): List<String> = aliases
-    final override fun getRequiredPermissionLevel() = 0
+abstract class BaseCommand(private val name: String, private val aliases: List<String> = emptyList()) : class_0_1581() {
+    final override fun method_0_5966(): String = name
+    final override fun method_0_5964(): List<String> = aliases
+    final override fun method_0_5757() = 0
 
-    open fun getCommandUsage(player: EntityPlayerSP): String = "/$commandName"
+    open fun getCommandUsage(player: ClientPlayerEntity): String = "/$commandName"
 
-    abstract fun processCommand(player: EntityPlayerSP, args: Array<String>)
+    abstract fun processCommand(player: ClientPlayerEntity, args: Array<String>)
 
-    final override fun processCommand(sender: ICommandSender, args: Array<String>) =
-        processCommand(sender as EntityPlayerSP, args)
+    final override fun method_0_5962(sender: CommandOutput, args: Array<String>) =
+        processCommand(sender as ClientPlayerEntity, args)
 
-    final override fun getCommandUsage(sender: ICommandSender) =
-        getCommandUsage(sender as EntityPlayerSP)
+    final override fun method_0_5967(sender: CommandOutput) =
+        getCommandUsage(sender as ClientPlayerEntity)
 }

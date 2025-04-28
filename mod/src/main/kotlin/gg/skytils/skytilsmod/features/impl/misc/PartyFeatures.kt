@@ -69,7 +69,7 @@ object PartyFeatures : EventSubscriber {
         }
 
         event.cancelled = true
-        mc.ingameGUI.chatGUI.addToSentMessages(m)
+        mc.inGameHud.chatHud.addToMessageHistory(m)
 
     }
 }

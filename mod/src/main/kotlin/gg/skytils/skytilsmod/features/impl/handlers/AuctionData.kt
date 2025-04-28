@@ -53,40 +53,40 @@ object AuctionData : EventSubscriber {
                 id = "PET-${petInfo.type}-${petInfo.tier}"
             }
 
-            "ATTRIBUTE_SHARD" -> if (extraAttr.hasKey("attributes")) {
-                val attributes = extraAttr.getCompoundTag("attributes")
-                val attribute = attributes.keySet.firstOrNull()
+            "ATTRIBUTE_SHARD" -> if (extraAttr.contains("attributes")) {
+                val attributes = extraAttr.getCompound("attributes")
+                val attribute = attributes.keys.firstOrNull()
                 if (attribute != null) {
-                    id = "ATTRIBUTE_SHARD-${attribute.uppercase()}-${attributes.getInteger(attribute)}"
+                    id = "ATTRIBUTE_SHARD-${attribute.uppercase()}-${attributes.getInt(attribute)}"
                 }
             }
 
-            "ENCHANTED_BOOK" -> if (extraAttr.hasKey("enchantments")) {
-                val enchants = extraAttr.getCompoundTag("enchantments")
-                val enchant = enchants.keySet.firstOrNull()
+            "ENCHANTED_BOOK" -> if (extraAttr.contains("enchantments")) {
+                val enchants = extraAttr.getCompound("enchantments")
+                val enchant = enchants.keys.firstOrNull()
                 if (enchant != null) {
-                    id = "ENCHANTED_BOOK-${enchant.uppercase()}-${enchants.getInteger(enchant)}"
+                    id = "ENCHANTED_BOOK-${enchant.uppercase()}-${enchants.getInt(enchant)}"
                 }
             }
 
-            "POTION" -> if (extraAttr.hasKey("potion") && extraAttr.hasKey("potion_level")) {
+            "POTION" -> if (extraAttr.contains("potion") && extraAttr.contains("potion_level")) {
                 id = "POTION-${
                     extraAttr.getString("potion")
                         .uppercase()
-                }-${extraAttr.getInteger("potion_level")}${"-ENHANCED".toStringIfTrue(extraAttr.hasKey("enhanced"))}${
+                }-${extraAttr.getInt("potion_level")}${"-ENHANCED".toStringIfTrue(extraAttr.contains("enhanced"))}${
                     "-EXTENDED".toStringIfTrue(
-                        extraAttr.hasKey(
+                        extraAttr.contains(
                             "extended"
                         )
                     )
-                }${"-SPLASH".toStringIfTrue(extraAttr.hasKey("splash"))}"
+                }${"-SPLASH".toStringIfTrue(extraAttr.contains("splash"))}"
             }
 
-            "RUNE", "UNIQUE_RUNE" -> if (extraAttr.hasKey("runes")) {
-                val runes = extraAttr.getCompoundTag("runes")
-                val rune = runes.keySet.firstOrNull()
+            "RUNE", "UNIQUE_RUNE" -> if (extraAttr.contains("runes")) {
+                val runes = extraAttr.getCompound("runes")
+                val rune = runes.keys.firstOrNull()
                 if (rune != null) {
-                    id = "RUNE-${rune.uppercase()}-${runes.getInteger(rune)}"
+                    id = "RUNE-${rune.uppercase()}-${runes.getInt(rune)}"
                 }
             }
         }

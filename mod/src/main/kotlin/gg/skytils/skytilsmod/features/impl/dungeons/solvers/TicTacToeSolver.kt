@@ -33,13 +33,13 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.tictactoe.AlphaBetaAdvanced
 import gg.skytils.skytilsmod.utils.tictactoe.Board
-import net.minecraft.entity.item.EntityItemFrame
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.world.storage.MapData
+import net.minecraft.entity.decoration.ItemFrameEntity
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
+import net.minecraft.item.map.MapState
 import kotlin.experimental.and
 
 object TicTacToeSolver : EventSubscriber {
@@ -48,14 +48,14 @@ object TicTacToeSolver : EventSubscriber {
     private const val COLOR_INT_X = 114
     private const val COLOR_INT_O = 33
     private var topLeft: BlockPos? = null
-    private var roomFacing: EnumFacing? = null
+    private var roomFacing: Direction? = null
     private var board: Board? = null
-    private var mappedPositions = HashMap<Int, EntityItemFrame>()
+    private var mappedPositions = HashMap<Int, ItemFrameEntity>()
     private var bestMove: BlockPos? = null
 
     init {
         tickTimer(20, repeats = true) {
-            if (!Utils.inDungeons || !Skytils.config.ticTacToeSolver || mc.thePlayer == null) return@tickTimer
+            if (!Utils.inDungeons || !Skytils.config.ticTacToeSolver || mc.player == null) return@tickTimer
             if (SuperSecretSettings.azooPuzzoo || DungeonListener.incompletePuzzles.contains("Tic Tac Toe")) {
                 updatePuzzleState()
             } else {
@@ -97,7 +97,7 @@ object TicTacToeSolver : EventSubscriber {
                 if (move != -1) {
                     val column = move % Board.BOARD_WIDTH
                     val row = move / Board.BOARD_WIDTH
-                    bestMove = topLeft!!.down(row).offset(roomFacing!!.rotateY(), column)
+                    bestMove = topLeft!!.down(row).offset(roomFacing!!.rotateYClockwise(), column)
                 }
             } else {
                 bestMove = null
@@ -127,7 +127,7 @@ object TicTacToeSolver : EventSubscriber {
         if (!Utils.inDungeons || !Skytils.config.ticTacToeSolver) return
         if (bestMove != null) {
             RenderUtil.drawOutlinedBoundingBox(
-                AxisAlignedBB(bestMove, bestMove!!.add(1, 1, 1)),
+                Box(bestMove, bestMove!!.method_10069(1, 1, 1)),
                 Skytils.config.ticTacToeSolverColor,
                 3f,
                 event.partialTicks
@@ -136,27 +136,27 @@ object TicTacToeSolver : EventSubscriber {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun getBoardFrames(): List<EntityItemFrame> = mc.theWorld.loadedEntityList.filter {
-        it is EntityItemFrame &&
+    private fun getBoardFrames(): List<ItemFrameEntity> = mc.world.entities.filter {
+        it is ItemFrameEntity &&
                 it.rotation == 0 &&
-                it.position.down().let { realPos -> realPos.y in 70..72 } &&
-                it.displayedItem?.let { item ->
-                    item.item == Items.filled_map &&
-                            Items.filled_map.getMapData(item, mc.theWorld)?.let { mapData ->
+                it.blockPos.method_10074().let { realPos -> realPos.y in 70..72 } &&
+                it.heldItemStack?.let { item ->
+                    item.item == Items.FILLED_MAP &&
+                            Items.FILLED_MAP.getMapState(item, mc.world)?.let { mapData ->
                                 mapData[MAP_COLOR_INDEX].let { colorInt ->
                                     colorInt == COLOR_INT_X || colorInt == COLOR_INT_O
                                 }
                             } ?: false
                 } ?: false &&
-                mc.theWorld.getBlockState(it.position.down().offset(it.facingDirection.opposite, 1)).block == Blocks.iron_block
-    } as List<EntityItemFrame>
+                mc.world.getBlockState(it.blockPos.method_10074().offset(it.facing.opposite, 1)).block == Blocks.IRON_BLOCK
+    } as List<ItemFrameEntity>
 
-    private fun parseInitialState(frames: List<EntityItemFrame>) {
+    private fun parseInitialState(frames: List<ItemFrameEntity>) {
         for (frame in frames) {
             val (row, column) = getBoardPosition(frame)
             if (board == null) {
-                topLeft = frame.position.up(row-1).offset(frame.facingDirection.rotateY(), column)
-                roomFacing = frame.facingDirection.opposite
+                topLeft = frame.blockPos.up(row-1).offset(frame.facing.rotateYClockwise(), column)
+                roomFacing = frame.facing.opposite
                 board = Board()
             }
             board!!.place(column, row, getSpotOwner(frame))
@@ -167,27 +167,27 @@ object TicTacToeSolver : EventSubscriber {
         }
     }
 
-    private operator fun MapData.get(index: Int): Int {
+    private operator fun MapState.get(index: Int): Int {
         return (this.colors[index] and 255.toByte()).toInt()
     }
 
-    private fun getMapData(entity: EntityItemFrame) = Items.filled_map.getMapData(entity.displayedItem, mc.theWorld)
+    private fun getMapData(entity: ItemFrameEntity) = Items.FILLED_MAP.getMapState(entity.heldItemStack, mc.world)
 
-    private fun getBoardPosition(frame: EntityItemFrame): Pair<Int, Int> {
-        val realPos = frame.position.down()
-        val blockBehind = realPos.offset(frame.facingDirection.opposite)
+    private fun getBoardPosition(frame: ItemFrameEntity): Pair<Int, Int> {
+        val realPos = frame.blockPos.method_10074()
+        val blockBehind = realPos.method_10093(frame.facing.opposite)
 
         val row = 72 - realPos.y
         val column = when {
-            mc.theWorld.getBlockState(blockBehind.offset(frame.facingDirection.rotateYCCW())).block != Blocks.iron_block -> 2
-            mc.theWorld.getBlockState(blockBehind.offset(frame.facingDirection.rotateY())).block != Blocks.iron_block -> 0
+            mc.world.getBlockState(blockBehind.method_10093(frame.facing.rotateYCounterclockwise())).block != Blocks.IRON_BLOCK -> 2
+            mc.world.getBlockState(blockBehind.method_10093(frame.facing.rotateYClockwise())).block != Blocks.IRON_BLOCK -> 0
             else -> 1
         }
 
         return row to column
     }
 
-    private fun getSpotOwner(frame: EntityItemFrame): Board.State {
+    private fun getSpotOwner(frame: ItemFrameEntity): Board.State {
         val mapData = getMapData(frame) ?: error("Non map checked")
         return if (mapData[MAP_COLOR_INDEX] == COLOR_INT_X) Board.State.X else Board.State.O
     }

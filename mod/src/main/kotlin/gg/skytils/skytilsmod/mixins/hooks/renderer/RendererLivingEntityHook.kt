@@ -29,9 +29,9 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory
 import gg.skytils.skytilsmod.utils.withAlpha
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLiving
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.monster.EntityEnderman
+import net.minecraft.entity.mob.MobEntity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.mob.EndermanEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 fun setColorMultiplier(
@@ -42,7 +42,7 @@ fun setColorMultiplier(
 ) {
     if (entity is ExtensionEntityLivingBase && entity.skytilsHook.colorMultiplier != null) cir.returnValue =
         entity.skytilsHook.colorMultiplier?.rgb
-    if (Skytils.config.recolorSeraphBoss && Utils.inSkyblock && entity is EntityEnderman) {
+    if (Skytils.config.recolorSeraphBoss && Utils.inSkyblock && entity is EndermanEntity) {
         if (slayer?.entity != entity) return
         entity.hurtTime = 0
         (slayer as? SeraphSlayer)?.run {
@@ -54,7 +54,7 @@ fun setColorMultiplier(
                 cir.returnValue = Skytils.config.seraphNormalPhaseColor.withAlpha(169)
             }
         }
-    } else if (Skytils.config.attunementDisplay && Utils.inSkyblock && entity is EntityLiving) {
+    } else if (Skytils.config.attunementDisplay && Utils.inSkyblock && entity is MobEntity) {
         (slayer as? DemonlordSlayer)?.let {
             if (entity == it.relevantEntity) {
                 entity.hurtTime = 0
@@ -70,13 +70,13 @@ fun setColorMultiplier(
     }
 }
 
-fun replaceEntityName(entity: EntityLivingBase, currName: String): String {
+fun replaceEntityName(entity: LivingEntity, currName: String): String {
     entity as ExtensionEntityLivingBase
 
     return entity.skytilsHook.overrideDisplayName ?: currName
 }
 
-fun replaceHurtTime(instance: EntityLivingBase, original: Operation<Int>): Int {
+fun replaceHurtTime(instance: LivingEntity, original: Operation<Int>): Int {
     instance as ExtensionEntityLivingBase
 
     return if (Skytils.config.changeHurtColorOnWitherKingsDragons && instance.skytilsHook.masterDragonType != null) 0 else original.call(instance)

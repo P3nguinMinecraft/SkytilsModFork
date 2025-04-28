@@ -78,7 +78,7 @@ class ItemConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cycl
             width = ChildBasedSizeConstraint()
             height = ChildBasedSizeConstraint()
         }.apply {
-            for ((i, item) in mc.thePlayer.inventory.mainInventory.withIndex()) {
+            for ((i, item) in client.player.inventory.field_7547.withIndex()) {
                 addChild(SlotComponent(item).constrain {
                     x = ((i % 9) * (16 + 2)).pixels
                     y = ((i / 9) * (16 + 2)).pixels
@@ -112,7 +112,7 @@ class ItemConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cycl
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+            client.setScreen(ItemCycleConditionGui(cycle))
         }
 
         SimpleButton(if (condition == null) "Create" else "Edit").childOf(bottomButtons).constrain {
@@ -126,7 +126,7 @@ class ItemConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cycl
             cond.negated = negationDropdown.getValue() == 1
             cond.item = chosenItem.get() ?: return@onLeftClick
 
-            mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+            client.setScreen(ItemCycleConditionGui(cycle))
             PersistentSave.markDirty<ItemCycle>()
         }
     }

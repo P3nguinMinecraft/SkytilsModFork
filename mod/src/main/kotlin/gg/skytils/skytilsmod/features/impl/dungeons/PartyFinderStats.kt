@@ -35,8 +35,8 @@ import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.toRoman
 import gg.skytils.skytilsmod.utils.SkillUtils.level
 import kotlinx.coroutines.launch
-import net.minecraft.event.ClickEvent
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.text.ClickEvent
+import net.minecraft.nbt.NbtCompound
 import java.util.*
 import kotlin.math.floor
 import kotlin.time.Duration
@@ -57,9 +57,9 @@ object PartyFinderStats : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.isOnHypixel) return
         if (Skytils.config.partyFinderStats) {
-            val match = partyFinderRegex.find(event.message.formattedText.stripControlCodes()) ?: return
+            val match = partyFinderRegex.find(event.message.method_10865().stripControlCodes()) ?: return
             val username = match.groups["name"]?.value ?: return
-            if (username == mc.thePlayer.name) return
+            if (username == mc.player.name) return
             printStats(username, true)
         }
     }
@@ -117,9 +117,9 @@ object PartyFinderStats : EventSubscriber {
                         )
                     )
                     profileData.inventory.armor.toMCItems().filterNotNull().forEach { armorPiece ->
-                        val lore = armorPiece.getTooltip(mc.thePlayer, false)
+                        val lore = armorPiece.getTooltip(mc.player, false)
                         component.append(
-                            UTextComponent("${armorPiece.displayName}\n").setHoverText(
+                            UTextComponent("${armorPiece.name}\n").setHoverText(
                                 lore.joinToString("\n")
                             )
                         )
@@ -158,7 +158,7 @@ object PartyFinderStats : EventSubscriber {
                                 //Mage
                                 when {
                                     extraAttribs.any {
-                                        it.getTagList("ability_scroll", 8 /* TAG_STRING*/ ).tagCount() == 3
+                                        it.getList("ability_scroll", 8 /* TAG_STRING*/ ).size() == 3
                                     } -> add("§dWither Impact")
 
                                     itemIds.contains("MIDAS_STAFF") -> add("§6Midas Staff")
@@ -317,8 +317,8 @@ object PartyFinderStats : EventSubscriber {
         return if (set.contains(itemId)) itemName else null
     }
 
-    private fun checkStonk(items: Set<String?>, tags: Set<NBTTagCompound?>): String? {
-        val eff = tags.mapNotNull { it?.getCompoundTag("enchantments")?.getInteger("efficiency") }.maxOrNull() ?: 0
+    private fun checkStonk(items: Set<String?>, tags: Set<NbtCompound?>): String? {
+        val eff = tags.mapNotNull { it?.getCompound("enchantments")?.getInt("efficiency") }.maxOrNull() ?: 0
         return when {
             eff >= 7 -> "§6Efficiency ${eff.toRoman()}"
             items.contains("STONK") -> "§6Stonk"

@@ -19,18 +19,18 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
-import net.minecraft.client.renderer.entity.layers.LayerEnderDragonDeath;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.boss.EntityDragon;
+import net.minecraft.client.render.entity.feature.EnderDragonDeathFeatureRenderer;
+import net.minecraft.class_995;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(LayerEnderDragonDeath.class)
-public abstract class MixinLayerEnderDragonDeath implements LayerRenderer<EntityDragon> {
-    @Inject(method = "doRenderLayer(Lnet/minecraft/entity/boss/EntityDragon;FFFFFFF)V", at = @At(value = "HEAD"), cancellable = true)
-    private void onRenderDragonDeath(EntityDragon entitylivingbaseIn, float f, float g, float partialTicks, float h, float i, float j, float scale, CallbackInfo ci) {
+@Mixin(EnderDragonDeathFeatureRenderer.class)
+public abstract class MixinLayerEnderDragonDeath implements class_995<EnderDragonEntity> {
+    @Inject(method = "method_4199(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFFF)V", at = @At(value = "HEAD"), cancellable = true)
+    private void onRenderDragonDeath(EnderDragonEntity entitylivingbaseIn, float f, float g, float partialTicks, float h, float i, float j, float scale, CallbackInfo ci) {
         if (MasterMode7Features.INSTANCE.shouldHideDragonDeath()) ci.cancel();
     }
 }

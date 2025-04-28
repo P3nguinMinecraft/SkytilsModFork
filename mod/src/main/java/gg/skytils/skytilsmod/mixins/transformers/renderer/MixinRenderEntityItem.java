@@ -19,17 +19,17 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderEntityItemHookKt;
-import net.minecraft.client.renderer.entity.RenderEntityItem;
-import net.minecraft.entity.item.EntityItem;
+import net.minecraft.client.render.entity.ItemEntityRenderer;
+import net.minecraft.entity.ItemEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(RenderEntityItem.class)
+@Mixin(ItemEntityRenderer.class)
 public abstract class MixinRenderEntityItem {
-    @Inject(method = "doRender", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;pushMatrix()V", shift = At.Shift.AFTER, ordinal = 1))
-    private void scaleItemDrop(EntityItem entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;pushMatrix()V", shift = At.Shift.AFTER, ordinal = 1))
+    private void scaleItemDrop(ItemEntity entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
         RenderEntityItemHookKt.scaleItemDrop(entity, x, y, z, entityYaw, partialTicks, ci);
     }
 }

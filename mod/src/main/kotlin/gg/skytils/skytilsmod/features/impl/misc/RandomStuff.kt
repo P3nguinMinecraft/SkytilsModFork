@@ -27,9 +27,9 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.item.ItemBlock
-import net.minecraft.network.play.server.S0EPacketSpawnObject
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.item.BlockItem
+import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 
 object RandomStuff : EventSubscriber {
 
@@ -40,7 +40,7 @@ object RandomStuff : EventSubscriber {
 
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (!Skytils.config.randomStuff || !Utils.inSkyblock) return
-        if (event.packet is S0EPacketSpawnObject && event.packet.type == 70 && ((DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L) || SBInfo.mode == SkyblockIsland.KuudraHollow.mode)) {
+        if (event.packet is EntitySpawnS2CPacket && event.packet.entityType == 70 && ((DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L) || SBInfo.mode == SkyblockIsland.KuudraHollow.mode)) {
             event.cancelled = true
         }
     }
@@ -48,11 +48,11 @@ object RandomStuff : EventSubscriber {
     fun onCheckRenderEvent(event: CheckRenderEntityEvent<*>) {
         if (!Skytils.config.randomStuff || !Utils.inSkyblock) return
         event.apply {
-            if (entity.isInvisible && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L && entity is EntityArmorStand) {
-                val nn = entity.inventory.filterNotNull()
+            if (entity.isInvisible && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L && entity is ArmorStandEntity) {
+                val nn = entity.armorItems.filterNotNull()
                 if (nn.size != 1) return
-                if (nn.first().item !is ItemBlock) return
-                entity.setDead()
+                if (nn.first().item !is BlockItem) return
+                entity.remove()
             }
         }
     }

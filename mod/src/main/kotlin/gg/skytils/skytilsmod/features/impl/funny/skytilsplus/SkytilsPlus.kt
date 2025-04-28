@@ -65,7 +65,7 @@ object SkytilsPlus : EventSubscriber {
                     UChat.chat("${Skytils.failPrefix} §cInvalid code.")
                 }
             }
-            mc.ingameGUI.chatGUI.addToSentMessages(event.message)
+            mc.inGameHud.chatHud.addToMessageHistory(event.message)
         }
     }
 

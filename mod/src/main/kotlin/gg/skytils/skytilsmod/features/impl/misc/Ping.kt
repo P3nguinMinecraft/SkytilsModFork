@@ -33,11 +33,11 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.hasMoved
-import net.minecraft.client.multiplayer.ServerData
-import net.minecraft.client.network.OldServerPinger
-import net.minecraft.network.play.client.C16PacketClientStatus
-import net.minecraft.network.play.server.S01PacketJoinGame
-import net.minecraft.network.play.server.S37PacketStatistics
+import net.minecraft.client.network.ServerInfo
+import net.minecraft.client.network.MultiplayerServerListPinger
+import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket
+import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket
+import net.minecraft.network.packet.s2c.play.StatisticsS2CPacket
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 
@@ -49,7 +49,7 @@ object Ping : EventSubscriber {
 
     var invokedCommand = false
 
-    val oldServerPinger = OldServerPinger()
+    val oldServerPinger = MultiplayerServerListPinger()
     var lastOldServerPing = 0L
 
     override fun setup() {
@@ -61,8 +61,8 @@ object Ping : EventSubscriber {
             if (invokedCommand) UChat.chat("§cAlready pinging!")
             return
         }
-        mc.thePlayer.sendQueue.networkManager.sendPacket(
-            C16PacketClientStatus(C16PacketClientStatus.EnumState.REQUEST_STATS),
+        mc.player.networkHandler.method_2872().send(
+            ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.REQUEST_STATS),
             {
                 lastPingAt = System.nanoTime()
             }
@@ -72,12 +72,12 @@ object Ping : EventSubscriber {
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (lastPingAt > 0) {
             when (event.packet) {
-                is S01PacketJoinGame -> {
+                is GameJoinS2CPacket -> {
                     lastPingAt = -1L
                     invokedCommand = false
                 }
 
-                is S37PacketStatistics -> {
+                is StatisticsS2CPacket -> {
                     val diff = (abs(System.nanoTime() - lastPingAt) / 1_000_000.0)
                     lastPingAt *= -1
                     pingCache = diff
@@ -102,25 +102,25 @@ object Ping : EventSubscriber {
 
     class PingDisplayElement : GuiElement(name = "Ping Display", x = 10, y = 10) {
         override fun render() {
-            if (Utils.isOnHypixel && toggled && mc.thePlayer != null) {
+            if (Utils.isOnHypixel && toggled && mc.player != null) {
                 when (Skytils.config.pingDisplay) {
                     1 -> {
-                        if (mc.currentServerData == null) {
-                            mc.setServerData(ServerData("Skytils-Dummy-Hypixel", "mc.hypixel.net", false))
+                        if (mc.currentServerEntry == null) {
+                            mc.currentServerEntry = ServerInfo("Skytils-Dummy-Hypixel", "mc.hypixel.net", false)
                         }
                         if (System.currentTimeMillis() - lastOldServerPing > 5000) {
                             lastOldServerPing = System.currentTimeMillis()
                             AccessorServerListEntryNormal.getPingerPool()
                                 .submit {
-                                    oldServerPinger.ping(mc.currentServerData)
+                                    oldServerPinger.add(mc.currentServerEntry)
                                 }
                         }
-                        if (mc.currentServerData.pingToServer != -1L) pingCache =
-                            mc.currentServerData.pingToServer.toDouble()
+                        if (mc.currentServerEntry.ping != -1L) pingCache =
+                            mc.currentServerEntry.ping.toDouble()
                     }
 
                     2 -> {
-                        if (lastPingAt < 0 && (mc.currentScreen != null || !mc.thePlayer.hasMoved) && System.nanoTime()
+                        if (lastPingAt < 0 && (mc.currentScreen != null || !mc.player.hasMoved) && System.nanoTime()
                             - lastPingAt.absoluteValue > 1_000_000L * 5_000
                         ) {
                             sendPing()
@@ -160,9 +160,9 @@ object Ping : EventSubscriber {
         override val toggled: Boolean
             get() = Skytils.config.pingDisplay != 0
         override val height: Int
-            get() = fr.FONT_HEIGHT
+            get() = fr.field_0_2811
         override val width: Int
-            get() = fr.getStringWidth("69.69ms")
+            get() = fr.getWidth("69.69ms")
 
         init {
             Skytils.guiManager.registerElement(this)

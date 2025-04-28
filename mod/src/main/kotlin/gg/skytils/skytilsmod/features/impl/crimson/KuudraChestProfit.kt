@@ -40,8 +40,8 @@ import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.inventory.ContainerChest
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 import java.util.TreeSet
 
@@ -61,17 +61,17 @@ object KuudraChestProfit : EventSubscriber {
 
     fun onGUIDrawnEvent(event: GuiContainerForegroundDrawnEvent) {
         if (!Skytils.config.kuudraChestProfit || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
-        val inv = (event.container as? ContainerChest ?: return).lowerChestInventory
+        val inv = (event.container as? GenericContainerScreenHandler ?: return).inventory
 
         if (event.chestName.endsWith(" Chest")) {
             val chestType = KuudraChest.getFromName(event.chestName) ?: return
-            val openChest = inv.getStackInSlot(31) ?: return
-            if (openChest.displayName == "§aOpen Reward Chest" && chestType.items.isEmpty()) {
+            val openChest = inv.getStack(31) ?: return
+            if (openChest.name == "§aOpen Reward Chest" && chestType.items.isEmpty()) {
                 runCatching {
                     val key = getKeyNeeded(ItemUtil.getItemLore(openChest))
                     chestType.keyNeeded = key
                     for (i in 9..17) {
-                        val lootSlot = inv.getStackInSlot(i) ?: continue
+                        val lootSlot = inv.getStack(i) ?: continue
                         chestType.addItem(lootSlot)
                     }
                     if (key != null && Skytils.config.kuudraChestProfitCountsKey) {
@@ -82,14 +82,14 @@ object KuudraChestProfit : EventSubscriber {
                     }
                 }
             }
-            GlStateManager.pushMatrix()
-            GlStateManager.translate(
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4412(
                 (-(event.gui as AccessorGuiContainer).guiLeft).toDouble(),
                 -(event.gui as AccessorGuiContainer).guiTop.toDouble(),
                 299.0
             )
             drawChestProfit(chestType)
-            GlStateManager.popMatrix()
+            RenderSystem.popMatrix()
         }
     }
 
@@ -117,8 +117,8 @@ object KuudraChestProfit : EventSubscriber {
         if (chest.items.size > 0) {
             val leftAlign = element.scaleX < UResolution.scaledWidth / 2f
             val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            GlStateManager.color(1f, 1f, 1f, 1f)
-            GlStateManager.disableLighting()
+            RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+            RenderSystem.method_4406()
             var drawnLines = 1
 
             ScreenRenderer.fontRenderer.drawString(
@@ -137,7 +137,7 @@ object KuudraChestProfit : EventSubscriber {
                 ScreenRenderer.fontRenderer.drawString(
                     line,
                     if (leftAlign) element.scaleX else element.scaleX + element.width,
-                    element.scaleY + drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT,
+                    element.scaleY + drawnLines * ScreenRenderer.fontRenderer.field_0_2811,
                     CommonColors.WHITE,
                     alignment,
                     textShadow_
@@ -152,7 +152,7 @@ object KuudraChestProfit : EventSubscriber {
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (SBInfo.mode == SkyblockIsland.KuudraHollow.mode || event.container !is ContainerChest) return
+        if (SBInfo.mode == SkyblockIsland.KuudraHollow.mode || event.container !is GenericContainerScreenHandler) return
         if (event.slotId in 9..17 && event.chestName.endsWith(" Chest") && KuudraChest.getFromName(event.chestName) != null) {
             event.cancelled = true
         }
@@ -176,11 +176,11 @@ object KuudraChestProfit : EventSubscriber {
             IO.launch {
                 val identifier = AuctionData.getIdentifier(item)
                 val extraAttr = ItemUtil.getExtraAttributes(item)
-                var displayName = item.displayName
+                var displayName = item.name
 
                 val itemValue = if (identifier == null) {
-                    getEssenceValue(item.displayName) ?: return@launch
-                } else if ((extraAttr?.getCompoundTag("attributes")?.keySet?.size ?: 0) > 1) {
+                    getEssenceValue(item.name) ?: return@launch
+                } else if ((extraAttr?.getCompound("attributes")?.keys?.size ?: 0) > 1) {
                     val priceData = KuudraPriceData.getOrFetchAttributePricedItem(item)
                     if (priceData != null && priceData != KuudraPriceData.AttributePricedItem.EMPTY && priceData != KuudraPriceData.AttributePricedItem.FAILURE) {
                         priceData.price
@@ -196,7 +196,7 @@ object KuudraChestProfit : EventSubscriber {
                     AuctionData.lowestBINs[identifier] ?: 0.0
                 }
                 withContext(Dispatchers.MC) {
-                    items.add(KuudraChestLootItem(item.stackSize, displayName, itemValue))
+                    items.add(KuudraChestLootItem(item.count, displayName, itemValue))
 
                     value += itemValue
                 }
@@ -222,13 +222,13 @@ object KuudraChestProfit : EventSubscriber {
             if (toggled && SBInfo.mode == SkyblockIsland.KuudraHollow.mode) {
                 val leftAlign = scaleX < sr.scaledWidth / 2f
                 textShadow_ = textShadow
-                GlStateManager.color(1f, 1f, 1f, 1f)
-                GlStateManager.disableLighting()
+                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+                RenderSystem.method_4406()
                 KuudraChest.entries.filter { it.items.isNotEmpty() }.forEachIndexed { i, chest ->
                     ScreenRenderer.fontRenderer.drawString(
                         "${chest.displayText}§f: §${(if (chest.value > 0) "a" else "c")}${NumberUtil.format(chest.value.toLong())}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (i * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                        (i * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                         chest.displayColor,
                         if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT,
                         textShadow
@@ -242,9 +242,9 @@ object KuudraChestProfit : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * KuudraChest.entries.size
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * KuudraChest.entries.size
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Paid Chest: +300M")
+            get() = ScreenRenderer.fontRenderer.getWidth("Paid Chest: +300M")
 
         override val toggled: Boolean
             get() = Skytils.config.kuudraChestProfit

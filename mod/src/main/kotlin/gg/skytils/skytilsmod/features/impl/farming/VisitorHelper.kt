@@ -35,8 +35,8 @@ import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 
 object VisitorHelper : EventSubscriber {
@@ -68,11 +68,11 @@ object VisitorHelper : EventSubscriber {
 
             if (!inGarden) return@tickTimer
 
-            val container = (mc.currentScreen as? GuiChest)?.inventorySlots as? ContainerChest ?: return@tickTimer
-            val chestName = container.lowerChestInventory.name
+            val container = (mc.currentScreen as? GenericContainerScreen)?.handler as? GenericContainerScreenHandler ?: return@tickTimer
+            val chestName = container.inventory.name
             val npcSummary: ItemStack? = container.getSlot(13).stack
             val acceptOffer: ItemStack? = container.getSlot(29).stack
-            if (npcSummary?.displayName.stripControlCodes() == chestName.stripControlCodes() && acceptOffer?.displayName == "§aAccept Offer") {
+            if (npcSummary?.name.stripControlCodes() == chestName.stripControlCodes() && acceptOffer?.name == "§aAccept Offer") {
                 val lore = ItemUtil.getItemLore(acceptOffer)
                 var copper = 0
 
@@ -118,7 +118,7 @@ object VisitorHelper : EventSubscriber {
     }
 
     fun onBackgroundDrawn(event: GuiContainerBackgroundDrawnEvent) {
-        if (textLines.isEmpty() || event.gui !is GuiChest) return
+        if (textLines.isEmpty() || event.gui !is GenericContainerScreen) return
         val stack = UMatrixStack()
         stack.push()
         stack.translate(VisitorHelperDisplay.scaleX, VisitorHelperDisplay.scaleY, 0f)
@@ -160,7 +160,7 @@ object VisitorHelper : EventSubscriber {
                 "§eTotal Value: §a900M"
             ).forEachIndexed { i, str ->
                 fr.drawString(
-                    str, textPosX, (i * fr.FONT_HEIGHT).toFloat(),
+                    str, textPosX, (i * fr.field_0_2811).toFloat(),
                     CommonColors.WHITE, alignment, textShadow
                 )
             }
@@ -169,9 +169,9 @@ object VisitorHelper : EventSubscriber {
         override val toggled: Boolean
             get() = Skytils.config.visitorOfferHelper
         override val height: Int
-            get() = fr.FONT_HEIGHT * 3
+            get() = fr.field_0_2811 * 3
         override val width: Int
-            get() = fr.getStringWidth("§aEnchanted Cocoa Bean §8x69 - §a900M")
+            get() = fr.getWidth("§aEnchanted Cocoa Bean §8x69 - §a900M")
 
         init {
             Skytils.guiManager.registerElement(this)
@@ -183,7 +183,7 @@ object VisitorHelper : EventSubscriber {
         ScreenRenderer.fontRenderer.drawString(
             str,
             VisitorHelperDisplay.textPosX,
-            (index * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+            (index * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
             CommonColors.WHITE,
             VisitorHelperDisplay.alignment,
             textShadow_

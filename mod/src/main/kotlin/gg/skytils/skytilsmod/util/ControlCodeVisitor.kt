@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#if MC>=12000
 package gg.skytils.skytilsmod.util
 
 import gg.skytils.skytilsmod.utils.stripControlCodes
@@ -73,3 +74,4 @@ class ControlCodeVisitor : CharacterVisitor, StringVisitable.StyledVisitor<Strin
     // Just use getString() on the text instance lol
     fun getUnformattedString() = builder.toString().stripControlCodes()
 }
+//#endif

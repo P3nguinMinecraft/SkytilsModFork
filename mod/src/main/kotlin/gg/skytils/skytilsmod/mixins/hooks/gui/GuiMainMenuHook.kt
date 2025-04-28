@@ -24,10 +24,10 @@ import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiMainMenu
 import gg.skytils.skytilsmod.utils.NumberUtil.addSuffix
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.gui.GuiMainMenu
+import net.minecraft.client.gui.screen.TitleScreen
 import java.util.*
 
-fun setSplashText(gui: GuiMainMenu, cal: Calendar) {
+fun setSplashText(gui: TitleScreen, cal: Calendar) {
     gui as AccessorGuiMainMenu
     if (cal.get(Calendar.MONTH) + 1 == 2 && cal.get(Calendar.DATE) == 6) {
         val numBirthday = cal.get(Calendar.YEAR) - 2021

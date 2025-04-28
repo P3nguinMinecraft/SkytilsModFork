@@ -34,22 +34,22 @@ import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import net.minecraft.client.gui.Gui
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.util.ResourceLocation
+import net.minecraft.client.gui.DrawContext
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.util.Identifier
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 
 object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
-    private val neuGreen = ResourceLocation("catlas:neu/green_check.png")
-    private val neuWhite = ResourceLocation("catlas:neu/white_check.png")
-    private val neuCross = ResourceLocation("catlas:neu/cross.png")
-    private val neuQuestion = ResourceLocation("catlas:neu/question.png")
-    private val defaultGreen = ResourceLocation("catlas:default/green_check.png")
-    private val defaultWhite = ResourceLocation("catlas:default/white_check.png")
-    private val defaultCross = ResourceLocation("catlas:default/cross.png")
-    private val defaultQuestion = ResourceLocation("catlas:default/question.png")
+    private val neuGreen = Identifier("catlas:neu/green_check.png")
+    private val neuWhite = Identifier("catlas:neu/white_check.png")
+    private val neuCross = Identifier("catlas:neu/cross.png")
+    private val neuQuestion = Identifier("catlas:neu/question.png")
+    private val defaultGreen = Identifier("catlas:default/green_check.png")
+    private val defaultWhite = Identifier("catlas:default/white_check.png")
+    private val defaultCross = Identifier("catlas:default/cross.png")
+    private val defaultQuestion = Identifier("catlas:default/question.png")
 
     var dynamicRotation = 0f
 
@@ -58,27 +58,27 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         GL11.glEnable(GL11.GL_SCISSOR_TEST)
         GL11.glScissor(
             (scaleX * mcScale).toInt(),
-            (mc.displayHeight - scaleY * mcScale - 128 * mcScale * scale).toInt(),
+            (mc.field_0_2582 - scaleY * mcScale - 128 * mcScale * scale).toInt(),
             (128 * mcScale * scale).toInt(),
             (128 * mcScale * scale).toInt()
         )
-        GlStateManager.translate(64.0, 64.0, 0.0)
-        GlStateManager.rotate(-mc.thePlayer.rotationYaw + 180f, 0f, 0f, 1f)
+        RenderSystem.method_4412(64.0, 64.0, 0.0)
+        RenderSystem.method_4445(-mc.player.yaw + 180f, 0f, 0f, 1f)
 
         if (CatlasConfig.mapCenter) {
-            GlStateManager.translate(
-                -((mc.thePlayer.posX - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
-                -((mc.thePlayer.posZ - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2),
+            RenderSystem.method_4412(
+                -((mc.player.x - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first - 2),
+                -((mc.player.z - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second - 2),
                 0.0
             )
         } else {
-            GlStateManager.translate(-64.0, -64.0, 0.0)
+            RenderSystem.method_4412(-64.0, -64.0, 0.0)
         }
     }
 
     private fun renderRooms() {
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
+        RenderSystem.pushMatrix()
+        RenderSystem.method_4348(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
 
         val connectorSize = (DungeonMapColorParser.quarterRoom.takeUnless { it == -1 } ?: 4)
         val checkmarkSize = when (CatlasConfig.mapCheckmark) {
@@ -130,7 +130,7 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
                 }
             }
         }
-        GlStateManager.popMatrix()
+        RenderSystem.popMatrix()
     }
 
     private fun getDoorState(door: Door, row: Int, column: Int): RoomState {
@@ -152,8 +152,8 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
     }
 
     private fun renderText() {
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
+        RenderSystem.pushMatrix()
+        RenderSystem.method_4348(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
 
         val checkmarkSize = when (CatlasConfig.mapCheckmark) {
             1 -> 8.0 // default
@@ -192,15 +192,15 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             }
 
             if (hasSecrets && (CatlasConfig.mapRoomSecrets == 2 || CatlasConfig.mapRoomSecrets == 3 && room.state != RoomState.GREEN)) {
-                GlStateManager.pushMatrix()
-                GlStateManager.translate(
+                RenderSystem.pushMatrix()
+                RenderSystem.method_4348(
                     xOffsetCheck + halfRoom.toFloat(),
                     yOffsetCheck + 2 + halfRoom.toFloat(),
                     0f
                 )
-                GlStateManager.scale(2f, 2f, 1f)
+                RenderSystem.method_4384(2f, 2f, 1f)
                 RenderUtils.renderCenteredText(listOf(secretText), 0, 0, color)
-                GlStateManager.popMatrix()
+                RenderSystem.popMatrix()
             } else if (CatlasConfig.mapCheckmark != 0) {
                 drawCheckmark(room, xOffsetCheck, yOffsetCheck, checkmarkSize)
             }
@@ -225,10 +225,10 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
                 color
             )
         }
-        GlStateManager.popMatrix()
+        RenderSystem.popMatrix()
     }
 
-    private fun getCheckmark(state: RoomState, type: Int): ResourceLocation? {
+    private fun getCheckmark(state: RoomState, type: Int): Identifier? {
         return when (type) {
             1 -> when (state) {
                 RoomState.CLEARED -> defaultWhite
@@ -252,9 +252,9 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
 
     private fun drawCheckmark(tile: Tile, xOffset: Float, yOffset: Float, checkmarkSize: Double) {
         getCheckmark(tile.state, CatlasConfig.mapCheckmark)?.let {
-            GlStateManager.enableAlpha()
-            GlStateManager.color(1f, 1f, 1f, 1f)
-            mc.textureManager.bindTexture(it)
+            RenderSystem.method_4456()
+            RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+            mc.textureManager.bindTextureInner(it)
             RenderUtils.drawTexturedQuad(
                 xOffset + (MapUtils.mapRoomSize - checkmarkSize) / 2,
                 yOffset + (MapUtils.mapRoomSize - checkmarkSize) / 2,
@@ -298,10 +298,10 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
     }
 
     override fun render() {
-        if (!toggled || SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.thePlayer == null || mc.theWorld == null) return
+        if (!toggled || SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.player == null || mc.world == null) return
         if (DungeonTimer.dungeonStartTime == -1L && !CatlasConfig.mapShowBeforeStart) return
         if (CatlasConfig.mapHideInBoss && DungeonTimer.bossEntryTime != -1L) return
-        mc.mcProfiler.startSection("border")
+        mc.tickProfilerResult.push("border")
 
         RenderUtils.renderRect(
             0.0, 0.0, 128.0, 128.0, CatlasConfig.mapBackground
@@ -316,37 +316,37 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             CatlasConfig.mapBorder
         )
 
-        mc.mcProfiler.endSection()
+        mc.tickProfilerResult.pop()
 
         if (CatlasConfig.mapRotate) {
-            GlStateManager.pushMatrix()
+            RenderSystem.pushMatrix()
             setupRotate()
         } else if (CatlasConfig.mapDynamicRotate) {
-            GlStateManager.translate(64.0, 64.0, 0.0)
-            GlStateManager.rotate(dynamicRotation, 0f, 0f, 1f)
-            GlStateManager.translate(-64.0, -64.0, 0.0)
+            RenderSystem.method_4412(64.0, 64.0, 0.0)
+            RenderSystem.method_4445(dynamicRotation, 0f, 0f, 1f)
+            RenderSystem.method_4412(-64.0, -64.0, 0.0)
         }
 
-        mc.mcProfiler.startSection("rooms")
+        mc.tickProfilerResult.push("rooms")
         renderRooms()
-        mc.mcProfiler.endStartSection("text")
+        mc.tickProfilerResult.swap("text")
         renderText()
-        mc.mcProfiler.endStartSection("heads")
+        mc.tickProfilerResult.swap("heads")
         renderPlayerHeads()
-        mc.mcProfiler.endSection()
+        mc.tickProfilerResult.pop()
 
         if (CatlasConfig.mapRotate) {
             GL11.glDisable(GL11.GL_SCISSOR_TEST)
-            GlStateManager.popMatrix()
+            RenderSystem.popMatrix()
         } else if (CatlasConfig.mapDynamicRotate) {
-            GlStateManager.translate(64.0, 64.0, 0.0)
-            GlStateManager.rotate(-dynamicRotation, 0f, 0f, 1f)
-            GlStateManager.translate(-64.0, -64.0, 0.0)
+            RenderSystem.method_4412(64.0, 64.0, 0.0)
+            RenderSystem.method_4445(-dynamicRotation, 0f, 0f, 1f)
+            RenderSystem.method_4412(-64.0, -64.0, 0.0)
         }
     }
 
     override fun demoRender() {
-        Gui.drawRect(0, 0, 128, 128, Color.RED.rgb)
+        DrawContext.fill(0, 0, 128, 128, Color.RED.rgb)
         fr.drawString("Dungeon Map", 64f, 5f, alignment = SmartFontRenderer.TextAlignment.MIDDLE)
     }
 

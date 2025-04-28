@@ -22,8 +22,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.ItemRendererHookKt;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.render.item.HeldItemRenderer;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,23 +31,23 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ItemRenderer.class)
+@Mixin(HeldItemRenderer.class)
 public abstract class MixinItemRenderer {
     @Shadow
-    private ItemStack itemToRender;
+    private ItemStack mainHand;
 
-    @WrapOperation(method = "renderItemInFirstPerson", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;getItemInUseCount()I"))
-    private int getItemInUseCountForFirstPerson(AbstractClientPlayer abstractClientPlayer, Operation<Integer> original) {
-        return ItemRendererHookKt.getItemInUseCountForFirstPerson(abstractClientPlayer, this.itemToRender, original);
+    @WrapOperation(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;method_0_7990()I"))
+    private int getItemInUseCountForFirstPerson(AbstractClientPlayerEntity abstractClientPlayer, Operation<Integer> original) {
+        return ItemRendererHookKt.getItemInUseCountForFirstPerson(abstractClientPlayer, this.mainHand, original);
     }
 
-    @Inject(method = "transformFirstPersonItem", at = @At(value = "TAIL"))
+    @Inject(method = "applySwingOffset", at = @At(value = "TAIL"))
     private void modifySize(float equipProgress, float swingProgress, CallbackInfo ci) {
         ItemRendererHookKt.modifySize();
     }
 
-    @WrapOperation(method = "renderOverlays", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemRenderer;renderFireInFirstPerson(F)V"))
-    private void cancelFirstPersonFire(ItemRenderer instance, float f1, Operation<Void> original) {
+    @WrapOperation(method = "renderOverlays", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;method_3236(F)V"))
+    private void cancelFirstPersonFire(HeldItemRenderer instance, float f1, Operation<Void> original) {
         if (!Skytils.getConfig().getNoFire()) {
             original.call(instance, f1);
         }

@@ -19,7 +19,7 @@
 package gg.skytils.skytilsmod._event
 
 import gg.skytils.event.CancellableEvent
-import net.minecraft.network.Packet
+import net.minecraft.network.packet.Packet
 
 /**
  * [gg.skytils.skytilsmod.mixins.transformers.events.MixinNetHandlerPlayClient.addToSendQueue]

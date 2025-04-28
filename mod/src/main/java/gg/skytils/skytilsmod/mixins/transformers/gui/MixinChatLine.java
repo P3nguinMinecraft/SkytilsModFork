@@ -19,33 +19,33 @@
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionChatLine;
-import net.minecraft.client.gui.ChatLine;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(ChatLine.class)
+@Mixin(ChatHudLine.class)
 public class MixinChatLine implements ExtensionChatLine {
 
     @Unique
-    private IChatComponent fullComponent = null;
+    private Text fullComponent = null;
 
     @NotNull
     @Override
-    public IChatComponent getFullComponent() {
+    public Text getFullComponent() {
         return fullComponent;
     }
 
     @Override
-    public void setFullComponent(@NotNull IChatComponent fullComponent) {
+    public void setFullComponent(@NotNull Text fullComponent) {
         this.fullComponent = fullComponent;
     }
 
     @NotNull
     @Override
-    public ChatLine withFullComponent(@NotNull IChatComponent fullComponent) {
+    public ChatHudLine withFullComponent(@NotNull Text fullComponent) {
         this.fullComponent = fullComponent;
-        return (ChatLine) (Object) this;
+        return (ChatHudLine) (Object) this;
     }
 }

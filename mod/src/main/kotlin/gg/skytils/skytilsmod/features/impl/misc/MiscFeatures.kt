@@ -68,32 +68,32 @@ import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
-import net.minecraft.block.BlockEndPortalFrame
-import net.minecraft.client.Minecraft
-import net.minecraft.client.entity.EntityOtherPlayerMP
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.settings.KeyBinding
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.boss.IBossDisplayData
-import net.minecraft.entity.effect.EntityLightningBolt
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.item.EntityFallingBlock
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.projectile.EntityFishHook
-import net.minecraft.event.ClickEvent
-import net.minecraft.event.HoverEvent
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.block.EndPortalFrameBlock
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.network.OtherClientPlayerEntity
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.client.option.KeyBinding
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.boss.BossEntity
+import net.minecraft.entity.LightningEntity
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.FallingBlockEntity
+import net.minecraft.entity.ItemEntity
+import net.minecraft.entity.projectile.FishingBobberEntity
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.Item
-import net.minecraft.item.ItemMonsterPlacer
+import net.minecraft.item.SpawnEggItem
 import net.minecraft.item.ItemStack
-import net.minecraft.network.play.server.S29PacketSoundEffect
-import net.minecraft.util.BlockPos
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.ResourceLocation
+import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
+import net.minecraft.util.math.BlockPos
+import net.minecraft.text.LiteralTextContent
+import net.minecraft.util.Identifier
 import java.awt.Color
 
 object MiscFeatures : EventSubscriber {
@@ -153,7 +153,7 @@ object MiscFeatures : EventSubscriber {
         val displayData = event.data
         if (Utils.inSkyblock) {
             if (Skytils.config.bossBarFix && equalsOneOf(
-                    displayData.displayName.unformattedText.stripControlCodes(),
+                    displayData.displayName.string.stripControlCodes(),
                     "Wither",
                     "Dinnerbone",
                     "Grumm",
@@ -168,10 +168,10 @@ object MiscFeatures : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        val unformatted = event.message.unformattedText.stripControlCodes().trim()
-        val formatted = event.message.formattedText
+        val unformatted = event.message.string.stripControlCodes().trim()
+        val formatted = event.message.method_10865()
         if (formatted.startsWith("§r§cYou died") && Skytils.config.preventMovingOnDeath) {
-            KeyBinding.unPressAllKeys()
+            KeyBinding.unpressAll()
         }
         if (unformatted == "The ground begins to shake as an Endstone Protector rises from below!") {
             golemSpawnTime = System.currentTimeMillis() + 20000
@@ -180,14 +180,14 @@ object MiscFeatures : EventSubscriber {
         if (!Utils.inDungeons) {
             if (Skytils.config.copyDeathToClipboard) {
                 if (formatted.startsWith("§r§c ☠ ")) {
-                    event.message.chatStyle
-                        .setChatHoverEvent(
+                    event.message.style
+                        .withHoverEvent(
                             HoverEvent(
                                 HoverEvent.Action.SHOW_TEXT,
-                                ChatComponentText("§aClick to copy to clipboard.")
+                                LiteralTextContent("§aClick to copy to clipboard.")
                             )
-                        ).chatClickEvent =
-                        ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted")
+                        ).withClickEvent(
+                        ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted"))
 
                 }
             }
@@ -197,62 +197,62 @@ object MiscFeatures : EventSubscriber {
                     "§r§6§lPET DROP! "
                 ) || formatted.contains(" §r§ehas obtained §r§6§r§7[Lvl 1]")
             ) {
-                GuiScreen.setClipboardString(unformatted)
+                Screen.method_0_2797(unformatted)
                 UChat.chat("$prefix §aCopied RNG drop to clipboard.")
-                event.message.chatStyle
-                    .setChatHoverEvent(
+                event.message.style
+                    .withHoverEvent(
                         HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
-                            ChatComponentText("§aClick to copy to clipboard.")
+                            LiteralTextContent("§aClick to copy to clipboard.")
                         )
-                    ).chatClickEvent =
-                    ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted")
+                    ).withClickEvent(
+                    ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted"))
             }
         }
         if (Skytils.config.autoCopyVeryRareDrops) {
             if (formatted.startsWith("§r§9§lVERY RARE DROP! ") || formatted.startsWith("§r§5§lVERY RARE DROP! ")) {
-                GuiScreen.setClipboardString(unformatted)
+                Screen.method_0_2797(unformatted)
                 UChat.chat("$prefix §aCopied very rare drop to clipboard.")
-                event.message.chatStyle
-                    .setChatHoverEvent(
+                event.message.style
+                    .withHoverEvent(
                         HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
-                            ChatComponentText("§aClick to copy to clipboard.")
+                            LiteralTextContent("§aClick to copy to clipboard.")
                         )
-                    ).chatClickEvent =
-                    ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted")
+                    ).withClickEvent(
+                    ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted"))
             }
         }
     }
 
     fun onCheckRender(event: CheckRenderEntityEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.bossBarFix && event.entity is IBossDisplayData && event.entity.isInvisible && event.entity.hasCustomName()) {
+        if (Skytils.config.bossBarFix && event.entity is BossEntity && event.entity.isInvisible && event.entity.hasCustomName()) {
             return
-        } else if (Skytils.config.hideDyingMobs && event.entity is EntityLivingBase && ((event.entity as EntityLivingBase).health <= 0 || event.entity.isDead)) {
+        } else if (Skytils.config.hideDyingMobs && event.entity is LivingEntity && ((event.entity as LivingEntity).health <= 0 || event.entity.isRemoved)) {
             event.cancelled = true
-        } else if (event.entity is EntityFallingBlock) {
-            val entity = event.entity as EntityFallingBlock
-            if (Skytils.config.hideMidasStaffGoldBlocks && entity.block.block === Blocks.gold_block) {
+        } else if (event.entity is FallingBlockEntity) {
+            val entity = event.entity as FallingBlockEntity
+            if (Skytils.config.hideMidasStaffGoldBlocks && entity.blockState.block === Blocks.GOLD_BLOCK) {
                 event.cancelled = true
             }
-        } else if (event.entity is EntityItem) {
-            val entity = event.entity as EntityItem
-            val item = entity.entityItem
+        } else if (event.entity is ItemEntity) {
+            val entity = event.entity as ItemEntity
+            val item = entity.stack
             if (Skytils.config.hideJerryRune) {
-                if (item.item === Items.spawn_egg && ItemMonsterPlacer.getEntityName(item) == "Villager" && item.displayName == "Spawn Villager" && entity.lifespan == 6000) {
+                if (item.item === Items.SPAWN_EGG && SpawnEggItem.getEntityName(item) == "Villager" && item.name == "Spawn Villager" && entity.lifespan == 6000) {
                     event.cancelled = true
                 }
             }
             if (Skytils.config.hideCheapCoins && cheapCoins.contains(ItemUtil.getSkullTexture(item))) {
                 event.cancelled = true
             }
-        } else if (event.entity is EntityLightningBolt) {
+        } else if (event.entity is LightningEntity) {
             if (Skytils.config.hideLightning) {
                 event.cancelled = true
             }
-        } else if (event.entity is EntityOtherPlayerMP) {
-            if (Skytils.config.hidePlayersInSpawn && event.entity.position == hubSpawnPoint && SBInfo.mode == SkyblockIsland.Hub.mode) {
+        } else if (event.entity is OtherClientPlayerEntity) {
+            if (Skytils.config.hidePlayersInSpawn && event.entity.blockPos == hubSpawnPoint && SBInfo.mode == SkyblockIsland.Hub.mode) {
                 event.cancelled = true
             }
         } else if (Skytils.deobfEnvironment && DevTools.getToggle("invis")) {
@@ -262,10 +262,10 @@ object MiscFeatures : EventSubscriber {
     }
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
-        if (!Utils.inSkyblock || event.container !is ContainerChest) return
+        if (!Utils.inSkyblock || event.container !is GenericContainerScreenHandler) return
         val item = event.slot.stack ?: return
         if (Skytils.config.highlightDisabledPotionEffects && event.chestName.startsWith("Toggle Potion Effects")) {
-            if (item.item == Items.potionitem) {
+            if (item.item == Items.field_8574) {
                 if (ItemUtil.getItemLore(item).any {
                         it == "§7Currently: §cDISABLED"
                     }) {
@@ -282,16 +282,16 @@ object MiscFeatures : EventSubscriber {
     }
 
     fun onJoin(event: EntityJoinWorldEvent) {
-        if (!Utils.inSkyblock || mc.thePlayer == null || mc.theWorld == null) return
-        if (event.entity is EntityArmorStand) {
+        if (!Utils.inSkyblock || mc.player == null || mc.world == null) return
+        if (event.entity is ArmorStandEntity) {
             tickTimer(5) {
-                val entity = event.entity as EntityArmorStand
-                val headSlot = entity.getCurrentArmor(3)
-                if (Skytils.config.trickOrTreatChestAlert && mc.thePlayer != null && headSlot != null && headSlot.item === Items.skull && headSlot.hasTagCompound() && entity.getDistanceSqToEntity(
-                        mc.thePlayer
+                val entity = event.entity as ArmorStandEntity
+                val headSlot = entity.method_0_7157(3)
+                if (Skytils.config.trickOrTreatChestAlert && mc.player != null && headSlot != null && headSlot.item === Items.PLAYER_HEAD && headSlot.hasNbt() && entity.squaredDistanceTo(
+                        mc.player
                     ) < 10 * 10
                 ) {
-                    if (headSlot.tagCompound.getCompoundTag("SkullOwner")
+                    if (headSlot.nbt.getCompound("SkullOwner")
                             .getString("Id") == "f955b4ac-0c41-3e45-8703-016c46a8028e"
                     ) {
                         createTitle("§cTrick or Treat!", 60)
@@ -302,8 +302,8 @@ object MiscFeatures : EventSubscriber {
     }
 
     fun onRenderHud(event: RenderHUDEvent) {
-        if (!Utils.inSkyblock || mc.thePlayer == null || Skytils.config.lowHealthVignetteThreshold == 0.0f) return
-        val healthPercentage = (mc.thePlayer.health + mc.thePlayer.absorptionAmount) / mc.thePlayer.baseMaxHealth
+        if (!Utils.inSkyblock || mc.player == null || Skytils.config.lowHealthVignetteThreshold == 0.0f) return
+        val healthPercentage = (mc.player.health + mc.player.absorptionAmount) / mc.player.baseMaxHealth
         if (healthPercentage < Skytils.config.lowHealthVignetteThreshold) {
             val color =
                 Skytils.config.lowHealthVignetteColor.withAlpha((Skytils.config.lowHealthVignetteColor.alpha * (1.0 - healthPercentage)).toInt())
@@ -315,14 +315,14 @@ object MiscFeatures : EventSubscriber {
 
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (event.packet is S29PacketSoundEffect) {
+        if (event.packet is PlaySoundIdS2CPacket) {
             val packet = event.packet
-            if (Skytils.config.disableCooldownSounds && packet.soundName == "mob.endermen.portal" && packet.pitch == 0f && packet.volume == 8f) {
+            if (Skytils.config.disableCooldownSounds && packet.method_11460() == "mob.endermen.portal" && packet.pitch == 0f && packet.volume == 8f) {
                 event.cancelled = true
                 return
             }
             if (Skytils.config.disableJerrygunSounds) {
-                when (packet.soundName) {
+                when (packet.method_11460()) {
                     "mob.villager.yes" -> if (packet.volume == 0.35f) {
                         event.cancelled = true
                         return
@@ -334,7 +334,7 @@ object MiscFeatures : EventSubscriber {
                     }
                 }
             }
-            if (Skytils.config.disableTruthFlowerSounds && packet.soundName == "random.eat" && packet.pitch == 0.6984127f && packet.volume == 1.0f) {
+            if (Skytils.config.disableTruthFlowerSounds && packet.method_11460() == "random.eat" && packet.pitch == 0.6984127f && packet.volume == 1.0f) {
                 event.cancelled = true
                 return
             }
@@ -343,22 +343,22 @@ object MiscFeatures : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock) return
-        if (event.container is ContainerChest) {
+        if (event.container is GenericContainerScreenHandler) {
             val slot = event.slot ?: return
             val item = slot.stack ?: return
-            if (Skytils.config.coopAddConfirmation && item.item == Items.diamond && item.displayName == "§aCo-op Request") {
+            if (Skytils.config.coopAddConfirmation && item.item == Items.DIAMOND && item.name == "§aCo-op Request") {
                 event.cancelled = true
                 UChat.chat("$failPrefix §c§lBe careful! Skytils stopped you from giving a player full control of your island!")
             }
             val extraAttributes = getExtraAttributes(item)
             if (event.chestName == "Ophelia") {
                 if (Skytils.config.dungeonPotLock > 0) {
-                    if (slot.inventory === mc.thePlayer.inventory || equalsOneOf(slot.slotNumber, 49, 53)) return
-                    if (item.item !== Items.potionitem || extraAttributes == null || !extraAttributes.hasKey("potion_level")) {
+                    if (slot.inventory === mc.player.inventory || equalsOneOf(slot.id, 49, 53)) return
+                    if (item.item !== Items.field_8574 || extraAttributes == null || !extraAttributes.contains("potion_level")) {
                         event.cancelled = true
                         return
                     }
-                    if (extraAttributes.getInteger("potion_level") != Skytils.config.dungeonPotLock) {
+                    if (extraAttributes.getInt("potion_level") != Skytils.config.dungeonPotLock) {
                         event.cancelled = true
                         return
                     }
@@ -370,11 +370,11 @@ object MiscFeatures : EventSubscriber {
     fun onTooltip(event: ItemTooltipEvent) {
         if (!Utils.inSkyblock) return
         if (!Skytils.config.hideTooltipsOnStorage) return
-        if (mc.currentScreen is GuiChest) {
-            val player = Minecraft.getMinecraft().thePlayer
-            val chest = player.openContainer as ContainerChest
-            val inventory = chest.lowerChestInventory
-            val chestName = inventory.displayName.unformattedText
+        if (mc.currentScreen is GenericContainerScreen) {
+            val player = MinecraftClient.getInstance().player
+            val chest = player.currentScreenHandler as GenericContainerScreenHandler
+            val inventory = chest.inventory
+            val chestName = inventory.customName.string
             if (chestName.equals("Storage") && ItemUtil.getDisplayName(event.stack).containsAny(
                     "Backpack",
                     "Ender Chest",
@@ -387,9 +387,9 @@ object MiscFeatures : EventSubscriber {
 
     fun onSlotClickLow(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock || !Skytils.config.middleClickGUIItems) return
-        if (event.clickedButton != 0 || event.clickType != 0 || event.container !is ContainerChest || event.slot == null || !event.slot!!.hasStack) return
-        val chest = event.container as ContainerChest
-        val chestName = chest.lowerChestInventory.name
+        if (event.clickedButton != 0 || event.clickType != 0 || event.container !is GenericContainerScreenHandler || event.slot == null || !event.slot!!.hasStack()) return
+        val chest = event.container as GenericContainerScreenHandler
+        val chestName = chest.inventory.name
         val item = event.slot!!.stack
 
         if (equalsOneOf(
@@ -411,12 +411,12 @@ object MiscFeatures : EventSubscriber {
             )
         ) return
 
-        if (event.slot?.inventory === mc.thePlayer?.inventory || GuiScreen.isCtrlKeyDown()) return
+        if (event.slot?.inventory === mc.player?.inventory || Screen.method_2238()) return
         if (chestName.startsWithAny("Wardrobe")) return
 
         if (getSkyBlockItemID(item) == null) {
             if (chestName.contains("Minion") && equalsOneOf(
-                    item.displayName,
+                    item.name,
                     "§aMinion Skin Slot",
                     "§aFuel",
                     "§aAutomated Shipping",
@@ -424,31 +424,31 @@ object MiscFeatures : EventSubscriber {
                 )
             ) return
             if (chestName == "Beacon"
-                && item.item === Item.getItemFromBlock(Blocks.furnace) && item.displayName == "§6Beacon Power") return
+                && item.item === Item.fromBlock(Blocks.FURNACE) && item.name == "§6Beacon Power") return
             if (chestName.startsWithAny(
                     "Salvage Item"
-                ) && item.item === Item.getItemFromBlock(Blocks.beacon) && item.displayName == "§aSalvage Items"
+                ) && item.item === Item.fromBlock(Blocks.field_0_727) && item.name == "§aSalvage Items"
             ) return
             if (ItemUtil.getItemLore(item).asReversed().any {
                     it.contains("-click", true)
                 }) return
             event.cancelled = true
-            mc.playerController.windowClick(chest.windowId, event.slotId, 2, SlotActionType.CLONE, mc.thePlayer)
+            mc.interactionManager.clickSlot(chest.syncId, event.slotId, 2, SlotActionType.CLONE, mc.player)
         }
     }
 
     fun onTick(event: TickEvent) {
-        if (!Utils.inSkyblock || mc.thePlayer == null || mc.theWorld == null) return
+        if (!Utils.inSkyblock || mc.player == null || mc.world == null) return
 
         if (Skytils.config.playersInRangeDisplay) {
-            inRangePlayerCount = (mc.theWorld.playerEntities.filterIsInstance<EntityOtherPlayerMP>().count {
-                (it.uniqueID.version() == 4 || it.uniqueID.version() == 1) && it.getDistanceSqToEntity(mc.thePlayer) <= 30 * 30 // Nicked players have uuid v1, Watchdog has uuid v4
+            inRangePlayerCount = (mc.world.players.filterIsInstance<OtherClientPlayerEntity>().count {
+                (it.uuid.version() == 4 || it.uuid.version() == 1) && it.squaredDistanceTo(mc.player) <= 30 * 30 // Nicked players have uuid v1, Watchdog has uuid v4
             } - 1).coerceAtLeast(0) // The -1 is to remove watchdog from the list
         }
         if (Skytils.config.summoningEyeDisplay && SBInfo.mode == SkyblockIsland.TheEnd.mode) {
             placedEyes = PlacedSummoningEyeDisplay.SUMMONING_EYE_FRAMES.count {
-                mc.theWorld.getBlockState(it).run {
-                    block === Blocks.end_portal_frame && this.getValue(BlockEndPortalFrame.EYE)
+                mc.world.getBlockState(it).run {
+                    block === Blocks.END_PORTAL_FRAME && this.testProperty(EndPortalFrameBlock.EYE)
                 }
             }
         }
@@ -456,15 +456,15 @@ object MiscFeatures : EventSubscriber {
 
     fun onRenderItemOverlayPost(event: ItemOverlayPostRenderEvent) {
         val item = event.stack ?: return
-        if (!Utils.inSkyblock || mc.thePlayer == null || item.stackSize != 1 || item.tagCompound?.hasKey("SkytilsNoItemOverlay") == true) return
+        if (!Utils.inSkyblock || mc.player == null || item.count != 1 || item.nbt?.contains("SkytilsNoItemOverlay") == true) return
         var stackTip = ""
 
-        val c = mc.thePlayer.openContainer
-        if (c is ContainerChest) {
-            val name = c.lowerChestInventory.name
+        val c = mc.player.currentScreenHandler
+        if (c is GenericContainerScreenHandler) {
+            val name = c.inventory.name
             if (Skytils.config.showBestiaryLevel && bestiaryTitleRegex in name) {
-                val arrowSlot = c.inventorySlots.getOrNull(48)?.stack
-                if (arrowSlot != null && arrowSlot.item == Items.arrow && ItemUtil.getItemLore(item)
+                val arrowSlot = c.slots.getOrNull(48)?.stack
+                if (arrowSlot != null && arrowSlot.item == Items.ARROW && ItemUtil.getItemLore(item)
                         .lastOrNull() == "§eClick to view!"
                 ) {
                     var ending = ItemUtil.getDisplayName(item).substringAfterLast(" ", "")
@@ -472,7 +472,7 @@ object MiscFeatures : EventSubscriber {
                     stackTip = ending.romanToDecimal().toString()
                 }
             }
-            if (Skytils.config.showDungeonFloorAsStackSize && name == "Catacombs Gate" && item.item === Items.skull) {
+            if (Skytils.config.showDungeonFloorAsStackSize && name == "Catacombs Gate" && item.item === Items.PLAYER_HEAD) {
                 stackTip =
                     getSkyBlockItemID(item)?.substringAfterLast("CATACOMBS_PASS_")?.toIntOrNull()?.minus(3)?.toString()
                         ?: ""
@@ -480,9 +480,9 @@ object MiscFeatures : EventSubscriber {
         }
 
         if (stackTip.isNotBlank()) {
-            GlStateManager.disableLighting()
-            GlStateManager.disableDepth()
-            GlStateManager.disableBlend()
+            RenderSystem.method_4406()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableBlend()
             UGraphics.drawString(
                 UMatrixStack.Compat.get(),
                 stackTip,
@@ -491,24 +491,24 @@ object MiscFeatures : EventSubscriber {
                 16777215,
                 true
             )
-            GlStateManager.enableLighting()
-            GlStateManager.enableDepth()
+            RenderSystem.method_4394()
+            RenderSystem.enableDepthTest()
         }
     }
 
     fun renderFishingHookAge(event: WorldDrawEvent) {
         if (Utils.inSkyblock && Config.fishingHookAge) {
-            mc.theWorld?.getEntities(EntityFishHook::class.java) { entity ->
-                mc.thePlayer == entity?.angler
+            mc.world?.method_8490(FishingBobberEntity::class.java) { entity ->
+                mc.player == entity?.field_0_8080
             }?.filterNotNull()?.forEach { entity ->
-                RenderUtil.drawLabel(entity.positionVector.addVector(0.0, 0.5, 0.0), "%.2fs".format(entity.ticksExisted / 20.0), Color.WHITE, event.partialTicks, UMatrixStack.Compat.get())
+                RenderUtil.drawLabel(entity.pos.add(0.0, 0.5, 0.0), "%.2fs".format(entity.age / 20.0), Color.WHITE, event.partialTicks, UMatrixStack.Compat.get())
             }
         }
     }
 
     class GolemSpawnTimerElement : GuiElement("Endstone Protector Spawn Timer", x = 150, y = 20) {
         override fun render() {
-            val player = mc.thePlayer
+            val player = mc.player
             if (toggled && Utils.inSkyblock && player != null && golemSpawnTime - System.currentTimeMillis() > 0) {
 
                 val leftAlign = scaleX < sr.scaledWidth / 2f
@@ -538,9 +538,9 @@ object MiscFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§cGolem spawn in: §a20.0s")
+            get() = ScreenRenderer.fontRenderer.getWidth("§cGolem spawn in: §a20.0s")
 
         override val toggled: Boolean
             get() = Skytils.config.golemSpawnTimer
@@ -552,8 +552,8 @@ object MiscFeatures : EventSubscriber {
 
     class PlayersInRangeDisplay : GuiElement("Players In Range Display", x = 50, y = 50) {
         override fun render() {
-            if (toggled && Utils.inSkyblock && mc.thePlayer != null && mc.theWorld != null) {
-                renderItem(ItemStack(Items.enchanted_book), 0, 0)
+            if (toggled && Utils.inSkyblock && mc.player != null && mc.world != null) {
+                renderItem(ItemStack(Items.field_8598), 0, 0)
                 ScreenRenderer.fontRenderer.drawString(
                     inRangePlayerCount.toString(),
                     20f,
@@ -566,7 +566,7 @@ object MiscFeatures : EventSubscriber {
         }
 
         override fun demoRender() {
-            renderItem(ItemStack(Items.enchanted_book), 0, 0)
+            renderItem(ItemStack(Items.field_8598), 0, 0)
             ScreenRenderer.fontRenderer.drawString(
                 "69",
                 20f,
@@ -580,7 +580,7 @@ object MiscFeatures : EventSubscriber {
         override val height: Int
             get() = 16
         override val width: Int
-            get() = 20 + ScreenRenderer.fontRenderer.getStringWidth("69")
+            get() = 20 + ScreenRenderer.fontRenderer.getWidth("69")
 
         override val toggled: Boolean
             get() = Skytils.config.playersInRangeDisplay
@@ -592,8 +592,8 @@ object MiscFeatures : EventSubscriber {
 
     class PlacedSummoningEyeDisplay : GuiElement("Placed Summoning Eye Display", x = 50, y = 60) {
         override fun render() {
-            val player = mc.thePlayer
-            if (toggled && Utils.inSkyblock && player != null && mc.theWorld != null) {
+            val player = mc.player
+            if (toggled && Utils.inSkyblock && player != null && mc.world != null) {
                 if (SBInfo.mode != SkyblockIsland.TheEnd.mode) return
                 renderTexture(ICON, 0, 0)
                 ScreenRenderer.fontRenderer.drawString(
@@ -622,7 +622,7 @@ object MiscFeatures : EventSubscriber {
         override val height: Int
             get() = 16
         override val width: Int
-            get() = 20 + ScreenRenderer.fontRenderer.getStringWidth("6/8")
+            get() = 20 + ScreenRenderer.fontRenderer.getWidth("6/8")
 
         override val toggled: Boolean
             get() = Skytils.config.summoningEyeDisplay
@@ -638,7 +638,7 @@ object MiscFeatures : EventSubscriber {
                 BlockPos(-672, 9, -274),
                 BlockPos(-670, 9, -274)
             )
-            private val ICON = ResourceLocation("skytils", "icons/SUMMONING_EYE.png")
+            private val ICON = Identifier("skytils", "icons/SUMMONING_EYE.png")
         }
 
         init {
@@ -649,7 +649,7 @@ object MiscFeatures : EventSubscriber {
     class WorldAgeHud : HudElement("World Age Display", 50f, 60f) {
         //TODO: Properly update state using mixin
         val dayState: State<String> = State {
-            val day = (mc.theWorld?.worldInfo as? AccessorWorldInfo)?.realWorldTime?.div(24000)
+            val day = (mc.world?.method_8401() as? AccessorWorldInfo)?.realWorldTime?.div(24000)
             "Day ${day}"
         }
 
@@ -682,7 +682,7 @@ object MiscFeatures : EventSubscriber {
         var usesBaldTimeChanger = false
 
         override fun render() {
-            if (toggled && Utils.inSkyblock && mc.theWorld != null) {
+            if (toggled && Utils.inSkyblock && mc.world != null) {
                 if (usesBaldTimeChanger) {
                     ScreenRenderer.fontRenderer.drawString(
                         "Incompatible Time Changer detected.",
@@ -694,7 +694,7 @@ object MiscFeatures : EventSubscriber {
                     )
                     return
                 }
-                val day = mc.theWorld.realWorldTime / 24000
+                val day = mc.world.realWorldTime / 24000
                 ScreenRenderer.fontRenderer.drawString(
                     "Day ${NumberUtil.nf.format(day)}",
                     0f,
@@ -730,9 +730,9 @@ object MiscFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Day 0")
+            get() = ScreenRenderer.fontRenderer.getWidth("Day 0")
 
         override val toggled: Boolean
             get() = Skytils.config.showWorldAge
@@ -759,9 +759,9 @@ object MiscFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = fr.FONT_HEIGHT
+            get() = fr.field_0_2811
         override val width: Int
-            get() = fr.getStringWidth("Item Name")
+            get() = fr.getWidth("Item Name")
 
         override val toggled: Boolean
             get() = Skytils.config.moveableItemNameHighlight
@@ -788,9 +788,9 @@ object MiscFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = fr.FONT_HEIGHT
+            get() = fr.field_0_2811
         override val width: Int
-            get() = fr.getStringWidth("Action Bar")
+            get() = fr.getWidth("Action Bar")
 
         override val toggled: Boolean
             get() = Skytils.config.moveableActionBar

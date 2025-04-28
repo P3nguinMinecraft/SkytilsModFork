@@ -30,12 +30,12 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.monster.EntityCreeper
-import net.minecraft.init.Blocks
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.mob.CreeperEntity
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 
@@ -43,8 +43,8 @@ import java.awt.Color
 object CreeperSolver : EventSubscriber {
     private val colors = CommonColors.set.copySet()
     private val solutionPairs = arrayListOf<Pair<BlockPos, BlockPos>>()
-    private var creeper: EntityCreeper? = null
-    private val candidateBlocks = setOf(Blocks.prismarine, Blocks.sea_lantern)
+    private var creeper: CreeperEntity? = null
+    private val candidateBlocks = setOf(Blocks.PRISMARINE, Blocks.SEA_LANTERN)
 
     fun onPuzzleDiscovered(event: DungeonPuzzleDiscoveredEvent) {
         if (event.puzzle == "Creeper Beams") {
@@ -54,23 +54,23 @@ object CreeperSolver : EventSubscriber {
 
     fun updatePuzzleState() {
         if (this.creeper == null) {
-            val creeperScan = mc.thePlayer?.entityBoundingBox?.expand(14.0, 8.0, 13.0) ?: return
-            this.creeper = mc.theWorld?.getEntitiesWithinAABB(EntityCreeper::class.java, creeperScan) {
+            val creeperScan = mc.player?.boundingBox?.expand(14.0, 8.0, 13.0) ?: return
+            this.creeper = mc.world?.getEntitiesByClass(CreeperEntity::class.java, creeperScan) {
                 it != null && !it.isInvisible && it.maxHealth == 20f && it.health == 20f && !it.hasCustomName()
             }?.firstOrNull()
         } else if (solutionPairs.isEmpty()) {
-            val baseBlock = BlockPos(this.creeper!!.posX, 75.0, this.creeper!!.posZ).toBoundingBox()
-            val validBox = AxisAlignedBB(baseBlock.minX, baseBlock.minY, baseBlock.minZ, baseBlock.maxX, baseBlock.maxY + 2, baseBlock.maxZ)
+            val baseBlock = BlockPos(this.creeper!!.x, 75.0, this.creeper!!.z).toBoundingBox()
+            val validBox = Box(baseBlock.minX, baseBlock.minY, baseBlock.minZ, baseBlock.maxX, baseBlock.maxY + 2, baseBlock.maxZ)
 
-            val roomBB = this.creeper!!.entityBoundingBox.expand(14.0, 10.0, 13.0)
-            val candidates = BlockPos.getAllInBox(BlockPos(roomBB.minVec), BlockPos(roomBB.maxVec)).filter {
-                it.y > 68 && mc.theWorld?.getBlockState(it)?.block in candidateBlocks
+            val roomBB = this.creeper!!.boundingBox.expand(14.0, 10.0, 13.0)
+            val candidates = BlockPos.iterate(BlockPos(roomBB.minVec), BlockPos(roomBB.maxVec)).filter {
+                it.y > 68 && mc.world?.getBlockState(it)?.block in candidateBlocks
             }
             val pairs = candidates.elementPairs()
             val usedPositions = mutableSetOf<BlockPos>()
             solutionPairs.addAll(pairs.filter { (a, b) ->
                 if (a in usedPositions || b in usedPositions) return@filter false
-                checkLineBox(validBox, a.middleVec(), b.middleVec(), Holder(Vec3(0.0, 0.0, 0.0))).also {
+                checkLineBox(validBox, a.middleVec(), b.middleVec(), Holder(Vec3d(0.0, 0.0, 0.0))).also {
                     if (it) {
                         usedPositions.add(a)
                         usedPositions.add(b)
@@ -92,40 +92,40 @@ object CreeperSolver : EventSubscriber {
     }
 
     fun onWorldRender(event: WorldDrawEvent) {
-        if (Skytils.config.creeperBeamsSolver && solutionPairs.isNotEmpty() && !creeper!!.isDead && DungeonListener.incompletePuzzles.contains(
+        if (Skytils.config.creeperBeamsSolver && solutionPairs.isNotEmpty() && !creeper!!.isRemoved && DungeonListener.incompletePuzzles.contains(
                 "Creeper Beams"
             )
         ) {
             val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
 
-            GlStateManager.disableCull()
+            RenderSystem.disableCull()
             val blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND)
             UGraphics.enableBlend()
             UGraphics.tryBlendFuncSeparate(770, 771, 1, 0)
             val matrixStack = UMatrixStack()
             for (i in solutionPairs.indices) {
                 val (one, two) = solutionPairs[i]
-                if (mc.theWorld?.getBlockState(one)?.block == Blocks.prismarine && mc.theWorld?.getBlockState(two)?.block == Blocks.prismarine) {
+                if (mc.world?.getBlockState(one)?.block == Blocks.PRISMARINE && mc.world?.getBlockState(two)?.block == Blocks.PRISMARINE) {
                     continue
                 }
                 val color = Color(colors[i % colors.size].toInt())
-                val first = Vec3(one).addVector(-viewerX, -viewerY, -viewerZ)
-                val second = Vec3(two).addVector(-viewerX, -viewerY, -viewerZ)
-                val aabb1 = AxisAlignedBB(
-                    first.xCoord,
-                    first.yCoord,
-                    first.zCoord,
-                    first.xCoord + 1,
-                    first.yCoord + 1,
-                    first.zCoord + 1
+                val first = Vec3d(one).add(-viewerX, -viewerY, -viewerZ)
+                val second = Vec3d(two).add(-viewerX, -viewerY, -viewerZ)
+                val aabb1 = Box(
+                    first.x,
+                    first.y,
+                    first.z,
+                    first.x + 1,
+                    first.y + 1,
+                    first.z + 1
                 )
-                val aabb2 = AxisAlignedBB(
-                    second.xCoord,
-                    second.yCoord,
-                    second.zCoord,
-                    second.xCoord + 1,
-                    second.yCoord + 1,
-                    second.zCoord + 1
+                val aabb2 = Box(
+                    second.x,
+                    second.y,
+                    second.z,
+                    second.x + 1,
+                    second.y + 1,
+                    second.z + 1
                 )
                 RenderUtil.drawFilledBoundingBox(
                     matrixStack, aabb1.expand(0.01, 0.01, 0.01), color, 0.8f
@@ -135,7 +135,7 @@ object CreeperSolver : EventSubscriber {
                 )
             }
             if (!blendEnabled) UGraphics.disableBlend()
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
         }
     }
 
@@ -150,7 +150,7 @@ object CreeperSolver : EventSubscriber {
      * https://creativecommons.org/licenses/by-sa/2.5/
      * Modified
      */
-    private fun checkLineBox(bb: AxisAlignedBB, point1: Vec3, point2: Vec3, hitVec: Holder<Vec3>): Boolean {
+    private fun checkLineBox(bb: Box, point1: Vec3d, point2: Vec3d, hitVec: Holder<Vec3d>): Boolean {
         val minVec = bb.minVec
         val maxVec = bb.maxVec
         if (point2.x < minVec.x && point1.x < minVec.x) return false
@@ -159,7 +159,7 @@ object CreeperSolver : EventSubscriber {
         if (point2.y > maxVec.y && point1.y > maxVec.y) return false
         if (point2.z < minVec.z && point1.z < minVec.z) return false
         if (point2.z > maxVec.z && point1.z > maxVec.z) return false
-        if (bb.isVecInside(point1)) {
+        if (bb.contains(point1)) {
             hitVec.value = point1
             return true
         }
@@ -219,9 +219,9 @@ object CreeperSolver : EventSubscriber {
     private fun getIntersection(
         dist1: Double,
         dist2: Double,
-        point1: Vec3,
-        point2: Vec3,
-        hitVec: Holder<Vec3>
+        point1: Vec3d,
+        point2: Vec3d,
+        hitVec: Holder<Vec3d>
     ): Boolean {
         if ((dist1 * dist2) >= 0.0f) return false
         if (dist1 == dist2) return false
@@ -232,23 +232,23 @@ object CreeperSolver : EventSubscriber {
     /**
      * Checks if the specified vector is within the YZ dimensions of the bounding box.
      */
-    private fun AxisAlignedBB.isVecInYZ(vec: Vec3): Boolean {
-        return vec.yCoord >= this.minY && vec.yCoord <= this.maxY && vec.zCoord >= this.minZ && vec.zCoord <= this.maxZ
+    private fun Box.isVecInYZ(vec: Vec3d): Boolean {
+        return vec.y >= this.minY && vec.y <= this.maxY && vec.z >= this.minZ && vec.z <= this.maxZ
     }
 
     /**
      * Checks if the specified vector is within the XZ dimensions of the bounding box.
      */
-    private fun AxisAlignedBB.isVecInXZ(vec: Vec3): Boolean {
-        return vec.xCoord >= this.minX && vec.xCoord <= this.maxX && vec.zCoord >= this.minZ && vec.zCoord <= this.maxZ
+    private fun Box.isVecInXZ(vec: Vec3d): Boolean {
+        return vec.x >= this.minX && vec.x <= this.maxX && vec.z >= this.minZ && vec.z <= this.maxZ
 
     }
 
     /**
      * Checks if the specified vector is within the XY dimensions of the bounding box.
      */
-    private fun AxisAlignedBB.isVecInXY(vec: Vec3): Boolean {
-        return vec.xCoord >= this.minX && vec.xCoord <= this.maxX && vec.yCoord >= this.minY && vec.yCoord <= this.maxY
+    private fun Box.isVecInXY(vec: Vec3d): Boolean {
+        return vec.x >= this.minX && vec.x <= this.maxX && vec.y >= this.minY && vec.y <= this.maxY
     }
 
     private class Holder<T>(var value: T)

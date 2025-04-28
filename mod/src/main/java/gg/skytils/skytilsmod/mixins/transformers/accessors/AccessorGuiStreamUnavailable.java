@@ -19,14 +19,14 @@
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
 //#if MC==10809
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.stream.GuiStreamUnavailable;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
-
-@Mixin(GuiStreamUnavailable.class)
-public interface AccessorGuiStreamUnavailable {
-    @Accessor
-    GuiScreen getParentScreen();
-}
+//$$ import net.minecraft.client.gui.screen.Screen;
+//$$ import net.minecraft.class_0_829;
+//$$ import org.spongepowered.asm.mixin.Mixin;
+//$$ import org.spongepowered.asm.mixin.gen.Accessor;
+//$$
+//$$ @Mixin(class_0_829.class)
+//$$ public interface AccessorGuiStreamUnavailable {
+//$$     @Accessor("field_0_3603")
+//$$     Screen getParentScreen();
+//$$ }
 //#endif

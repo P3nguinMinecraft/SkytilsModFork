@@ -58,7 +58,7 @@ object PartyAddons : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.isOnHypixel || !Skytils.config.partyAddons) return
-        val message = event.message.formattedText
+        val message = event.message.method_10865()
 
         if (message == "§f§r" && awaitingDelimiter != 0) {
             event.cancelled = true
@@ -88,13 +88,13 @@ object PartyAddons : EventSubscriber {
             event.cancelled = true
         } else if (message.startsWith("§cYou are not currently in a party.") && awaitingDelimiter != 0) {
             party.clear()
-        } else if (event.message.unformattedText.startsWith("-----") && awaitingDelimiter != 0) {
+        } else if (event.message.string.startsWith("-----") && awaitingDelimiter != 0) {
             awaitingDelimiter--
             if (awaitingDelimiter == 1 || party.isEmpty()) return
 
             val component = UMessage("§aParty members (${party.size})\n")
 
-            val self = party.first { it.name == mc.thePlayer.name }
+            val self = party.first { it.name == mc.player.name }
 
             if (self.type == PartyMemberType.LEADER) {
                 component.append(

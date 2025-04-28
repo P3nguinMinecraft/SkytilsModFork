@@ -25,7 +25,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.minecraft.client.renderer.GlStateManager
+import com.mojang.blaze3d.systems.RenderSystem
 import org.apache.commons.codec.digest.DigestUtils
 
 /** CustomColor
@@ -72,7 +72,7 @@ open class CustomColor {
      * Will set the color to OpenGL's active color
      */
     open fun applyColor() {
-        GlStateManager.color(r, g, b, a)
+        RenderSystem.setShaderColor(r, g, b, a)
     }
 
     open fun setA(a: Float): CustomColor {

@@ -21,35 +21,35 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerCustomHeadHookKt;
-import net.minecraft.client.renderer.entity.layers.LayerCustomHead;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.client.render.entity.feature.HeadFeatureRenderer;
+import net.minecraft.class_995;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(LayerCustomHead.class)
-public abstract class MixinLayerCustomHead implements LayerRenderer<EntityLivingBase> {
+@Mixin(HeadFeatureRenderer.class)
+public abstract class MixinLayerCustomHead implements class_995<LivingEntity> {
 
-    @WrapOperation(method = "doRenderLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/EntityLivingBase;isSneaking()Z"))
-    private boolean disableSneakOffset(EntityLivingBase instance, Operation<Boolean> original) {
-        return (!(instance instanceof EntityPlayer) || !instance.isChild()) && original.call(instance);
+    @WrapOperation(method = "method_4199", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isSneaking()Z"))
+    private boolean disableSneakOffset(LivingEntity instance, Operation<Boolean> original) {
+        return (!(instance instanceof PlayerEntity) || !instance.isBaby()) && original.call(instance);
     }
 
-    @Inject(method = "doRenderLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;color(FFFF)V", shift = At.Shift.AFTER), cancellable = true)
-    private void renderCustomHeadLayer(EntityLivingBase entity, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
+    @Inject(method = "method_4199", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderColor(FFFF)V", shift = At.Shift.AFTER), cancellable = true)
+    private void renderCustomHeadLayer(LivingEntity entity, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
         LayerCustomHeadHookKt.renderCustomHeadLayer(entity, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, ci);
     }
 
-    @Inject(method = "doRenderLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;popMatrix()V"))
-    private void renderCustomHeadLayerPost(EntityLivingBase entity, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
+    @Inject(method = "method_4199", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;popMatrix()V"))
+    private void renderCustomHeadLayerPost(LivingEntity entity, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
         LayerCustomHeadHookKt.renderCustomHeadLayerPost(entity, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, ci);
     }
 
-    @Inject(method = "doRenderLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntitySkullRenderer;renderSkull(FFFLnet/minecraft/util/EnumFacing;FILcom/mojang/authlib/GameProfile;I)V"), cancellable = true)
-    private void renderGlintOnSkull(EntityLivingBase entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
+    @Inject(method = "method_4199", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/entity/SkullBlockEntityRenderer;method_3581(FFFLnet/minecraft/util/math/Direction;FILcom/mojang/authlib/GameProfile;I)V"), cancellable = true)
+    private void renderGlintOnSkull(LivingEntity entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
         LayerCustomHeadHookKt.renderGlintOnSkull(entitylivingbaseIn, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, ci);
     }
 

@@ -25,8 +25,8 @@ import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
 
 object LockOrb : EventSubscriber {
     private val orbTimeRegex = Regex("§e(?<seconds>\\d+)s§r")
@@ -37,12 +37,12 @@ object LockOrb : EventSubscriber {
 
     fun onPacket(event: PacketSendEvent<*>) {
         if (!Utils.inSkyblock || !Skytils.config.powerOrbLock) return
-        if (event.packet !is C08PacketPlayerBlockPlacement) return
-        val itemId = getSkyBlockItemID(mc.thePlayer.heldItem) ?: return
+        if (event.packet !is PlayerInteractBlockC2SPacket) return
+        val itemId = getSkyBlockItemID(mc.player.method_0_7087()) ?: return
         if (!itemId.endsWith("_POWER_ORB")) return
         val heldOrb = PowerOrbs.getPowerOrbMatchingItemId(itemId) ?: return
-        val orbs = mc.theWorld.loadedEntityList.filterIsInstance<EntityArmorStand>().mapNotNull {
-            val name = it.displayName.formattedText
+        val orbs = mc.world.entities.filterIsInstance<ArmorStandEntity>().mapNotNull {
+            val name = it.displayName.method_10865()
             val orb = PowerOrbs.getPowerOrbMatchingName(name) ?: return@mapNotNull null
             Triple(it, orb, name)
         }
@@ -50,7 +50,7 @@ object LockOrb : EventSubscriber {
             if (orb.ordinal >= heldOrb.ordinal) {
                 val remainingTime = orbTimeRegex.find(name)?.groupValues?.get(1)?.toInt() ?: continue
                 if (remainingTime >= Skytils.config.powerOrbDuration) {
-                    if (orbEntity.getDistanceSqToEntity(mc.thePlayer) <= (orb.radius * orb.radius)) {
+                    if (orbEntity.squaredDistanceTo(mc.player) <= (orb.radius * orb.radius)) {
                         SoundQueue.addToQueue("random.orb", 0.8f, 1f)
                         event.cancelled = true
                     }

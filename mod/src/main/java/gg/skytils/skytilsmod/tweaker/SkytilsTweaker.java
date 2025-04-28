@@ -19,66 +19,66 @@
 package gg.skytils.skytilsmod.tweaker;
 
 //#if MC==10809
-import gg.essential.loader.stage0.EssentialSetupTweaker;
-import net.hypixel.modapi.tweaker.HypixelModAPITweaker;
-import net.minecraft.launchwrapper.Launch;
-import net.minecraft.launchwrapper.LaunchClassLoader;
-import net.minecraftforge.fml.relauncher.FMLSecurityManager;
-
-import java.io.File;
-import java.util.List;
-
-import static gg.skytils.skytilsmod.tweaker.SkytilsSecurityManager.overrideSecurityManager;
-import static gg.skytils.skytilsmod.tweaker.TweakerUtil.registerTransformerExclusions;
-import static gg.skytils.skytilsmod.tweaker.TweakerUtil.runStage;
-
-@SuppressWarnings("unused")
-public class SkytilsTweaker extends EssentialSetupTweaker {
-
-    public SkytilsTweaker() throws Throwable {
-        DuplicateSkytilsChecker.checkForDuplicates();
-        runStage("gg.skytils.skytilsmod.utils.SuperSecretSettings", "load");
-        boolean isFML = System.getSecurityManager() != null && System.getSecurityManager().getClass().equals(FMLSecurityManager.class);
-        if (System.getProperty("skytils.noSecurityManager") == null && (System.getSecurityManager() == null || isFML || System.getSecurityManager().getClass() == SecurityManager.class)) {
-            System.out.println("Skytils is setting the security manager to prevent 'ghost windows'... Set the flag skytils.noSecurityManager to prevent this behavior.");
-            overrideSecurityManager(isFML);
-            runStage("gg.skytils.skytilsmod.tweaker.SkytilsSecurityManager", "overrideSecurityManager", isFML);
-            System.out.println("Current security manager: " + System.getSecurityManager());
-        }
-        registerTransformerExclusions(
-                "kotlin.",
-                "kotlinx.",
-                "gg.skytils.asmhelper.",
-                "gg.skytils.skytilsmod.tweaker.",
-                "gg.skytils.skytilsmod.asm."
-        );
-        DependencyLoader.loadDependencies();
-        runStage("gg.skytils.skytilsmod.utils.EssentialPlatformSetup", "setup");
-    }
-
-
-    @Override
-    public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {
-        super.acceptOptions(args, gameDir, assetsDir, profile);
-    }
-
-    @Override
-    public void injectIntoClassLoader(LaunchClassLoader classLoader) {
-        super.injectIntoClassLoader(classLoader);
-
-        @SuppressWarnings("unchecked")
-        List<String> tweakClassNames = (List<String>) Launch.blackboard.get("TweakClasses");
-        tweakClassNames.add(HypixelModAPITweaker.class.getName());
-    }
-
-    @Override
-    public String getLaunchTarget() {
-        return super.getLaunchTarget();
-    }
-
-    @Override
-    public String[] getLaunchArguments() {
-        return super.getLaunchArguments();
-    }
-}
+//$$ import gg.essential.loader.stage0.EssentialSetupTweaker;
+//$$ import net.hypixel.modapi.tweaker.HypixelModAPITweaker;
+//$$ import net.minecraft.launchwrapper.Launch;
+//$$ import net.minecraft.launchwrapper.LaunchClassLoader;
+//$$ import net.minecraftforge.fml.relauncher.FMLSecurityManager;
+//$$
+//$$ import java.io.File;
+//$$ import java.util.List;
+//$$
+//$$ import static gg.skytils.skytilsmod.tweaker.SkytilsSecurityManager.overrideSecurityManager;
+//$$ import static gg.skytils.skytilsmod.tweaker.TweakerUtil.registerTransformerExclusions;
+//$$ import static gg.skytils.skytilsmod.tweaker.TweakerUtil.runStage;
+//$$
+//$$ @SuppressWarnings("unused")
+//$$ public class SkytilsTweaker extends EssentialSetupTweaker {
+//$$
+//$$     public SkytilsTweaker() throws Throwable {
+//$$         DuplicateSkytilsChecker.checkForDuplicates();
+//$$         runStage("gg.skytils.skytilsmod.utils.SuperSecretSettings", "load");
+//$$         boolean isFML = System.getSecurityManager() != null && System.getSecurityManager().getClass().equals(FMLSecurityManager.class);
+//$$         if (System.getProperty("skytils.noSecurityManager") == null && (System.getSecurityManager() == null || isFML || System.getSecurityManager().getClass() == SecurityManager.class)) {
+//$$             System.out.println("Skytils is setting the security manager to prevent 'ghost windows'... Set the flag skytils.noSecurityManager to prevent this behavior.");
+//$$             overrideSecurityManager(isFML);
+//$$             runStage("gg.skytils.skytilsmod.tweaker.SkytilsSecurityManager", "overrideSecurityManager", isFML);
+//$$             System.out.println("Current security manager: " + System.getSecurityManager());
+//$$         }
+//$$         registerTransformerExclusions(
+//$$                 "kotlin.",
+//$$                 "kotlinx.",
+//$$                 "gg.skytils.asmhelper.",
+//$$                 "gg.skytils.skytilsmod.tweaker.",
+//$$                 "gg.skytils.skytilsmod.asm."
+//$$         );
+//$$         DependencyLoader.loadDependencies();
+//$$         runStage("gg.skytils.skytilsmod.utils.EssentialPlatformSetup", "setup");
+//$$     }
+//$$
+//$$
+//$$     @Override
+//$$     public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {
+//$$         super.acceptOptions(args, gameDir, assetsDir, profile);
+//$$     }
+//$$
+//$$     @Override
+//$$     public void injectIntoClassLoader(LaunchClassLoader classLoader) {
+//$$         super.injectIntoClassLoader(classLoader);
+//$$
+//$$         @SuppressWarnings("unchecked")
+//$$         List<String> tweakClassNames = (List<String>) Launch.blackboard.get("TweakClasses");
+//$$         tweakClassNames.add(HypixelModAPITweaker.class.getName());
+//$$     }
+//$$
+//$$     @Override
+//$$     public String getLaunchTarget() {
+//$$         return super.getLaunchTarget();
+//$$     }
+//$$
+//$$     @Override
+//$$     public String[] getLaunchArguments() {
+//$$         return super.getLaunchArguments();
+//$$     }
+//$$ }
 //#endif

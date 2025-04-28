@@ -34,12 +34,12 @@ import gg.skytils.skytilsmod.utils.ifNull
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.block.Blocks
+import net.minecraft.block.entity.ChestBlockEntity
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import java.awt.Color
 
@@ -49,45 +49,45 @@ object IceFillSolver : EventSubscriber {
 
     init {
         tickTimer(20, repeats = true) {
-            if (!Utils.inDungeons || !Skytils.config.iceFillSolver || mc.thePlayer == null) return@tickTimer
-            val world: World = mc.theWorld
+            if (!Utils.inDungeons || !Skytils.config.iceFillSolver || mc.player == null) return@tickTimer
+            val world: World = mc.world
             if (DungeonListener.incompletePuzzles.contains("Ice Fill") && puzzles == null && job?.isActive != true) {
                 job = Skytils.launch {
-                    val playerX = mc.thePlayer.posX.toInt()
-                    val playerZ = mc.thePlayer.posZ.toInt()
+                    val playerX = mc.player.x.toInt()
+                    val playerZ = mc.player.z.toInt()
                     val xRange = playerX - 30..playerX + 30
                     val zRange = playerZ - 30..playerZ + 30
-                    findChest@ for (te in world.loadedTileEntityList) {
-                        if (te.pos.y == 75 && te is TileEntityChest && te.numPlayersUsing == 0 && te.pos.x in xRange && te.pos.z in zRange
+                    findChest@ for (te in world.field_0_262) {
+                        if (te.pos.y == 75 && te is ChestBlockEntity && te.viewerCount == 0 && te.pos.x in xRange && te.pos.z in zRange
                         ) {
                             val pos = te.pos
-                            if (world.getBlockState(pos.down()).block == Blocks.stone) {
+                            if (world.getBlockState(pos.method_10074()).block == Blocks.STONE) {
                                 for (direction in UDirection.HORIZONTALS) {
-                                    if (world.getBlockState(pos.offset(direction)).block == Blocks.cobblestone && world.getBlockState(
+                                    if (world.getBlockState(pos.method_10093(direction)).block == Blocks.COBBLESTONE && world.getBlockState(
                                             pos.offset(direction.opposite, 2)
-                                        ).block == Blocks.iron_bars) {
+                                        ).block == Blocks.IRON_BARS) {
 
-                                        val offsetDir = listOf(direction.rotateYCCW(), direction.rotateY()).find {
+                                        val offsetDir = listOf(direction.rotateYCounterclockwise(), direction.rotateYClockwise()).find {
                                             return@find world.getBlockState(
                                                 pos.offset(
                                                     it,
                                                     1
                                                 )
-                                            ).block == Blocks.torch && world.getBlockState(
+                                            ).block == Blocks.TORCH && world.getBlockState(
                                                 pos.offset(
                                                     it.opposite,
                                                     3
                                                 )
-                                            ).block == Blocks.torch
+                                            ).block == Blocks.TORCH
                                         }?.opposite ?: continue
 
                                         if (world.getBlockState(
-                                                pos.offset(direction.opposite)
-                                                    .offset(offsetDir)
+                                                pos.method_10093(direction.opposite)
+                                                    .method_10093(offsetDir)
                                                     .down(2)
-                                            ).block == Blocks.stone_brick_stairs) {
+                                            ).block == Blocks.STONE_BRICK_STAIRS) {
                                             //chestCenter: -11 75 -89; direction: east
-                                            val chestCenter = pos.offset(offsetDir)
+                                            val chestCenter = pos.method_10093(offsetDir)
 
                                             val starts = Triple(
                                                 //three: -33 70 -89
@@ -149,10 +149,10 @@ object IceFillSolver : EventSubscriber {
     }
 
     private class IceFillPuzzle(
-        val chestCenter: BlockPos, val world: World, val start: BlockPos, val end: BlockPos, val facing: EnumFacing
+        val chestCenter: BlockPos, val world: World, val start: BlockPos, val end: BlockPos, val facing: Direction
     ) {
         private val optimal = SuperSecretSettings.azooPuzzoo
-        private var path: List<Vec3>? = null
+        private var path: List<Vec3d>? = null
 
         init {
             Skytils.launch {
@@ -163,11 +163,11 @@ object IceFillSolver : EventSubscriber {
             }
         }
 
-        private fun findPath(): List<Vec3>? {
+        private fun findPath(): List<Vec3d>? {
             val spaces = getSpaces()
 
             val moves = spaces.associate {
-                val neighbors = UDirection.HORIZONTALS.associateBy { direction -> it.offset(direction) }
+                val neighbors = UDirection.HORIZONTALS.associateBy { direction -> it.method_10093(direction) }
                     .filterKeys { spot -> spot in spaces }
                     .mapKeys { (pos, _) -> spaces.indexOf(pos) }
                 Pair(spaces.indexOf(it), neighbors)
@@ -187,21 +187,21 @@ object IceFillSolver : EventSubscriber {
 
                 return getOptimalPath(
                     optimizedMoves, n, startIndex, visited, startPath, 1, facing.ordinal, 0, Int.MAX_VALUE
-                )?.first?.map { Vec3(spaces.elementAt(it)).addVector(0.5, 0.01, 0.5) }
+                )?.first?.map { Vec3d(spaces.elementAt(it)).add(0.5, 0.01, 0.5) }
             } else {
                 val simplifiedMoves = moves.mapValues { (_, y) -> y.map { it.key } }
 
                 return getFirstPath(
                     Array(n) { simplifiedMoves[it]!! }, n, startIndex, visited, startPath, 1
-                )?.map { Vec3(spaces.elementAt(it)).addVector(0.5, 0.01, 0.5) }
+                )?.map { Vec3d(spaces.elementAt(it)).add(0.5, 0.01, 0.5) }
             }
         }
 
         fun draw(matrixStack: UMatrixStack, partialTicks: Float) {
             path?.let {
-                GlStateManager.disableCull()
+                RenderSystem.disableCull()
                 RenderUtil.draw3DLineStrip(it, 5, Color.MAGENTA, partialTicks, matrixStack)
-                GlStateManager.enableCull()
+                RenderSystem.enableCull()
             }
         }
 
@@ -292,11 +292,11 @@ object IceFillSolver : EventSubscriber {
             while (queue.isNotEmpty()) {
                 val current = queue.removeLast()
                 UDirection.HORIZONTALS.forEach { direction ->
-                    val next = current.offset(direction)
-                    if (next !in spaces && world.getBlockState(next).block === Blocks.air && Utils.equalsOneOf(
+                    val next = current.method_10093(direction)
+                    if (next !in spaces && world.getBlockState(next).block === Blocks.AIR && Utils.equalsOneOf(
                             world.getBlockState(
-                                next.down()
-                            ).block, Blocks.ice, Blocks.packed_ice
+                                next.method_10074()
+                            ).block, Blocks.ICE, Blocks.PACKED_ICE
                         )
                     ) {
                         spaces.add(next)

@@ -26,35 +26,35 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils.mapZ
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils.yaw
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
-import net.minecraft.world.storage.MapData
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.BlockPos
+import net.minecraft.item.map.MapState
 import kotlin.math.roundToInt
 
 object MapUpdater {
-    fun updatePlayers(mapData: MapData) {
+    fun updatePlayers(mapData: MapState) {
         if (DungeonListener.team.isEmpty()) return
 
-        val decor = mapData.mapDecorations
+        val decor = mapData.decorations
         DungeonListener.team.forEach { (name, team) ->
             val player = team.mapPlayer
             decor.entries.find { (icon, _) -> icon == player.icon }?.let { (_, vec4b) ->
-                player.isOurMarker = vec4b.func_176110_a().toInt() == 1
+                player.isOurMarker = vec4b.typeId.toInt() == 1
                 player.mapX = vec4b.mapX
                 player.mapZ = vec4b.mapZ
                 player.yaw = vec4b.yaw
             }
-            if (player.isOurMarker || name == mc.thePlayer!!.name) {
-                player.yaw = mc.thePlayer!!.rotationYaw
+            if (player.isOurMarker || name == mc.player!!.name) {
+                player.yaw = mc.player!!.yaw
                 player.mapX =
-                    ((mc.thePlayer!!.posX - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
+                    ((mc.player!!.x - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first).roundToInt()
                 player.mapZ =
-                    ((mc.thePlayer!!.posZ - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
+                    ((mc.player!!.z - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second).roundToInt()
             }
         }
     }
 
-    fun updateRooms(mapData: MapData) {
+    fun updateRooms(mapData: MapState) {
         DungeonMapColorParser.updateMap(mapData)
 
         for (x in 0..10) {
@@ -95,20 +95,20 @@ object MapUpdater {
                         room.opened = false
                     } else if (!room.opened) {
                         //#if MC==10809
-                        val chunk = mc.theWorld!!.getChunkFromChunkCoords(
+                        //$$ val chunk = mc.world!!.method_0_271(
                         //#else
-                        //$$ val chunk = mc.world!!.getChunk(room.x shr 4, room.z shr 4)
+                        val chunk = mc.world!!.getChunk(room.x shr 4, room.z shr 4)
                         //#endif
                             room.x shr 4,
                             room.z shr 4
                         )
 
                         //#if MC==10809
-                        if (chunk.isLoaded) {
+                        //$$ if (chunk.method_12229()) {
                         //#else
-                        //$$ if (mc.world!!.chunkManager.getChunk(xPos shr 4, zPos shr 4, ChunkStatus.FULL, false) != null) {
+                        if (mc.world!!.chunkManager.getChunk(xPos shr 4, zPos shr 4, ChunkStatus.FULL, false) != null) {
                         //#endif
-                            if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air)
+                            if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.AIR)
                             room.opened = true
                         } else if (mapTile is Door && mapTile.state == RoomState.DISCOVERED) {
                             if (room.type == DoorType.BLOOD) {

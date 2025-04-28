@@ -29,9 +29,9 @@ import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.successPrefix
 import gg.skytils.skytilsmod.core.DataFetcher
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
 
@@ -48,7 +48,7 @@ object TreasureHunterSolver : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
 
-        val formatted = event.message.formattedText
+        val formatted = event.message.method_10865()
 
         if (formatted == "§r§aYou found a treasure chest!§r") {
             treasureLocation = null
@@ -59,7 +59,7 @@ object TreasureHunterSolver : EventSubscriber {
                 DataFetcher.reloadData()
                 return
             }
-            val unformatted = event.message.unformattedText.stripControlCodes()
+            val unformatted = event.message.string.stripControlCodes()
             val solution =
                 treasureHunterLocations.getOrDefault(treasureHunterLocations.keys.find { s: String ->
                     unformatted.contains(s)
@@ -81,18 +81,18 @@ object TreasureHunterSolver : EventSubscriber {
         val y = pos.y - viewerY
         val z = pos.z - viewerZ
         val distSq = x * x + y * y + z * z
-        GlStateManager.disableDepth()
-        GlStateManager.disableCull()
+        RenderSystem.disableDepthTest()
+        RenderSystem.disableCull()
         RenderUtil.drawFilledBoundingBox(
             matrixStack,
-            AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1),
+            Box(x, y, z, x + 1, y + 1, z + 1),
             Color(2, 250, 39),
             1f
         )
         if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(x, y + 1, z, Color(2, 250, 39).rgb, 1.0f, event.partialTicks)
         RenderUtil.renderWaypointText("§6Treasure", pos.up(2), event.partialTicks, matrixStack)
-        GlStateManager.disableLighting()
-        GlStateManager.enableDepth()
-        GlStateManager.enableCull()
+        RenderSystem.method_4406()
+        RenderSystem.enableDepthTest()
+        RenderSystem.enableCull()
     }
 }

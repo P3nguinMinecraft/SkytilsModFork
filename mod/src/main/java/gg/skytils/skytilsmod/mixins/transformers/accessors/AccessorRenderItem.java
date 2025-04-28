@@ -19,14 +19,14 @@
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
 //#if MC==10809
-import net.minecraft.client.renderer.entity.RenderItem;
-import net.minecraft.client.resources.model.IBakedModel;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Invoker;
-
-@Mixin(RenderItem.class)
-public interface AccessorRenderItem {
-    @Invoker
-    void invokeRenderModel(IBakedModel model, int color);
-}
+//$$ import net.minecraft.client.render.item.ItemRenderer;
+//$$ import net.minecraft.client.render.model.BakedModel;
+//$$ import org.spongepowered.asm.mixin.Mixin;
+//$$ import org.spongepowered.asm.mixin.gen.Invoker;
+//$$
+//$$ @Mixin(ItemRenderer.class)
+//$$ public interface AccessorRenderItem {
+//$$     @Invoker("renderItemModel")
+//$$     void invokeRenderModel(BakedModel model, int color);
+//$$ }
 //#endif

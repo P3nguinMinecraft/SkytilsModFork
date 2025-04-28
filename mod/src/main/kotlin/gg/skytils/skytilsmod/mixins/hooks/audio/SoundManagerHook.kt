@@ -19,7 +19,7 @@ package gg.skytils.skytilsmod.mixins.hooks.audio
 
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.audio.ISound
+import net.minecraft.client.sound.SoundInstance
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
@@ -29,8 +29,8 @@ fun bypassPlayerVolume(
     if (Utils.shouldBypassVolume) cir.returnValue = 1f
 }
 
-fun stopPlayingUnknownSounds(p_sound: ISound, ci: CallbackInfo) {
-    if (p_sound.soundLocation.resourcePath.isBlank() && Utils.isOnHypixel && Skytils.config.preventLogSpam) {
+fun stopPlayingUnknownSounds(p_sound: SoundInstance, ci: CallbackInfo) {
+    if (p_sound.id.path.isBlank() && Utils.isOnHypixel && Skytils.config.preventLogSpam) {
         ci.cancel()
     }
 }

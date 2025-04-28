@@ -46,8 +46,8 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.nonDashedString
 import gg.skytils.skytilsmod.utils.toMCItems
 import kotlinx.coroutines.launch
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
 import net.minecraft.item.Item
 import java.awt.Color
 import java.util.*
@@ -178,7 +178,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf contentContainer
 
     private val taming by SkillComponent(
-        ItemComponent(Items.spawn_egg),
+        ItemComponent(Items.SPAWN_EGG),
         Color(65, 102, 245).toConstraint(),
         "SKILL_TAMING",
         profileState
@@ -191,7 +191,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val farming by SkillComponent(
-        ItemComponent(Items.golden_hoe),
+        ItemComponent(Items.GOLDEN_HOE),
         Color(65, 102, 245).toConstraint(),
         "SKILL_FARMING",
         profileState
@@ -204,7 +204,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val mining by SkillComponent(
-        ItemComponent(Items.stone_pickaxe),
+        ItemComponent(Items.STONE_PICKAXE),
         Color(65, 102, 245).toConstraint(),
         "SKILL_MINING",
         profileState
@@ -217,7 +217,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val combat by SkillComponent(
-        ItemComponent(Items.stone_sword),
+        ItemComponent(Items.STONE_SWORD),
         Color(65, 102, 245).toConstraint(),
         "SKILL_COMBAT",
         profileState
@@ -230,7 +230,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val foraging by SkillComponent(
-        ItemComponent(Item.getItemFromBlock(Blocks.sapling), 3),
+        ItemComponent(Item.fromBlock(Blocks.SAPLING), 3),
         Color(65, 102, 245).toConstraint(),
         "SKILL_FORAGING",
         profileState
@@ -243,7 +243,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val fishing by SkillComponent(
-        ItemComponent(Items.fishing_rod),
+        ItemComponent(Items.FISHING_ROD),
         Color(65, 102, 245).toConstraint(),
         "SKILL_FISHING",
         profileState
@@ -256,7 +256,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val enchanting by SkillComponent(
-        ItemComponent(Item.getItemFromBlock(Blocks.enchanting_table)),
+        ItemComponent(Item.fromBlock(Blocks.ENCHANTING_TABLE)),
         Color(65, 102, 245).toConstraint(),
         "SKILL_ENCHANTING",
         profileState
@@ -269,7 +269,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val alchemy by SkillComponent(
-        ItemComponent(Items.brewing_stand),
+        ItemComponent(Items.BREWING_STAND),
         Color(65, 102, 245).toConstraint(),
         "SKILL_ALCHEMY",
         profileState
@@ -282,7 +282,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val carpentry by SkillComponent(
-        ItemComponent(Item.getItemFromBlock(Blocks.crafting_table)),
+        ItemComponent(Item.fromBlock(Blocks.CRAFTING_TABLE)),
         Color(65, 102, 245).toConstraint(),
         "SKILL_CARPENTRY",
         profileState
@@ -295,7 +295,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val runecrafting by SkillComponent(
-        ItemComponent(Items.magma_cream),
+        ItemComponent(Items.MAGMA_CREAM),
         Color(65, 102, 245).toConstraint(),
         "SKILL_RUNECRAFTING",
         profileState

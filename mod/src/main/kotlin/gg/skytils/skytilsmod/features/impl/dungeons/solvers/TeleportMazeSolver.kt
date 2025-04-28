@@ -32,13 +32,13 @@ import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.DevTools
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Blocks
-import net.minecraft.network.play.server.S08PacketPlayerPosLook
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.MathHelper
-import net.minecraft.util.Vec3
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.block.Blocks
+import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.MathHelper
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
@@ -66,17 +66,17 @@ object TeleportMazeSolver : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Skytils.config.teleportMazeSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Teleport Maze")) return
-        if (mc.thePlayer == null || mc.theWorld == null) return
+        if (mc.player == null || mc.world == null) return
         event.packet.apply {
             when (this) {
-                is S08PacketPlayerPosLook -> {
+                is PlayerPositionLookS2CPacket -> {
                     if (y == 69.5 && Utils.equalsOneOf(
-                            mc.thePlayer.posY,
+                            mc.player.y,
                             69.5,
                             69.8125
                         ) && abs(x % 1) == 0.5 && abs(z % 1) == 0.5
                     ) {
-                        val currPos = mc.thePlayer.position
+                        val currPos = mc.player.blockPos
                         val pos = BlockPos(x, y, z)
                         val oldTpPad = findEndPortalFrame(currPos) ?: return
                         val tpPad = findEndPortalFrame(pos) ?: return
@@ -88,20 +88,20 @@ object TeleportMazeSolver : EventSubscriber {
                             val yawX = MathHelper.sin(magicYaw)
                             val yawZ = MathHelper.cos(magicYaw)
                             val pitchVal = -MathHelper.cos(-pitch * deg2Rad.toFloat())
-                            val vec = Vec3((yawX * pitchVal).toDouble(), 69.0, (yawZ * pitchVal).toDouble())
+                            val vec = Vec3d((yawX * pitchVal).toDouble(), 69.0, (yawZ * pitchVal).toDouble())
                             valid.clear()
                             for (i in 4..23) {
                                 val bp = BlockPos(
-                                    x + vec.xCoord * i,
-                                    vec.yCoord,
-                                    z + vec.zCoord * i
+                                    x + vec.x * i,
+                                    vec.y,
+                                    z + vec.z * i
                                 )
                                 val allDir = Utils.getBlocksWithinRangeAtSameY(bp, 2, 69)
 
                                 valid.addAll(allDir.filter {
-                                    it !in steppedPads && mc.theWorld.getBlockState(
+                                    it !in steppedPads && mc.world.getBlockState(
                                         it
-                                    ).block === Blocks.end_portal_frame
+                                    ).block === Blocks.END_PORTAL_FRAME
                                 })
                             }
                             if (DevTools.getToggle("tpmaze")) UChat.chat(valid.joinToString { it.toString() })
@@ -111,8 +111,8 @@ object TeleportMazeSolver : EventSubscriber {
                             }
                         }
                         if (DevTools.getToggle("tpmaze")) UChat.chat(
-                            "current: ${mc.thePlayer.positionVector}, ${mc.thePlayer.rotationPitch} ${mc.thePlayer.rotationYaw} new: ${this.x} ${this.y} ${this.z} - ${this.pitch} ${this.yaw} - ${
-                                this.func_179834_f().joinToString { it.name }
+                            "current: ${mc.player.pos}, ${mc.player.pitch} ${mc.player.yaw} new: ${this.x} ${this.y} ${this.z} - ${this.pitch} ${this.yaw} - ${
+                                this.flags.joinToString { it.name }
                             }"
                         )
                     }
@@ -123,7 +123,7 @@ object TeleportMazeSolver : EventSubscriber {
 
     private fun findEndPortalFrame(pos: BlockPos): BlockPos? {
         return Utils.getBlocksWithinRangeAtSameY(pos, 1, 69).find {
-            mc.theWorld.getBlockState(it).block === Blocks.end_portal_frame
+            mc.world.getBlockState(it).block === Blocks.END_PORTAL_FRAME
         }
     }
 
@@ -136,27 +136,27 @@ object TeleportMazeSolver : EventSubscriber {
             val x = pos.x - viewerX
             val y = pos.y - viewerY
             val z = pos.z - viewerZ
-            GlStateManager.disableCull()
+            RenderSystem.disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
-                AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
+                Box(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Skytils.config.teleportMazeSolverColor
             )
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
         }
 
         for (pos in poss) {
             val x = pos.x - viewerX
             val y = pos.y - viewerY
             val z = pos.z - viewerZ
-            GlStateManager.disableCull()
+            RenderSystem.disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
-                AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
+                Box(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Color.GREEN.withAlpha(69),
                 1f
             )
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
         }
     }
 

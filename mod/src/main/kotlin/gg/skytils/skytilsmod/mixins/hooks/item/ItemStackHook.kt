@@ -43,14 +43,14 @@ fun showEnchantmentGlint(stack: Any, cir: CallbackInfoReturnable<Boolean>) {
                 return
             }
             if (Skytils.config.enchantGlintFix) {
-                if (extraAttr.hasKey("enchantments") && extraAttr.getCompoundTag("enchantments").keySet.isNotEmpty()) {
+                if (extraAttr.contains("enchantments") && extraAttr.getCompound("enchantments").keys.isNotEmpty()) {
                     cir.returnValue = true
                     return
                 }
             }
         }
-        if (tagCompound?.hasKey("SkytilsForceGlint") == true) {
-            cir.returnValue = tagCompound.getBoolean("SkytilsForceGlint")
+        if (nbt?.contains("SkytilsForceGlint") == true) {
+            cir.returnValue = nbt.getBoolean("SkytilsForceGlint")
         }
     }
 }

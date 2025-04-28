@@ -20,29 +20,29 @@ package gg.skytils.skytilsmod.mixins.transformers.network;
 
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityLivingBase;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.play.INetHandlerPlayClient;
-import net.minecraft.network.play.server.S0FPacketSpawnMob;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.s2c.play.MobSpawnS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = NetHandlerPlayClient.class, priority = 1001)
-public abstract class MixinNetHandlerPlayClient implements INetHandlerPlayClient {
+@Mixin(value = ClientPlayNetworkHandler.class, priority = 1001)
+public abstract class MixinNetHandlerPlayClient implements ClientPlayPacketListener {
     @Shadow
-    private WorldClient clientWorldController;
+    private ClientWorld world;
 
-    @Inject(method = "handleSpawnMob", at = @At("TAIL"))
-    private void onHandleSpawnMobTail(S0FPacketSpawnMob packetIn, CallbackInfo ci) {
-        Entity entity = this.clientWorldController.getEntityByID(packetIn.getEntityID());
+    @Inject(method = "onMobSpawn", at = @At("TAIL"))
+    private void onHandleSpawnMobTail(MobSpawnS2CPacket packetIn, CallbackInfo ci) {
+        Entity entity = this.world.getEntityById(packetIn.getId());
         if (entity != null) {
             MasterMode7Features.INSTANCE.onMobSpawned(entity);
             ((ExtensionEntityLivingBase) entity).getSkytilsHook().onNewDisplayName(
-                    entity.getDataWatcher().getWatchableObjectString(2)
+                    entity.getDataTracker().getString(2)
             );
         }
     }

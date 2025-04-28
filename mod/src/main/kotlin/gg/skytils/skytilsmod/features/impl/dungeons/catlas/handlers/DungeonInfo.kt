@@ -19,7 +19,7 @@
 package gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers
 
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
-import net.minecraft.world.storage.MapData
+import net.minecraft.item.map.MapState
 
 object DungeonInfo {
     // 6 x 6 room grid, 11 x 11 with connections
@@ -35,8 +35,8 @@ object DungeonInfo {
 
     var keys = 0
 
-    var dungeonMap: MapData? = null
-    var guessMapData: MapData? = null
+    var dungeonMap: MapState? = null
+    var guessMapData: MapState? = null
 
     fun reset() {
         dungeonList.fill(Unknown(0, 0))

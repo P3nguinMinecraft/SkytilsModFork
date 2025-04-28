@@ -28,19 +28,19 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.client.renderer.GlStateManager
+import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.passive.EntityPig
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.passive.PigEntity
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 
 object TechnoMayor : EventSubscriber {
-    private val shinyPigs = HashMap<Vec3, EntityPig?>()
-    private var latestPig: EntityPig? = null
+    private val shinyPigs = HashMap<Vec3d, PigEntity?>()
+    private var latestPig: PigEntity? = null
 
     override fun setup() {
         register(::onRenderSpecialLivingPre)
@@ -54,16 +54,16 @@ object TechnoMayor : EventSubscriber {
         if (!Utils.inSkyblock) return
         val e = event.entity
         if (!e.isValidPigLabel()) return
-        val pos = e.position
-        mc.theWorld.getEntitiesWithinAABBExcludingEntity(
+        val pos = e.blockPos
+        mc.world.method_0_375(
             e,
-            AxisAlignedBB(pos, BlockPos(pos.x + 1, pos.y + 1, pos.z + 1))
+            Box(pos, BlockPos(pos.x + 1, pos.y + 1, pos.z + 1))
         ).find {
-            it is EntityArmorStand && mc.thePlayer.name in it.customNameTag
+            it is ArmorStandEntity && mc.player.name in it.customName
         }?.let {
-            it.worldObj.removeEntity(it)
-            e.worldObj.removeEntity(e)
-            shinyPigs.putIfAbsent(Vec3(pos.x + 0.5, (pos.y - 2).toDouble(), pos.z + 0.5), latestPig)
+            it.world.method_8463(it)
+            e.world.method_8463(e)
+            shinyPigs.putIfAbsent(Vec3d(pos.x + 0.5, (pos.y - 2).toDouble(), pos.z + 0.5), latestPig)
             latestPig = null
         }
     }
@@ -73,7 +73,7 @@ object TechnoMayor : EventSubscriber {
         if (SBInfo.mode != SkyblockIsland.Hub.mode && SBInfo.mode != SkyblockIsland.FarmingIsland.mode) return
         if (!Skytils.config.shinyOrbWaypoints) return
 
-        shinyPigs.values.removeAll { it?.isDead != false }
+        shinyPigs.values.removeAll { it?.isRemoved != false }
 
         val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
         val matrixStack = UMatrixStack()
@@ -81,20 +81,20 @@ object TechnoMayor : EventSubscriber {
         for (entry in shinyPigs) {
             val orb = entry.key
             val pig = entry.value
-            val x = orb.xCoord - viewerX
-            val y = orb.yCoord - viewerY
-            val z = orb.zCoord - viewerZ
+            val x = orb.x - viewerX
+            val y = orb.y - viewerY
+            val z = orb.z - viewerZ
             val distSq = x * x + y * y + z * z
-            GlStateManager.disableCull()
-            GlStateManager.disableTexture2D()
+            RenderSystem.disableCull()
+            RenderSystem.method_4407()
 
             if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(x, y, z, Color(114, 245, 82).rgb, 0.75f, event.partialTicks)
-            GlStateManager.disableDepth()
+            RenderSystem.disableDepthTest()
             RenderUtil.renderWaypointText(
                 "Orb",
-                orb.xCoord,
-                orb.yCoord + 1.5f,
-                orb.zCoord,
+                orb.x,
+                orb.y + 1.5f,
+                orb.z,
                 event.partialTicks,
                 matrixStack
             )
@@ -102,17 +102,17 @@ object TechnoMayor : EventSubscriber {
                 if (pig != null) {
                     RenderUtil.renderWaypointText(
                         "Pig",
-                        pig.posX,
-                        pig.posY + 0.5,
-                        pig.posZ,
+                        pig.x,
+                        pig.y + 0.5,
+                        pig.z,
                         event.partialTicks,
                         matrixStack
                     )
                     RenderUtil.draw3DLine(
-                        Vec3(pig.posX, pig.posY + 0.5, pig.posZ), Vec3(orb.x, orb.y + 1.5, orb.z),
+                        Vec3d(pig.x, pig.y + 0.5, pig.z), Vec3d(orb.x, orb.y + 1.5, orb.z),
                         1, Color.RED, event.partialTicks, matrixStack
                     )
-                    RenderUtil.drawOutlinedBoundingBox(pig.entityBoundingBox, Color.RED, 1f, event.partialTicks)
+                    RenderUtil.drawOutlinedBoundingBox(pig.boundingBox, Color.RED, 1f, event.partialTicks)
                 }
             }
         }
@@ -121,20 +121,20 @@ object TechnoMayor : EventSubscriber {
 
     fun onEntityInteract(event: EntityInteractEvent) {
         if (!Utils.inSkyblock) return
-        checkPig(event.entity as? EntityPig ?: return)
+        checkPig(event.entity as? PigEntity ?: return)
     }
 
     fun onEntityAttack(event: EntityAttackEvent) {
         if (!Utils.inSkyblock) return
-        checkPig(event.target as? EntityPig ?: return)
+        checkPig(event.target as? PigEntity ?: return)
     }
 
-    fun checkPig(entity: EntityPig) {
-        if (mc.theWorld.getEntitiesWithinAABBExcludingEntity(
+    fun checkPig(entity: PigEntity) {
+        if (mc.world.method_0_375(
             entity,
-            AxisAlignedBB(
-                BlockPos(entity.posX - 1, entity.posY, entity.posZ - 1),
-                BlockPos(entity.posX + 1, entity.posY + 2, entity.posZ + 1)
+            Box(
+                BlockPos(entity.x - 1, entity.y, entity.z - 1),
+                BlockPos(entity.x + 1, entity.y + 2, entity.z + 1)
             )
         ).any { it.isValidPigLabel() }) {
             latestPig = entity
@@ -146,5 +146,5 @@ object TechnoMayor : EventSubscriber {
         latestPig = null
     }
 
-    private fun Entity.isValidPigLabel() = this is EntityArmorStand && !isDead && customNameTag == "§6§lSHINY PIG"
+    private fun Entity.isValidPigLabel() = this is ArmorStandEntity && !isRemoved && customName == "§6§lSHINY PIG"
 }

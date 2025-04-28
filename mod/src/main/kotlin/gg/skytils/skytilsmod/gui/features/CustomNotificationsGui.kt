@@ -81,7 +81,7 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("Add Notification").childOf(bottomButtons).constrain {
@@ -185,7 +185,7 @@ class CustomNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
             runCatching {
                 CustomNotifications.notifications.add(
                     CustomNotifications.Notification(
-                        triggerRegex.getText().replace("%%MC_IGN%%", mc.session.username).toRegex(),
+                        triggerRegex.getText().replace("%%MC_IGN%%", client.session.username).toRegex(),
                         displayText.getText(),
                         displayTicks.getText().toInt(),
                         toggle.checked

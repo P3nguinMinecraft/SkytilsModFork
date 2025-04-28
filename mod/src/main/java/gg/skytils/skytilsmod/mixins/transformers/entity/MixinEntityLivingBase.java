@@ -22,9 +22,9 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityLivingBase;
 import gg.skytils.skytilsmod.mixins.hooks.entity.EntityLivingBaseHook;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.potion.Potion;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.particle.ParticleType;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,32 +33,32 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(EntityLivingBase.class)
+@Mixin(LivingEntity.class)
 public abstract class MixinEntityLivingBase extends Entity implements ExtensionEntityLivingBase {
 
     @Unique
-    private final EntityLivingBaseHook hook = new EntityLivingBaseHook((EntityLivingBase) (Object) this);
+    private final EntityLivingBaseHook hook = new EntityLivingBaseHook((LivingEntity) (Object) this);
 
     public MixinEntityLivingBase(World worldIn) {
         super(worldIn);
     }
 
-    @Inject(method = "isPotionActive(Lnet/minecraft/potion/Potion;)Z", at = @At("HEAD"), cancellable = true)
-    private void modifyPotionActive(Potion potion, CallbackInfoReturnable<Boolean> cir) {
-        hook.modifyPotionActive(potion.id, cir);
+    @Inject(method = "hasStatusEffect(Lnet/minecraft/entity/effect/StatusEffect;)Z", at = @At("HEAD"), cancellable = true)
+    private void modifyPotionActive(StatusEffect potion, CallbackInfoReturnable<Boolean> cir) {
+        hook.modifyPotionActive(potion.field_0_7265, cir);
     }
 
-    @Inject(method = "isPotionActive(I)Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "hasStatusEffect(I)Z", at = @At("HEAD"), cancellable = true)
     private void modifyPotionActive(int potionId, CallbackInfoReturnable<Boolean> cir) {
         hook.modifyPotionActive(potionId, cir);
     }
 
-    @WrapWithCondition(method = "onDeathUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnParticle(Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V"))
-    private boolean spawnParticle(World world, EnumParticleTypes particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
+    @WrapWithCondition(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
+    private boolean spawnParticle(World world, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
         return hook.removeDeathParticle(world, particleType, xCoord, yCoord, zCoord, xOffset, yOffset, zOffset, p_175688_14_);
     }
 
-    @Inject(method = "isChild", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isBaby", at = @At("HEAD"), cancellable = true)
     private void setChildState(CallbackInfoReturnable<Boolean> cir) {
         hook.isChild(cir);
     }

@@ -34,19 +34,19 @@ import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.util.IChatComponent
-import net.minecraft.util.Vec3
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.text.Text
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 
 //#if MC>12000
-//$$ import gg.sktyils.skytilsmod.util.formattedText
+import gg.sktyils.skytilsmod.util.formattedText
 //#endif
 
 object BossHPDisplays : EventSubscriber {
     private var canGiantsSpawn = false
-    private var giantNames = emptyList<Pair<IChatComponent, Vec3>>()
+    private var giantNames = emptyList<Pair<Text, Vec3d>>()
     private var guardianRespawnTimers = emptyList<String>()
     private val guardianNameRegex = Regex("§c(Healthy|Reinforced|Chaos|Laser) Guardian §e0§c❤")
     private val timerRegex = Regex("§c ☠ §7 (.+?) §c ☠ §7")
@@ -58,7 +58,7 @@ object BossHPDisplays : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inDungeons) return
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val unformatted = event.message.string.stripControlCodes()
         if (unformatted.startsWith("[BOSS] Sadan")) {
             if (unformatted.contains("My giants! Unleashed!")) {
                 canGiantsSpawn = true
@@ -83,17 +83,17 @@ object BossHPDisplays : EventSubscriber {
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
         if (!Utils.inDungeons) return
-        val world = mc.theWorld
+        val world = mc.world
 
         if (world != null && canGiantsSpawn && (Skytils.config.showGiantHPAtFeet || Skytils.config.showGiantHP)) {
-            val hasSadanPlayer = world.playerEntities.any {
+            val hasSadanPlayer = world.players.any {
                 "Sadan " == it.name
                 //#if MC>=11602
-                //$$ .string
+                .string
                 //#endif
             }
-            giantNames = world.loadedEntityList.filterIsInstance<EntityArmorStand>().filter {
-                val name = it.displayName?.unformattedText ?: return@filter false
+            giantNames = world.entities.filterIsInstance<ArmorStandEntity>().filter {
+                val name = it.displayName?.string ?: return@filter false
                 name.contains("❤") && (!hasSadanPlayer && name.contains("﴾ Sadan") || (name.contains("Giant") && dungeonFloorNumber?.let { it >= 6 } == true) || GiantHPElement.GIANT_NAMES.any {
                     name.contains(
                         it
@@ -101,29 +101,29 @@ object BossHPDisplays : EventSubscriber {
                 })
             }.mapNotNull { entity ->
                 entity.displayName?.let { name ->
-                    Pair(name, entity.positionVector.addVector(0.0, -10.0, 0.0))
+                    Pair(name, entity.pos.add(0.0, -10.0, 0.0))
                 }
             }
         } else giantNames = emptyList()
 
         if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && world != null) {
             guardianRespawnTimers = mutableListOf<String>().apply {
-                for (entity in world.loadedEntityList) {
+                for (entity in world.entities) {
                     if (size >= 4) break
-                    if (entity !is EntityArmorStand) continue
-                    val name = entity.customNameTag
+                    if (entity !is ArmorStandEntity) continue
+                    val name = entity.customName
                     //#if MC>12000
-                    //$$     ?.formattedText
+                        ?.formattedText
                     //#endif
                         ?: continue
                     if (name.startsWith("§c ☠ §7 ") && name.endsWith(" §c ☠ §7")) {
-                        val nameTag = mc.theWorld.getEntitiesWithinAABB(
-                            EntityArmorStand::class.java,
-                            entity.entityBoundingBox.expand(2.0, 5.0, 2.0)
+                        val nameTag = mc.world.method_0_319(
+                            ArmorStandEntity::class.java,
+                            entity.boundingBox.expand(2.0, 5.0, 2.0)
                         ).find {
-                            it.customNameTag.endsWith(" Guardian §e0§c❤")
+                            it.customName.endsWith(" Guardian §e0§c❤")
                         } ?: continue
-                        guardianNameRegex.find(nameTag.customNameTag)?.let {
+                        guardianNameRegex.find(nameTag.customName)?.let {
                             timerRegex.find(name)?.let {
                                 add("${it.groupValues[1]}: ${it.groupValues[1]}")
                             }
@@ -137,19 +137,19 @@ object BossHPDisplays : EventSubscriber {
     fun onRenderWorld(event: WorldDrawEvent) {
         if (!Utils.inDungeons || !Skytils.config.showGiantHPAtFeet) return
         val matrixStack = UMatrixStack()
-        GlStateManager.disableCull()
-        GlStateManager.disableDepth()
+        RenderSystem.disableCull()
+        RenderSystem.disableDepthTest()
         for ((name, pos) in giantNames) {
             RenderUtil.drawLabel(
                 pos,
-                name.formattedText,
+                name.method_10865(),
                 Color.WHITE,
                 event.partialTicks,
                 matrixStack
             )
         }
-        GlStateManager.enableDepth()
-        GlStateManager.enableCull()
+        RenderSystem.enableDepthTest()
+        RenderSystem.enableCull()
     }
 
     class GuardianRespawnTimer : GuiElement("Guardian Respawn Timer", x = 200, y = 30) {
@@ -174,9 +174,9 @@ object BossHPDisplays : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Guardian Respawn Timer Here")
+            get() = ScreenRenderer.fontRenderer.getWidth("Guardian Respawn Timer Here")
 
         override val toggled: Boolean
             get() = Skytils.config.showGuardianRespawnTimer
@@ -191,8 +191,8 @@ object BossHPDisplays : EventSubscriber {
             if (toggled && giantNames.isNotEmpty()) {
                 RenderUtil.drawAllInList(
                     this,
-                    (giantNames.takeIf { it.size == 1 } ?: giantNames.filter { !it.first.unformattedText.contains("Sadan") }).map {
-                        it.first.formattedText
+                    (giantNames.takeIf { it.size == 1 } ?: giantNames.filter { !it.first.string.contains("Sadan") }).map {
+                        it.first.method_10865()
                     }
                 )
             }
@@ -203,9 +203,9 @@ object BossHPDisplays : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * GIANT_NAMES.size
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * GIANT_NAMES.size
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§3§lThe Diamond Giant §a19.5M§c❤")
+            get() = ScreenRenderer.fontRenderer.getWidth("§3§lThe Diamond Giant §a19.5M§c❤")
 
         override val toggled: Boolean
             get() = Skytils.config.showGiantHP

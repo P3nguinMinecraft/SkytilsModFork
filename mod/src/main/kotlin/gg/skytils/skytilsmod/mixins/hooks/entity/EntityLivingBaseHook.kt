@@ -21,17 +21,17 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.dungeons.WitherKingDragons
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.potion.Potion
-import net.minecraft.util.EnumParticleTypes
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.effect.StatusEffect
+import net.minecraft.particle.ParticleType
 import net.minecraft.world.World
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import java.awt.Color
 import kotlin.random.Random
 
-class EntityLivingBaseHook(val entity: EntityLivingBase) {
+class EntityLivingBaseHook(val entity: LivingEntity) {
 
     var overrideDisplayName: String? = null
     var colorMultiplier: Color? = null
@@ -50,19 +50,19 @@ class EntityLivingBaseHook(val entity: EntityLivingBase) {
     }
 
     val isSmol by lazy {
-        Utils.inSkyblock && entity is EntityPlayer && (SuperSecretSettings.smolPeople || isBreefing)
+        Utils.inSkyblock && entity is PlayerEntity && (SuperSecretSettings.smolPeople || isBreefing)
     }
 
     fun modifyPotionActive(potionId: Int, cir: CallbackInfoReturnable<Boolean>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.disableNightVision && potionId == Potion.nightVision.id && entity is EntityPlayerSP) {
+        if (Skytils.config.disableNightVision && potionId == StatusEffect.field_0_7291.field_0_7265 && entity is ClientPlayerEntity) {
             cir.returnValue = false
         }
     }
 
     fun removeDeathParticle(
         world: World,
-        particleType: EnumParticleTypes,
+        particleType: ParticleType,
         xCoord: Double,
         yCoord: Double,
         zCoord: Double,
@@ -71,7 +71,7 @@ class EntityLivingBaseHook(val entity: EntityLivingBase) {
         zOffset: Double,
         p_175688_14_: IntArray
     ): Boolean {
-        return !Skytils.config.hideDeathParticles || !Utils.inSkyblock || particleType != EnumParticleTypes.EXPLOSION_NORMAL
+        return !Skytils.config.hideDeathParticles || !Utils.inSkyblock || particleType != ParticleType.EXPLOSION_NORMAL
     }
 
     fun isChild(cir: CallbackInfoReturnable<Boolean>) {

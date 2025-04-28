@@ -33,7 +33,7 @@ import gg.essential.elementa.dsl.pixels
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.UpdateChecker
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import net.minecraft.client.gui.GuiMainMenu
+import net.minecraft.client.gui.screen.TitleScreen
 
 class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
 
@@ -94,7 +94,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 height = 20.pixels()
             }.onMouseClick {
                 UpdateChecker.updateGetter.updateObj = null
-                Skytils.displayScreen = GuiMainMenu()
+                Skytils.displayScreen = TitleScreen()
             } childOf window
     }
 }

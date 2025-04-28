@@ -38,11 +38,11 @@ import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.setHoverText
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Identifier
 import kotlin.random.Random
 
 object AdManager : EventSubscriber {
-    private val ad = ResourceLocation("skytils:skytilsplus/codeskytils.png")
+    private val ad = Identifier("skytils:skytilsplus/codeskytils.png")
     private var lastAdBreak = -1L
 
     override fun setup() {

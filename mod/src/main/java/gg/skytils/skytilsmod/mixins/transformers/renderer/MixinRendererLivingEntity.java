@@ -23,10 +23,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RendererLivingEntityHookKt;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RendererLivingEntity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.entity.LivingEntityRenderer;
+import net.minecraft.entity.LivingEntity;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,9 +34,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(RendererLivingEntity.class)
-public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> extends Render<T> {
-    protected MixinRendererLivingEntity(RenderManager renderManager) {
+@Mixin(LivingEntityRenderer.class)
+public abstract class MixinRendererLivingEntity<T extends LivingEntity> extends EntityRenderer<T> {
+    protected MixinRendererLivingEntity(EntityRenderDispatcher renderManager) {
         super(renderManager);
     }
 
@@ -45,13 +45,13 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
         return RendererLivingEntityHookKt.replaceEntityName(entity, name);
     }
 
-    @Inject(method = "getColorMultiplier", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getOverlayColor", at = @At("HEAD"), cancellable = true)
     private void setColorMultiplier(T entity, float lightBrightness, float partialTickTime, CallbackInfoReturnable<Integer> cir) {
         RendererLivingEntityHookKt.setColorMultiplier(entity, lightBrightness, partialTickTime, cir);
     }
 
-    @WrapOperation(method = "setBrightness", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/EntityLivingBase;hurtTime:I", opcode = Opcodes.GETFIELD))
-    private int changeHurtTime(EntityLivingBase instance, Operation<Integer> original) {
+    @WrapOperation(method = "applyOverlayColor(Lnet/minecraft/entity/LivingEntity;FZ)Z", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;hurtTime:I", opcode = Opcodes.GETFIELD))
+    private int changeHurtTime(LivingEntity instance, Operation<Integer> original) {
         return RendererLivingEntityHookKt.replaceHurtTime(instance, original);
     }
 }

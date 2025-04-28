@@ -34,7 +34,7 @@ import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.gui.itemcycle.condition.*
-import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.screen.Screen
 import java.awt.Color
 
 class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
@@ -67,7 +67,7 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(ItemCycleGui())
+            client.setScreen(ItemCycleGui())
         }
 
         DropDown(0, listOf("Add New Condition", "Click", "Island", "Item", "Slot")).childOf(bottomButtons).constrain {
@@ -75,10 +75,10 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
             y = 0.pixels
         }.onValueChange {
             when (it) {
-                1 -> mc.displayGuiScreen(ClickConditionGui(cycle))
-                2 -> mc.displayGuiScreen(IslandConditionGui(cycle))
-                3 -> mc.displayGuiScreen(ItemConditionGui(cycle))
-                4 -> mc.displayGuiScreen(SlotConditionGui(cycle))
+                1 -> client.setScreen(ClickConditionGui(cycle))
+                2 -> client.setScreen(IslandConditionGui(cycle))
+                3 -> client.setScreen(ItemConditionGui(cycle))
+                4 -> client.setScreen(SlotConditionGui(cycle))
             }
         }
 
@@ -112,7 +112,7 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
             y = CenterConstraint()
             height = 75.percent
         }.onLeftClick {
-            mc.displayGuiScreen(getConditionGui(cycle, condition))
+            client.setScreen(getConditionGui(cycle, condition))
         }
 
         SimpleButton("Remove").childOf(container).constrain {
@@ -125,7 +125,7 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
         }
     }
 
-    private fun getConditionGui(cycle: ItemCycle.Cycle, condition: ItemCycle.Cycle.Condition): GuiScreen {
+    private fun getConditionGui(cycle: ItemCycle.Cycle, condition: ItemCycle.Cycle.Condition): Screen {
         return when (condition) {
             is ItemCycle.Cycle.Condition.ClickCondition -> ClickConditionGui(cycle, condition)
             is ItemCycle.Cycle.Condition.IslandCondition -> IslandConditionGui(cycle, condition)

@@ -19,15 +19,15 @@
 package gg.skytils.skytilsmod.mixins.transformers.util;
 
 import gg.skytils.skytilsmod.mixins.hooks.util.IChatComponent_SerializerHookKt;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(IChatComponent.Serializer.class)
+@Mixin(Text.Serializer.class)
 public abstract class MixinIChatComponentSerializer {
-    @ModifyVariable(method = "serialize", at = @At("HEAD"), argsOnly = true)
-    private IChatComponent fixUTextComponentSerialize(IChatComponent component) {
+    @ModifyVariable(method = "serialize(Lnet/minecraft/text/Text;Ljava/lang/reflect/Type;Lcom/google/gson/JsonSerializationContext;)Lcom/google/gson/JsonElement;", at = @At("HEAD"), argsOnly = true)
+    private Text fixUTextComponentSerialize(Text component) {
         return IChatComponent_SerializerHookKt.fixUTextComponentSerialize(component);
     }
 }

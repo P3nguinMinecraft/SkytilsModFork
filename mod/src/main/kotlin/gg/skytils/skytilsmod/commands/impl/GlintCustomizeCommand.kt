@@ -25,19 +25,19 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.GlintCustomizer
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.command.SyntaxErrorException
-import net.minecraft.command.WrongUsageException
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.class_0_1371
+import net.minecraft.class_0_1374
 
 object GlintCustomizeCommand : BaseCommand("glintcustomize", listOf("customizeglint")) {
-    override fun getCommandUsage(player: EntityPlayerSP) = "/glintcustomize <override/color>"
+    override fun getCommandUsage(player: ClientPlayerEntity) = "/glintcustomize <override/color>"
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
-        if (!Utils.inSkyblock) throw WrongUsageException("You must be in Skyblock to use this command!")
-        val item = player.heldItem ?: throw WrongUsageException("You need to hold an item that you wish to customize!")
-        val itemId = ItemUtil.getSkyBlockItemID(item) ?: throw WrongUsageException("That isn't a valid item!")
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
+        if (!Utils.inSkyblock) throw class_0_1374("You must be in Skyblock to use this command!")
+        val item = player.method_0_7087() ?: throw class_0_1374("You need to hold an item that you wish to customize!")
+        val itemId = ItemUtil.getSkyBlockItemID(item) ?: throw class_0_1374("That isn't a valid item!")
         if (args.isEmpty()) {
-            throw WrongUsageException(getCommandUsage(player))
+            throw class_0_1374(getCommandUsage(player))
         }
         val originalMessage = args.joinToString(" ")
         when (args[0].lowercase()) {
@@ -70,20 +70,20 @@ object GlintCustomizeCommand : BaseCommand("glintcustomize", listOf("customizegl
                         return
                     }
                     else -> {
-                        throw WrongUsageException("/glintcustomize override <on/off/clear/clearall>")
+                        throw class_0_1374("/glintcustomize override <on/off/clear/clearall>")
                     }
                 }
             }
             "color" -> {
                 when {
                     originalMessage.contains("set") -> {
-                        if (args.size != 3) throw WrongUsageException("You must specify a valid hex color!")
+                        if (args.size != 3) throw class_0_1374("You must specify a valid hex color!")
                         try {
                             GlintCustomizer.getGlintItem(itemId).color = Utils.customColorFromString(args[2])
                             PersistentSave.markDirty<GlintCustomizer>()
                             UChat.chat("$successPrefix §aForced an enchant glint color for your item.")
                         } catch (e: NumberFormatException) {
-                            throw SyntaxErrorException("$failPrefix Unable to get a color from inputted string.")
+                            throw class_0_1371("$failPrefix Unable to get a color from inputted string.")
                         }
                         return
                     }
@@ -102,12 +102,12 @@ object GlintCustomizeCommand : BaseCommand("glintcustomize", listOf("customizegl
                         return
                     }
                     else -> {
-                        throw WrongUsageException("/glintcustomize color <set/clearall/clear>")
+                        throw class_0_1374("/glintcustomize color <set/clearall/clear>")
                     }
                 }
             }
             else -> {
-                throw WrongUsageException(getCommandUsage(player))
+                throw class_0_1374(getCommandUsage(player))
             }
         }
     }

@@ -21,9 +21,9 @@ package gg.skytils.skytilsmod.mixins.transformers.gui;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameForgeHookKt;
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameHookKt;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiIngame;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.entity.player.PlayerEntity;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,20 +31,20 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(GuiIngame.class)
-public abstract class MixinGuiIngame extends Gui {
+@Mixin(InGameHud.class)
+public abstract class MixinGuiIngame extends DrawContext {
 
-    @ModifyExpressionValue(method = "renderSelectedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/GuiIngame;remainingHighlightTicks:I", opcode = Opcodes.GETFIELD))
+    @ModifyExpressionValue(method = "renderHeldItemTooltip", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/hud/InGameHud;heldItemTooltipFade:I", opcode = Opcodes.GETFIELD))
     private int alwaysShowItemHighlight(int original) {
         return GuiIngameForgeHookKt.alwaysShowItemHighlight(original);
     }
 
-    @Inject(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderItemAndEffectIntoGUI(Lnet/minecraft/item/ItemStack;II)V"))
-    private void renderRarityOnHotbar(int index, int xPos, int yPos, float partialTicks, EntityPlayer player, CallbackInfo ci) {
+    @Inject(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/ItemRenderer;method_4026(Lnet/minecraft/item/ItemStack;II)V"))
+    private void renderRarityOnHotbar(int index, int xPos, int yPos, float partialTicks, PlayerEntity player, CallbackInfo ci) {
         GuiIngameHookKt.renderRarityOnHotbar(index, xPos, yPos, partialTicks, player, ci);
     }
 
-    @ModifyVariable(method = "renderVignette", at = @At(value = "STORE", ordinal = 0), ordinal = 1)
+    @ModifyVariable(method = "renderVignetteOverlay", at = @At(value = "STORE", ordinal = 0), ordinal = 1)
     private float disableWorldBorder(float f) {
         return GuiIngameHookKt.onWorldBorder(f);
     }

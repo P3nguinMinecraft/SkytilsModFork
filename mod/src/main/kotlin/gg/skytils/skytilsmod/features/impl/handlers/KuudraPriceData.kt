@@ -49,10 +49,10 @@ object KuudraPriceData {
 
     fun getAttributePricedItemId(item: ItemStack): String? {
         val extraAttr = ItemUtil.getExtraAttributes(item) ?: return null
-        val attributes = extraAttr.getCompoundTag("attributes")
-        if (attributes.keySet.size < 2) return null
+        val attributes = extraAttr.getCompound("attributes")
+        if (attributes.keys.size < 2) return null
         val itemId = ItemUtil.getSkyBlockItemID(extraAttr) ?: return null
-        return "$itemId ${attributes.keySet.joinToString(" ") { "${it}_${attributes.getInteger(it)}" }}".intern()
+        return "$itemId ${attributes.keys.joinToString(" ") { "${it}_${attributes.getInt(it)}" }}".intern()
     }
 
     fun getOrRequestAttributePricedItem(attrId: String): AttributePricedItem? {

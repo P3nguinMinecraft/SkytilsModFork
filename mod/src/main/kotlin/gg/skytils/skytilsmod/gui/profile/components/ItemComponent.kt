@@ -44,8 +44,8 @@ class ItemComponent(val state: State<ItemStack>) : UIComponent() {
             val item = state.get()
             RenderUtil.renderItem(item, 0, 0)
 //            mc.renderItem.renderItemIntoGUI(item, 0, 0)
-            mc.renderItem.renderItemOverlayIntoGUI(
-                item.item.getFontRenderer(item) ?: mc.fontRendererObj,
+            mc.itemRenderer.method_4022(
+                item.item.getFontRenderer(item) ?: mc.textRenderer,
                 item,
                 0,
                 0,

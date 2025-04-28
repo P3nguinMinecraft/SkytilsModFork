@@ -65,13 +65,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.hypixel.modapi.packet.impl.clientbound.ClientboundPartyInfoPacket
 import net.hypixel.modapi.packet.impl.serverbound.ServerboundPartyInfoPacket
-import net.minecraft.client.entity.AbstractClientPlayer
-import net.minecraft.client.resources.DefaultPlayerSkin
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.network.play.server.S02PacketChat
-import net.minecraft.network.play.server.S13PacketDestroyEntities
-import net.minecraft.network.play.server.S38PacketPlayerListItem
-import net.minecraft.util.ResourceLocation
+import net.minecraft.client.network.AbstractClientPlayerEntity
+import net.minecraft.client.util.DefaultSkinHelper
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket
+import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket
+import net.minecraft.util.Identifier
 
 object DungeonListener : EventSubscriber {
     val team = hashMapOf<String, DungeonTeammate>()
@@ -126,7 +126,7 @@ object DungeonListener : EventSubscriber {
     private val playerEntryNames = mapOf("!A-b" to 1, "!A-f" to 5, "!A-j" to 9, "!A-n" to 13, "!A-r" to 17)
 
     fun onWorldLoad(event: WorldUnloadEvent) {
-        if (event.world == mc.theWorld) {
+        if (event.world == mc.world) {
             team.clear()
             deads.clear()
             disconnected.clear()
@@ -137,8 +137,8 @@ object DungeonListener : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inDungeons) return
-        if (event.packet is S02PacketChat) {
-            val text = event.packet.chatComponent.formattedText
+        if (event.packet is GameMessageS2CPacket) {
+            val text = event.packet.message.method_10865()
             val unformatted = text.stripControlCodes()
             if (event.packet.type == 2.toByte()) {
                 secretsRegex.find(text)?.destructured?.also { (secrets, maxSecrets) ->
@@ -149,7 +149,7 @@ object DungeonListener : EventSubscriber {
                     DungeonFeatures.DungeonSecretDisplay.maxSecrets = max
 
                     run setFoundSecrets@ {
-                        val tile = ScanUtils.getRoomFromPos(mc.thePlayer.position)
+                        val tile = ScanUtils.getRoomFromPos(mc.player.blockPos)
                         if (tile is Room && tile.data.name != "Unknown") {
                             val room = tile.uniqueRoom ?: return@setFoundSecrets
                             if (room.foundSecrets != sec) {
@@ -184,7 +184,7 @@ object DungeonListener : EventSubscriber {
                         }
                     }
                     if (Skytils.config.autoRepartyOnDungeonEnd) {
-                        RepartyCommand.processCommand(mc.thePlayer, emptyArray())
+                        RepartyCommand.processCommand(mc.player, emptyArray())
                     }
                 } else if (text.startsWith("§r§c ☠ ")) {
                     if (text.endsWith(" §r§7reconnected§r§7.§r")) {
@@ -193,7 +193,7 @@ object DungeonListener : EventSubscriber {
                         disconnected.remove(username)
                     } else if (text.endsWith(" and became a ghost§r§7.§r")) {
                         val match = deathRegex.find(text) ?: return
-                        val username = match.groups["username"]?.value ?: mc.thePlayer.name
+                        val username = match.groups["username"]?.value ?: mc.player.name
                         val teammate = team[username] ?: return
                         markDead(teammate)
 
@@ -216,7 +216,7 @@ object DungeonListener : EventSubscriber {
                             val party = async {
                                 ServerboundPartyInfoPacket().getResponse<ClientboundPartyInfoPacket>()
                             }
-                            val partyMembers = party.await().members.ifEmpty { setOf(mc.thePlayer.uniqueID) }.mapTo(hashSetOf()) { it.toString() }
+                            val partyMembers = party.await().members.ifEmpty { setOf(mc.player.uuid) }.mapTo(hashSetOf()) { it.toString() }
                             val entrance = DungeonInfo.uniqueRooms["Entrance"] ?: error("Entrance not found")
                             assert(entrance.mainRoom.data.type == RoomType.ENTRANCE)
                             printDevMessage("hi", "dungeonws")
@@ -255,11 +255,11 @@ object DungeonListener : EventSubscriber {
                 }
             }
         }
-        else if (event.packet is S38PacketPlayerListItem) {
+        else if (event.packet is PlayerListS2CPacket) {
             val action = event.packet.action
             val entries = event.packet.entries
 
-            if (action != S38PacketPlayerListItem.Action.ADD_PLAYER && action != S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME) return
+            if (action != PlayerListS2CPacket.Action.ADD_PLAYER && action != PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME) return
 
             for (entry in entries) {
                 val text = entry.text
@@ -295,12 +295,12 @@ object DungeonListener : EventSubscriber {
                     continue
                 }
 
-                val old = (mc.netHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]
-                if (old != null && action == S38PacketPlayerListItem.Action.ADD_PLAYER) {
+                val old = (mc.networkHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]
+                if (old != null && action == PlayerListS2CPacket.Action.ADD_PLAYER) {
                     printDevMessage({ "player ${entry.text} already exists in the list but was added" }, "dungeonlistener")
                 }
 
-                val pos = playerEntryNames[old?.gameProfile?.name ?: entry.profile.name]
+                val pos = playerEntryNames[old?.profile?.name ?: entry.profile.name]
                 if (pos != null) {
                     val matcher = classPattern.find(text)
                     if (matcher == null) {
@@ -326,13 +326,13 @@ object DungeonListener : EventSubscriber {
                             DungeonClass.EMPTY,
                             0,
                             pos,
-                            old?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+                            old?.skinTexture ?: DefaultSkinHelper.getTexture()
                         ).also {
                             if (old == null) {
                                 printDevMessage({ "could not get network player info for $name $action" }, "dungeonlistener")
                                 tickTimer(1) {
                                     printDevMessage({ "setting skin for ${name}" }, "dungeonlistener")
-                                    it.skin = (mc.netHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]?.locationSkin ?: DefaultPlayerSkin.getDefaultSkinLegacy()
+                                    it.skin = (mc.networkHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile.id]?.skinTexture ?: DefaultSkinHelper.getTexture()
                                 }
                             }
                             println("Added $it to list")
@@ -354,11 +354,11 @@ object DungeonListener : EventSubscriber {
                         teammate.tabEntryIndex = pos
                     }
 
-                    teammate.player = mc.theWorld.playerEntities.find {
-                        it.name == teammate.playerName && it.uniqueID.version() == 4
+                    teammate.player = mc.world.players.find {
+                        it.name == teammate.playerName && it.uuid.version() == 4
                     }
 
-                    old?.locationSkin?.let { teammate.skin = it }
+                    old?.skinTexture?.let { teammate.skin = it }
 
                     if ("§r§cDEAD§r§f)§r" in text) {
                         markDead(teammate)
@@ -370,7 +370,7 @@ object DungeonListener : EventSubscriber {
                     checkSpiritPet(teammate)
 
                     tickTimer(1) {
-                        val self = team[mc.thePlayer.name]
+                        val self = team[mc.player.name]
                         val alives = team.values.filterNot {
                             it.dead || it == self || it in deads
                         }.sortedBy {
@@ -385,8 +385,8 @@ object DungeonListener : EventSubscriber {
                     }
                 }
             }
-        } else if (event.packet is S13PacketDestroyEntities) {
-            event.packet.entityIDs.map(mc.theWorld::getEntityByID).filter { it is EntityPlayer }.forEach { entity ->
+        } else if (event.packet is EntitiesDestroyS2CPacket) {
+            event.packet.entityIds.map(mc.world::getEntityById).filter { it is PlayerEntity }.forEach { entity ->
                 team[entity.name]?.player = null
             }
         }
@@ -394,8 +394,8 @@ object DungeonListener : EventSubscriber {
 
     fun onJoinWorld(event: EntityJoinWorldEvent) {
         // S0CPacketSpawnPlayer
-        if (event.entity is AbstractClientPlayer && event.entity.uniqueID.version() == 4) {
-            team[event.entity.name]?.player = event.entity as EntityPlayer
+        if (event.entity is AbstractClientPlayerEntity && event.entity.uuid.version() == 4) {
+            team[event.entity.name]?.player = event.entity as PlayerEntity
         }
     }
 
@@ -465,7 +465,7 @@ object DungeonListener : EventSubscriber {
         if (inProgressSpiritChecks.add(name)) {
             IO.launch {
                 runCatching {
-                    val uuid = teammate.player?.uniqueID ?: MojangUtil.getUUIDFromUsername(name) ?: return@runCatching
+                    val uuid = teammate.player?.uuid ?: MojangUtil.getUUIDFromUsername(name) ?: return@runCatching
                     API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())?.pets_data?.pets?.any(Pet::isSpirit)?.let {
                         hutaoFans[name] = it
                     }
@@ -483,9 +483,9 @@ object DungeonListener : EventSubscriber {
         var dungeonClass: DungeonClass,
         var classLevel: Int,
         var tabEntryIndex: Int,
-        var skin: ResourceLocation
+        var skin: Identifier
     ) {
-        var player: EntityPlayer? = null
+        var player: PlayerEntity? = null
             set(value) {
                 field = value
                 if (value != null) {

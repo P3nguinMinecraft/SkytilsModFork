@@ -40,9 +40,9 @@ import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.toStringIfTrue
 import kotlinx.serialization.encodeToString
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 import java.io.File
 import java.io.Reader
@@ -61,7 +61,7 @@ object FavoritePets : PersistentSave(File(Skytils.modDir, "favoritepets.json")),
     private val button = SimpleButton("${if (highlighting) "§6" else "§f"}Favorite").constrain {
         x = 50.pixels
         y = basicYConstraint {
-            (((mc.currentScreen as? GuiChest)?.height?.div(2) ?: 0) + 100f)
+            (((mc.currentScreen as? GenericContainerScreen)?.height?.div(2) ?: 0) + 100f)
         }
         width = 100.pixels
         height = 20.pixels
@@ -80,7 +80,7 @@ object FavoritePets : PersistentSave(File(Skytils.modDir, "favoritepets.json")),
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
 
-        val formatted = event.message.formattedText
+        val formatted = event.message.method_10865()
         if (formatted.contains(" §r§alevelled up to level §r§9")) {
             petLevelUpRegex.find(formatted)?.let {
                 for (favorite in favorited) {
@@ -98,19 +98,19 @@ object FavoritePets : PersistentSave(File(Skytils.modDir, "favoritepets.json")),
 
     fun onScreenDraw(event: ScreenDrawEvent) {
         if (!Utils.inSkyblock || !Skytils.config.highlightFavoritePets) return
-        val chest = event.screen as? GuiChest ?: return
-        val container = chest.inventorySlots as ContainerChest
-        if (container.lowerChestInventory.name.startsWith("Pets")) {
+        val chest = event.screen as? GenericContainerScreen ?: return
+        val container = chest.handler as GenericContainerScreenHandler
+        if (container.inventory.name.startsWith("Pets")) {
             window.draw(UMatrixStack.Compat.get())
         }
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock || !highlighting) return
-        val chest = event.container as? ContainerChest ?: return
-        if (!chest.lowerChestInventory.name.startsWith("Pets")) return
-        if (event.slot?.hasStack != true || event.slotId < 10 || event.slotId > 43 || Utils.equalsOneOf(
-                event.slot!!.slotNumber % 9,
+        val chest = event.container as? GenericContainerScreenHandler ?: return
+        if (!chest.inventory.name.startsWith("Pets")) return
+        if (event.slot?.hasStack() != true || event.slotId < 10 || event.slotId > 43 || Utils.equalsOneOf(
+                event.slot!!.id % 9,
                 0,
                 8
             )
@@ -124,10 +124,10 @@ object FavoritePets : PersistentSave(File(Skytils.modDir, "favoritepets.json")),
 
     fun onSlotDraw(event: GuiContainerPreDrawSlotEvent) {
         if (!Utils.inSkyblock || !Skytils.config.highlightFavoritePets) return
-        val chest = event.container as? ContainerChest ?: return
-        if (!chest.lowerChestInventory.name.startsWith("Pets")) return
-        if (!event.slot.hasStack || event.slot.slotNumber < 10 || event.slot.slotNumber > 43 || Utils.equalsOneOf(
-                event.slot.slotNumber % 9,
+        val chest = event.container as? GenericContainerScreenHandler ?: return
+        if (!chest.inventory.name.startsWith("Pets")) return
+        if (!event.slot.hasStack() || event.slot.id < 10 || event.slot.id > 43 || Utils.equalsOneOf(
+                event.slot.id % 9,
                 0,
                 8
             )
@@ -135,9 +135,9 @@ object FavoritePets : PersistentSave(File(Skytils.modDir, "favoritepets.json")),
         val item = event.slot.stack
         val petId = getPetIdFromItem(item)
         if (favorited.contains(petId)) {
-            GlStateManager.translate(0f, 0f, 2f)
+            RenderSystem.method_4348(0f, 0f, 2f)
             event.slot highlight Skytils.config.favoritePetColor
-            GlStateManager.translate(0f, 0f, -2f)
+            RenderSystem.method_4348(0f, 0f, -2f)
         }
     }
 

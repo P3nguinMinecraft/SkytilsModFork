@@ -59,27 +59,27 @@ import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextShadow
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.minecraft.block.BlockDoor
-import net.minecraft.block.BlockLadder
-import net.minecraft.block.BlockLiquid
-import net.minecraft.block.BlockSign
-import net.minecraft.client.entity.EntityOtherPlayerMP
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.projectile.EntityFishHook
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.nbt.NBTBase
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagString
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.network.play.server.S1CPacketEntityMetadata
-import net.minecraft.network.play.server.S2APacketParticles
-import net.minecraft.network.play.server.S2FPacketSetSlot
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.EnumParticleTypes
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.block.DoorBlock
+import net.minecraft.block.LadderBlock
+import net.minecraft.block.FluidBlock
+import net.minecraft.block.AbstractSignBlock
+import net.minecraft.client.network.OtherClientPlayerEntity
+import net.minecraft.client.gui.screen.Screen
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.projectile.FishingBobberEntity
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.nbt.NbtElement
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtString
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
+import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
+import net.minecraft.util.math.Direction
+import net.minecraft.particle.ParticleType
+import net.minecraft.util.hit.HitResult
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 import kotlin.math.min
@@ -109,60 +109,60 @@ object ItemFeatures : EventSubscriber {
     }
 
     val interactables = setOf(
-        Blocks.acacia_door,
-        Blocks.anvil,
-        Blocks.beacon,
-        Blocks.bed,
-        Blocks.birch_door,
-        Blocks.brewing_stand,
-        Blocks.command_block,
-        Blocks.crafting_table,
-        Blocks.chest,
-        Blocks.dark_oak_door,
-        Blocks.daylight_detector,
-        Blocks.daylight_detector_inverted,
-        Blocks.dispenser,
-        Blocks.dropper,
-        Blocks.enchanting_table,
-        Blocks.ender_chest,
-        Blocks.furnace,
-        Blocks.hopper,
-        Blocks.jungle_door,
-        Blocks.lever,
-        Blocks.noteblock,
-        Blocks.powered_comparator,
-        Blocks.unpowered_comparator,
-        Blocks.powered_repeater,
-        Blocks.unpowered_repeater,
-        Blocks.standing_sign,
-        Blocks.wall_sign,
-        Blocks.trapdoor,
-        Blocks.trapped_chest,
-        Blocks.wooden_button,
-        Blocks.stone_button,
-        Blocks.oak_door,
-        Blocks.skull
+        Blocks.ACACIA_DOOR,
+        Blocks.ANVIL,
+        Blocks.field_0_727,
+        Blocks.BED,
+        Blocks.BIRCH_DOOR,
+        Blocks.BREWING_STAND,
+        Blocks.COMMAND_BLOCK,
+        Blocks.CRAFTING_TABLE,
+        Blocks.field_0_680,
+        Blocks.DARK_OAK_DOOR,
+        Blocks.field_0_783,
+        Blocks.field_0_784,
+        Blocks.DISPENSER,
+        Blocks.DROPPER,
+        Blocks.ENCHANTING_TABLE,
+        Blocks.ENDER_CHEST,
+        Blocks.FURNACE,
+        Blocks.field_0_787,
+        Blocks.JUNGLE_DOOR,
+        Blocks.LEVER,
+        Blocks.NOTEBLOCK,
+        Blocks.field_0_782,
+        Blocks.field_0_781,
+        Blocks.field_0_731,
+        Blocks.field_0_730,
+        Blocks.STANDING_SIGN,
+        Blocks.WALL_SIGN,
+        Blocks.TRAPDOOR,
+        Blocks.TRAPPED_CHEST,
+        Blocks.WOODEN_BUTTON,
+        Blocks.STONE_BUTTON,
+        Blocks.WOODEN_DOOR,
+        Blocks.field_0_776
     )
 
     init {
         tickTimer(4, repeats = true) {
-            if (mc.thePlayer != null && Utils.inSkyblock) {
-                val held = mc.thePlayer.inventory.getCurrentItem()
+            if (mc.player != null && Utils.inSkyblock) {
+                val held = mc.player.inventory.selectedStack
                 if (Skytils.config.showItemRarity) {
                     for (i in 0..8) {
-                        hotbarRarityCache[i] = ItemUtil.getRarity(mc.thePlayer.inventory.mainInventory[i])
+                        hotbarRarityCache[i] = ItemUtil.getRarity(mc.player.inventory.main[i])
                     }
                 }
                 if (Skytils.config.stackingEnchantProgressDisplay) {
                     apply {
                         also {
                             val extraAttr = getExtraAttributes(held) ?: return@also
-                            val enchantments = extraAttr.getCompoundTag("enchantments")
+                            val enchantments = extraAttr.getCompound("enchantments")
                             val stacking =
-                                EnchantUtil.enchants.find { it is StackingEnchant && extraAttr.hasKey(it.nbtNum) } as? StackingEnchant
+                                EnchantUtil.enchants.find { it is StackingEnchant && extraAttr.contains(it.nbtNum) } as? StackingEnchant
                                     ?: return@also
 
-                            val stackingLevel = enchantments.getInteger(stacking.nbtName)
+                            val stackingLevel = enchantments.getInt(stacking.nbtName)
                             val stackingAmount = extraAttr.getLong(stacking.nbtNum)
 
                             stackingEnchantDisplayText = buildString {
@@ -197,10 +197,10 @@ object ItemFeatures : EventSubscriber {
     }
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
-        if (Utils.inSkyblock && Skytils.config.showItemRarity && event.slot.hasStack) {
-            renderRarity(event.slot.stack, event.slot.xDisplayPosition, event.slot.yDisplayPosition)
+        if (Utils.inSkyblock && Skytils.config.showItemRarity && event.slot.hasStack()) {
+            renderRarity(event.slot.stack, event.slot.x, event.slot.y)
         }
-        if (event.container is ContainerChest) {
+        if (event.container is GenericContainerScreenHandler) {
             val chestName = event.chestName
             if (chestName.startsWithAny("Salvage", "Ender Chest") || equalsOneOf(
                     chestName,
@@ -209,21 +209,21 @@ object ItemFeatures : EventSubscriber {
                 ) || (chestName.contains("Backpack") && !chestName.endsWith("Recipe"))
             ) {
                 if (Skytils.config.highlightSalvageableItems) {
-                    if (event.slot.hasStack) {
+                    if (event.slot.hasStack()) {
                         val stack = event.slot.stack
                         if (ItemUtil.isSalvageable(stack)) {
-                            GlStateManager.translate(0f, 0f, 1f)
+                            RenderSystem.method_4348(0f, 0f, 1f)
                             event.slot highlight Color(15, 233, 233)
-                            GlStateManager.translate(0f, 0f, -1f)
+                            RenderSystem.method_4348(0f, 0f, -1f)
                         }
                     }
                 }
             }
             if (chestName == "Ophelia" || chestName == "Trades" || chestName == "Booster Cookie") {
                 if (Skytils.config.highlightDungeonSellableItems) {
-                    if (event.slot.hasStack) {
+                    if (event.slot.hasStack()) {
                         val stack = event.slot.stack
-                        if (stack.displayName.containsAny(
+                        if (stack.name.containsAny(
                                 "Defuse Kit",
                                 "Lever",
                                 "Torch",
@@ -247,7 +247,7 @@ object ItemFeatures : EventSubscriber {
                 )
             ) {
                 val item = event.container.getSlot(29).stack ?: return
-                if (event.container.getSlot(33).hasStack) return
+                if (event.container.getSlot(33).hasStack()) return
                 val candidate = event.slot.stack ?: return
                 val nbt1 = getExtraAttributes(item) ?: return
                 val nbt2 = getExtraAttributes(candidate) ?: return
@@ -257,12 +257,12 @@ object ItemFeatures : EventSubscriber {
                     else -> return
                 }
                 val typeList = listOf(nbt1, nbt2).map { nbt ->
-                    nbt.getCompoundTag(tagName)
+                    nbt.getCompound(tagName)
                 }
                 val tierList = typeList.mapNotNull { nbt ->
-                    nbt.keySet.takeIf { it.size == 1 }?.first()
+                    nbt.keys.takeIf { it.size == 1 }?.first()
                 }
-                if (tierList.size != 2 || tierList[0] != tierList[1] || typeList[0].getInteger(tierList[0]) != typeList[1].getInteger(
+                if (tierList.size != 2 || tierList[0] != tierList[1] || typeList[0].getInt(tierList[0]) != typeList[1].getInt(
                         tierList[1]
                     )
                 ) return
@@ -274,13 +274,13 @@ object ItemFeatures : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock) return
-        if (event.container is ContainerChest) {
-            if (event.slot != null && event.slot!!.hasStack) {
+        if (event.container is GenericContainerScreenHandler) {
+            if (event.slot != null && event.slot!!.hasStack()) {
                 val item = event.slot!!.stack ?: return
                 val extraAttr = getExtraAttributes(item)
                 if (Skytils.config.stopClickingNonSalvageable) {
                     if (event.chestName.startsWith("Salvage") && extraAttr != null) {
-                        if (!extraAttr.hasKey("baseStatBoostPercentage") && !item.displayName.contains("Salvage") && !item.displayName.contains(
+                        if (!extraAttr.contains("baseStatBoostPercentage") && !item.name.contains("Salvage") && !item.name.contains(
                                 "Essence"
                             )
                         ) {
@@ -298,7 +298,7 @@ object ItemFeatures : EventSubscriber {
         val extraAttr = getExtraAttributes(item)
         var itemId = getSkyBlockItemID(extraAttr)
         var isSuperpairsReward = false
-        if (item != null && mc.thePlayer.openContainer != null && SBInfo.lastOpenContainerName?.startsWith(
+        if (item != null && mc.player.currentScreenHandler != null && SBInfo.lastOpenContainerName?.startsWith(
                 "Superpairs ("
             ) == true
         ) {
@@ -309,7 +309,7 @@ object ItemFeatures : EventSubscriber {
                         val line2 = lore[2].stripControlCodes()
                         val enchantName =
                             line2.substringBeforeLast(" ").replace(Regex("[\\s-]"), "_").uppercase()
-                        itemId = "ENCHANTED_BOOK-" + enchantName + "-" + item.stackSize
+                        itemId = "ENCHANTED_BOOK-" + enchantName + "-" + item.count
                         isSuperpairsReward = true
                     }
                 }
@@ -325,15 +325,15 @@ object ItemFeatures : EventSubscriber {
                         if (Skytils.config.showLowestBINPrice) {
                             val total =
                                 if (isSuperpairsReward) NumberUtil.nf.format(valuePer) else NumberUtil.nf.format(
-                                    valuePer * item!!.stackSize
+                                    valuePer * item!!.count
                                 )
                             event.tooltip.add(
-                                "§6Lowest BIN Price: §b$total" + if (item!!.stackSize > 1 && !isSuperpairsReward) " §7(" + NumberUtil.nf.format(
+                                "§6Lowest BIN Price: §b$total" + if (item!!.count > 1 && !isSuperpairsReward) " §7(" + NumberUtil.nf.format(
                                     valuePer
                                 ) + " each§7)" else ""
                             )
                         }
-                        if (Skytils.config.showKuudraLowestBinPrice && item.stackSize == 1) {
+                        if (Skytils.config.showKuudraLowestBinPrice && item.count == 1) {
                             KuudraPriceData.getAttributePricedItemId(item)?.let {attrId ->
                                 val kuudraPrice = KuudraPriceData.getOrRequestAttributePricedItem(attrId)
                                 if (kuudraPrice != null) {
@@ -401,7 +401,7 @@ object ItemFeatures : EventSubscriber {
             if (Skytils.config.showNPCSellPrice) {
                 val valuePer = sellPrices[itemId]
                 if (valuePer != null) event.tooltip.add(
-                    "§6NPC Value: §b" + NumberUtil.nf.format(valuePer * item!!.stackSize) + if (item.stackSize > 1) " §7(" + NumberUtil.nf.format(
+                    "§6NPC Value: §b" + NumberUtil.nf.format(valuePer * item!!.count) + if (item.count > 1) " §7(" + NumberUtil.nf.format(
                         valuePer
                     ) + " each§7)" else ""
                 )
@@ -424,15 +424,15 @@ object ItemFeatures : EventSubscriber {
         }
         if (itemId == "PREHISTORIC_EGG" && extraAttr != null) {
             event.tooltip.add((event.tooltip.indexOfFirst { it.contains("Legendary Armadillo") } + 1),
-                "§7Blocks Walked: §c${extraAttr.getInteger("blocks_walked")}")
+                "§7Blocks Walked: §c${extraAttr.getInt("blocks_walked")}")
         }
-        if (Skytils.config.showGemstones && extraAttr?.hasKey("gems") == true) {
-            val gems = extraAttr.getCompoundTag("gems")
+        if (Skytils.config.showGemstones && extraAttr?.contains("gems") == true) {
+            val gems = extraAttr.getCompound("gems")
             event.tooltip.add("§bGemstones: ")
-            event.tooltip.addAll(gems.keySet.filterNot { it.endsWith("_gem") || it == "unlocked_slots" }.map {
-                val quality = when (val tag: NBTBase? = gems.getTag(it)) {
-                    is NBTTagCompound -> tag.getString("quality").toTitleCase().ifEmpty { "Report Unknown" }
-                    is NBTTagString -> tag.string.toTitleCase()
+            event.tooltip.addAll(gems.keys.filterNot { it.endsWith("_gem") || it == "unlocked_slots" }.map {
+                val quality = when (val tag: NbtElement? = gems.get(it)) {
+                    is NbtCompound -> tag.getString("quality").toTitleCase().ifEmpty { "Report Unknown" }
+                    is NbtString -> tag.asString().toTitleCase()
                     null -> "Report Issue"
                     else -> "Report Tag $tag"
                 }
@@ -443,10 +443,10 @@ object ItemFeatures : EventSubscriber {
         }
 
         if (Skytils.config.showItemQuality && extraAttr != null) {
-            val boost = extraAttr.getInteger("baseStatBoostPercentage")
+            val boost = extraAttr.getInt("baseStatBoostPercentage")
             
             if (boost > 0) {
-                val tier = extraAttr.getInteger("item_tier")
+                val tier = extraAttr.getInt("item_tier")
 
                 val req = extraAttr.getString("dungeon_skill_req")
 
@@ -471,25 +471,25 @@ object ItemFeatures : EventSubscriber {
             }
         }
 
-        if (DevTools.getToggle("nbt") && Keyboard.isKeyDown(46) && GuiScreen.isCtrlKeyDown() && !GuiScreen.isShiftKeyDown() && !GuiScreen.isAltKeyDown()) {
-            GuiScreen.setClipboardString(event.stack.tagCompound?.toString())
+        if (DevTools.getToggle("nbt") && Keyboard.isKeyDown(46) && Screen.method_2238() && !Screen.method_2223() && !Screen.method_2232()) {
+            Screen.method_0_2797(event.stack.nbt?.toString())
         }
     }
 
     fun onReceivePacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (!Utils.inSkyblock || mc.theWorld == null) return
+        if (!Utils.inSkyblock || mc.world == null) return
         event.packet.apply {
-            if (this is S2APacketParticles) {
-                if (type == EnumParticleTypes.EXPLOSION_LARGE && Skytils.config.hideImplosionParticles) {
-                    if (isLongDistance && count == 8 && speed == 8f && xOffset == 0f && yOffset == 0f && zOffset == 0f) {
+            if (this is ParticleS2CPacket) {
+                if (type == ParticleType.EXPLOSION_LARGE && Skytils.config.hideImplosionParticles) {
+                    if (shouldForceSpawn() && count == 8 && speed == 8f && offsetX == 0f && offsetY == 0f && offsetZ == 0f) {
                         val dist = (if (DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 7) 4f else 11f).pow(2f)
 
-                        if (mc.theWorld.playerEntities.any {
-                                it.heldItem != null && it.uniqueID.version() == 4 && it.getDistanceSq(
+                        if (mc.world.players.any {
+                                it.method_0_7087() != null && it.uuid.version() == 4 && it.squaredDistanceTo(
                                     x,
                                     y,
                                     z
-                                ) <= dist && getDisplayName(it.heldItem).stripControlCodes().containsAny(
+                                ) <= dist && getDisplayName(it.method_0_7087()).stripControlCodes().containsAny(
                                     "Necron's Blade", "Scylla", "Astraea", "Hyperion", "Valkyrie"
                                 )
                             }) {
@@ -498,11 +498,11 @@ object ItemFeatures : EventSubscriber {
                     }
                 }
             }
-            if (this is S2FPacketSetSlot && func_149175_c() == 0) {
-                if (mc.thePlayer == null || (!Utils.inSkyblock && mc.thePlayer.ticksExisted > 1)) return
-                val slot = func_149173_d()
+            if (this is ScreenHandlerSlotUpdateS2CPacket && syncId == 0) {
+                if (mc.player == null || (!Utils.inSkyblock && mc.player.age > 1)) return
+                val slot = slot
 
-                val item = func_149174_e() ?: return
+                val item = stack ?: return
                 val extraAttr = getExtraAttributes(item) ?: return
                 val itemId = getSkyBlockItemID(extraAttr) ?: return
 
@@ -524,7 +524,7 @@ object ItemFeatures : EventSubscriber {
                     }
                 }
             }
-            if (this is S1CPacketEntityMetadata && lastShieldClick != -1L && entityId == mc.thePlayer?.entityId && System.currentTimeMillis() - lastShieldClick <= 500 && func_149376_c()?.any { it.dataValueId == 17 } == true) {
+            if (this is EntityTrackerUpdateS2CPacket && lastShieldClick != -1L && id() == mc.player?.id && System.currentTimeMillis() - lastShieldClick <= 500 && trackedValues?.any { it.id() == 17 } == true) {
                 lastShieldUse = System.currentTimeMillis()
                 lastShieldClick = -1
             }
@@ -532,11 +532,11 @@ object ItemFeatures : EventSubscriber {
     }
 
     fun onSendPacket(event: PacketSendEvent<*>) {
-        if (!Utils.inSkyblock || lastShieldUse != -1L || mc.thePlayer?.heldItem == null) return
-        if (event.packet is C08PacketPlayerBlockPlacement &&
-            mc.thePlayer.heldItem.item == Items.iron_sword &&
-            getExtraAttributes(mc.thePlayer.heldItem)
-                ?.getTagList("ability_scroll", 8) // String
+        if (!Utils.inSkyblock || lastShieldUse != -1L || mc.player?.method_0_7087() == null) return
+        if (event.packet is PlayerInteractBlockC2SPacket &&
+            mc.player.method_0_7087().item == Items.IRON_SWORD &&
+            getExtraAttributes(mc.player.method_0_7087())
+                ?.getList("ability_scroll", 8) // String
                 ?.asStringSet()
                 ?.contains("WITHER_SHIELD_SCROLL") == true
         ) {
@@ -546,9 +546,9 @@ object ItemFeatures : EventSubscriber {
 
     fun onEntitySpawn(event: gg.skytils.event.impl.entity.EntityJoinWorldEvent) {
         if (!Utils.inSkyblock) return
-        if (event.entity !is EntityFishHook || !Skytils.config.hideFishingHooks) return
-        if ((event.entity as EntityFishHook).angler is EntityOtherPlayerMP) {
-            event.entity.setDead()
+        if (event.entity !is FishingBobberEntity || !Skytils.config.hideFishingHooks) return
+        if ((event.entity as FishingBobberEntity).field_0_8080 is OtherClientPlayerEntity) {
+            event.entity.remove()
             event.cancelled = true
         }
     }
@@ -570,8 +570,8 @@ object ItemFeatures : EventSubscriber {
                 "FIRE_FREEZE_STAFF"
             ))
         ) {
-            val block = mc.theWorld.getBlockState(event.pos)
-            if (!interactables.contains(block.block) || Utils.inDungeons && (block.block === Blocks.coal_block || block.block === Blocks.stained_hardened_clay)) {
+            val block = mc.world.getBlockState(event.pos)
+            if (!interactables.contains(block.block) || Utils.inDungeons && (block.block === Blocks.COAL_BLOCK || block.block === Blocks.STAINED_HARDENED_CLAY)) {
                 event.cancelled = true
             }
         }
@@ -579,30 +579,30 @@ object ItemFeatures : EventSubscriber {
 
     fun onRenderItemOverlayPost(event: GuiContainerPostDrawSlotEvent) {
         val item = event.slot.stack ?: return
-        if (!Utils.inSkyblock || item.stackSize != 1 || item.tagCompound?.hasKey("SkytilsNoItemOverlay") == true) return
+        if (!Utils.inSkyblock || item.count != 1 || item.nbt?.contains("SkytilsNoItemOverlay") == true) return
         val matrixStack = UMatrixStack()
         var stackTip = ""
         val lore = getItemLore(item).takeIf { it.isNotEmpty() }
         getExtraAttributes(item)?.let { extraAttributes ->
             val matrixStack = UMatrixStack()
             val itemId = getSkyBlockItemID(extraAttributes)
-            if (Skytils.config.showPotionTier && extraAttributes.hasKey("potion_level")) {
-                stackTip = extraAttributes.getInteger("potion_level").toString()
+            if (Skytils.config.showPotionTier && extraAttributes.contains("potion_level")) {
+                stackTip = extraAttributes.getInt("potion_level").toString()
             } else if (Skytils.config.showAttributeShardLevel && itemId == "ATTRIBUTE_SHARD") {
-                extraAttributes.getCompoundTag("attributes").takeUnless {
-                    it.hasNoTags()
+                extraAttributes.getCompound("attributes").takeUnless {
+                    it.isEmpty
                 }?.let {
                     /*
                     If they ever add the ability to combine attributes on shards, this will need to be updated to:
                     stackTip = it.keySet.maxOf { s -> it.getInteger(s) }.toString()
                     */
-                    stackTip = it.getInteger(it.keySet.first()).toString()
+                    stackTip = it.getInt(it.keys.first()).toString()
                 }
             } else if ((Skytils.config.showEnchantedBookTier || Skytils.config.showEnchantedBookAbbreviation) && itemId == "ENCHANTED_BOOK") {
-                extraAttributes.getCompoundTag("enchantments").takeIf {
-                    it.keySet.size == 1
+                extraAttributes.getCompound("enchantments").takeIf {
+                    it.keys.size == 1
                 }?.let { enchantments ->
-                    val name = enchantments.keySet.first()
+                    val name = enchantments.keys.first()
                     if (Skytils.config.showEnchantedBookAbbreviation) {
                         val enchant = EnchantUtil.enchants.find { it.nbtName == name }
                         val prefix: String = if (enchant != null) {
@@ -629,12 +629,12 @@ object ItemFeatures : EventSubscriber {
                                 }
                             }
                         }
-                        GlStateManager.disableLighting()
-                        GlStateManager.disableDepth()
-                        GlStateManager.disableBlend()
-                        GlStateManager.pushMatrix()
-                        GlStateManager.translate(event.slot.xDisplayPosition.toFloat(), event.slot.yDisplayPosition.toFloat(), 1f)
-                        GlStateManager.scale(0.8, 0.8, 1.0)
+                        RenderSystem.method_4406()
+                        RenderSystem.disableDepthTest()
+                        RenderSystem.disableBlend()
+                        RenderSystem.pushMatrix()
+                        RenderSystem.method_4348(event.slot.x.toFloat(), event.slot.y.toFloat(), 1f)
+                        RenderSystem.method_4453(0.8, 0.8, 1.0)
                         ScreenRenderer.fontRenderer.drawString(
                             prefix,
                             0f,
@@ -643,14 +643,14 @@ object ItemFeatures : EventSubscriber {
                             TextAlignment.LEFT_RIGHT,
                             TextShadow.NORMAL
                         )
-                        GlStateManager.popMatrix()
-                        GlStateManager.enableLighting()
-                        GlStateManager.enableDepth()
+                        RenderSystem.popMatrix()
+                        RenderSystem.method_4394()
+                        RenderSystem.enableDepthTest()
                     }
                     if (Skytils.config.showEnchantedBookTier) stackTip =
-                        enchantments.getInteger(name).toString()
+                        enchantments.getInt(name).toString()
                 }
-            } else if (Skytils.config.showHeadFloorNumber && item.item === Items.skull && headPattern.matches(
+            } else if (Skytils.config.showHeadFloorNumber && item.item === Items.PLAYER_HEAD && headPattern.matches(
                     itemId ?: ""
                 )
             ) {
@@ -658,8 +658,8 @@ object ItemFeatures : EventSubscriber {
             } else if (Skytils.config.showStarCount && ItemUtil.getStarCount(extraAttributes) > 0) {
                 stackTip = ItemUtil.getStarCount(extraAttributes).toString()
             }
-            if (extraAttributes.hasKey("pickonimbus_durability")) {
-                val durability = extraAttributes.getInteger("pickonimbus_durability")
+            if (extraAttributes.contains("pickonimbus_durability")) {
+                val durability = extraAttributes.getInt("pickonimbus_durability")
                 /*
                 Old Pickonimbuses had 5000 durability. If they were at full durability, they were nerfed to 2000.
                 However, if they were not at full durability, they were left alone. Therefore, it's not really
@@ -667,15 +667,15 @@ object ItemFeatures : EventSubscriber {
                 */
                 if (durability < 2000) {
                     RenderUtil.drawDurabilityBar(
-                        event.slot.xDisplayPosition,
-                        event.slot.yDisplayPosition,
+                        event.slot.x,
+                        event.slot.y,
                         1 - durability / 2000.0
                     )
                 }
             }
-            if (Skytils.config.showAttributeShardAbbreviation && itemId == "ATTRIBUTE_SHARD" && extraAttributes.getCompoundTag(
+            if (Skytils.config.showAttributeShardAbbreviation && itemId == "ATTRIBUTE_SHARD" && extraAttributes.getCompound(
                     "attributes"
-                ).keySet.size == 1
+                ).keys.size == 1
             ) {
                 lore?.getOrNull(0)?.split(' ')?.dropLastWhile { it.romanToDecimal() == 0 }?.dropLast(1)
                     ?.joinToString(separator = "") {
@@ -688,7 +688,7 @@ object ItemFeatures : EventSubscriber {
                         UGraphics.disableDepth()
                         UGraphics.disableBlend()
                         matrixStack.push()
-                        matrixStack.translate(event.slot.xDisplayPosition.toFloat(), event.slot.yDisplayPosition.toFloat(), 1f)
+                        matrixStack.translate(event.slot.x.toFloat(), event.slot.y.toFloat(), 1f)
                         matrixStack.scale(0.8, 0.8, 1.0)
                         matrixStack.runWithGlobalState {
                             ScreenRenderer.fontRenderer.drawString(
@@ -705,11 +705,11 @@ object ItemFeatures : EventSubscriber {
                         UGraphics.enableDepth()
                     }
             }
-            if (Skytils.config.showNYCakeYear && extraAttributes.hasKey("new_years_cake")) {
-                stackTip = extraAttributes.getInteger("new_years_cake").toString()
+            if (Skytils.config.showNYCakeYear && extraAttributes.contains("new_years_cake")) {
+                stackTip = extraAttributes.getInt("new_years_cake").toString()
             }
         }
-        if (Skytils.config.showPetCandies && item.item === Items.skull) {
+        if (Skytils.config.showPetCandies && item.item === Items.PLAYER_HEAD) {
             val petInfoString = getExtraAttributes(item)?.getString("petInfo")
             if (!petInfoString.isNullOrBlank()) {
                 val petInfo = json.decodeFromString<Pet>(petInfoString)
@@ -722,25 +722,25 @@ object ItemFeatures : EventSubscriber {
             }
         }
         if (stackTip.isNotEmpty()) {
-            GlStateManager.disableLighting()
-            GlStateManager.disableDepth()
-            GlStateManager.disableBlend()
+            RenderSystem.method_4406()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableBlend()
             UGraphics.drawString(
                 matrixStack,
                 stackTip,
-                (event.slot.xDisplayPosition + 17 - UGraphics.getStringWidth(stackTip)).toFloat(),
-                (event.slot.yDisplayPosition + 9).toFloat(),
+                (event.slot.x + 17 - UGraphics.getStringWidth(stackTip)).toFloat(),
+                (event.slot.y + 9).toFloat(),
                 16777215,
                 true
             )
-            GlStateManager.enableLighting()
-            GlStateManager.enableDepth()
+            RenderSystem.method_4394()
+            RenderSystem.enableDepthTest()
         }
     }
 
     fun onDrawContainerForeground(event: GuiContainerForegroundDrawnEvent) {
         if (!Skytils.config.combineHelper || !Utils.inSkyblock) return
-        if (event.container !is ContainerChest || !equalsOneOf(
+        if (event.container !is GenericContainerScreenHandler || !equalsOneOf(
                 event.chestName,
                 "Anvil",
                 "Attribute Fusion"
@@ -756,15 +756,15 @@ object ItemFeatures : EventSubscriber {
             else -> return
         }
         val typeList = listOf(nbt1, nbt2).map { nbt ->
-            nbt.getCompoundTag(tagName)
+            nbt.getCompound(tagName)
         }
         val tierList = typeList.mapNotNull { nbt ->
-            nbt.keySet.takeIf { it.size == 1 }?.first()
+            nbt.keys.takeIf { it.size == 1 }?.first()
         }
         if (tierList.size != 2) return
         val errorString = if (tierList[0] != tierList[1]) {
             "Types don't match!"
-        } else if (typeList[0].getInteger(tierList[0]) != typeList[1].getInteger(tierList[1])) {
+        } else if (typeList[0].getInt(tierList[0]) != typeList[1].getInt(tierList[1])) {
             "Tiers don't match!"
         } else return
         val gui =
@@ -786,20 +786,20 @@ object ItemFeatures : EventSubscriber {
 
     fun onRenderWorld(event: WorldDrawEvent) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.showEtherwarpTeleportPos && mc.thePlayer?.isSneaking == true) {
-            val extraAttr = getExtraAttributes(mc.thePlayer.heldItem) ?: return
+        if (Skytils.config.showEtherwarpTeleportPos && mc.player?.isSneaking == true) {
+            val extraAttr = getExtraAttributes(mc.player.method_0_7087()) ?: return
             if (!extraAttr.getBoolean("ethermerge")) return
-            val dist = 57.0 + extraAttr.getInteger("tuned_transmission")
-            val vec3 = mc.thePlayer.getPositionEyes(event.partialTicks)
-            val vec31 = mc.thePlayer.getLook(event.partialTicks)
-            val vec32 = vec3.addVector(
-                vec31.xCoord * dist,
-                vec31.yCoord * dist,
-                vec31.zCoord * dist
+            val dist = 57.0 + extraAttr.getInt("tuned_transmission")
+            val vec3 = mc.player.getCameraPosVec(event.partialTicks)
+            val vec31 = mc.player.getRotationVec(event.partialTicks)
+            val vec32 = vec3.add(
+                vec31.x * dist,
+                vec31.y * dist,
+                vec31.z * dist
             )
-            val obj = mc.theWorld.rayTraceBlocks(vec3, vec32, true, false, true) ?: return
+            val obj = mc.world.raycast(vec3, vec32, true, false, true) ?: return
             val block = obj.blockPos ?: return
-            val state = mc.theWorld.getBlockState(block)
+            val state = mc.world.getBlockState(block)
             if (isValidEtherwarpPos(obj)) {
                 RenderUtil.drawSelectionBox(
                     block,
@@ -811,22 +811,22 @@ object ItemFeatures : EventSubscriber {
         }
     }
 
-    private fun isValidEtherwarpPos(obj: MovingObjectPosition): Boolean {
+    private fun isValidEtherwarpPos(obj: HitResult): Boolean {
         val pos = obj.blockPos
-        val sideHit = obj.sideHit
+        val sideHit = obj.side
 
-        return mc.theWorld.getBlockState(pos).block.material.isSolid && (1..2).all {
+        return mc.world.getBlockState(pos).block.material.isSolid && (1..2).all {
             val newPos = pos.up(it)
-            val newBlock = mc.theWorld.getBlockState(newPos)
-            if (sideHit === EnumFacing.UP && (equalsOneOf(
+            val newBlock = mc.world.getBlockState(newPos)
+            if (sideHit === Direction.UP && (equalsOneOf(
                     newBlock.block,
-                    Blocks.fire,
-                    Blocks.skull
-                ) || newBlock.block is BlockLiquid)
+                    Blocks.field_0_677,
+                    Blocks.field_0_776
+                ) || newBlock.block is FluidBlock)
             ) return@all false
-            if (sideHit !== EnumFacing.UP && newBlock.block is BlockSign) return@all false
-            if (newBlock.block is BlockLadder || newBlock.block is BlockDoor) return@all false
-            return@all newBlock.block.isPassable(mc.theWorld, newPos)
+            if (sideHit !== Direction.UP && newBlock.block is AbstractSignBlock) return@all false
+            if (newBlock.block is LadderBlock || newBlock.block is DoorBlock) return@all false
+            return@all newBlock.block.method_9516(mc.world, newPos)
         }
     }
 
@@ -860,9 +860,9 @@ object ItemFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Expertise 10 (Maxed)")
+            get() = ScreenRenderer.fontRenderer.getWidth("Expertise 10 (Maxed)")
         override val toggled: Boolean
             get() = Skytils.config.stackingEnchantProgressDisplay
 
@@ -901,9 +901,9 @@ object ItemFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§3100⸎ Soulflow")
+            get() = ScreenRenderer.fontRenderer.getWidth("§3100⸎ Soulflow")
         override val toggled: Boolean
             get() = Skytils.config.showSoulflowDisplay
 
@@ -957,9 +957,9 @@ object ItemFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§6Shield: §aREADY")
+            get() = ScreenRenderer.fontRenderer.getWidth("§6Shield: §aREADY")
         override val toggled: Boolean
             get() = Skytils.config.witherShieldCooldown
 

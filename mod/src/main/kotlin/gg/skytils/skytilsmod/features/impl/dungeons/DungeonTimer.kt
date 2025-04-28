@@ -70,8 +70,8 @@ object DungeonTimer : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inDungeons) return
-        val message = event.message.formattedText
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val message = event.message.method_10865()
+        val unformatted = event.message.string.stripControlCodes()
         when {
             scoreShownAt == -1L && message.contains("§r§fTeam Score: §r") -> {
                 scoreShownAt = System.currentTimeMillis()
@@ -290,9 +290,9 @@ object DungeonTimer : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * 7
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * 7
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§cWatcher Clear: 0s")
+            get() = ScreenRenderer.fontRenderer.getWidth("§cWatcher Clear: 0s")
 
         override val toggled: Boolean
             get() = Skytils.config.dungeonTimer
@@ -337,9 +337,9 @@ object DungeonTimer : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * 6
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * 6
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§7Wither King: 0s")
+            get() = ScreenRenderer.fontRenderer.getWidth("§7Wither King: 0s")
 
         override val toggled: Boolean
             get() = Skytils.config.necronPhaseTimer
@@ -375,10 +375,10 @@ object DungeonTimer : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT * 3
+            get() = ScreenRenderer.fontRenderer.field_0_2811 * 3
 
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§dTerracotta: 0s")
+            get() = ScreenRenderer.fontRenderer.getWidth("§dTerracotta: 0s")
 
         override val toggled: Boolean
             get() = Skytils.config.sadanPhaseTimer

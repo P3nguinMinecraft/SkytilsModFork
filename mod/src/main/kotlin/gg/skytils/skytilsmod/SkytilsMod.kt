@@ -18,26 +18,11 @@
 
 package gg.skytils.skytilsmod
 
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent
+import net.fabricmc.api.ClientModInitializer
 
-@Mod(
-    modid = Skytils.MOD_ID,
-    name = Skytils.MOD_NAME,
-    acceptedMinecraftVersions = "[1.8.9]",
-    clientSideOnly = true,
-    guiFactory = "gg.skytils.skytilsmod.core.ForgeGuiFactory",
-    modLanguageAdapter = "gg.essential.api.utils.KotlinAdapter"
-)
-object SkytilsMod {
-    @Mod.EventHandler
-    fun init(event: FMLInitializationEvent) {
+// TODO: call loadComplete
+object SkytilsMod : ClientModInitializer {
+    override fun onInitializeClient() {
         Skytils.init()
-    }
-
-    @Mod.EventHandler
-    fun loadComplete(event: FMLLoadCompleteEvent) {
-        Skytils.loadComplete()
     }
 }

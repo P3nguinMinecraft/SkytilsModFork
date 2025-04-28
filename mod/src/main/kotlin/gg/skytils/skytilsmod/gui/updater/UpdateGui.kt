@@ -30,8 +30,8 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.launch
-import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.widget.ClickableWidget
+import net.minecraft.client.gui.screen.Screen
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSignatureList
@@ -49,20 +49,20 @@ import kotlin.math.floor
  * https://github.com/Wynntils/Wynntils/blob/development/LICENSE
  * @author Wynntils
  */
-class UpdateGui(restartNow: Boolean) : GuiScreen() {
+class UpdateGui(restartNow: Boolean) : Screen() {
     companion object {
         private val DOTS = arrayOf(".", "..", "...", "...", "...")
         private const val DOT_TIME = 200 // ms between "." -> ".." -> "..."
         var complete = false
     }
 
-    private var backButton: GuiButton? = null
+    private var backButton: ClickableWidget? = null
     private var progress = 0.0
     private var stage = "Downloading"
     var failed = false
 
-    override fun initGui() {
-        buttonList.add(GuiButton(0, width / 2 - 100, height / 3 * 2, 200, 20, "").also { backButton = it })
+    override fun init() {
+        widgetList.add(ClickableWidget(0, width / 2 - 100, height / 3 * 2, 200, 20, "").also { backButton = it })
         updateText()
     }
 
@@ -98,7 +98,7 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
                                 signFile.deleteOnExit()
                                 UpdateChecker.scheduleCopyUpdateAtShutdown(jarName)
                                 if (restartNow) {
-                                    mc.shutdown()
+                                    client.scheduleStop()
                                 }
                                 complete = true
                                 updateText()
@@ -122,7 +122,7 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
     }
 
     private fun updateText() {
-        backButton!!.displayString = if (failed || complete) "Back" else "Cancel"
+        backButton!!.message = if (failed || complete) "Back" else "Cancel"
     }
 
     private suspend fun downloadUpdate(urlString: String, directory: File): File? {
@@ -155,7 +155,7 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
             }
             val fileSaved = File(directory, url.pathSegments.last().decodeURLPart())
             val writeChannel = fileSaved.writeChannel()
-            if (mc.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyAndClose(writeChannel) == 0L) {
+            if (client.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyAndClose(writeChannel) == 0L) {
                 failed = true
                 return null
             }
@@ -169,24 +169,24 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
         return null
     }
 
-    public override fun actionPerformed(button: GuiButton) {
-        if (button.id == 0) {
-            mc.displayGuiScreen(null)
+    public override fun method_0_2778(button: ClickableWidget) {
+        if (button.field_2077 == 0) {
+            client.setScreen(null)
         }
     }
 
-    override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-        drawDefaultBackground()
+    override fun render(mouseX: Int, mouseY: Int, partialTicks: Float) {
+        method_2240()
         when {
-            failed -> drawCenteredString(
-                mc.fontRendererObj,
+            failed -> method_1789(
+                client.textRenderer,
                 "§cUpdate download failed",
                 width / 2,
                 height / 2,
                 -0x1
             )
-            complete -> drawCenteredString(
-                mc.fontRendererObj,
+            complete -> method_1789(
+                client.textRenderer,
                 "§aUpdate download complete",
                 width / 2,
                 height / 2,
@@ -195,25 +195,25 @@ class UpdateGui(restartNow: Boolean) : GuiScreen() {
             else -> {
                 val left = (width / 2 - 100).coerceAtLeast(10)
                 val right = (width / 2 + 100).coerceAtMost(width - 10)
-                val top = height / 2 - 2 - MathUtil.ceil(mc.fontRendererObj.FONT_HEIGHT / 2f)
-                val bottom = height / 2 + 2 + MathUtil.floor(mc.fontRendererObj.FONT_HEIGHT / 2f)
-                drawRect(left - 1, top - 1, right + 1, bottom + 1, -0x3f3f40)
+                val top = height / 2 - 2 - MathUtil.ceil(client.textRenderer.field_0_2811 / 2f)
+                val bottom = height / 2 + 2 + MathUtil.floor(client.textRenderer.field_0_2811 / 2f)
+                fill(left - 1, top - 1, right + 1, bottom + 1, -0x3f3f40)
                 val progressPoint = floor(progress * (right - left) + left).toInt().coerceIn(left, right)
-                drawRect(left, top, progressPoint, bottom, -0x34c2cb)
-                drawRect(progressPoint, top, right, bottom, -0x1)
+                fill(left, top, progressPoint, bottom, -0x34c2cb)
+                fill(progressPoint, top, right, bottom, -0x1)
                 val label = String.format("%d%%", floor(progress * 100).toInt().coerceIn(0, 100))
-                mc.fontRendererObj.drawString(
+                client.textRenderer.method_0_2385(
                     label,
-                    (width - mc.fontRendererObj.getStringWidth(label)) / 2,
+                    (width - client.textRenderer.getWidth(label)) / 2,
                     top + 3,
                     -0x1000000
                 )
-                val x = (width - mc.fontRendererObj.getStringWidth("$stage ${DOTS[DOTS.size - 1]}")) / 2
+                val x = (width - client.textRenderer.getWidth("$stage ${DOTS[DOTS.size - 1]}")) / 2
                 val title = "$stage ${DOTS[(System.currentTimeMillis() % (DOT_TIME * DOTS.size)).toInt() / DOT_TIME]}"
-                drawString(mc.fontRendererObj, title, x, top - mc.fontRendererObj.FONT_HEIGHT - 2, -0x1)
+                drawText(client.textRenderer, title, x, top - client.textRenderer.field_0_2811 - 2, -0x1)
             }
         }
-        super.drawScreen(mouseX, mouseY, partialTicks)
+        super.render(mouseX, mouseY, partialTicks)
     }
 
     init {

@@ -19,9 +19,9 @@
 package gg.skytils.skytilsmod.features.impl.dungeons.catlas.core
 
 import gg.skytils.skytilsmod.listeners.DungeonListener
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.EnumPlayerModelParts
-import net.minecraft.util.ResourceLocation
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.entity.player.PlayerModelPart
+import net.minecraft.util.Identifier
 
 data class DungeonMapPlayer(val teammate: DungeonListener.DungeonTeammate) {
     inline val skin get() = teammate.skin
@@ -37,9 +37,9 @@ data class DungeonMapPlayer(val teammate: DungeonListener.DungeonTeammate) {
     var isOurMarker = false
 
     /** Set player data that requires entity to be loaded */
-    fun setData(player: EntityPlayer) {
-        renderHat = player.isWearing(EnumPlayerModelParts.HAT)
-        uuid = player.uniqueID.toString()
+    fun setData(player: PlayerEntity) {
+        renderHat = player.isPartVisible(PlayerModelPart.HAT)
+        uuid = player.uuid.toString()
         playerLoaded = true
     }
 }

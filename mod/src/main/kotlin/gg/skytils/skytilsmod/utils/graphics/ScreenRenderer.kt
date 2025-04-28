@@ -21,11 +21,11 @@ import gg.essential.universal.UResolution
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextShadow
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.entity.RenderItem
-import net.minecraft.client.resources.IReloadableResourceManager
+import net.minecraft.client.MinecraftClient
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.client.render.DiffuseLighting
+import net.minecraft.client.render.item.ItemRenderer
+import net.minecraft.resource.ReloadableResourceManager
 import net.minecraft.item.ItemStack
 import java.awt.Point
 
@@ -397,7 +397,7 @@ class ScreenRenderer {
     ): Float {
         if (!isRendering) return -1f
         val f = fontRenderer.drawString(text, drawingOrigin.x + x, drawingOrigin.y + y, color, alignment, shadow)
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
         return f
     }
 
@@ -751,7 +751,7 @@ class ScreenRenderer {
     }
 
     fun color(r: Float, g: Float, b: Float, alpha: Float) {
-        GlStateManager.color(r, g, b, alpha)
+        RenderSystem.setShaderColor(r, g, b, alpha)
     }
 
     fun drawItemStack(`is`: ItemStack, x: Int, y: Int) {
@@ -787,33 +787,33 @@ class ScreenRenderer {
      */
     private fun drawItemStack(`is`: ItemStack, x: Int, y: Int, count: Boolean, text: String, effects: Boolean) {
         if (!isRendering) return
-        RenderHelper.enableGUIStandardItemLighting()
-        itemRenderer!!.zLevel = 200.0f
+        DiffuseLighting.enableForItems()
+        itemRenderer!!.zOffset = 200.0f
         var font = `is`.item.getFontRenderer(`is`)
         if (font == null) font = fontRenderer
-        if (effects) itemRenderer!!.renderItemAndEffectIntoGUI(
+        if (effects) itemRenderer!!.method_4026(
             `is`,
             x + drawingOrigin.x,
             y + drawingOrigin.y
-        ) else itemRenderer!!.renderItemIntoGUI(`is`, x + drawingOrigin.x, y + drawingOrigin.y)
-        itemRenderer!!.renderItemOverlayIntoGUI(
+        ) else itemRenderer!!.method_4021(`is`, x + drawingOrigin.x, y + drawingOrigin.y)
+        itemRenderer!!.method_4022(
             font,
             `is`,
             x + drawingOrigin.x,
             y + drawingOrigin.y,
-            text.ifEmpty { if (count) `is`.stackSize.toString() else null }
+            text.ifEmpty { if (count) `is`.count.toString() else null }
         )
-        itemRenderer!!.zLevel = 0.0f
-        RenderHelper.disableStandardItemLighting()
+        itemRenderer!!.zOffset = 0.0f
+        DiffuseLighting.disable()
     }
 
     companion object {
         val fontRenderer: SmartFontRenderer by lazy {
-            if (!Minecraft.getMinecraft().isCallingFromMinecraftThread) error("ScreenRenderer cannot continue loading because it is not on the main thread")
+            if (!MinecraftClient.getInstance().isOnThread) error("ScreenRenderer cannot continue loading because it is not on the main thread")
             SmartFontRenderer()
         }
-        val mc: Minecraft by lazy {
-            Minecraft.getMinecraft()
+        val mc: MinecraftClient by lazy {
+            MinecraftClient.getInstance()
         }
         private var screen: UResolution? = null
         var isRendering = false
@@ -829,9 +829,9 @@ class ScreenRenderer {
             transformationOrigin.y = y
         }
 
-        private val itemRenderer: RenderItem?
+        private val itemRenderer: ItemRenderer?
             get() {
-                return Minecraft.getMinecraft().renderItem
+                return MinecraftClient.getInstance().itemRenderer
             }
 
         /** refresh
@@ -847,11 +847,11 @@ class ScreenRenderer {
 
         @JvmStatic
         fun init() {
-            if (Minecraft.getMinecraft().gameSettings.language != null) {
-                fontRenderer.unicodeFlag = Minecraft.getMinecraft().isUnicode
-                fontRenderer.bidiFlag = Minecraft.getMinecraft().languageManager.isCurrentLanguageBidirectional
+            if (MinecraftClient.getInstance().options.language != null) {
+                fontRenderer.method_0_2391(MinecraftClient.getInstance().method_0_2294())
+                fontRenderer.method_0_2398(MinecraftClient.getInstance().languageManager.isRightToLeft)
             }
-            (Minecraft.getMinecraft().resourceManager as IReloadableResourceManager).registerReloadListener(fontRenderer)
+            (MinecraftClient.getInstance().resourceManager as ReloadableResourceManager).registerReloader(fontRenderer)
         }
     }
 }

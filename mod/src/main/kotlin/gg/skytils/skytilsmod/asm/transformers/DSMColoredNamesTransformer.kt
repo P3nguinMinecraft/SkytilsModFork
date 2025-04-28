@@ -19,40 +19,40 @@
 package gg.skytils.skytilsmod.asm.transformers
 
 //#if MC==10809
-import dev.falsehonesty.asmhelper.dsl.modify
-import net.minecraft.entity.Entity
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.MethodInsnNode
-
-fun addColoredNamesCheck() = modify("me.Danker.features.ColouredNames") {
-    classNode.methods.firstOrNull { it.name == "onRenderLiving" }?.let { n ->
-        for (insn in n.instructions) {
-            if (insn is MethodInsnNode) {
-                if (insn.owner == "net/minecraft/entity/Entity" && insn.name == "func_145818_k_" && insn.desc == "()Z") {
-                    n.instructions.insert(
-                        insn,
-                        MethodInsnNode(
-                            Opcodes.INVOKESTATIC,
-                            "gg/skytils/skytilsmod/asm/transformers/DSMColoredNamesTransformer",
-                            "modifyColoredNamesCheck",
-                            "(Lnet/minecraft/entity/Entity;)Z",
-                            false
-                        )
-                    )
-                    n.instructions.remove(insn)
-                    break
-                }
-            }
-        }
-    }
-}
-
-object DSMColoredNamesTransformer {
-    @JvmStatic
-    fun modifyColoredNamesCheck(entity: Entity): Boolean {
-        val customName = entity.customNameTag
-        return customName.isNotEmpty() && !customName.contains("§c❤") && !customName.dropLastWhile { it == 's' }
-            .endsWith(" Hit")
-    }
-}
+//$$ import dev.falsehonesty.asmhelper.dsl.modify
+//$$ import net.minecraft.entity.Entity
+//$$ import org.objectweb.asm.Opcodes
+//$$ import org.objectweb.asm.tree.MethodInsnNode
+//$$
+//$$ fun addColoredNamesCheck() = modify("me.Danker.features.ColouredNames") {
+//$$     classNode.methods.firstOrNull { it.name == "onRenderLiving" }?.let { n ->
+//$$         for (insn in n.instructions) {
+//$$             if (insn is MethodInsnNode) {
+//$$                 if (insn.owner == "net/minecraft/entity/Entity" && insn.name == "func_145818_k_" && insn.desc == "()Z") {
+//$$                     n.instructions.insert(
+//$$                         insn,
+//$$                         MethodInsnNode(
+//$$                             Opcodes.INVOKESTATIC,
+//$$                             "gg/skytils/skytilsmod/asm/transformers/DSMColoredNamesTransformer",
+//$$                             "modifyColoredNamesCheck",
+//$$                             "(Lnet/minecraft/entity/Entity;)Z",
+//$$                             false
+//$$                         )
+//$$                     )
+//$$                     n.instructions.remove(insn)
+//$$                     break
+//$$                 }
+//$$             }
+//$$         }
+//$$     }
+//$$ }
+//$$
+//$$ object DSMColoredNamesTransformer {
+//$$     @JvmStatic
+//$$     fun modifyColoredNamesCheck(entity: Entity): Boolean {
+//$$         val customName = entity.customName
+//$$         return customName.isNotEmpty() && !customName.contains("§c❤") && !customName.dropLastWhile { it == 's' }
+//$$             .endsWith(" Hit")
+//$$     }
+//$$ }
 //#endif

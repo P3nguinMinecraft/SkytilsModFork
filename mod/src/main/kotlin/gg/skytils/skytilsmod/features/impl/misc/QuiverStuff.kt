@@ -31,9 +31,9 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.init.Items
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
-import net.minecraft.network.play.server.S2FPacketSetSlot
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
 
 object QuiverStuff : EventSubscriber {
     private val activeArrowRegex = Regex("§7Active Arrow: (?<type>§.[\\w -]+) §7\\(§e(?<amount>\\d+)§7\\)")
@@ -52,9 +52,9 @@ object QuiverStuff : EventSubscriber {
     }
 
     fun onReceivePacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (!Utils.inSkyblock || event.packet !is S2FPacketSetSlot || event.packet.func_149173_d() != 44) return
-        val stack = event.packet.func_149174_e() ?: return
-        if (!Utils.equalsOneOf(stack.item, Items.arrow, Items.feather)) return
+        if (!Utils.inSkyblock || event.packet !is ScreenHandlerSlotUpdateS2CPacket || event.packet.slot != 44) return
+        val stack = event.packet.stack ?: return
+        if (!Utils.equalsOneOf(stack.item, Items.ARROW, Items.FEATHER)) return
         val line = ItemUtil.getItemLore(stack).getOrNull(4) ?: return
         val match = activeArrowRegex.matchEntire(line) ?: return
         selectedType = match.groups["type"]?.value ?: ""
@@ -72,7 +72,7 @@ object QuiverStuff : EventSubscriber {
     }
 
     object QuiverDisplay : GuiElement("Quiver Display", x = 0.05f, y = 0.4f) {
-        private val arrowItem = ItemStack(Items.arrow, 1, 0)
+        private val arrowItem = ItemStack(Items.ARROW, 1, 0)
 
         override fun render() {
             if (!toggled || !Utils.inSkyblock) return
@@ -104,7 +104,7 @@ object QuiverStuff : EventSubscriber {
         override val height: Int
             get() = 16
         override val width: Int
-            get() = 20 + ScreenRenderer.fontRenderer.getStringWidth("2000")
+            get() = 20 + ScreenRenderer.fontRenderer.getWidth("2000")
 
         override val toggled: Boolean
             get() = Skytils.config.quiverDisplay
@@ -146,9 +146,9 @@ object QuiverStuff : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Selected: Redstone-tipped Arrow")
+            get() = ScreenRenderer.fontRenderer.getWidth("Selected: Redstone-tipped Arrow")
         override val toggled: Boolean
             get() = Skytils.config.showSelectedArrowDisplay
 

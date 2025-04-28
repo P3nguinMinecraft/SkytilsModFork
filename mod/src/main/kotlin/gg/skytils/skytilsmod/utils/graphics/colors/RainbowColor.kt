@@ -17,7 +17,7 @@
  */
 package gg.skytils.skytilsmod.utils.graphics.colors
 
-import net.minecraft.client.renderer.GlStateManager
+import com.mojang.blaze3d.systems.RenderSystem
 import java.awt.Color
 import kotlin.math.min
 
@@ -31,7 +31,7 @@ class RainbowColor(var speed: Int, var offset: Int, var saturation: Float, var b
 
     override fun applyColor() {
         val color = rainbowColor
-        GlStateManager.color(color.red / 255f, color.blue / 255f, color.green / 255f)
+        RenderSystem.method_4426(color.red / 255f, color.blue / 255f, color.green / 255f)
     }
 
     override fun toHSV(): FloatArray {

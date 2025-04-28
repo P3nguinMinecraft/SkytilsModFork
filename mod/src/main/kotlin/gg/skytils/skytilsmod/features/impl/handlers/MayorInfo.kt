@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.screen.GenericContainerScreenHandler
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.roundToLong
@@ -68,7 +68,7 @@ object MayorInfo : EventSubscriber {
 
     init {
         tickTimer(60 * 20, repeats = true) {
-            if (!Utils.inSkyblock || mc.currentServerData?.serverIP?.lowercase()
+            if (!Utils.inSkyblock || mc.currentServerEntry?.address?.lowercase()
                     ?.contains("alpha") == true
             ) return@tickTimer
             if (currentMayor == "Jerry" && System.currentTimeMillis() > newJerryPerks) {
@@ -102,19 +102,19 @@ object MayorInfo : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        if (event.message.unformattedText == "§eEverybody unlocks §6exclusive §eperks! §a§l[HOVER TO VIEW]") {
+        if (event.message.string == "§eEverybody unlocks §6exclusive §eperks! §a§l[HOVER TO VIEW]") {
             fetchMayorData()
         }
     }
 
     fun onDrawSlot(event: GuiContainerPostDrawSlotEvent) {
         if (!Utils.inSkyblock) return
-        if (mc.currentServerData?.serverIP?.lowercase()
+        if (mc.currentServerEntry?.address?.lowercase()
                 ?.contains("alpha") == true
         ) return
-        if (event.container is ContainerChest) {
+        if (event.container is GenericContainerScreenHandler) {
             val chestName = event.chestName
-            if (event.slot.hasStack && ((chestName == "Mayor Jerry" && (event.slot.slotNumber == 13 || event.slot.stack?.displayName == "§dJERRY IS MAYOR!!!")) || (chestName == "Calendar and Events" && event.slot.slotNumber == 37))) {
+            if (event.slot.hasStack() && ((chestName == "Mayor Jerry" && (event.slot.id == 13 || event.slot.stack?.name == "§dJERRY IS MAYOR!!!")) || (chestName == "Calendar and Events" && event.slot.id == 37))) {
                 val lore = ItemUtil.getItemLore(event.slot.stack)
                 if (!lore.contains("§9Perkpocalypse Perks:")) return
                 val endingIn = lore.asReversed().find { it.startsWith("§7Next set of perks in") } ?: return

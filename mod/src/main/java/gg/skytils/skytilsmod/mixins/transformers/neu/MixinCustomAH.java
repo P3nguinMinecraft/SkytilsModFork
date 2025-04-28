@@ -19,7 +19,7 @@
 package gg.skytils.skytilsmod.mixins.transformers.neu;
 
 import gg.skytils.skytilsmod.utils.NEUCompatibility;
-import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.DrawContext;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Pseudo
 @Mixin(targets = "io.github.moulberry.notenoughupdates.auction.CustomAH")
-public class MixinCustomAH extends Gui {
+public class MixinCustomAH extends DrawContext {
     @Dynamic
     @Inject(method = "isRenderOverAuctionView", at = @At("RETURN"), remap = false)
     private void updateCustomAHState(CallbackInfoReturnable<Boolean> cir) {

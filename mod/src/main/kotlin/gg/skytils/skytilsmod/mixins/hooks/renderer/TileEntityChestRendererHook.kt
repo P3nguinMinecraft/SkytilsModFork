@@ -20,12 +20,12 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 import gg.skytils.skytilsmod.core.Config.threeWeirdosSolverColor
 import gg.skytils.skytilsmod.features.impl.dungeons.solvers.ThreeWeirdosSolver
 import gg.skytils.skytilsmod.utils.bindColor
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.tileentity.TileEntityChest
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.block.entity.ChestBlockEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun setChestColor(
-    te: TileEntityChest,
+    te: ChestBlockEntity,
     x: Double,
     y: Double,
     z: Double,
@@ -35,12 +35,12 @@ fun setChestColor(
 ) {
     if (te.pos == ThreeWeirdosSolver.riddleChest) {
         threeWeirdosSolverColor.bindColor()
-        GlStateManager.disableTexture2D()
+        RenderSystem.method_4407()
     }
 }
 
 fun setChestColorPost(
-    te: TileEntityChest,
+    te: ChestBlockEntity,
     x: Double,
     y: Double,
     z: Double,
@@ -48,5 +48,5 @@ fun setChestColorPost(
     destroyStage: Int,
     ci: CallbackInfo
 ) {
-    GlStateManager.enableTexture2D()
+    RenderSystem.method_4397()
 }

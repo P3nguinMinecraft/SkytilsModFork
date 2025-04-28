@@ -18,11 +18,11 @@
 
 package gg.skytils.skytilsmod.mixins.extensions
 
-import net.minecraft.client.gui.ChatLine
-import net.minecraft.util.IChatComponent
+import net.minecraft.client.gui.hud.ChatHudLine
+import net.minecraft.text.Text
 
 interface ExtensionChatLine {
-    var fullComponent: IChatComponent?
+    var fullComponent: Text?
 
-    fun withFullComponent(fullComponent: IChatComponent): ChatLine
+    fun withFullComponent(fullComponent: Text): ChatHudLine
 }

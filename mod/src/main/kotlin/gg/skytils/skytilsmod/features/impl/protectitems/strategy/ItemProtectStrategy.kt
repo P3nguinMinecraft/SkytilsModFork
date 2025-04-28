@@ -22,13 +22,13 @@ import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteSt
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.ItemWorthStrategy
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.StarredItemStrategy
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NbtCompound
 
 abstract class ItemProtectStrategy {
 
     val name = this::class.simpleName
 
-    abstract fun worthProtecting(item: ItemStack, extraAttr: NBTTagCompound?, type: ProtectType): Boolean
+    abstract fun worthProtecting(item: ItemStack, extraAttr: NbtCompound?, type: ProtectType): Boolean
     abstract val isToggled: Boolean
 
     companion object {
@@ -40,7 +40,7 @@ abstract class ItemProtectStrategy {
             return STRATEGIES.any { it.isToggled }
         }
 
-        fun findValidStrategy(item: ItemStack, extraAttr: NBTTagCompound?, type: ProtectType): ItemProtectStrategy? {
+        fun findValidStrategy(item: ItemStack, extraAttr: NbtCompound?, type: ProtectType): ItemProtectStrategy? {
             return STRATEGIES.find { it.isToggled && it.worthProtecting(item, extraAttr, type) }
         }
     }

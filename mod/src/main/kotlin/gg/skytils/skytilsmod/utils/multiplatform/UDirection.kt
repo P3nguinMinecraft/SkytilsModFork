@@ -18,9 +18,9 @@
 
 package gg.skytils.skytilsmod.utils.multiplatform
 
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.Direction
 
 object UDirection {
     // 1.8.9 ordering
-    val HORIZONTALS = arrayOf(EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST)
+    val HORIZONTALS = arrayOf(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST)
 }

@@ -35,24 +35,24 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
+import net.minecraft.block.Blocks
+import net.minecraft.block.entity.ChestBlockEntity
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
 import net.minecraft.world.World
 import kotlin.math.floor
 
 //#if MC<11300
-import net.minecraft.client.renderer.GlStateManager
+//$$ import net.minecraft.client.GlStateManager
 //#else
-//$$ import com.mojang.blaze3d.systems.RenderSystem
-//$$ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
+import com.mojang.blaze3d.systems.RenderSystem
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
 //#endif
 
 object BoulderSolver : EventSubscriber {
     var boulderChest: BlockPos? = null
-    var boulderFacing: EnumFacing? = null
+    var boulderFacing: Direction? = null
     var grid = Array(7) { arrayOfNulls<BoulderState>(6) }
     var roomVariant = -1
     var variantSteps = ArrayList<ArrayList<BoulderPush>>()
@@ -79,37 +79,37 @@ object BoulderSolver : EventSubscriber {
             for (step in steps) {
                 if (grid[step.x][step.y] != BoulderState.EMPTY) {
                     val downRow = boulderFacing!!.opposite
-                    val rightColumn = boulderFacing!!.rotateY()
+                    val rightColumn = boulderFacing!!.rotateYClockwise()
                     val farLeftPos = boulderChest!!.offset(downRow, 5).offset(rightColumn.opposite, 9)
                     val boulderPos = farLeftPos.offset(rightColumn, 3 * step.x).offset(downRow, 3 * step.y)
-                    val actualDirection: EnumFacing? = when (step.direction) {
+                    val actualDirection: Direction? = when (step.direction) {
                         BoulderPushDirection.FORWARD -> boulderFacing
                         BoulderPushDirection.BACKWARD -> boulderFacing!!.opposite
-                        BoulderPushDirection.LEFT -> boulderFacing!!.rotateYCCW()
-                        BoulderPushDirection.RIGHT -> boulderFacing!!.rotateY()
+                        BoulderPushDirection.LEFT -> boulderFacing!!.rotateYCounterclockwise()
+                        BoulderPushDirection.RIGHT -> boulderFacing!!.rotateYClockwise()
                     }
-                    val buttonPos = boulderPos.offset(actualDirection!!.opposite, 2).down()
+                    val buttonPos = boulderPos.offset(actualDirection!!.opposite, 2).method_10074()
                     val x = buttonPos.x - viewerX
                     val y = buttonPos.y - viewerY
                     val z = buttonPos.z - viewerZ
 
                     //#if MC<11300
-                    GlStateManager.disableCull()
+                    //$$ GlStateManager.disableCull()
                     //#else
-                    //$$ RenderSystem.disableCull()
+                    RenderSystem.disableCull()
                     //#endif
 
                     RenderUtil.drawFilledBoundingBox(
                         matrixStack,
-                        AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1),
+                        Box(x, y, z, x + 1, y + 1, z + 1),
                         Skytils.config.boulderSolverColor,
                         0.7f
                     )
 
                     //#if MC<11300
-                    GlStateManager.enableCull()
+                    //$$ GlStateManager.enableCull()
                     //#else
-                    //$$ RenderSystem.enableCull()
+                    RenderSystem.enableCull()
                     //#endif
                     break
                 }
@@ -133,67 +133,67 @@ object BoulderSolver : EventSubscriber {
 
     fun update() {
         if (!Skytils.config.boulderSolver || !DungeonListener.incompletePuzzles.contains("Boulder")) return
-        val player = mc.thePlayer
-        val world: World? = mc.theWorld
+        val player = mc.player
+        val world: World? = mc.world
         if ((job == null || job?.isCancelled == true || job?.isCompleted == true) && Utils.inDungeons && world != null && player != null && roomVariant != -2) {
             job = Skytils.launch {
                 var foundBirch = false
                 var foundBarrier = false
-                for (potentialBarrier in Utils.getBlocksWithinRangeAtSameY(player.position, 13, 68)) {
+                for (potentialBarrier in Utils.getBlocksWithinRangeAtSameY(player.blockPos, 13, 68)) {
                     if (foundBarrier && foundBirch) break
                     if (!foundBarrier) {
-                        if (world.getBlockState(potentialBarrier).block === Blocks.barrier) {
+                        if (world.getBlockState(potentialBarrier).block === Blocks.BARRIER) {
                             foundBarrier = true
                         }
                     }
                     if (!foundBirch) {
                         val potentialBirch = potentialBarrier.down(2)
                         //#if MC<12000
-                        if (world.getBlockState(potentialBirch).block === Blocks.planks && Blocks.planks.getDamageValue(
-                                world,
-                                potentialBirch
-                            ) == 2
-                        ) {
-                            foundBirch = true
-                        }
+                        //$$ if (world.getBlockState(potentialBirch).block === Blocks.PLANKS && Blocks.PLANKS.method_0_726(
+                        //$$         world,
+                        //$$         potentialBirch
+                        //$$     ) == 2
+                        //$$ ) {
+                        //$$     foundBirch = true
+                        //$$ }
                         //#else
-                        //$$ if (world.getBlockState(potentialBirch).block === Blocks.BIRCH_PLANKS) foundBirch = true
+                        if (world.getBlockState(potentialBirch).block === Blocks.BIRCH_PLANKS) foundBirch = true
                         //#endif
                     }
                 }
                 if (!foundBirch || !foundBarrier) return@launch
                 if (boulderChest == null || boulderFacing == null) {
-                    val playerX = player.posX.toInt()
-                    val playerZ = player.posZ.toInt()
+                    val playerX = player.x.toInt()
+                    val playerZ = player.z.toInt()
                     val xRange = playerX - 25..playerX + 25
                     val zRange = playerZ - 25..playerZ + 25
                     //#if MC<11300
-                    findChest@ for (te in world.loadedTileEntityList) {
+                    //$$ findChest@ for (te in world.field_0_262) {
                     //#else
-                    //$$ findChest@ for (te in (mc.world!! as AccessorWorld).blockEntityTickers) {
+                    findChest@ for (te in (mc.world!! as AccessorWorld).blockEntityTickers) {
                     //#endif
                         if (te.pos.y == 66 && te.pos.x in xRange && te.pos.z in zRange
                         ) {
                             //#if MC<=11202
-                            if (te is TileEntityChest && te.numPlayersUsing == 0) {
+                            //$$ if (te is ChestBlockEntity && te.viewerCount == 0) {
                             //#else
-                            //$$ if (te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world!!, te.pos) == 0) {
+                            if (te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world!!, te.pos) == 0) {
                             //#endif
                                 val potentialChestPos = te.pos
-                                if (world.getBlockState(potentialChestPos.down()).block ==
+                                if (world.getBlockState(potentialChestPos.method_10074()).block ==
                                     //#if MC<11300
-                                    Blocks.stonebrick
+                                    //$$ Blocks.STONEBRICK
                                     //#else
-                                    //$$ Blocks.STONE_BRICKS
+                                    Blocks.STONE_BRICKS
                                     //#endif
                                     && world.getBlockState(
                                         potentialChestPos.up(3)
-                                    ).block == Blocks.barrier
+                                    ).block == Blocks.BARRIER
                                 ) {
                                     boulderChest = potentialChestPos
                                     println("Boulder chest is at $boulderChest")
                                     for (direction in UDirection.HORIZONTALS) {
-                                        if (world.getBlockState(potentialChestPos.offset(direction)).block == Blocks.stained_hardened_clay) {
+                                        if (world.getBlockState(potentialChestPos.method_10093(direction)).block == Blocks.STAINED_HARDENED_CLAY) {
                                             boulderFacing = direction
                                             println("Boulder room is facing $direction")
                                             break@findChest
@@ -205,7 +205,7 @@ object BoulderSolver : EventSubscriber {
                     }
                 } else {
                     val downRow = boulderFacing!!.opposite
-                    val rightColumn = boulderFacing!!.rotateY()
+                    val rightColumn = boulderFacing!!.rotateYClockwise()
                     val farLeftPos = boulderChest!!.offset(downRow, 5).offset(rightColumn.opposite, 9)
                     var row = 0
                     while (row < 6) {
@@ -214,7 +214,7 @@ object BoulderSolver : EventSubscriber {
                             val current = farLeftPos.offset(rightColumn, 3 * column).offset(downRow, 3 * row)
                             val state = world.getBlockState(current)
                             grid[column][row] =
-                                if (state.block === Blocks.air) BoulderState.EMPTY else BoulderState.FILLED
+                                if (state.block === Blocks.AIR) BoulderState.EMPTY else BoulderState.FILLED
                             column++
                         }
                         row++

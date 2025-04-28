@@ -61,8 +61,8 @@ object TrophyFish : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.CrimsonIsle.mode || !Config.trophyFishTracker) return
-        printDevMessage({ event.message.formattedText }, "trophyspam")
-        trophyFishRegex.matchEntire(event.message.formattedText.stripControlCodes())?.destructured?.let { (type, tier) ->
+        printDevMessage({ event.message.method_10865() }, "trophyspam")
+        trophyFishRegex.matchEntire(event.message.method_10865().stripControlCodes())?.destructured?.let { (type, tier) ->
             printDevMessage({ "Found trophy fish of $type of tier $tier" }, "trophy")
             val fish = TrophyFish.entries.find { it.actualName.lowercase() == type.lowercase() } ?: return@let
             printDevMessage({ "Trophy fish type: ${fish.name}" }, "trophy")
@@ -145,7 +145,7 @@ object TrophyFish : EventSubscriber {
                 fr.drawString(
                     str,
                     0f,
-                    (idx * fr.FONT_HEIGHT).toFloat(),
+                    (idx * fr.field_0_2811).toFloat(),
                     CommonColors.WHITE,
                     alignment,
                     textShadow
@@ -155,7 +155,7 @@ object TrophyFish : EventSubscriber {
                 fr.drawString(
                     generateLocalTotalTrophyFish(),
                     0f,
-                    (trophyFish.size * fr.FONT_HEIGHT).toFloat(),
+                    (trophyFish.size * fr.field_0_2811).toFloat(),
                     CommonColors.WHITE,
                     alignment,
                     textShadow
@@ -172,7 +172,7 @@ object TrophyFish : EventSubscriber {
                             "${ChatColor.GOLD}9${ChatColor.DARK_AQUA}-" +
                             "${ChatColor.AQUA}0",
                     0f,
-                    (idx * fr.FONT_HEIGHT).toFloat(),
+                    (idx * fr.field_0_2811).toFloat(),
                     CommonColors.WHITE,
                     SmartFontRenderer.TextAlignment.LEFT_RIGHT,
                     SmartFontRenderer.TextShadow.NORMAL
@@ -182,7 +182,7 @@ object TrophyFish : EventSubscriber {
                 fr.drawString(
                     "${ChatColor.LIGHT_PURPLE}Total ${ChatColor.DARK_AQUA}» 9999",
                     0f,
-                    (trophyFish.size * fr.FONT_HEIGHT).toFloat(),
+                    (trophyFish.size * fr.field_0_2811).toFloat(),
                     CommonColors.WHITE,
                     alignment,
                     textShadow

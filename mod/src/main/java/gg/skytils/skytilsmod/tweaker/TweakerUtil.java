@@ -38,10 +38,10 @@ import java.security.PrivilegedAction;
 import java.util.Arrays;
 
 //#if MC==10809
-import net.minecraft.launchwrapper.Launch;
+//$$ import net.minecraft.launchwrapper.Launch;
 //#else
-//$$ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
-//$$ import java.nio.file.Path;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import java.nio.file.Path;
 //#endif
 
 public class TweakerUtil {
@@ -135,11 +135,11 @@ public class TweakerUtil {
     }
 
     //#if MC==10809
-    static void registerTransformerExclusions(String... classes) {
-        for (String className : classes) {
-            Launch.classLoader.addTransformerExclusion(className);
-        }
-    }
+    //$$ static void registerTransformerExclusions(String... classes) {
+    //$$     for (String className : classes) {
+    //$$         Launch.classLoader.addTransformerExclusion(className);
+    //$$     }
+    //$$ }
     //#endif
 
     public static String makeRequest(String url) throws IOException {
@@ -163,26 +163,26 @@ public class TweakerUtil {
 
     public static void addToClasspath(URL url) throws Throwable {
         //#if MC==10809
-        Launch.classLoader.addURL(url);
-        ClassLoader parent = Launch.classLoader.getClass().getClassLoader();
-        if (parent != null) {
-            try {
-                Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-                addURL.setAccessible(true);
-                addURL.invoke(parent, url);
-            } catch (Throwable t) {
-                t.printStackTrace();
-
-                Field ucpField = parent.getClass().getDeclaredField("ucp");
-                ucpField.setAccessible(true);
-
-                Object ucp = ucpField.get(parent);
-                Method ucpAddURL = ucp.getClass().getDeclaredMethod("addURL", URL.class);
-                ucpAddURL.invoke(ucp, url);
-            }
-        }
+        //$$ Launch.classLoader.addURL(url);
+        //$$ ClassLoader parent = Launch.classLoader.getClass().getClassLoader();
+        //$$ if (parent != null) {
+        //$$     try {
+        //$$         Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+        //$$         addURL.setAccessible(true);
+        //$$         addURL.invoke(parent, url);
+        //$$     } catch (Throwable t) {
+        //$$         t.printStackTrace();
+        //$$
+        //$$         Field ucpField = parent.getClass().getDeclaredField("ucp");
+        //$$         ucpField.setAccessible(true);
+        //$$
+        //$$         Object ucp = ucpField.get(parent);
+        //$$         Method ucpAddURL = ucp.getClass().getDeclaredMethod("addURL", URL.class);
+        //$$         ucpAddURL.invoke(ucp, url);
+        //$$     }
+        //$$ }
         //#else
-        //$$ FabricLauncherBase.getLauncher().addToClassPath(Path.of(url.toURI()));
+        FabricLauncherBase.getLauncher().addToClassPath(Path.of(url.toURI()));
         //#endif
     }
 }

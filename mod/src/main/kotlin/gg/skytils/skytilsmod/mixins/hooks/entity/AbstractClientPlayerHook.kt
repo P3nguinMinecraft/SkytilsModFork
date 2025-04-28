@@ -29,22 +29,22 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import net.minecraft.client.Minecraft
-import net.minecraft.client.entity.AbstractClientPlayer
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.entity.Entity
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.util.ResourceLocation
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.util.Identifier
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 class AbstractClientPlayerHook(player: Any) {
 
-    val that: AbstractClientPlayer
+    val that: AbstractClientPlayerEntity
 
     init {
-        that = player as AbstractClientPlayer
+        that = player as AbstractClientPlayerEntity
     }
 
-    var correctSkin: ResourceLocation? = null
+    var correctSkin: Identifier? = null
     val isSummonMob: Boolean by lazy {
         if (!Utils.inSkyblock) return@lazy false
         try {
@@ -62,7 +62,7 @@ class AbstractClientPlayerHook(player: Any) {
 
     val summonType: Deferred<String?> by lazy {
         if (!isSummonMob) return@lazy CompletableDeferred(null)
-        if (mc.theWorld == null) return@lazy CompletableDeferred(null)
+        if (mc.world == null) return@lazy CompletableDeferred(null)
         if (that.isInvisible) return@lazy CompletableDeferred("shadow_assassin")
         Skytils.async {
             findTypeEntity()
@@ -72,18 +72,18 @@ class AbstractClientPlayerHook(player: Any) {
     private fun findTypeEntity(): String? {
         Thread.sleep(100L)
 
-        val nearbyEntities = Minecraft.getMinecraft().theWorld.getEntitiesInAABBexcluding(
+        val nearbyEntities = MinecraftClient.getInstance().world.getOtherEntities(
             that,
-            that.entityBoundingBox.expand(1.0, 2.5, 1.0)
+            that.boundingBox.expand(1.0, 2.5, 1.0)
         ) { entity: Entity? ->
             printDevMessage(
                 { "entity name ${entity?.name}" },
                 "summonskins"
-            );entity is EntityArmorStand && entity.hasCustomName()
+            );entity is ArmorStandEntity && entity.hasCustomName()
         }
         printDevMessage({ "nearby ${nearbyEntities.size}" }, "summonskins")
         for (entity in nearbyEntities) {
-            val name = entity.customNameTag
+            val name = entity.customName
             val type = typeRegex.matchEntire(name)?.let { result ->
                 return@let result.groups["type"]?.value ?: return@let null
             } ?: return null
@@ -95,7 +95,7 @@ class AbstractClientPlayerHook(player: Any) {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun replaceSkin(cir: CallbackInfoReturnable<ResourceLocation>) {
+    fun replaceSkin(cir: CallbackInfoReturnable<Identifier>) {
         if (isSummonMob) {
             if (Skytils.config.fixSummonSkin) {
                 if (correctSkin == null) {
@@ -106,7 +106,7 @@ class AbstractClientPlayerHook(player: Any) {
                     // TODO Add support for resource packs
                     printDevMessage({ "summon type ${summonType.getCompleted()}" }, "summonskins")
                     correctSkin = skintextureMap[summonType.getCompleted()]?.resource
-                        ?: (if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.thePlayer.locationSkin else sychicSkin).also {
+                        ?: (if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.player.skinTexture else sychicSkin).also {
                             UChat.chat(
                                 "$failPrefix §cPlease tell a Skytils dev to add a skin for ${summonType.getCompleted()}"
                             )
@@ -115,7 +115,7 @@ class AbstractClientPlayerHook(player: Any) {
                 }
                 cir.setReturnValue(correctSkin)
             } else {
-                cir.setReturnValue(if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.thePlayer.locationSkin else sychicSkin)
+                cir.setReturnValue(if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.player.skinTexture else sychicSkin)
             }
         }
     }
@@ -126,11 +126,11 @@ class AbstractClientPlayerHook(player: Any) {
 
     fun replaceSkinType(cir: CallbackInfoReturnable<String>) {
         if (isSummonMob) cir.returnValue =
-            if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.thePlayer.skinType else "slim"
+            if (Skytils.config.usePlayerSkin || SuperSecretSettings.noSychic) mc.player.model else "slim"
     }
 
     companion object {
-        val sychicSkin = ResourceLocation("skytils:sychicskin.png")
+        val sychicSkin = Identifier("skytils:sychicskin.png")
 
         const val phoenixSkinObject =
             "eyJ0aW1lc3RhbXAiOjE1NzU0NzAyNzE3MTUsInByb2ZpbGVJZCI6ImRlNTcxYTEwMmNiODQ4ODA4ZmU3YzlmNDQ5NmVjZGFkIiwicHJvZmlsZU5hbWUiOiJNSEZfTWluZXNraW4iLCJzaWduYXR1cmVSZXF1aXJlZCI6dHJ1ZSwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzM2YTAzODNhNTI3ODAzZDk5YjY2MmFkMThiY2FjNzhjMTE5MjUwZWJiZmIxNDQ3NWI0ZWI0ZDRhNjYyNzk2YjQifX19"

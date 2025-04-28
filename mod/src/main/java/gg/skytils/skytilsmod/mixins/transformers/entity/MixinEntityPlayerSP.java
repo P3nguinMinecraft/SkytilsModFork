@@ -22,12 +22,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
 import gg.skytils.skytilsmod.mixins.hooks.entity.EntityPlayerSPHookKt;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -36,21 +36,21 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(EntityPlayerSP.class)
-public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
+@Mixin(ClientPlayerEntity.class)
+public abstract class MixinEntityPlayerSP extends AbstractClientPlayerEntity {
     @Shadow
-    protected Minecraft mc;
+    protected MinecraftClient client;
 
     public MixinEntityPlayerSP(World worldIn, GameProfile playerProfile) {
         super(worldIn, playerProfile);
     }
 
-    @Inject(method = "dropOneItem", at = @At("HEAD"), cancellable = true)
-    private void onDropItem(boolean dropAll, CallbackInfoReturnable<EntityItem> cir) {
+    @Inject(method = "dropSelectedItem", at = @At("HEAD"), cancellable = true)
+    private void onDropItem(boolean dropAll, CallbackInfoReturnable<ItemEntity> cir) {
         EntityPlayerSPHookKt.onDropItem(dropAll, cir);
     }
 
-    @WrapOperation(method = "onLivingUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/KeyBinding;isKeyDown()Z"))
+    @WrapOperation(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/KeyBinding;isPressed()Z"))
     private boolean setSprintState(KeyBinding keyBinding, Operation<Boolean> original) {
         return EntityPlayerSPHookKt.onKeybindCheck(keyBinding) || original.call(keyBinding);
     }

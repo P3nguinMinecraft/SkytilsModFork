@@ -35,9 +35,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.screen.Screen
 
-class PaywallGui(val passthrough: GuiScreen) : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
+class PaywallGui(val passthrough: Screen) : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
 
     init {
         UIText("Uh oh!").childOf(window).constrain {
@@ -89,7 +89,7 @@ class PaywallGui(val passthrough: GuiScreen) : WindowScreen(ElementaVersion.V5, 
                 delay(1000)
             }
             button.onLeftClick {
-                mc.displayGuiScreen(passthrough)
+                client.setScreen(passthrough)
             }
             button.text.setText("Click to continue")
         }

@@ -19,15 +19,15 @@
 package gg.skytils.skytilsmod.asm.transformers
 
 //#if MC==10809
-import dev.falsehonesty.asmhelper.dsl.overwrite
-
-fun commitArson() = overwrite {
-    className = "cheaters.get.banned.remote.CrashReporter"
-    methodName = "douse"
-    methodDesc = "(Ljava/io/File;)V"
-
-    insnList {
-        methodReturn()
-    }
-}
+//$$ import dev.falsehonesty.asmhelper.dsl.overwrite
+//$$
+//$$ fun commitArson() = overwrite {
+//$$     className = "cheaters.get.banned.remote.CrashReporter"
+//$$     methodName = "douse"
+//$$     methodDesc = "(Ljava/io/File;)V"
+//$$
+//$$     insnList {
+//$$         methodReturn()
+//$$     }
+//$$ }
 //#endif

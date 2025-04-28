@@ -19,19 +19,19 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerCreeperChargeHookKt;
-import net.minecraft.client.renderer.entity.layers.LayerCreeperCharge;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.monster.EntityCreeper;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.render.entity.feature.CreeperChargeFeatureRenderer;
+import net.minecraft.class_995;
+import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(LayerCreeperCharge.class)
-public abstract class MixinLayerCreeperCharge implements LayerRenderer<EntityCreeper> {
+@Mixin(CreeperChargeFeatureRenderer.class)
+public abstract class MixinLayerCreeperCharge implements class_995<CreeperEntity> {
 
-    @ModifyArg(method = "doRenderLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderCreeper;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
-    private ResourceLocation modifyChargedCreeperLayer(ResourceLocation res) {
+    @ModifyArg(method = "method_4199", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/CreeperEntityRenderer;bindTexture(Lnet/minecraft/util/Identifier;)V"))
+    private Identifier modifyChargedCreeperLayer(Identifier res) {
         return LayerCreeperChargeHookKt.modifyChargedCreeperLayer(res);
     }
 }

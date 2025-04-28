@@ -37,33 +37,33 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.hasMoved
 import kotlinx.serialization.Serializable
-import net.minecraft.client.entity.AbstractClientPlayer
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.client.multiplayer.WorldClient
-import net.minecraft.client.renderer.entity.RendererLivingEntity
-import net.minecraft.entity.EntityAgeable
-import net.minecraft.entity.EntityList
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.monster.EntitySkeleton
-import net.minecraft.entity.monster.EntitySlime
+import net.minecraft.client.network.AbstractClientPlayerEntity
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.client.world.ClientWorld
+import net.minecraft.client.render.entity.LivingEntityRenderer
+import net.minecraft.entity.passive.PassiveEntity
+import net.minecraft.entity.EntityType
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.mob.AbstractSkeletonEntity
+import net.minecraft.entity.mob.SlimeEntity
 import net.minecraft.entity.passive.*
-import net.minecraft.item.EnumDyeColor
+import net.minecraft.util.DyeColor
 import kotlin.math.abs
 
 object SheepifyRebellion : EventSubscriber {
     val fakeWorld by lazy {
         getClassHelper("gg.essential.gui.common.EmulatedUI3DPlayer\$FakeWorld")?.let { clazz ->
             val instance = clazz.getFieldHelper("INSTANCE")?.get(null)
-            clazz.getMethodHelper("getFakeWorld")?.invoke(instance) as? WorldClient
+            clazz.getMethodHelper("getFakeWorld")?.invoke(instance) as? ClientWorld
         } ?: error("Failed to get FakeWorld")
     }
 
-    val dummyModelMap = hashMapOf<AbstractClientPlayer, EntityLivingBase>()
+    val dummyModelMap = hashMapOf<AbstractClientPlayerEntity, LivingEntity>()
 
     val skytilsPlusUsernames = mutableSetOf<String>()
-    val skytilsPlusColors = mutableMapOf<String, EnumDyeColor>()
+    val skytilsPlusColors = mutableMapOf<String, DyeColor>()
 
-    val lookup = EnumDyeColor.entries.associateBy { ((it as AccessorEnumDyeColor).chatColor as AccessorEnumChatFormatting).formattingCode }
+    val lookup = DyeColor.entries.associateBy { ((it as AccessorEnumDyeColor).chatColor as AccessorEnumChatFormatting).formattingCode }
 
     val isSkytilsPlus by lazy {
         Utils.isBSMod || SuperSecretSettings.sheepifyRebellion
@@ -81,16 +81,16 @@ object SheepifyRebellion : EventSubscriber {
     }
 
     fun playerSpawn(event: EntityJoinWorldEvent) {
-        if (event.entity !is AbstractClientPlayer || event.entity.uniqueID.version() == 2) return
+        if (event.entity !is AbstractClientPlayerEntity || event.entity.uuid.version() == 2) return
 
         if (Utils.inSkyblock) {
-            checkForFakeModel(event.entity as AbstractClientPlayer)
-        } else if (event.entity is EntityPlayerSP) {
-            val world = event.entity.worldObj
+            checkForFakeModel(event.entity as AbstractClientPlayerEntity)
+        } else if (event.entity is ClientPlayerEntity) {
+            val world = event.entity.world
             tickTimer(5) {
-                if (Utils.inSkyblock && mc.theWorld == world) {
-                    world.playerEntities.forEach {
-                        if (it is AbstractClientPlayer && it.uniqueID.version() != 2 && it !in dummyModelMap) {
+                if (Utils.inSkyblock && mc.world == world) {
+                    world.players.forEach {
+                        if (it is AbstractClientPlayerEntity && it.uuid.version() != 2 && it !in dummyModelMap) {
                             checkForFakeModel(it)
                         }
                     }
@@ -100,7 +100,7 @@ object SheepifyRebellion : EventSubscriber {
     }
 
     fun playerLeave(event: LivingEntityDeathEvent) {
-        dummyModelMap.remove(event.entity)?.setDead()
+        dummyModelMap.remove(event.entity)?.remove()
     }
 
     fun onWorldUnload(event: WorldUnloadEvent) {
@@ -110,103 +110,103 @@ object SheepifyRebellion : EventSubscriber {
     fun onRender(event: LivingEntityPreRenderEvent<*>) {
         val fakeEntity = dummyModelMap[event.entity] ?: return
         event.cancelled = true
-        val renderer = event.renderer.renderManager.getEntityRenderObject<EntityLivingBase>(fakeEntity)
+        val renderer = event.renderer.renderManager.getRenderer<LivingEntity>(fakeEntity)
         copyProperties(fakeEntity, event.entity)
-        renderer.doRender(fakeEntity, event.x, event.y, event.z, event.entity.rotationYaw, 1f)
-        (event.renderer as RendererLivingEntity<EntityLivingBase>).renderName(event.entity, event.x, event.y, event.z)
+        renderer.render(fakeEntity, event.x, event.y, event.z, event.entity.yaw, 1f)
+        (event.renderer as LivingEntityRenderer<LivingEntity>).renderLabelIfPresent(event.entity, event.x, event.y, event.z)
     }
 
-    fun checkForFakeModel(entity: AbstractClientPlayer) {
-        var fakeEntity: EntityLivingBase? = null
-        if ((SuperSecretSettings.catGaming || (Utils.isBSMod && SkytilsPlus.redeemed)) && entity is EntityPlayerSP) {
-            fakeEntity = EntityOcelot(fakeWorld)
-            fakeEntity.tameSkin = 3
+    fun checkForFakeModel(entity: AbstractClientPlayerEntity) {
+        var fakeEntity: LivingEntity? = null
+        if ((SuperSecretSettings.catGaming || (Utils.isBSMod && SkytilsPlus.redeemed)) && entity is ClientPlayerEntity) {
+            fakeEntity = CatEntity(fakeWorld)
+            fakeEntity.catType = 3
         } else if (SuperSecretSettings.palworld) {
-            val uuid = entity.uniqueID
+            val uuid = entity.uuid
             val most = abs(uuid.mostSignificantBits)
             val least = abs(uuid.leastSignificantBits)
-            fakeEntity = EntityList.createEntityByID(if (SuperSecretSettings.cattiva) 98 else palEntities[(most % palEntities.size).toInt()], fakeWorld) as EntityLivingBase
+            fakeEntity = EntityType.createInstanceFromId(if (SuperSecretSettings.cattiva) 98 else palEntities[(most % palEntities.size).toInt()], fakeWorld) as LivingEntity
             when (fakeEntity) {
-                is EntityOcelot -> fakeEntity.tameSkin = (least % 4).toInt()
-                is EntitySheep -> fakeEntity.fleeceColor = EnumDyeColor.byDyeDamage((least % 16).toInt())
-                is EntityWolf -> {
+                is CatEntity -> fakeEntity.catType = (least % 4).toInt()
+                is SheepEntity -> fakeEntity.color = DyeColor.method_0_8193((least % 16).toInt())
+                is WolfEntity -> {
                     fakeEntity.isTamed = true
-                    fakeEntity.collarColor = EnumDyeColor.byDyeDamage((least % 16).toInt())
+                    fakeEntity.collarColor = DyeColor.method_0_8193((least % 16).toInt())
                 }
-                is EntitySkeleton -> fakeEntity.skeletonType = (least % 2).toInt()
-                is EntityHorse -> {
-                    fakeEntity.horseType = (least % 5).toInt()
-                    fakeEntity.horseVariant = (most % 7).toInt() or ((least % 5).toInt() shl 8)
-                    fakeEntity.isHorseSaddled = (most % 2).toInt() == 1
+                is AbstractSkeletonEntity -> fakeEntity.method_0_7863((least % 2).toInt())
+                is AbstractHorseEntity -> {
+                    fakeEntity.method_0_7566((least % 5).toInt())
+                    fakeEntity.method_0_7568((most % 7).toInt() or ((least % 5).toInt() shl 8))
+                    fakeEntity.method_0_7564((most % 2).toInt() == 1)
                 }
-                is EntityRabbit -> {
+                is RabbitEntity -> {
                     fakeEntity.rabbitType = (least % 7).toInt().takeIf { it != 6 } ?: 99
                 }
-                is EntitySlime -> {
+                is SlimeEntity -> {
                     (fakeEntity as AccessorEntitySlime).invokeSetSlimeSize((least % 3).toInt())
                 }
-                is EntityBat -> {
-                    fakeEntity.isBatHanging = false
+                is BatEntity -> {
+                    fakeEntity.isRoosting = false
                 }
             }
         } else if (isSkytilsPlus) {
             val color = skytilsPlusColors[entity.name] ?: return
-            fakeEntity = EntitySheep(fakeWorld)
-            fakeEntity.fleeceColor = color
+            fakeEntity = SheepEntity(fakeWorld)
+            fakeEntity.color = color
 
             if (skytilsPlusUsernames.contains(entity.name)) {
-                fakeEntity.customNameTag = "jeb_"
-                fakeEntity.alwaysRenderNameTag = false
+                fakeEntity.customName = "jeb_"
+                fakeEntity.isCustomNameVisible = false
             }
         }
 
         if (fakeEntity != null) {
             dummyModelMap[entity] = fakeEntity
-            fakeEntity.forceSpawn = true
-            fakeEntity.motionX = 0.0
-            fakeEntity.motionY = 0.0
-            fakeEntity.motionZ = 0.0
+            fakeEntity.teleporting = true
+            fakeEntity.velocityX = 0.0
+            fakeEntity.velocityY = 0.0
+            fakeEntity.velocityZ = 0.0
             fakeEntity.noClip = true
         }
     }
 
-    fun copyProperties(entity: EntityLivingBase, originalEntity: EntityLivingBase) {
+    fun copyProperties(entity: LivingEntity, originalEntity: LivingEntity) {
         entity as AccessorEntity
         originalEntity as AccessorEntity
 
-        entity.copyLocationAndAnglesFrom(originalEntity)
-        entity.setRotationYawHead(originalEntity.rotationYawHead)
-        entity.prevLimbSwingAmount = originalEntity.prevLimbSwingAmount
-        entity.limbSwingAmount = originalEntity.limbSwingAmount
-        entity.limbSwing = originalEntity.limbSwing
-        entity.prevSwingProgress = originalEntity.prevSwingProgress
-        entity.swingProgress = originalEntity.swingProgress
-        entity.isSwingInProgress = originalEntity.isSwingInProgress
-        entity.setRenderYawOffset(originalEntity.renderYawOffset)
+        entity.copyPositionAndRotation(originalEntity)
+        entity.headYaw = originalEntity.headYaw
+        entity.lastLimbDistance = originalEntity.lastLimbDistance
+        entity.limbDistance = originalEntity.limbDistance
+        entity.limbAngle = originalEntity.limbAngle
+        entity.lastHandSwingProgress = originalEntity.lastHandSwingProgress
+        entity.handSwingProgress = originalEntity.handSwingProgress
+        entity.handSwinging = originalEntity.handSwinging
+        entity.setBodyYaw(originalEntity.bodyYaw)
         entity.hurtTime = originalEntity.hurtTime
         entity.fire = originalEntity.fire
         entity.deathTime = originalEntity.deathTime
-        entity.arrowCountInEntity = originalEntity.arrowCountInEntity
+        entity.stuckArrowCount = originalEntity.stuckArrowCount
         entity.isSprinting = originalEntity.isSprinting
         entity.isInvisible = originalEntity.isInvisible
 
-        if (entity.inventory.size >= originalEntity.inventory.size) {
-            for (i in originalEntity.inventory.indices) {
-                entity.inventory[i] = originalEntity.inventory[i]
+        if (entity.armorItems.size >= originalEntity.armorItems.size) {
+            for (i in originalEntity.armorItems.indices) {
+                entity.armorItems[i] = originalEntity.armorItems[i]
             }
         }
 
-        if (originalEntity.isChild && entity is EntityAgeable) {
-            entity.growingAge = -1
+        if (originalEntity.isBaby && entity is PassiveEntity) {
+            entity.breedingAge = -1
         }
 
-        if (entity is EntityTameable) {
-            entity.isSitting = originalEntity.isSneaking && !originalEntity.hasMoved
+        if (entity is TameableEntity) {
+            entity.isInSittingPose = originalEntity.isSneaking && !originalEntity.hasMoved
         } else {
             entity.isSneaking = originalEntity.isSneaking
         }
 
-        entity.ticksExisted = originalEntity.ticksExisted
+        entity.age = originalEntity.age
     }
 
     override fun setup() {

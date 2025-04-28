@@ -86,8 +86,8 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Skytils.config.trackHiddenJerry) return
-        val formatted = event.message.formattedText
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val formatted = event.message.method_10865()
+        val unformatted = event.message.string.stripControlCodes()
         if (!formatted.startsWith("§r§b ☺ ")) return
         if (formatted.startsWith("§r§b ☺ §r§eYou claimed ") && formatted.endsWith("§efrom the Jerry Box!§r")) {
             if (formatted.contains("coins")) {
@@ -114,7 +114,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
             }
             return
         }
-        if (formatted.endsWith("§r§ein a Jerry Box!§r") && formatted.contains(mc.thePlayer.name)) {
+        if (formatted.endsWith("§r§ein a Jerry Box!§r") && formatted.contains(mc.player.name)) {
             (JerryBoxDrops.entries.find {
                 formatted.contains(it.dropName)
             } ?: return).droppedAmount++
@@ -176,7 +176,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
                     ScreenRenderer.fontRenderer.drawString(
                         "§${jerry.colorCode}${jerry.type}§f: ${jerry.discoveredTimes}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                         CommonColors.WHITE,
                         alignment,
                         textShadow
@@ -188,7 +188,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
                     ScreenRenderer.fontRenderer.drawString(
                         "§${drop.colorCode}${drop.dropName}§f: ${drop.droppedAmount}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
                         CommonColors.WHITE,
                         alignment,
                         textShadow
@@ -214,9 +214,9 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Jerry Tracker")
+            get() = ScreenRenderer.fontRenderer.getWidth("Jerry Tracker")
 
         override val toggled: Boolean
             get() = Skytils.config.trackHiddenJerry

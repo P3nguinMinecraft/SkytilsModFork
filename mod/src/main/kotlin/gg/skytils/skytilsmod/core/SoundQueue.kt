@@ -39,13 +39,13 @@ object SoundQueue : EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        if (mc.thePlayer == null || soundQueue.isEmpty()) return
+        if (mc.player == null || soundQueue.isEmpty()) return
         for (sound in soundQueue) {
             if (--sound.ticks <= 0) {
                 if (sound.isLoud) {
                     Utils.playLoudSound(sound.sound, sound.pitch.toDouble())
                 } else {
-                    mc.thePlayer.playSound(sound.sound, sound.volume, sound.pitch)
+                    mc.player.playSound(sound.sound, sound.volume, sound.pitch)
                 }
                 soundQueue.remove(sound)
             }

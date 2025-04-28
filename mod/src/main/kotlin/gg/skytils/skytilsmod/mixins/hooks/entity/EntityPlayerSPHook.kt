@@ -26,10 +26,10 @@ import gg.skytils.skytilsmod._event.ItemTossEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.settings.KeyBinding
-import net.minecraft.entity.item.EntityItem
-import net.minecraft.network.play.client.C09PacketHeldItemChange
-import net.minecraft.network.play.server.S09PacketHeldItemChange
+import net.minecraft.client.option.KeyBinding
+import net.minecraft.entity.ItemEntity
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
+import net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 var currentItem: Int? = null
@@ -43,22 +43,22 @@ object EntityPlayerSPHook : EventSubscriber {
     }
 
     fun serverItemChange(event: PacketReceiveEvent<*>) {
-        val packet = event.packet as? S09PacketHeldItemChange ?: return
-        currentItem = packet.heldItemHotbarIndex
+        val packet = event.packet as? UpdateSelectedSlotS2CPacket ?: return
+        currentItem = packet.slot
     }
 
     fun clientItemChange(event: PacketSendEvent<*>) {
-        val packet = event.packet as? C09PacketHeldItemChange ?: return
-        currentItem = packet.slotId
+        val packet = event.packet as? UpdateSelectedSlotC2SPacket ?: return
+        currentItem = packet.selectedSlot
     }
 
 }
 
-fun onDropItem(dropAll: Boolean, cir: CallbackInfoReturnable<EntityItem?>) {
-    val stack = mc.thePlayer.inventory.mainInventory[currentItem ?: mc.thePlayer.inventory.currentItem]
+fun onDropItem(dropAll: Boolean, cir: CallbackInfoReturnable<ItemEntity?>) {
+    val stack = mc.player.inventory.main[currentItem ?: mc.player.inventory.selectedSlot]
     if (stack != null && postCancellableSync(ItemTossEvent(stack))) cir.returnValue = null
 }
 
 fun onKeybindCheck(keyBinding: KeyBinding): Boolean {
-    return keyBinding === mc.gameSettings.keyBindSprint && Utils.inSkyblock && Skytils.config.alwaysSprint
+    return keyBinding === mc.options.sprintKey && Utils.inSkyblock && Skytils.config.alwaysSprint
 }

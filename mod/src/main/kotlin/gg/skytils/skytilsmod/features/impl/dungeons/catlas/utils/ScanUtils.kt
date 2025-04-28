@@ -28,23 +28,23 @@ import gg.skytils.skytilsmod.utils.Utils
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import net.minecraft.block.Block
-import net.minecraft.util.BlockPos
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.Identifier
 import kotlin.math.roundToInt
 
 //#if MC>=12000
-//$$ import net.minecraft.world.Heightmap
+import net.minecraft.world.Heightmap
 //#endif
 
 object ScanUtils {
     @OptIn(ExperimentalSerializationApi::class)
     val roomList: Set<RoomData> by lazy {
         //#if MC==10809
-        mc.resourceManager.getResource(
+        //$$ mc.resourceManager.method_14486(
         //#else
-        //$$ mc.resourceManager.getResourceOrThrow(
+        mc.resourceManager.getResourceOrThrow(
         //#endif
-            ResourceLocation("catlas:rooms.json")
+            Identifier("catlas:rooms.json")
         ).inputStream.use(json::decodeFromStream)
     }
 
@@ -72,25 +72,25 @@ object ScanUtils {
     fun getCore(x: Int, z: Int): Int {
         val sb = StringBuilder(150)
         //#if MC==10809
-        val chunk = mc.theWorld!!.getChunkFromChunkCoords(x shr 4, z shr 4)
+        //$$ val chunk = mc.world!!.method_0_271(x shr 4, z shr 4)
         //#else
-        //$$ val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
+        val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
         //#endif
         val height =
             //#if MC==10809
-            chunk.getHeightValue(x and 15, z and 15)
+            //$$ chunk.method_0_1367(x and 15, z and 15)
             //#else
-            //$$ chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
+            chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
             //#endif
                 .coerceIn(11..140)
         sb.append(CharArray(140 - height) { '0' })
         var bedrock = 0
         for (y in height downTo 12) {
             //#if MC==10809
-            val id = Block.getIdFromBlock(chunk.getBlock(BlockPos(x, y, z)))
+            //$$ val id = Block.method_0_670(chunk.getBlock(BlockPos(x, y, z)))
             //#else
             // TODO: Check if this is the same value post-flattening (it likely isn't)
-            //$$ val id = Block.getRawIdFromState(chunk.getBlockState(BlockPos(x, y, z)))
+            val id = Block.getRawIdFromState(chunk.getBlockState(BlockPos(x, y, z)))
             //#endif
             if (id == 0 && bedrock >= 2 && y < 69) {
                 sb.append(CharArray(y - 11) { '0' })

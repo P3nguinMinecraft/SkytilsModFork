@@ -21,10 +21,10 @@ package gg.skytils.skytilsmod.features.impl.slayer.impl
 import gg.skytils.skytilsmod.core.Config
 import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
-import net.minecraft.client.entity.EntityOtherPlayerMP
+import net.minecraft.client.network.OtherClientPlayerEntity
 
-class BloodfiendSlayer(entity: EntityOtherPlayerMP) :
-    Slayer<EntityOtherPlayerMP>(entity, "Riftstalker Bloodfiend", "§c☠ §4Bloodfiend") {
+class BloodfiendSlayer(entity: OtherClientPlayerEntity) :
+    Slayer<OtherClientPlayerEntity>(entity, "Riftstalker Bloodfiend", "§c☠ §4Bloodfiend") {
 
     var lastHadTwinclaws = false
     var isStakeable = false

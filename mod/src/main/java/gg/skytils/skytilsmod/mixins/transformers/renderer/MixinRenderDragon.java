@@ -19,12 +19,12 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.renderer.entity.RenderDragon;
-import net.minecraft.client.renderer.entity.RenderLiving;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.boss.EntityDragon;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.render.entity.EnderDragonEntityRenderer;
+import net.minecraft.client.render.entity.MobEntityRenderer;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,32 +33,32 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(RenderDragon.class)
-public abstract class MixinRenderDragon extends RenderLiving<EntityDragon> {
+@Mixin(EnderDragonEntityRenderer.class)
+public abstract class MixinRenderDragon extends MobEntityRenderer<EnderDragonEntity> {
     @Unique
-    private EntityDragon lastDragon = null;
+    private EnderDragonEntity lastDragon = null;
 
-    public MixinRenderDragon(RenderManager renderManager, ModelBase modelBase, float f) {
+    public MixinRenderDragon(EntityRenderDispatcher renderManager, EntityModel modelBase, float f) {
         super(renderManager, modelBase, f);
     }
 
-    @Inject(method = "renderModel", at = @At("HEAD"))
-    private void onRenderModel(EntityDragon entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At("HEAD"))
+    private void onRenderModel(EnderDragonEntity entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
         lastDragon = entitylivingbaseIn;
     }
 
-    @ModifyArg(method = "renderModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;color(FFFF)V"), index = 3)
+    @ModifyArg(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderColor(FFFF)V"), index = 3)
     private float replaceHurtOpacity(float value) {
-        return MasterMode7Features.INSTANCE.getHurtOpacity((RenderDragon) (Object) this, lastDragon, value);
+        return MasterMode7Features.INSTANCE.getHurtOpacity((EnderDragonEntityRenderer) (Object) this, lastDragon, value);
     }
 
-    @Inject(method = "renderModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V", ordinal = 2, shift = At.Shift.AFTER))
-    private void afterRenderHurtFrame(EntityDragon entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
-        MasterMode7Features.INSTANCE.afterRenderHurtFrame((RenderDragon) (Object) this, entitylivingbaseIn, f, g, h, i, j, scaleFactor, ci);
+    @Inject(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;setAngles(Lnet/minecraft/entity/Entity;FFFFFF)V", ordinal = 2, shift = At.Shift.AFTER))
+    private void afterRenderHurtFrame(EnderDragonEntity entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
+        MasterMode7Features.INSTANCE.afterRenderHurtFrame((EnderDragonEntityRenderer) (Object) this, entitylivingbaseIn, f, g, h, i, j, scaleFactor, ci);
     }
 
-    @Inject(method = "getEntityTexture", at = @At("HEAD"), cancellable = true)
-    private void replaceEntityTexture(EntityDragon entity, CallbackInfoReturnable<ResourceLocation> cir) {
+    @Inject(method = "getTexture", at = @At("HEAD"), cancellable = true)
+    private void replaceEntityTexture(EnderDragonEntity entity, CallbackInfoReturnable<Identifier> cir) {
         MasterMode7Features.INSTANCE.getEntityTexture(entity, cir);
     }
 }

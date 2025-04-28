@@ -20,8 +20,8 @@ package gg.skytils.skytilsmod.mixins.transformers.sk1eroam;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.ItemRendererHookKt;
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.EnumAction;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.item.consume.UseAction;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -32,11 +32,11 @@ public abstract class MixinAnimationHandler {
 
     @Shadow
     @Final
-    private Minecraft mc;
+    private MinecraftClient mc;
 
     @Dynamic
     @ModifyVariable(method = "renderItemInFirstPerson", at = @At("STORE"))
-    private EnumAction changeEnumAction(EnumAction action) {
-        return mc.thePlayer.getItemInUse() != null ? ItemRendererHookKt.getItemInUseCountForFirstPerson(mc.thePlayer, mc.thePlayer.getItemInUse(), null) == 0 ? EnumAction.NONE : action : action;
+    private UseAction changeEnumAction(UseAction action) {
+        return mc.player.method_0_7989() != null ? ItemRendererHookKt.getItemInUseCountForFirstPerson(mc.player, mc.player.method_0_7989(), null) == 0 ? UseAction.NONE : action : action;
     }
 }

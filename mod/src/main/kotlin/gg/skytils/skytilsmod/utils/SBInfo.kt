@@ -39,14 +39,14 @@ import kotlinx.serialization.encoding.*
 import net.hypixel.data.type.GameType
 import net.hypixel.data.type.ServerType
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.screen.GenericContainerScreenHandler
 
-import net.minecraft.network.play.server.S3DPacketDisplayScoreboard
-import net.minecraft.network.play.server.S3FPacketCustomPayload
+import net.minecraft.network.packet.s2c.play.ScoreboardDisplayS2CPacket
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket
 //#if MC>11400
-//$$ import net.minecraft.network.packet.BrandCustomPayload
-//$$ import net.minecraft.scoreboard.ScoreboardDisplaySlot
+import net.minecraft.network.packet.BrandCustomPayload
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
 //#endif
 
 object SBInfo : EventSubscriber {
@@ -99,10 +99,10 @@ object SBInfo : EventSubscriber {
 
     fun onGuiOpen(event: ScreenOpenEvent) {
         if (!Utils.inSkyblock) return
-        if (event.screen is GuiChest) {
-            val chest = event.screen as GuiChest
-            val container = chest.inventorySlots as ContainerChest
-            val containerName = container.lowerChestInventory.displayName.unformattedText
+        if (event.screen is GenericContainerScreen) {
+            val chest = event.screen as GenericContainerScreen
+            val container = chest.handler as GenericContainerScreenHandler
+            val containerName = container.inventory.customName.string
             _lastOpenContainerNameState.set(containerName)
         }
     }
@@ -134,28 +134,28 @@ object SBInfo : EventSubscriber {
     }
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (!Utils.isOnHypixel && event.packet is S3FPacketCustomPayload) {
+        if (!Utils.isOnHypixel && event.packet is CustomPayloadS2CPacket) {
             //#if MC<11400
-            if (event.packet.channelName.toString() == "MC|Brand") {
-                _hypixelState.set(event.packet.bufferData.readStringFromBuffer(Short.MAX_VALUE.toInt()).lowercase().contains("hypixel"))
-            }
+            //$$ if (event.packet.method_11456().toString() == "MC|Brand") {
+            //$$     _hypixelState.set(event.packet.data.readString(Short.MAX_VALUE.toInt()).lowercase().contains("hypixel"))
+            //$$ }
             //#else
-            //$$ _hypixelState.set((event.packet.payload as? BrandCustomPayload)?.brand?.contains("hypixel") == true)
+            _hypixelState.set((event.packet.payload as? BrandCustomPayload)?.brand?.contains("hypixel") == true)
             //#endif
         }
         //#if MC<11400
-        if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is S3DPacketDisplayScoreboard && event.packet.func_149371_c() == 1) {
+        //$$ if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is ScoreboardDisplayS2CPacket && event.packet.slot == 1) {
         //#else
-        //$$ if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is ScoreboardDisplayS2CPacket && event.packet.slot == ScoreboardDisplaySlot.SIDEBAR) {
+        if (!Utils.inSkyblock && Utils.isOnHypixel && event.packet is ScoreboardDisplayS2CPacket && event.packet.slot == ScoreboardDisplaySlot.SIDEBAR) {
         //#endif
-            _skyblockState.set(event.packet.func_149370_d() == "SBScoreboard")
-            printDevMessage("score ${event.packet.func_149370_d()}", "utils")
+            _skyblockState.set(event.packet.name == "SBScoreboard")
+            printDevMessage("score ${event.packet.name}", "utils")
             printDevMessage("sb ${Utils.inSkyblock}", "utils")
         }
     }
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
-        if (mc.thePlayer == null || mc.theWorld == null || !Utils.inSkyblock) return
+        if (mc.player == null || mc.world == null || !Utils.inSkyblock) return
         try {
             val lines = ScoreboardUtil.fetchScoreboardLines().map { it.stripControlCodes() }
             if (lines.size >= 5) {

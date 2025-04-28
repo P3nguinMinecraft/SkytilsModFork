@@ -21,11 +21,11 @@ package gg.skytils.skytilsmod.mixins.transformers.events;
 import gg.skytils.event.EventsKt;
 import gg.skytils.skytilsmod._event.PacketReceiveEvent;
 import io.netty.channel.ChannelHandlerContext;
-import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.network.EnumPacketDirection;
-import net.minecraft.network.INetHandler;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.NetworkSide;
+import net.minecraft.network.listener.PacketListener;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.network.packet.Packet;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,19 +33,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(NetworkManager.class)
+@Mixin(ClientConnection.class)
 public class MixinNetworkManager {
-    @Shadow @Final private EnumPacketDirection direction;
+    @Shadow @Final private NetworkSide side;
 
-    @Shadow private INetHandler packetListener;
+    @Shadow private PacketListener packetListener;
 
     @Inject(
-            method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/Packet;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Packet;processPacket(Lnet/minecraft/network/INetHandler;)V"),
+            method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/packet/Packet;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/Packet;apply(Lnet/minecraft/network/listener/PacketListener;)V"),
             cancellable = true
     )
     public void channelRead0(ChannelHandlerContext ctx, Packet packet, CallbackInfo ci) {
-        if (this.direction == EnumPacketDirection.CLIENTBOUND && this.packetListener instanceof NetHandlerPlayClient) {
+        if (this.side == NetworkSide.CLIENTBOUND && this.packetListener instanceof ClientPlayNetworkHandler) {
             if (EventsKt.postCancellableSync(new PacketReceiveEvent(packet))) {
                 ci.cancel();
             }

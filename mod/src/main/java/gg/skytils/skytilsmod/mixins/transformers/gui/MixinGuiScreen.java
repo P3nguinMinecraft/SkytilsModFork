@@ -19,11 +19,11 @@
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiScreenHookKt;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiYesNoCallback;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.class_411;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,18 +31,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(GuiScreen.class)
-public abstract class MixinGuiScreen extends Gui implements GuiYesNoCallback {
+@Mixin(Screen.class)
+public abstract class MixinGuiScreen extends DrawContext implements class_411 {
 
-    @Shadow public Minecraft mc;
+    @Shadow public MinecraftClient client;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onInit(CallbackInfo ci) {
-        this.mc = Minecraft.getMinecraft();
+        this.client = MinecraftClient.getInstance();
     }
 
-    @Inject(method = "handleComponentClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/event/ClickEvent;getAction()Lnet/minecraft/event/ClickEvent$Action;"), cancellable = true)
-    private void blockComponentClick(IChatComponent s, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "method_2216", at = @At(value = "INVOKE", target = "Lnet/minecraft/text/ClickEvent;getAction()Lnet/minecraft/text/ClickEvent$Action;"), cancellable = true)
+    private void blockComponentClick(Text s, CallbackInfoReturnable<Boolean> cir) {
         GuiScreenHookKt.onComponentClick(s, cir);
     }
 

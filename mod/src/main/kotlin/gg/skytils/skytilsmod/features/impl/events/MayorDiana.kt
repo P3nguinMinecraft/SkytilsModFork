@@ -32,15 +32,15 @@ import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.baseMaxHealth
-import net.minecraft.entity.monster.EntityIronGolem
-import net.minecraft.network.play.server.S29PacketSoundEffect
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
+import net.minecraft.entity.passive.IronGolemEntity
+import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 
 object MayorDiana : EventSubscriber {
 
-    private val gaiaConstructHits = HashMap<EntityIronGolem, Int>()
+    private val gaiaConstructHits = HashMap<IronGolemEntity, Int>()
 
     override fun setup() {
         register(::onPacket, EventPriority.Highest)
@@ -51,21 +51,21 @@ object MayorDiana : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.trackGaiaHits && event.packet is S29PacketSoundEffect) {
-            if (event.packet.volume == 0.8f && event.packet.soundName == "random.anvil_land") {
+        if (Skytils.config.trackGaiaHits && event.packet is PlaySoundIdS2CPacket) {
+            if (event.packet.volume == 0.8f && event.packet.method_11460() == "random.anvil_land") {
                 val pos = BlockPos(event.packet.x, event.packet.y, event.packet.z)
-                val golem = (mc.theWorld.loadedEntityList.filter {
-                    it is EntityIronGolem && it.health > 0 && it.getDistanceSq(pos) <= 25 * 25
-                }.minByOrNull { it.getDistanceSq(pos) } ?: return) as EntityIronGolem
-                gaiaConstructHits.compute(golem) { _: EntityIronGolem, i: Int? -> (i ?: 0) + 1 }
+                val golem = (mc.world.entities.filter {
+                    it is IronGolemEntity && it.health > 0 && it.method_5831(pos) <= 25 * 25
+                }.minByOrNull { it.method_5831(pos) } ?: return) as IronGolemEntity
+                gaiaConstructHits.compute(golem) { _: IronGolemEntity, i: Int? -> (i ?: 0) + 1 }
             }
         }
     }
 
     fun onPostRenderEntity(event: LivingEntityPostRenderEvent) {
         if (!Utils.inSkyblock) return
-        if (event.entity is EntityIronGolem) {
-            with(event.entity as EntityIronGolem) {
+        if (event.entity is IronGolemEntity) {
+            with(event.entity as IronGolemEntity) {
                 if (gaiaConstructHits.containsKey(this)) {
                     val percentageHp = health / baseMaxHealth
                     val neededHits = when {
@@ -77,7 +77,7 @@ object MayorDiana : EventSubscriber {
                     val matrixStack = UMatrixStack()
                     UGraphics.disableDepth()
                     RenderUtil.drawLabel(
-                        Vec3(posX, posY + 2, posZ),
+                        Vec3d(x, y + 2, z),
                         "Hits: $hits / $neededHits",
                         if (hits < neededHits) Color.RED else Color.GREEN,
                         RenderUtil.getPartialTicks(),

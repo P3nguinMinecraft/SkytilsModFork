@@ -30,11 +30,11 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
-import net.minecraft.client.entity.EntityPlayerSP
+import net.minecraft.client.network.ClientPlayerEntity
 import java.util.*
 
 object FragBotCommand : BaseCommand("fragbot") {
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         UChat.chat("${Skytils.failPrefix} §cFragBots are no longer necessary and this command will no longer function.")
     }
 }

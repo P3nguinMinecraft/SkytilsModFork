@@ -47,13 +47,13 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.printDevMessage
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import net.minecraft.network.play.server.S34PacketMaps
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.world.storage.MapData
+import net.minecraft.network.packet.s2c.play.MapUpdateS2CPacket
+import net.minecraft.util.math.Box
+import net.minecraft.item.map.MapState
 
 //#if MC>=11600
-//$$ import net.minecraft.item.FilledMapItem
-//$$ import net.minecraft.item.map.MapIcon
+import net.minecraft.item.FilledMapItem
+import net.minecraft.item.map.MapDecoration
 //#endif
 
 object Catlas : EventSubscriber {
@@ -83,7 +83,7 @@ object Catlas : EventSubscriber {
     fun onTick(event: TickEvent) {
         if (!Utils.inDungeons) return
 
-        val player = mc.thePlayer ?: return
+        val player = mc.player ?: return
 
         if (!MapUtils.calibrated) {
             if (DungeonInfo.dungeonMap == null) {
@@ -107,7 +107,7 @@ object Catlas : EventSubscriber {
         }
 
         if (CatlasConfig.mapShowBeforeStart && DungeonTimer.dungeonStartTime == -1L) {
-            ScanUtils.getRoomFromPos(player.position)?.uniqueRoom?.let { unq ->
+            ScanUtils.getRoomFromPos(player.blockPos)?.uniqueRoom?.let { unq ->
                 if (unq.state == RoomState.PREVISITED) return@let
                 unq.state = RoomState.PREVISITED
                 // TODO: unq.tiles does not work here, figure out why #536
@@ -115,7 +115,7 @@ object Catlas : EventSubscriber {
                     it.state = RoomState.PREVISITED
                 }
             }
-            DungeonListener.team[player.name]?.mapPlayer?.yaw = player.rotationYaw
+            DungeonListener.team[player.name]?.mapPlayer?.yaw = player.yaw
         }
     }
 
@@ -130,7 +130,7 @@ object Catlas : EventSubscriber {
             it is Door && it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened
         }.forEach {
             val matrixStack = UMatrixStack()
-            val aabb = AxisAlignedBB(it.x - 1.0, 69.0, it.z - 1.0, it.x + 2.0, 73.0, it.z + 2.0)
+            val aabb = Box(it.x - 1.0, 69.0, it.z - 1.0, it.x + 2.0, 73.0, it.z + 2.0)
             val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
 
             val color =
@@ -162,16 +162,16 @@ object Catlas : EventSubscriber {
     }
 
     fun onPacket(event: PacketReceiveEvent<*>) {
-        if (event.packet is S34PacketMaps && Utils.inDungeons && DungeonInfo.dungeonMap == null) {
-            val world = mc.theWorld ?: return
-            val id = event.packet.mapId
+        if (event.packet is MapUpdateS2CPacket && Utils.inDungeons && DungeonInfo.dungeonMap == null) {
+            val world = mc.world ?: return
+            val id = event.packet.id
             if (id and 1000 == 0) {
                 //#if MC==10809
-                val guess = world.mapStorage.loadData(MapData::class.java, "map_${id}") as MapData? ?: return
-                if (guess.mapDecorations.any { it.value.func_176110_a() == 1.toByte() }) {
+                //$$ val guess = world.method_0_259().method_120(MapState::class.java, "map_${id}") as MapState? ?: return
+                //$$ if (guess.icons.any { it.value.typeId == 1.toByte() }) {
                 //#else
-                //$$ val guess = FilledMapItem.getMapState(id, world) ?: return
-                //$$ if (guess.icons.any { it.type == MapIcon.Type.PLAYER }) {
+                val guess = FilledMapItem.getMapState(id, world) ?: return
+                if (guess.decorations.any { it.type == MapDecoration.Type.PLAYER }) {
                 //#endif
                     DungeonInfo.guessMapData = guess
                 }

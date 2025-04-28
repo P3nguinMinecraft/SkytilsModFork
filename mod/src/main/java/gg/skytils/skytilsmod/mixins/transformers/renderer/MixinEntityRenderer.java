@@ -20,21 +20,21 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.EntityRendererHookKt;
-import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.client.resources.IResourceManagerReloadListener;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.resource.ResourceReloader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(EntityRenderer.class)
-public abstract class MixinEntityRenderer implements IResourceManagerReloadListener {
-    @Inject(method = "hurtCameraEffect", at = @At("HEAD"), cancellable = true)
+@Mixin(GameRenderer.class)
+public abstract class MixinEntityRenderer implements ResourceReloader {
+    @Inject(method = "tiltViewWhenHurt", at = @At("HEAD"), cancellable = true)
     private void onHurtcam(float partialTicks, CallbackInfo ci) {
         EntityRendererHookKt.onHurtcam(partialTicks, ci);
     }
 
-    @ModifyExpressionValue(method = "updateLightmap", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getLastLightningBolt()I"))
+    @ModifyExpressionValue(method = "method_0_3370", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getTicksSinceLightning()I"))
     private int getLastLightningBolt(int orig) {
         return EntityRendererHookKt.getLastLightningBolt(orig);
     }

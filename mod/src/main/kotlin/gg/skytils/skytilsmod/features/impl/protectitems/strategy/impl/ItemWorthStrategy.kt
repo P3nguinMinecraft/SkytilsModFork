@@ -23,10 +23,10 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.ItemProtectStrategy
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NbtCompound
 
 object ItemWorthStrategy : ItemProtectStrategy() {
-    override fun worthProtecting(item: ItemStack, extraAttr: NBTTagCompound?, type: ProtectType): Boolean {
+    override fun worthProtecting(item: ItemStack, extraAttr: NbtCompound?, type: ProtectType): Boolean {
         val id = AuctionData.getIdentifier(item) ?: return false
         if (AuctionData.lowestBINs.size == 0) return true
         val value = AuctionData.lowestBINs.getOrDefault(id, 0.0)

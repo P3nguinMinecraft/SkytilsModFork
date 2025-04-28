@@ -22,11 +22,11 @@ import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo.currentMayor
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.Utils.equalsOneOf
 import gg.skytils.skytilsmod.utils.baseMaxHealth
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.passive.EntityBat
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.passive.BatEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-fun preRenderBat(bat: EntityBat, partialTicks: Float, ci: CallbackInfo) {
+fun preRenderBat(bat: BatEntity, partialTicks: Float, ci: CallbackInfo) {
     if (Utils.inDungeons && Skytils.config.biggerBatModels &&
         if (currentMayor == "Derpy") equalsOneOf(bat.baseMaxHealth, 200.0, 800.0) else equalsOneOf(
             bat.baseMaxHealth,
@@ -34,6 +34,6 @@ fun preRenderBat(bat: EntityBat, partialTicks: Float, ci: CallbackInfo) {
             400.0
         )
     ) {
-        GlStateManager.scale(3f, 3f, 3f)
+        RenderSystem.method_4384(3f, 3f, 3f)
     }
 }

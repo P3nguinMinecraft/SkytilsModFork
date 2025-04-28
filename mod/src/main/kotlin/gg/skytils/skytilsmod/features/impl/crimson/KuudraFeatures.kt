@@ -29,8 +29,8 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.network.play.server.S02PacketChat
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 
 object KuudraFeatures : EventSubscriber {
     var kuudraOver = false
@@ -59,9 +59,9 @@ object KuudraFeatures : EventSubscriber {
     }
 
     fun onCheckRender(event: CheckRenderEntityEvent<*>) {
-        if (event.entity !is EntityArmorStand || SBInfo.mode != SkyblockIsland.KuudraHollow.mode) return
+        if (event.entity !is ArmorStandEntity || SBInfo.mode != SkyblockIsland.KuudraHollow.mode) return
         if (Skytils.config.kuudraHideNonNametags && !kuudraOver && !UKeyboard.isKeyDown(UKeyboard.KEY_LMENU)) {
-            if (event.entity.isInvisible && !event.entity.alwaysRenderNameTag) {
+            if (event.entity.isInvisible && !event.entity.isCustomNameVisible) {
                 event.cancelled = true
             }
         }
@@ -69,8 +69,8 @@ object KuudraFeatures : EventSubscriber {
 
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (SBInfo.mode != SkyblockIsland.KuudraHollow.mode) return
-        if (event.packet is S02PacketChat) {
-            if (event.packet.chatComponent.unformattedText.stripControlCodes().trim() == "KUUDRA DOWN!") {
+        if (event.packet is GameMessageS2CPacket) {
+            if (event.packet.message.string.stripControlCodes().trim() == "KUUDRA DOWN!") {
                 kuudraOver = true
             }
         }

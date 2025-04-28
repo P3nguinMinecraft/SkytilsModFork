@@ -61,7 +61,7 @@ object CooldownTracker : PersistentSave(File(Skytils.modDir, "cooldowntracker.js
     fun onActionBar(event: ActionBarReceivedEvent) {
         if (!Utils.inSkyblock || !Skytils.config.itemCooldownDisplay) return
         event.apply {
-            val unformatted = message.unformattedText
+            val unformatted = message.string
             if (unformatted.contains("§b-") && unformatted.contains(" Mana (§6")) {
                 val itemId = unformatted.substringAfter(" Mana (§6").substringBefore("§b)")
                 val itemCooldown = itemCooldowns[itemId] ?: return
@@ -88,7 +88,7 @@ object CooldownTracker : PersistentSave(File(Skytils.modDir, "cooldowntracker.js
                     ScreenRenderer.fontRenderer.drawString(
                         "${entry.key.replace("_", " ")}: ${"%.1f".format(elapsed)}s",
                         0f,
-                        (ScreenRenderer.fontRenderer.FONT_HEIGHT * i).toFloat(),
+                        (ScreenRenderer.fontRenderer.field_0_2811 * i).toFloat(),
                         CommonColors.ORANGE,
                         SmartFontRenderer.TextAlignment.LEFT_RIGHT,
                         textShadow
@@ -109,9 +109,9 @@ object CooldownTracker : PersistentSave(File(Skytils.modDir, "cooldowntracker.js
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("Ice Spray: 5s")
+            get() = ScreenRenderer.fontRenderer.getWidth("Ice Spray: 5s")
 
         override val toggled: Boolean
             get() = Skytils.config.itemCooldownDisplay

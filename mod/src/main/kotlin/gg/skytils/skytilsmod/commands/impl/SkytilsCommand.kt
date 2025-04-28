@@ -65,18 +65,18 @@ import kotlinx.coroutines.launch
 import net.hypixel.modapi.HypixelModAPI
 import net.hypixel.modapi.packet.ClientboundHypixelPacket
 import net.hypixel.modapi.packet.impl.serverbound.ServerboundVersionedPacket
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.command.WrongUsageException
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.util.ChatComponentText
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.class_0_1374
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.text.LiteralTextContent
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.collections.set
 
 object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         if (args.isEmpty()) {
             Skytils.displayScreen = OptionsGui()
             return
@@ -97,8 +97,8 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
                 }
             }
 
-            "fetchur" -> player.addChatMessage(
-                ChatComponentText(
+            "fetchur" -> player.sendMessage(
+                LiteralTextContent(
                     "$prefix §bToday's Fetchur item is: §f" + MiningFeatures.fetchurItems.values.toTypedArray()
                         [(ZonedDateTime.now(ZoneId.of("America/New_York"))
                         .dayOfMonth) % MiningFeatures.fetchurItems.size]
@@ -127,9 +127,9 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
             }
 
             "resettracker" -> if (args.size == 1) {
-                throw WrongUsageException("You need to specify one of [${Tracker.TRACKERS.joinToString(", ") { it.id }}]!")
+                throw class_0_1374("You need to specify one of [${Tracker.TRACKERS.joinToString(", ") { it.id }}]!")
             } else {
-                (Tracker.getTrackerById(args[1]) ?: throw WrongUsageException(
+                (Tracker.getTrackerById(args[1]) ?: throw class_0_1374(
                     "Invalid Tracker! You need to specify one of [${
                         Tracker.TRACKERS.joinToString(
                             ", "
@@ -169,11 +169,11 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
                         }
 
                         "slayer" -> {
-                            for (entity in mc.theWorld.getEntitiesWithinAABBExcludingEntity(
-                                mc.thePlayer,
-                                mc.thePlayer.entityBoundingBox.expand(5.0, 3.0, 5.0)
+                            for (entity in mc.world.method_0_375(
+                                mc.player,
+                                mc.player.boundingBox.expand(5.0, 3.0, 5.0)
                             )) {
-                                if (entity is EntityArmorStand) continue
+                                if (entity is ArmorStandEntity) continue
                                 SlayerFeatures.processSlayerEntity(entity)
                             }
                         }
@@ -262,8 +262,8 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
                     return
                 } else {
                     DevTools.toggle(args[1])
-                    player.addChatMessage(
-                        ChatComponentText(
+                    player.sendMessage(
+                        LiteralTextContent(
                             "$successPrefix §c${
                                 args[1]
                             } §awas toggled to: §6${
@@ -317,7 +317,7 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
             "pv" -> {
                 if (args.size == 1) {
                     Skytils.displayScreen =
-                        ProfileGui(mc.thePlayer.uniqueID, UPlayer.getPlayer()?.displayNameString ?: "")
+                        ProfileGui(mc.player.uuid, UPlayer.getPlayer()?.displayNameString ?: "")
                 } else {
                     // TODO Add some kind of message indicating progress
                     Skytils.IO.launch {
@@ -334,7 +334,7 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
             }
 
             "pricepaid" -> {
-                val extraAttr = ItemUtil.getExtraAttributes(mc.thePlayer?.heldItem) ?: return
+                val extraAttr = ItemUtil.getExtraAttributes(mc.player?.method_0_7087()) ?: return
                 PricePaid.prices[UUID.fromString(extraAttr.getString("uuid").ifEmpty { return })] =
                     args[1].toDoubleOrNull() ?: return
                 PersistentSave.markDirty<PricePaid>()
@@ -356,20 +356,20 @@ object SkytilsCommand : BaseCommand("skytils", listOf("st")) {
                     }
                     // Copies room data or room core to clipboard
                     "roomdata" -> {
-                        val pos = ScanUtils.getRoomCenter(mc.thePlayer.posX.toInt(), mc.thePlayer.posZ.toInt())
+                        val pos = ScanUtils.getRoomCenter(mc.player.x.toInt(), mc.player.z.toInt())
                         val data = ScanUtils.getRoomData(pos.first, pos.second)
                         if (data != null) {
-                            GuiScreen.setClipboardString(data.toString())
+                            Screen.method_0_2797(data.toString())
                             UChat.chat("$successPrefix §aCopied room data to clipboard.")
                         } else {
-                            GuiScreen.setClipboardString(ScanUtils.getCore(pos.first, pos.second).toString())
+                            Screen.method_0_2797(ScanUtils.getCore(pos.first, pos.second).toString())
                             UChat.chat("$successPrefix §aExisting room data not found. Copied room core to clipboard.")
                         }
                     }
                     "mapdata" -> {
                         val data = MapUtils.getMapData()
                         if (data != null) {
-                            GuiScreen.setClipboardString(data.colors.contentToString())
+                            Screen.method_0_2797(data.colors.contentToString())
                             UChat.chat("$successPrefix §aCopied map data to clipboard.")
                         } else {
                             UChat.chat("$failPrefix §cMap data not found.")

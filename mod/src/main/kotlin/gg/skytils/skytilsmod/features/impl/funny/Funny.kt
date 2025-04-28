@@ -31,7 +31,7 @@ import gg.skytils.skytilsmod.gui.elements.GIFResource
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.getSkytilsResource
-import net.minecraft.client.entity.EntityPlayerSP
+import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.EventPriority
@@ -43,8 +43,8 @@ object Funny {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     fun onItemUse(event: PlayerInteractEvent) {
-        if (!Utils.inSkyblock || !SuperSecretSettings.tryItAndSee || event.entityPlayer?.heldItem == null) return
-        (event.entityPlayer as? EntityPlayerSP)?.dropOneItem(true)
+        if (!Utils.inSkyblock || !SuperSecretSettings.tryItAndSee || event.entityPlayer?.method_0_7087() == null) return
+        (event.entityPlayer as? ClientPlayerEntity)?.dropSelectedItem(true)
     }
 
     fun joinedSkyblock() {

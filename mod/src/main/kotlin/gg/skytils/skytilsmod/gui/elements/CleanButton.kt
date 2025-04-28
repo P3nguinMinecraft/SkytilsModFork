@@ -17,9 +17,9 @@
  */
 package gg.skytils.skytilsmod.gui.elements
 
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.widget.ClickableWidget
+import com.mojang.blaze3d.systems.RenderSystem
 import java.awt.Color
 
 /**
@@ -28,32 +28,32 @@ import java.awt.Color
  * @author P0keDev
  */
 class CleanButton(buttonId: Int, x: Int, y: Int, widthIn: Int, heightIn: Int, buttonText: String?) :
-    GuiButton(buttonId, x, y, widthIn, heightIn, buttonText) {
+    ClickableWidget(buttonId, x, y, widthIn, heightIn, buttonText) {
     constructor(buttonId: Int, x: Int, y: Int, buttonText: String?) : this(buttonId, x, y, 200, 20, buttonText)
 
-    override fun drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
+    override fun render(mc: MinecraftClient, mouseX: Int, mouseY: Int) {
         if (visible) {
-            val fontrenderer = mc.fontRendererObj
-            GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
+            val fontrenderer = mc.textRenderer
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
             hovered =
-                mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
-            drawRect(
-                xPosition,
-                yPosition,
-                xPosition + width,
-                yPosition + height,
+                mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
+            fill(
+                x,
+                y,
+                x + width,
+                y + height,
                 if (hovered) Color(255, 255, 255, 80).rgb else Color(0, 0, 0, 80).rgb
             )
-            mouseDragged(mc, mouseX, mouseY)
+            method_1827(mc, mouseX, mouseY)
             var j = 14737632
             if (packedFGColour != 0) {
                 j = packedFGColour
-            } else if (!enabled) {
+            } else if (!active) {
                 j = 10526880
             } else if (hovered) {
                 j = 16777120
             }
-            drawCenteredString(fontrenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, j)
+            method_1789(fontrenderer, message, x + width / 2, y + (height - 8) / 2, j)
         }
     }
 }

@@ -68,14 +68,14 @@ class ItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reopenab
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("Add Cycle").childOf(bottomButtons).constrain {
             x = SiblingConstraint(5f)
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(AddItemCycleGui())
+            client.setScreen(AddItemCycleGui())
         }
 
         for ((uuid, cycle) in ItemCycle.cycles) {
@@ -111,7 +111,7 @@ class ItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reopenab
             width = 10.percent
         }.apply {
             onLeftClick {
-                mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+                client.setScreen(ItemCycleConditionGui(cycle))
             }
         }
 
@@ -120,7 +120,7 @@ class ItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reopenab
             y = CenterConstraint()
             width = 10.percent
         }.onLeftClick {
-            setClipboardString(uuid.toString())
+            method_0_2797(uuid.toString())
         }
 
         SimpleButton("Rebind").childOf(container).constrain {
@@ -128,7 +128,7 @@ class ItemCycleGui : WindowScreen(ElementaVersion.V5, newGuiScale = 2), Reopenab
             y = CenterConstraint()
             width = 10.percent
         }.onLeftClick {
-            mc.displayGuiScreen(RebindItemCycleGui(cycle))
+            client.setScreen(RebindItemCycleGui(cycle))
         }
 
         SimpleButton("Remove").childOf(container).constrain {

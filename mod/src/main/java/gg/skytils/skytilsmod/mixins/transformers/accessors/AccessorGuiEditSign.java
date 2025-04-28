@@ -18,35 +18,35 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.inventory.GuiEditSign;
-import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.screen.ingame.SignEditScreen;
+import net.minecraft.block.entity.SignBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(GuiEditSign.class)
+@Mixin(SignEditScreen.class)
 public interface AccessorGuiEditSign {
     /**
      * Reference to the sign object.
      */
-    @Accessor
-    TileEntitySign getTileSign();
+    @Accessor("sign")
+    SignBlockEntity getTileSign();
 
     /**
      * Counts the number of screen updates.
      */
-    @Accessor
+    @Accessor("ticksSinceOpened")
     int getUpdateCounter();
 
     /**
      * The index of the line that is being edited.
      */
-    @Accessor
+    @Accessor("currentRow")
     int getEditLine();
 
     /**
      * "Done" button for the GUI.
      */
-    @Accessor
-    GuiButton getDoneBtn();
+    @Accessor("field_3032")
+    ClickableWidget getDoneBtn();
 }

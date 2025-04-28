@@ -39,9 +39,9 @@ import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.network.play.server.S02PacketChat
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -68,8 +68,8 @@ object PotionEffectTimers : PersistentSave(File(Skytils.modDir, "potionEffectTim
 
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock || Utils.inDungeons || notifications.size == 0) return
-        if (event.packet is S02PacketChat && event.packet.type != 2.toByte()) {
-            val message = event.packet.chatComponent.formattedText
+        if (event.packet is GameMessageS2CPacket && event.packet.type != 2.toByte()) {
+            val message = event.packet.message.method_10865()
             if (message.startsWithAny("§a§lBUFF! §f", "§r§aYou ate ")) {
                 tickTimer(1) {
                     UMessage(
@@ -119,15 +119,15 @@ object PotionEffectTimers : PersistentSave(File(Skytils.modDir, "potionEffectTim
     }
 
     fun onDrawBackground(event: GuiContainerBackgroundDrawnEvent) {
-        if (!shouldReadEffects || event.container !is ContainerChest || !event.chestName.endsWith("Active Effects")) return
-        val lastIndex = (event.container as? ContainerChest ?: return).lowerChestInventory.sizeInventory - 1
+        if (!shouldReadEffects || event.container !is GenericContainerScreenHandler || !event.chestName.endsWith("Active Effects")) return
+        val lastIndex = (event.container as? GenericContainerScreenHandler ?: return).inventory.size() - 1
         for (i in 0..lastIndex) {
             val slot = event.container.getSlot(i)
             val item = slot.stack ?: continue
             val extraAttr = ItemUtil.getExtraAttributes(item)
-            if (item.item == Items.potionitem && extraAttr != null) {
-                val potionName = item.displayName.stripControlCodes().substringBeforeLast(" ")
-                val potionLevel = extraAttr.getInteger("potion_level")
+            if (item.item == Items.field_8574 && extraAttr != null) {
+                val potionName = item.name.stripControlCodes().substringBeforeLast(" ")
+                val potionLevel = extraAttr.getInt("potion_level")
                 for (line in ItemUtil.getItemLore(item).asReversed()) {
                     val match = duration.matchEntire(line) ?: continue
                     val isInfinite = match.groups["infinite"]?.value != null
@@ -145,22 +145,22 @@ object PotionEffectTimers : PersistentSave(File(Skytils.modDir, "potionEffectTim
                 val currPage =
                     effectMenuTitle.matchEntire(event.chestName)?.groups?.get("currPage")?.value?.toIntOrNull() ?: 1
                 if (currPage != neededPage) return
-                if (item.item == Items.arrow && item.displayName == "§aNext Page") {
+                if (item.item == Items.ARROW && item.name == "§aNext Page") {
                     neededPage++
                     tickTimer(20) {
                         UChat.chat("${Skytils.prefix} §fMoving to the next page ${neededPage}... Don't close your inventory!")
-                        mc.playerController.windowClick(
-                            event.container.windowId,
-                            slot.slotNumber,
+                        mc.interactionManager.clickSlot(
+                            event.container.syncId,
+                            slot.id,
                             0,
                             SlotActionType.THROW,
-                            mc.thePlayer
+                            mc.player
                         )
                     }
                 } else {
                     shouldReadEffects = false
                     tickTimer(20) {
-                        mc.thePlayer.closeScreen()
+                        mc.player.closeHandledScreen()
                         UChat.chat("${Skytils.successPrefix} §aYour ${potionEffectTimers.size} potion effects have been updated!")
                     }
                 }

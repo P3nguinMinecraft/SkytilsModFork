@@ -41,17 +41,17 @@ import gg.skytils.skytilsmod.utils.graphics.colors.CyclingTwoColorGradient
 import gg.skytils.skytilsmod.utils.graphics.colors.RainbowColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import net.minecraft.client.network.NetHandlerPlayClient
-import net.minecraft.client.settings.GameSettings
+import net.minecraft.client.network.ClientPlayNetworkHandler
+import net.minecraft.client.option.GameOptions
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.SharedMonsterAttributes
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.event.HoverEvent
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.attribute.EntityAttributes
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.text.HoverEvent
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagList
-import net.minecraft.network.play.server.S02PacketChat
-import net.minecraft.network.play.server.S2APacketParticles
+import net.minecraft.nbt.NbtList
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
 import net.minecraft.util.*
 import net.minecraft.world.World
 import net.minecraftforge.client.event.ClientChatReceivedEvent
@@ -66,7 +66,7 @@ import kotlin.io.path.notExists
 import kotlin.math.floor
 
 //#if FABRIC
-//$$ import net.minecraft.util.math.*
+import net.minecraft.util.math.*
 //#endif
 
 
@@ -88,9 +88,9 @@ object Utils {
     var lastRenderedSkullStack: ItemStack? = null
 
     @JvmField
-    var lastRenderedSkullEntity: EntityLivingBase? = null
+    var lastRenderedSkullEntity: LivingEntity? = null
 
-    var lastNHPC: NetHandlerPlayClient? = null
+    var lastNHPC: ClientPlayNetworkHandler? = null
 
     @JvmStatic
     var random = Random()
@@ -104,15 +104,15 @@ object Utils {
     fun getBlocksWithinRangeAtSameY(center: BlockPos, radius: Int, y: Int): Iterable<BlockPos> {
         val corner1 = BlockPos(center.x - radius, y, center.z - radius)
         val corner2 = BlockPos(center.x + radius, y, center.z + radius)
-        return BlockPos.getAllInBox(corner1, corner2)
+        return BlockPos.iterate(corner1, corner2)
     }
 
     @JvmStatic
-    fun isInTablist(player: EntityPlayer): Boolean {
-        if (mc.isSingleplayer) {
+    fun isInTablist(player: PlayerEntity): Boolean {
+        if (mc.isIntegratedServerRunning) {
             return true
         }
-        return mc.netHandler.playerInfoMap.any { it.gameProfile.name.equals(player.name, ignoreCase = true) }
+        return mc.networkHandler.playerList.any { it.profile.name.equals(player.name, ignoreCase = true) }
     }
 
     /**
@@ -122,7 +122,7 @@ object Utils {
      */
     fun playLoudSound(sound: String?, pitch: Double) {
         shouldBypassVolume = true
-        mc.thePlayer.playSound(sound, 1f, pitch.toFloat())
+        mc.player.playSound(sound, 1f, pitch.toFloat())
         shouldBypassVolume = false
     }
 
@@ -172,8 +172,8 @@ object Utils {
     private fun getCustomColorFromColor(color: Color) = CustomColor.fromInt(color.rgb)
 
     fun checkThreadAndQueue(run: () -> Unit) {
-        if (!mc.isCallingFromMinecraftThread) {
-            mc.addScheduledTask(run)
+        if (!mc.isOnThread) {
+            mc.submit(run)
         } else run()
     }
 
@@ -182,13 +182,13 @@ object Utils {
      * @param event packet to cancel
      */
     fun cancelChatPacket(event: PacketReceiveEvent<*>) {
-        if (event.packet !is S02PacketChat) return
+        if (event.packet !is GameMessageS2CPacket) return
         event.cancelled = true
         val packet = event.packet
         checkThreadAndQueue {
             postSync(MainThreadPacketReceiveEvent(packet))
-            MinecraftForge.EVENT_BUS.post(MainReceivePacketEvent(mc.netHandler, packet))
-            MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(packet.type, packet.chatComponent))
+            MinecraftForge.EVENT_BUS.post(MainReceivePacketEvent(mc.networkHandler, packet))
+            MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(packet.type, packet.message))
         }
     }
 
@@ -235,15 +235,15 @@ object Utils {
     }
 
     fun getKeyDisplayStringSafe(keyCode: Int): String =
-        runCatching { GameSettings.getKeyDisplayString(keyCode) }.getOrNull() ?: "Key $keyCode"
+        runCatching { GameOptions.method_0_2345(keyCode) }.getOrNull() ?: "Key $keyCode"
 }
 
-inline val AxisAlignedBB.minVec: Vec3
-    get() = Vec3(minX, minY, minZ)
-inline val AxisAlignedBB.maxVec: Vec3
-    get() = Vec3(maxX, maxY, maxZ)
+inline val Box.minVec: Vec3d
+    get() = Vec3d(minX, minY, minZ)
+inline val Box.maxVec: Vec3d
+    get() = Vec3d(maxX, maxY, maxZ)
 
-fun AxisAlignedBB.isPosInside(pos: BlockPos): Boolean {
+fun Box.isPosInside(pos: BlockPos): Boolean {
     return pos.x > this.minX && pos.x < this.maxX && pos.y > this.minY && pos.y < this.maxY && pos.z > this.minZ && pos.z < this.maxZ
 }
 
@@ -251,8 +251,8 @@ fun Vigilant.openGUI(): Job = Skytils.launch {
     Skytils.displayScreen = this@openGUI.gui()
 }
 
-val EntityLivingBase.baseMaxHealth: Double
-    get() = this.getEntityAttribute(SharedMonsterAttributes.maxHealth).baseValue
+val LivingEntity.baseMaxHealth: Double
+    get() = this.getAttributeInstance(EntityAttributes.MAX_HEALTH).baseValue
 
 fun UMessage.append(item: Any) = this.addTextComponent(item)
 fun UTextComponent.setHoverText(text: String): UTextComponent {
@@ -261,32 +261,32 @@ fun UTextComponent.setHoverText(text: String): UTextComponent {
     return this
 }
 
-fun IChatComponent.map(action: IChatComponent.() -> Unit) {
+fun Text.map(action: Text.() -> Unit) {
     action(this)
     siblings.forEach { it.map(action) }
 }
 
 fun Entity.getXZDistSq(other: Entity): Double {
-    val xDelta = this.posX - other.posX
-    val zDelta = this.posZ - other.posZ
+    val xDelta = this.x - other.x
+    val zDelta = this.z - other.z
     return xDelta * xDelta + zDelta * zDelta
 }
 
 fun Entity.getXZDistSq(pos: BlockPos): Double {
-    val xDelta = this.posX - pos.x
-    val zDelta = this.posZ - pos.z
+    val xDelta = this.x - pos.x
+    val zDelta = this.z - pos.z
     return xDelta * xDelta + zDelta * zDelta
 }
 
 val Entity.hasMoved
-    get() = this.posX != this.prevPosX || this.posY != this.prevPosY || this.posZ != this.prevPosZ
+    get() = this.x != this.lastX || this.y != this.lastY || this.z != this.lastZ
 
 fun Entity.getRotationFor(pos: BlockPos): Pair<Float, Float> {
-    val deltaX = pos.x - posX
-    val deltaZ = pos.z - posZ
-    val deltaY = pos.y - (posY + eyeHeight)
+    val deltaX = pos.x - x
+    val deltaZ = pos.z - z
+    val deltaY = pos.y - (y + standingEyeHeight)
 
-    val dist = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ).toDouble()
+    val dist = MathHelper.sqrt(deltaX * deltaX + deltaZ * deltaZ).toDouble()
     val yaw = (MathHelper.atan2(deltaZ, deltaX) * 180.0 / Math.PI).toFloat() - 90.0f
     val pitch = (-(MathHelper.atan2(deltaY, dist) * 180.0 / Math.PI)).toFloat()
     return yaw to pitch
@@ -300,9 +300,9 @@ fun CheckboxComponent.setState(checked: Boolean) {
     if (this.checked != checked) this.toggle()
 }
 
-fun BlockPos?.toVec3() = if (this == null) null else Vec3(this)
+fun BlockPos?.toVec3() = if (this == null) null else Vec3d(this)
 
-fun BlockPos.middleVec() = Vec3(x + 0.5, y + 0.5, z + 0.5)
+fun BlockPos.middleVec() = Vec3d(x + 0.5, y + 0.5, z + 0.5)
 
 fun <T : Any> T?.ifNull(run: () -> Unit): T? {
     if (this == null) run()
@@ -310,45 +310,45 @@ fun <T : Any> T?.ifNull(run: () -> Unit): T? {
 }
 
 //#if MC==10809
-val MethodInsnNode.descriptor: Descriptor
-    get() = Descriptor(
-        AsmHelper.remapper.remapClassName(this.owner),
-        SkytilsTransformer.methodMaps.getOrSelf(AsmHelper.remapper.remapMethodName(this.owner, this.name, this.desc)),
-        AsmHelper.remapper.remapDesc(this.desc)
-    )
+//$$ val MethodInsnNode.descriptor: Descriptor
+//$$     get() = Descriptor(
+//$$         AsmHelper.remapper.remapClassName(this.owner),
+//$$         SkytilsTransformer.methodMaps.getOrSelf(AsmHelper.remapper.remapMethodName(this.owner, this.name, this.desc)),
+//$$         AsmHelper.remapper.remapDesc(this.desc)
+//$$     )
 //#endif
 
 fun <T : Any> Map<T, T>.getOrSelf(key: T): T = this.getOrDefault(key, key)
 
-inline val S2APacketParticles.x
-    get() = this.xCoordinate
+inline val ParticleS2CPacket.x
+    get() = this.x
 
-inline val S2APacketParticles.y
-    get() = this.yCoordinate
+inline val ParticleS2CPacket.y
+    get() = this.y
 
-inline val S2APacketParticles.z
-    get() = this.zCoordinate
+inline val ParticleS2CPacket.z
+    get() = this.z
 
-inline val S2APacketParticles.type: EnumParticleTypes
-    get() = this.particleType
+inline val ParticleS2CPacket.type: ParticleType
+    get() = this.parameters
 
-inline val S2APacketParticles.count
-    get() = this.particleCount
+inline val ParticleS2CPacket.count
+    get() = this.count
 
-inline val S2APacketParticles.speed
-    get() = this.particleSpeed
+inline val ParticleS2CPacket.speed
+    get() = this.speed
 
-inline val S2APacketParticles.vec3
-    get() = Vec3(x, y, z)
+inline val ParticleS2CPacket.vec3
+    get() = Vec3d(x, y, z)
 
 operator fun <K : Any, V : Any> Cache<K, V>.set(name: K, value: V) = put(name, value)
 
 fun Any?.toStringIfTrue(bool: Boolean?): String = if (bool == true) toString() else ""
 
-fun NBTTagList.asStringSet() = (0..tagCount()).mapTo(hashSetOf()) { getStringTagAt(it) }
+fun NbtList.asStringSet() = (0..size()).mapTo(hashSetOf()) { getString(it) }
 
 
-fun Vec3i.toBoundingBox() = AxisAlignedBB(x.toDouble(), y.toDouble(), z.toDouble(), x + 1.0, y + 1.0, z + 1.0)
+fun Vec3i.toBoundingBox() = Box(x.toDouble(), y.toDouble(), z.toDouble(), x + 1.0, y + 1.0, z + 1.0)
 
 fun File.ensureFile() = (parentFile.exists() || parentFile.mkdirs()) && createNewFile()
 
@@ -380,28 +380,28 @@ val Pet.isSpirit
 val <E> MutableMap<E, Boolean>.asSet: MutableSet<E>
     get() = Collections.newSetFromMap(this)
 
-fun getSkytilsResource(path: String) = ResourceLocation("skytils", path)
+fun getSkytilsResource(path: String) = Identifier("skytils", path)
 
 fun <E> List<E>.getLastOrNull(index: Int) = getOrNull(lastIndex - index)
 
 fun <T> Iterator<T>.nextOrNull(): T? = if (hasNext()) next() else null
 
-inline val Vec3.x
-    inline get() = this.xCoord
+inline val Vec3d.x
+    inline get() = this.x
 
-inline val Vec3.y
-    inline get() = this.yCoord
+inline val Vec3d.y
+    inline get() = this.y
 
-inline val Vec3.z
-    inline get() = this.zCoord
+inline val Vec3d.z
+    inline get() = this.z
 
-operator fun Vec3.plus(other: Vec3): Vec3 = add(other)
-operator fun Vec3.minus(other: Vec3): Vec3 = subtract(other)
+operator fun Vec3d.plus(other: Vec3d): Vec3d = add(other)
+operator fun Vec3d.minus(other: Vec3d): Vec3d = subtract(other)
 
-operator fun Vec3.times(scaleValue: Double): Vec3 = Vec3(xCoord * scaleValue, yCoord * scaleValue, zCoord * scaleValue)
+operator fun Vec3d.times(scaleValue: Double): Vec3d = Vec3d(x * scaleValue, y * scaleValue, z * scaleValue)
 
-fun Vec3.squareDistanceTo(x: Double, y: Double, z: Double)=
-     (x - xCoord) * (x - xCoord) + (y - yCoord) * (y - yCoord) + (z - zCoord) * (z - zCoord)
+fun Vec3d.squareDistanceTo(x: Double, y: Double, z: Double)=
+     (x - x) * (x - x) + (y - y) * (y - y) + (z - z) * (z - z)
 
 /**
  * @author Ilya
@@ -416,4 +416,4 @@ fun <T> List<T>.elementPairs() = sequence {
 }
 
 inline val World.realWorldTime: Long
-    inline get() = (worldInfo as AccessorWorldInfo).realWorldTime
+    inline get() = (method_8401() as AccessorWorldInfo).realWorldTime

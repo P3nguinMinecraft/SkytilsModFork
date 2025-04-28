@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.tweaker;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
 //#if MC==10809 && FORGE
-import net.minecraftforge.fml.relauncher.CoreModManager;
+//$$ import net.minecraftforge.fml.relauncher.CoreModManager;
 //#endif
 
 import java.io.File;
@@ -61,9 +61,9 @@ public class DependencyLoader {
         addToClasspath(downloadLocation.toURI().toURL());
 
         //#if MC==10809 && FORGE
-        if (!isMod) {
-            CoreModManager.getIgnoredMods().add(downloadLocation.getName());
-        }
+        //$$ if (!isMod) {
+        //$$     CoreModManager.getIgnoredMods().add(downloadLocation.getName());
+        //$$ }
         //#endif
 
         return downloadLocation;

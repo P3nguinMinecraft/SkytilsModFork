@@ -31,8 +31,8 @@ import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.current
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.command.WrongUsageException
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.class_0_1374
 import kotlin.random.Random
 
 object OrderedWaypointCommand : BaseCommand("skytilsorderedwaypoint") {
@@ -49,11 +49,11 @@ object OrderedWaypointCommand : BaseCommand("skytilsorderedwaypoint") {
         it.waypoints.size
     }
 
-    override fun getCommandUsage(player: EntityPlayerSP): String =
+    override fun getCommandUsage(player: ClientPlayerEntity): String =
         "/${commandName}"
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
-        if (!Utils.inSkyblock) throw WrongUsageException("You must be in Skyblock to use this command!")
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
+        if (!Utils.inSkyblock) throw class_0_1374("You must be in Skyblock to use this command!")
         if (args.isEmpty()) {
             val currIsland = SkyblockIsland.current
             categoryCache = Waypoints.categories.filter {
@@ -80,7 +80,7 @@ object OrderedWaypointCommand : BaseCommand("skytilsorderedwaypoint") {
             }
             "select" -> {
                 val category = categoryCache.getOrNull(args.getOrNull(1)?.toIntOrNull() ?: 0)
-                    ?: throw WrongUsageException("Invalid category!")
+                    ?: throw class_0_1374("Invalid category!")
                 UMessage("${Skytils.successPrefix} §aSelected category §b${category.name}§a!\n" +
                         "§b§lNote: this is a BETA feature!\n" +
                         "§bReport bugs on Discord!\n" +

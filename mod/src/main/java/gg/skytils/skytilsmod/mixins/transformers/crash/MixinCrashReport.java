@@ -19,8 +19,8 @@
 package gg.skytils.skytilsmod.mixins.transformers.crash;
 
 import gg.skytils.skytilsmod.mixins.hooks.crash.CrashReportHook;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.util.crash.CrashReportSection;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -37,29 +37,29 @@ public abstract class MixinCrashReport {
 
     @Shadow
     @Final
-    private CrashReportCategory theReportCategory;
+    private CrashReportSection systemDetailsSection;
 
     @Unique
     private final CrashReportHook hook = new CrashReportHook((CrashReport) (Object) this);
 
-    @Inject(method = "getCompleteReport", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", shift = At.Shift.AFTER, remap = false, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "asString", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", shift = At.Shift.AFTER, remap = false, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
     private void thereIsNoOtherWay(CallbackInfoReturnable<String> cir, StringBuilder stringbuilder) {
         hook.checkSkytilsCrash(cir, stringbuilder);
     }
 
-    @ModifyArg(method = "getCompleteReport", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", remap = false, ordinal = 10))
+    @ModifyArg(method = "asString", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", remap = false, ordinal = 10))
     private String otherReplaceCauseForLauncher(String theCauseStackTraceOrString) {
         return hook.generateCauseForLauncher(theCauseStackTraceOrString);
     }
 
-    @ModifyArg(method = "getCompleteReport", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", ordinal = 2, remap = false, args = "matches=method::getWittyComment"))
+    @ModifyArg(method = "asString", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", ordinal = 2, remap = false, args = "matches=method::getWittyComment"))
     private String replaceWittyComment(String comment) {
         return hook.generateWittyComment(comment);
     }
 
 
-    @Inject(method = "populateEnvironment", at = @At("RETURN"))
+    @Inject(method = "fillSystemDetails", at = @At("RETURN"))
     private void addDataToCrashReport(CallbackInfo ci) {
-        hook.addDataToCrashReport(this.theReportCategory);
+        hook.addDataToCrashReport(this.systemDetailsSection);
     }
 }

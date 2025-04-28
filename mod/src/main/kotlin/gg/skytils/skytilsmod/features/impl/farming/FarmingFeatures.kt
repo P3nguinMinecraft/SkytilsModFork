@@ -37,9 +37,9 @@ import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.client.gui.GuiChat
-import net.minecraft.network.play.server.S45PacketTitle
-import net.minecraft.util.ChatComponentText
+import net.minecraft.client.gui.screen.ChatScreen
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket
+import net.minecraft.text.LiteralTextContent
 
 object FarmingFeatures : EventSubscriber {
     val hungerHikerItems = LinkedHashMap<String, String>()
@@ -63,14 +63,14 @@ object FarmingFeatures : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (SBInfo.mode != "farming_1") return
 
-        val formatted = event.message.formattedText
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val formatted = event.message.method_10865()
+        val unformatted = event.message.string.stripControlCodes()
 
         if (Skytils.config.acceptTrapperTask) {
             if (formatted.contains("§a§l[YES]")) {
                 val listOfSiblings = event.message.siblings
                 acceptTrapperCommand =
-                    listOfSiblings.find { it.unformattedText.contains("[YES]") }?.chatStyle?.chatClickEvent?.value ?: ""
+                    listOfSiblings.find { it.string.contains("[YES]") }?.style?.clickEvent?.value ?: ""
                 UChat.chat("$prefix §bOpen chat then click anywhere on screen to accept the task.")
             }
         }
@@ -93,14 +93,14 @@ object FarmingFeatures : EventSubscriber {
                 targetMinY = -1
                 targetMaxY = -1
             } else if (unformatted.startsWith("You are at the exact height!")) {
-                targetMinY = mc.thePlayer.posY.toInt()
-                targetMaxY = mc.thePlayer.posY.toInt()
+                targetMinY = mc.player.y.toInt()
+                targetMaxY = mc.player.y.toInt()
             } else {
                 val match = targetHeightRegex.find(unformatted)
                 if (match != null) {
                     val blocks = match.groups["blocks"]!!.value.toInt()
                     val below = match.groups["type"]!!.value == "below"
-                    val y = mc.thePlayer.posY.toInt() + blocks * if (below) -1 else 1
+                    val y = mc.player.y.toInt() + blocks * if (below) -1 else 1
                     val filler = if (blocks == 5) 2 else 0
                     val minY = y - 2 - if (below) 0 else filler
                     val maxY = y + 2 + if (below) filler else 0
@@ -135,8 +135,8 @@ object FarmingFeatures : EventSubscriber {
                 } else {
                     if (unformatted.contains("I asked for") || unformatted.contains("The food I want")) {
                         println("Missing Hiker item: $unformatted")
-                        mc.thePlayer.addChatMessage(
-                            ChatComponentText(
+                        mc.player.sendMessage(
+                            LiteralTextContent(
                                 String.format(
                                     "$failPrefix §cSkytils couldn't determine the Hiker item. There were %s solutions loaded.",
                                     hungerHikerItems.size
@@ -151,10 +151,10 @@ object FarmingFeatures : EventSubscriber {
 
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (event.packet is S45PacketTitle) {
+        if (event.packet is TitleS2CPacket) {
             val packet = event.packet
-            if (packet.message != null) {
-                val unformatted = packet.message.unformattedText.stripControlCodes()
+            if (packet.text != null) {
+                val unformatted = packet.text.string.stripControlCodes()
                 if (Skytils.config.hideFarmingRNGTitles && unformatted.contains("DROP!")) {
                     event.cancelled = true
                 }
@@ -164,7 +164,7 @@ object FarmingFeatures : EventSubscriber {
 
     fun onTick(event: TickEvent) {
         if (!Utils.inSkyblock || !Skytils.config.trapperPing) return
-        if (trapperCooldownExpire > 0 && mc.thePlayer != null) {
+        if (trapperCooldownExpire > 0 && mc.player != null) {
             if (System.currentTimeMillis() > trapperCooldownExpire && animalFound) {
                 trapperCooldownExpire = -1
                 UChat.chat("$prefix §bTrapper cooldown has now expired!")
@@ -181,7 +181,7 @@ object FarmingFeatures : EventSubscriber {
 
     fun onMouseInputPost(event: ScreenMouseInputEvent) {
         if (!Utils.inSkyblock) return
-        if (event.button == 0 && event.screen is GuiChat) {
+        if (event.button == 0 && event.screen is ChatScreen) {
             if (Skytils.config.acceptTrapperTask && acceptTrapperCommand.isNotBlank()) {
                 Skytils.sendMessageQueue.add(acceptTrapperCommand)
                 acceptTrapperCommand = ""

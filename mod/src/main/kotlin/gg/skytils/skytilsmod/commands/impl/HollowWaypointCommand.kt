@@ -30,18 +30,18 @@ import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
 import gg.skytils.skytilsmod.utils.append
 import gg.skytils.skytilsmod.utils.setHoverText
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.event.ClickEvent
-import net.minecraft.util.BlockPos
-import net.minecraft.util.IChatComponent
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.text.ClickEvent
+import net.minecraft.util.math.BlockPos
+import net.minecraft.text.Text
 
 object HollowWaypointCommand : BaseCommand("skytilshollowwaypoint", listOf("sthw")) {
     private val syntaxRegex =
         Regex("^(?:(?:(?<x>-?[\\d.]+) (?<y>-?[\\d.]+) (?<z>-?[\\d.]+) (?<name>.+))|(?<nameonly>.+))\$")
 
-    override fun getCommandUsage(player: EntityPlayerSP): String = "/sthw x y z location"
+    override fun getCommandUsage(player: ClientPlayerEntity): String = "/sthw x y z location"
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         if (!Skytils.config.crystalHollowWaypoints) {
             UChat.chat("$prefix §cCrystal Hollows Waypoints were disabled, but running this command enabled them for you.")
             Skytils.config.crystalHollowWaypoints = true
@@ -74,9 +74,9 @@ object HollowWaypointCommand : BaseCommand("skytilshollowwaypoint", listOf("sthw
                     val z: Double
                     if (match.groups["nameonly"] != null) {
                         loc = match.groups["nameonly"]!!.value
-                        x = mc.thePlayer.posX
-                        y = mc.thePlayer.posY
-                        z = mc.thePlayer.posZ
+                        x = mc.player.x
+                        y = mc.player.y
+                        z = mc.player.z
                     } else {
                         loc = match.groups["name"]!!.value
                         x = match.groups["x"]!!.value.toDouble()
@@ -128,7 +128,7 @@ object HollowWaypointCommand : BaseCommand("skytilshollowwaypoint", listOf("sthw
         }
     }
 
-    private fun copyMessage(text: String): IChatComponent {
+    private fun copyMessage(text: String): Text {
         return UTextComponent("§9[Copy] ").apply {
             setHoverText("§9Copy the coordinates in chat box.")
             clickAction = ClickEvent.Action.SUGGEST_COMMAND
@@ -136,7 +136,7 @@ object HollowWaypointCommand : BaseCommand("skytilshollowwaypoint", listOf("sthw
         }
     }
 
-    private fun removeMessage(id: String): IChatComponent {
+    private fun removeMessage(id: String): Text {
         return UTextComponent("§c[Remove]\n").apply {
             setHoverText("§cRemove the waypoint.")
             clickAction = ClickEvent.Action.RUN_COMMAND

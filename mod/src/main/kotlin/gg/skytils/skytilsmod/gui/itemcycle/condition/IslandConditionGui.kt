@@ -91,7 +91,7 @@ class IslandConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cy
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+            client.setScreen(ItemCycleConditionGui(cycle))
         }
 
         SimpleButton(if (condition == null) "Create" else "Edit").childOf(bottomButtons).constrain {
@@ -106,7 +106,7 @@ class IslandConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cy
             cond.islands = islands.getText().split(",")
                 .mapNotNullTo(hashSetOf()) { SkyblockIsland.byMode[it] }
 
-            mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+            client.setScreen(ItemCycleConditionGui(cycle))
             PersistentSave.markDirty<ItemCycle>()
         }
     }

@@ -57,7 +57,7 @@ class RebindItemCycleGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersion.
             width = ChildBasedSizeConstraint()
             height = ChildBasedSizeConstraint()
         }.apply {
-            for ((i, item) in mc.thePlayer.inventory.mainInventory.withIndex()) {
+            for ((i, item) in client.player.inventory.field_7547.withIndex()) {
                 addChild(SlotComponent(item).constrain {
                     x = ((i % 9) * (16 + 2)).pixels
                     y = ((i / 9) * (16 + 2)).pixels
@@ -87,7 +87,7 @@ class RebindItemCycleGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersion.
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(ItemCycleGui())
+            client.setScreen(ItemCycleGui())
         }
     }
 }

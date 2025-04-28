@@ -32,34 +32,34 @@ object ScoreboardUtil {
     var sidebarLines: List<String> = emptyList()
 
     //#if MC>=11400
-    //$$ private val SCOREBOARD_ENTRY_COMPARATOR: Comparator<ScoreboardEntry> = Comparator.comparing { obj: ScoreboardEntry -> obj.value() }
-    //$$    .reversed()
-    //$$   .thenComparing({ obj: ScoreboardEntry -> obj.owner() }, java.lang.String.CASE_INSENSITIVE_ORDER);
+    private val SCOREBOARD_ENTRY_COMPARATOR: Comparator<ScoreboardEntry> = Comparator.comparing { obj: ScoreboardEntry -> obj.value() }
+       .reversed()
+      .thenComparing({ obj: ScoreboardEntry -> obj.owner() }, java.lang.String.CASE_INSENSITIVE_ORDER);
     //#endif
 
     fun fetchScoreboardLines(): List<String> {
-        val scoreboard = mc.theWorld?.scoreboard ?: return emptyList()
+        val scoreboard = mc.world?.scoreboard ?: return emptyList()
         //#if MC<11400
-        val objective = scoreboard.getObjectiveInDisplaySlot(1) ?: return emptyList()
+        //$$ val objective = scoreboard.getObjectiveForSlot(1) ?: return emptyList()
         //#else
-        //$$ val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR) ?: return emptyList()
+        val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR) ?: return emptyList()
         //#endif
-        val scores = scoreboard.getSortedScores(objective).filter { input ->
+        val scores = scoreboard.getScoreboardEntries(objective).filter { input ->
             //#if MC<11400
-            input?.playerName != null && !input.playerName.startsWith("#")
+            //$$ input?.playerName != null && !input.playerName.startsWith("#")
             //#else
-            //$$ input?.owner != null && !input.hidden()
+            input?.owner != null && !input.hidden()
             //#endif
         //#if MC<11400
-        }.take(15)
+        //$$ }.take(15)
         //#else
-        //$$ }.sortedWith(SCOREBOARD_ENTRY_COMPARATOR).take(15)
+        }.sortedWith(SCOREBOARD_ENTRY_COMPARATOR).take(15)
         //#endif
         return scores.map { e ->
             //#if MC<11400
-            ScorePlayerTeam.formatPlayerName(scoreboard.getPlayersTeam(e.playerName), e.playerName)
+            //$$ Team.method_1142(scoreboard.getPlayerTeam(e.playerName), e.playerName)
             //#else
-            //$$ Team.decorateName(scoreboard.getScoreHolderTeam(e.owner()), e.name()).string
+            Team.decorateName(scoreboard.getScoreHolderTeam(e.owner()), e.name()).string
             //#endif
         }.asReversed()
     }

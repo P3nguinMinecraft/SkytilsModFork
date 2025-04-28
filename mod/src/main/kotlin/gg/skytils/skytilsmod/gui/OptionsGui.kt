@@ -39,16 +39,16 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.openGUI
 import gg.skytils.skytilsmod.utils.toStringIfTrue
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.util.ResourceLocation
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.util.Identifier
 import java.net.URI
 
 //#if MC>11400
-//$$ import net.minecraft.sound.SoundEvents
+import net.minecraft.sound.SoundEvents
 //#endif
 
-class OptionsGui(val parent: GuiScreen? = null) :
+class OptionsGui(val parent: Screen? = null) :
     WindowScreen(ElementaVersion.V2) {
 
     private val skytilsText: UIText =
@@ -204,9 +204,9 @@ class OptionsGui(val parent: GuiScreen? = null) :
             orderIndex = 0
             Skytils.displayScreen = SuperSecretGui()
             //#if MC<11400
-            USound.playSoundStatic(ResourceLocation("random.door_open"), 1f, 1f)
+            //$$ USound.playSoundStatic(Identifier("random.door_open"), 1f, 1f)
             //#else
-            //$$ USound.playSoundStatic(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 1f, 1f)
+            USound.playSoundStatic(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 1f, 1f)
             //#endif
         }
     }
@@ -221,15 +221,15 @@ class OptionsGui(val parent: GuiScreen? = null) :
     }
 
     //#if MC<11400
-    override fun setWorldAndResolution(mc: Minecraft, width: Int, height: Int) {
-        window.onWindowResize()
-        super.setWorldAndResolution(mc, width, height)
-    }
-    //#else
-    //$$ override fun resize(mc: MinecraftClient, width: Int, height: Int) {
+    //$$ override fun init(mc: MinecraftClient, width: Int, height: Int) {
     //$$     window.onWindowResize()
-    //$$     super.resize(mc, width, height)
+    //$$     super.init(mc, width, height)
     //$$ }
+    //#else
+    override fun resize(mc: MinecraftClient, width: Int, height: Int) {
+        window.onWindowResize()
+        super.resize(mc, width, height)
+    }
     //#endif
 
     companion object {

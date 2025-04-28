@@ -23,10 +23,10 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.ItemProtectStrategy
 import gg.skytils.skytilsmod.utils.ItemUtil
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NbtCompound
 
 object StarredItemStrategy : ItemProtectStrategy() {
-    override fun worthProtecting(item: ItemStack, extraAttr: NBTTagCompound?, type: ProtectType): Boolean {
+    override fun worthProtecting(item: ItemStack, extraAttr: NbtCompound?, type: ProtectType): Boolean {
         if (extraAttr == null) return false
         val isStarred = ItemUtil.getStarCount(extraAttr) > 0
         return when (type) {

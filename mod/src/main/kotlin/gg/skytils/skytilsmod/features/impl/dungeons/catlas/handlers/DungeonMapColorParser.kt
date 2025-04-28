@@ -21,7 +21,7 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
-import net.minecraft.world.storage.MapData
+import net.minecraft.item.map.MapState
 
 object DungeonMapColorParser {
     private var centerColors: ByteArray = ByteArray(121)
@@ -47,7 +47,7 @@ object DungeonMapColorParser {
         cachedTiles = Array(121) { null }
     }
 
-    fun updateMap(mapData: MapData) {
+    fun updateMap(mapData: MapState) {
         cachedTiles = Array(121) { null }
 
         for (y in 0..10) {
@@ -97,7 +97,7 @@ object DungeonMapColorParser {
             val current = queue.removeFirst()
             connected.add(current)
             queue.addAll(UDirection.HORIZONTALS.mapNotNull {
-                getTile(current.x + it.directionVec.x, current.z + it.directionVec.z) as? Room
+                getTile(current.x + it.vector.x, current.z + it.vector.z) as? Room
             })
         }
         return connected

@@ -19,7 +19,7 @@
 package gg.skytils.skytilsmod.mixins.transformers.skyhanni;
 
 import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SheepifyRebellion;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(targets = "at.hannibal2.skyhanni.features.misc.HideArmor", remap = false)
 public abstract class MixinHideArmor {
     @Inject(method = "shouldHideArmor", at = @At("RETURN"), cancellable = true, require = 0)
-    private void skytils$shouldHideArmor(EntityPlayer entity, CallbackInfoReturnable<Boolean> cir) {
+    private void skytils$shouldHideArmor(PlayerEntity entity, CallbackInfoReturnable<Boolean> cir) {
         if (!cir.getReturnValue()) return;
         if (SheepifyRebellion.INSTANCE.getDummyModelMap().containsKey(entity)) {
             cir.setReturnValue(false);

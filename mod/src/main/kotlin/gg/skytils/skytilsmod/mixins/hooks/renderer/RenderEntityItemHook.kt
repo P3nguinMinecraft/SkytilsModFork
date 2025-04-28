@@ -19,12 +19,12 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.item.EntityItem
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.ItemEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun scaleItemDrop(
-    entity: EntityItem,
+    entity: ItemEntity,
     x: Double,
     y: Double,
     z: Double,
@@ -34,5 +34,5 @@ fun scaleItemDrop(
 ) {
     if (!Utils.inSkyblock) return
     val scale = Skytils.config.itemDropScale
-    GlStateManager.scale(scale, scale, scale)
+    RenderSystem.method_4384(scale, scale, scale)
 }

@@ -20,14 +20,14 @@ package gg.skytils.skytilsmod.mixins.transformers.network;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent;
-import net.minecraft.network.INetHandler;
-import net.minecraft.network.Packet;
+import net.minecraft.network.listener.PacketListener;
+import net.minecraft.network.packet.Packet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(targets = "net.minecraft.network.PacketThreadUtil$1")
-public abstract class MixinPacketThreadUtil<T extends INetHandler> implements Runnable {
-    @WrapWithCondition(method="run", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Packet;processPacket(Lnet/minecraft/network/INetHandler;)V"))
+@Mixin(targets = "net.minecraft.network.NetworkThreadUtils$1")
+public abstract class MixinPacketThreadUtil<T extends PacketListener> implements Runnable {
+    @WrapWithCondition(method="run", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/Packet;apply(Lnet/minecraft/network/listener/PacketListener;)V"))
     private boolean processMainThreadPacket(Packet<T> packet, T netHandler) {
         return !(new MainReceivePacketEvent<>(
                 netHandler,

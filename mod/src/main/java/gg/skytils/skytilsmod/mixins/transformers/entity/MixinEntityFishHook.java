@@ -22,25 +22,25 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.utils.Utils;
-import net.minecraft.block.material.Material;
+import net.minecraft.block.Material;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.projectile.EntityFishHook;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.entity.projectile.FishingBobberEntity;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(EntityFishHook.class)
+@Mixin(FishingBobberEntity.class)
 public abstract class MixinEntityFishHook extends Entity {
 
     public MixinEntityFishHook(World worldIn) {
         super(worldIn);
     }
 
-    @WrapOperation(method = "onUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isAABBInMaterial(Lnet/minecraft/util/AxisAlignedBB;Lnet/minecraft/block/material/Material;)Z"))
-    private boolean allowLavaBobber(World world, AxisAlignedBB aabb, Material materialIn, Operation<Boolean> original) {
+    @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;method_0_363(Lnet/minecraft/util/math/Box;Lnet/minecraft/block/Material;)Z"))
+    private boolean allowLavaBobber(World world, Box aabb, Material materialIn, Operation<Boolean> original) {
         boolean orig = original.call(world, aabb, materialIn);
         if (!Utils.INSTANCE.getInSkyblock() || !Skytils.getConfig().getLavaBobber()) return orig;
-        return this.worldObj.isAABBInMaterial(aabb, Material.lava) || orig;
+        return this.world.method_0_363(aabb, Material.LAVA) || orig;
     }
 }

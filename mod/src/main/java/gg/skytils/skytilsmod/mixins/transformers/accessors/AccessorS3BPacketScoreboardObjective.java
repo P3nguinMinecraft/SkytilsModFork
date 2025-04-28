@@ -18,22 +18,22 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.network.play.server.S3BPacketScoreboardObjective;
+import net.minecraft.network.packet.s2c.play.ScoreboardObjectiveUpdateS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 //#if MC!=10809
-//$$ import net.minecraft.util.text.Text;
+import net.minecraft.util.text.Text;
 //#endif
 
-@Mixin(S3BPacketScoreboardObjective.class)
+@Mixin(ScoreboardObjectiveUpdateS2CPacket.class)
 public interface AccessorS3BPacketScoreboardObjective {
-    @Accessor
+    @Accessor("displayName")
     void setObjectiveValue(
             //#if MC==10809
-            String value
+            //$$ String value
             //#else
-            //$$ Text value
+            Text value
             //#endif
     );
 }

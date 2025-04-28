@@ -31,14 +31,14 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.screen.GenericContainerScreenHandler
 
 object TerminalFeatures : EventSubscriber {
 
     fun isInPhase3(): Boolean {
         return ((SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != -1L) &&
                         DungeonTimer.terminalClearTime == -1L && dungeonFloorNumber == 7)
-                || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.thePlayer?.heldItem) == "PUZZLE_CUBE")
+                || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.player?.method_0_7087()) == "PUZZLE_CUBE")
     }
 
     override fun setup() {
@@ -48,9 +48,9 @@ object TerminalFeatures : EventSubscriber {
     }
 
     fun onSlotClickHigh(event: GuiContainerSlotClickEvent) {
-        if (!isInPhase3() || !Skytils.config.blockIncorrectTerminalClicks || event.container !is ContainerChest) return
+        if (!isInPhase3() || !Skytils.config.blockIncorrectTerminalClicks || event.container !is GenericContainerScreenHandler) return
         if (event.chestName == "Correct all the panes!") {
-            if (event.slot?.stack?.displayName?.stripControlCodes()?.startsWith("On") == true) {
+            if (event.slot?.stack?.name?.stripControlCodes()?.startsWith("On") == true) {
                 event.cancelled = true
             }
         }
@@ -58,7 +58,7 @@ object TerminalFeatures : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!isInPhase3() || !Skytils.config.middleClickTerminals) return
-        if (event.container is ContainerChest) {
+        if (event.container is GenericContainerScreenHandler) {
             val chestName = event.chestName
             if (Utils.equalsOneOf(
                     chestName,
@@ -77,17 +77,17 @@ object TerminalFeatures : EventSubscriber {
                 ))
             ) {
                 event.cancelled = true
-                mc.playerController.windowClick(event.container.windowId, event.slotId, 0, SlotActionType.THROW, mc.thePlayer)
+                mc.interactionManager.clickSlot(event.container.syncId, event.slotId, 0, SlotActionType.THROW, mc.player)
             }
         }
     }
 
     fun onTooltip(event: gg.skytils.event.impl.item.ItemTooltipEvent) {
         if (!isInPhase3()) return
-        val chest = mc.thePlayer?.openContainer as? ContainerChest ?: return
+        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
 
-        val inv = chest.lowerChestInventory
-        val chestName = inv.displayName.unformattedText
+        val inv = chest.inventory
+        val chestName = inv.customName.string
         if (chestName == "Click the button on time!" || chestName == "Correct all the panes!") {
         }
     }

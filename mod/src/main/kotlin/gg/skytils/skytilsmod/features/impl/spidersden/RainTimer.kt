@@ -82,9 +82,9 @@ object RainTimer : EventSubscriber {
         override val toggled: Boolean
             get() = Skytils.config.rainTimer
         override val height: Int
-            get() = fr.FONT_HEIGHT
+            get() = fr.field_0_2811
         override val width: Int
-            get() = fr.getStringWidth("99:99")
+            get() = fr.getWidth("99:99")
 
         init {
             Skytils.guiManager.registerElement(this)

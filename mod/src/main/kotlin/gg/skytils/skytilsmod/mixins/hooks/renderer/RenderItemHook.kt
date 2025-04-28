@@ -27,17 +27,17 @@ import gg.skytils.skytilsmod.utils.NEUCompatibility.isStorageMenuActive
 import gg.skytils.skytilsmod.utils.NEUCompatibility.isTradeWindowActive
 import gg.skytils.skytilsmod.utils.RenderUtil.renderRarity
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.FontRenderer
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.texture.TextureMap
-import net.minecraft.client.resources.model.IBakedModel
-import net.minecraft.init.Items
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.TextRenderer
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.client.texture.SpriteAtlasTexture
+import net.minecraft.client.render.model.BlockStateModel
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Identifier
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-val RES_ITEM_GLINT = ResourceLocation("textures/misc/enchanted_item_glint.png")
+val RES_ITEM_GLINT = Identifier("textures/misc/enchanted_item_glint.png")
 
 var skipGlint = false
 
@@ -51,55 +51,55 @@ fun renderRarity(stack: ItemStack?, x: Int, y: Int, ci: CallbackInfo) {
     }
 }
 
-fun renderItemPre(stack: ItemStack, model: IBakedModel, ci: CallbackInfo) {
+fun renderItemPre(stack: ItemStack, model: BlockStateModel, ci: CallbackInfo) {
     if (!Utils.inSkyblock) return
-    if (stack.item === Items.skull) {
+    if (stack.item === Items.PLAYER_HEAD) {
         val scale = Skytils.config.largerHeadScale.toDouble()
-        GlStateManager.scale(scale, scale, scale)
+        RenderSystem.method_4453(scale, scale, scale)
     }
 }
 
-fun modifyGlintRendering(stack: ItemStack, model: IBakedModel, ci: CallbackInfo) {
+fun modifyGlintRendering(stack: ItemStack, model: BlockStateModel, ci: CallbackInfo) {
     if (Utils.inSkyblock) {
         val itemId = getSkyBlockItemID(stack)
         GlintCustomizer.glintItems[itemId]?.color?.let {
             val color = it.toInt()
-            GlStateManager.depthMask(false)
-            GlStateManager.depthFunc(514)
-            GlStateManager.disableLighting()
-            GlStateManager.blendFunc(768, 1)
-            mc.textureManager.bindTexture(RES_ITEM_GLINT)
-            GlStateManager.matrixMode(5890)
-            GlStateManager.pushMatrix()
-            GlStateManager.scale(8.0f, 8.0f, 8.0f)
-            val f = (Minecraft.getSystemTime() % 3000L).toFloat() / 3000.0f / 8.0f
-            GlStateManager.translate(f, 0.0f, 0.0f)
-            GlStateManager.rotate(-50.0f, 0.0f, 0.0f, 1.0f)
-            (mc.renderItem as AccessorRenderItem).invokeRenderModel(
+            RenderSystem.depthMask(false)
+            RenderSystem.depthFunc(514)
+            RenderSystem.method_4406()
+            RenderSystem.blendFunc(768, 1)
+            mc.textureManager.bindTextureInner(RES_ITEM_GLINT)
+            RenderSystem.method_4440(5890)
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4384(8.0f, 8.0f, 8.0f)
+            val f = (MinecraftClient.method_0_2227() % 3000L).toFloat() / 3000.0f / 8.0f
+            RenderSystem.method_4348(f, 0.0f, 0.0f)
+            RenderSystem.method_4445(-50.0f, 0.0f, 0.0f, 1.0f)
+            (mc.itemRenderer as AccessorRenderItem).invokeRenderModel(
                 model,
                 color
             )
-            GlStateManager.popMatrix()
-            GlStateManager.pushMatrix()
-            GlStateManager.scale(8.0f, 8.0f, 8.0f)
-            val f1 = (Minecraft.getSystemTime() % 4873L).toFloat() / 4873.0f / 8.0f
-            GlStateManager.translate(-f1, 0.0f, 0.0f)
-            GlStateManager.rotate(10.0f, 0.0f, 0.0f, 1.0f)
-            (mc.renderItem as AccessorRenderItem).invokeRenderModel(
+            RenderSystem.popMatrix()
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4384(8.0f, 8.0f, 8.0f)
+            val f1 = (MinecraftClient.method_0_2227() % 4873L).toFloat() / 4873.0f / 8.0f
+            RenderSystem.method_4348(-f1, 0.0f, 0.0f)
+            RenderSystem.method_4445(10.0f, 0.0f, 0.0f, 1.0f)
+            (mc.itemRenderer as AccessorRenderItem).invokeRenderModel(
                 model,
                 color
             )
-            GlStateManager.popMatrix()
-            GlStateManager.matrixMode(5888)
-            GlStateManager.blendFunc(770, 771)
-            GlStateManager.enableLighting()
-            GlStateManager.depthFunc(515)
-            GlStateManager.depthMask(true)
-            mc.textureManager.bindTexture(TextureMap.locationBlocksTexture)
+            RenderSystem.popMatrix()
+            RenderSystem.method_4440(5888)
+            RenderSystem.blendFunc(770, 771)
+            RenderSystem.method_4394()
+            RenderSystem.depthFunc(515)
+            RenderSystem.depthMask(true)
+            mc.textureManager.bindTextureInner(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
             ci.cancel()
 
             //Since we prematurely exited, we need to reset the matrices
-            GlStateManager.popMatrix()
+            RenderSystem.popMatrix()
         }
     }
 }

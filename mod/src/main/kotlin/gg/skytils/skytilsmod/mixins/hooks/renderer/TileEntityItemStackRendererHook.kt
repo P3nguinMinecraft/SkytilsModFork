@@ -24,8 +24,8 @@ import net.minecraft.item.ItemStack
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun fixGlintForSkulls(itemStack: ItemStack, ci: CallbackInfo) {
-    if (Utils.inSkyblock && Skytils.config.enchantGlintFix && itemStack.hasEffect()) {
+    if (Utils.inSkyblock && Skytils.config.enchantGlintFix && itemStack.hasGlint()) {
         Utils.lastRenderedSkullStack = itemStack
-        Utils.lastRenderedSkullEntity = mc.thePlayer
+        Utils.lastRenderedSkullEntity = mc.player
     }
 }

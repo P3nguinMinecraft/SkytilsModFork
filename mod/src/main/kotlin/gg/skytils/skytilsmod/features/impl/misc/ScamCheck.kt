@@ -36,9 +36,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import net.minecraft.item.ItemStack
-import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2FPacketSetSlot
-import net.minecraft.network.play.server.S30PacketWindowItems
+import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
 import java.util.*
 
 object ScamCheck : EventSubscriber {
@@ -55,29 +55,29 @@ object ScamCheck : EventSubscriber {
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inSkyblock || !Skytils.config.scamCheck) return
         when (val packet = event.packet) {
-            is S2DPacketOpenWindow -> {
+            is OpenScreenS2CPacket -> {
                 val windowTitle =
                     //#if MC<12000
-                    packet.windowTitle.formattedText
+                    //$$ packet.method_11435().method_10865()
                     //#else
-                    //$$ packet.name.string
+                    packet.name.string
                     //#endif
                 if (tradingRegex.matches(windowTitle)) {
-                    tradingWindowId = packet.windowId
+                    tradingWindowId = packet.syncId
                     scamChecked = false
                 }
             }
 
-            is S2FPacketSetSlot -> {
-                if (!scamChecked && packet.func_149175_c() == tradingWindowId && packet.func_149173_d() == 41 && packet.func_149174_e() != null) {
-                    checkScam(packet.func_149174_e())
+            is ScreenHandlerSlotUpdateS2CPacket -> {
+                if (!scamChecked && packet.syncId == tradingWindowId && packet.slot == 41 && packet.stack != null) {
+                    checkScam(packet.stack)
                     scamChecked = true
                 }
             }
 
-            is S30PacketWindowItems -> {
-                if (!scamChecked && packet.func_148911_c() == tradingWindowId && packet.itemStacks.size == 45) {
-                    val tradingWith = packet.itemStacks[41] ?: return
+            is InventoryS2CPacket -> {
+                if (!scamChecked && packet.syncId == tradingWindowId && packet.contents.size == 45) {
+                    val tradingWith = packet.contents[41] ?: return
                     checkScam(tradingWith)
                     scamChecked = true
                 }
@@ -88,19 +88,19 @@ object ScamCheck : EventSubscriber {
     private fun checkScam(tradingWith: ItemStack) {
         val firstLore = ItemUtil.getItemLore(tradingWith).find { it.matches(tradingWithRegex) } ?: return
         val otherParty = firstLore.replace(tradingWithRegex, "$1")
-        val worldUUID = mc.theWorld?.playerEntities?.find {
-            it.uniqueID.version() == 4 && otherParty == it.name
+        val worldUUID = mc.world?.players?.find {
+            it.uuid.version() == 4 && otherParty == it.name
             //#if MC>=11600
-            //$$ .string
+            .string
             //#endif
-        }?.uniqueID
+        }?.uuid
         Skytils.IO.launch {
             val uuid = worldUUID ?: runCatching { MojangUtil.getUUIDFromUsername(otherParty) }.getOrNull()
             ?: return@launch UChat.chat("${Skytils.failPrefix} §cUnable to get the UUID for ${otherParty}! Could they be nicked?")
             val result = checkScammer(uuid, "tradewindow")
             if (result.isScammer) {
                 tickTimer(1) {
-                    mc.thePlayer?.closeScreen()
+                    mc.player?.closeHandledScreen()
                 }
             }
             result.printResult(otherParty)

@@ -39,7 +39,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.Base64InputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
@@ -160,7 +160,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
 
                     val pos = obj["pos"].let {
                         if (it == null) BlockPos(obj["x"]!!.jsonPrimitive.int, obj["y"]!!.jsonPrimitive.int, obj["z"]!!.jsonPrimitive.int)
-                        else if (it is JsonPrimitive) BlockPos.fromLong(it.long)
+                        else if (it is JsonPrimitive) BlockPos.method_0_4851(it.long)
                         else BlockPos(it.jsonObject["x"]!!.jsonPrimitive.int, it.jsonObject["y"]!!.jsonPrimitive.int, it.jsonObject["z"]!!.jsonPrimitive.int)
                     }
 
@@ -296,11 +296,11 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
     }
 
     fun onPlayerMove(event: TickEvent) {
-        if (mc.thePlayer?.hasMoved == true && SBInfo.mode != null && OrderedWaypointCommand.trackedIsland?.mode == SBInfo.mode) {
+        if (mc.player?.hasMoved == true && SBInfo.mode != null && OrderedWaypointCommand.trackedIsland?.mode == SBInfo.mode) {
             val tracked = OrderedWaypointCommand.trackedSet?.firstOrNull()
             if (tracked == null) {
                 OrderedWaypointCommand.doneTracking()
-            } else if (tracked.pos.distanceSq(mc.thePlayer.position) < 2 * 2) {
+            } else if (tracked.pos.getSquaredDistance(mc.player.blockPos) < 2 * 2) {
                 OrderedWaypointCommand.trackedSet?.removeFirstOrNull()
             }
         }

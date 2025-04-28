@@ -28,12 +28,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ItemStack.class)
 public abstract class MixinItemStack {
-    @Inject(method = "hasEffect", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "hasGlint", at = @At("HEAD"), cancellable = true)
     private void showEnchantmentGlint(CallbackInfoReturnable<Boolean> cir) {
         ItemStackHookKt.showEnchantmentGlint(this, cir);
     }
 
-    @ModifyVariable(method = "getDisplayName", at = @At(value = "STORE"))
+    @ModifyVariable(method = "getName", at = @At(value = "STORE"))
     private String modifyDisplayName(String s) {
         return ItemStackHookKt.modifyDisplayName(s);
     }

@@ -19,24 +19,24 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntityChestRendererHookKt;
-import net.minecraft.client.renderer.tileentity.TileEntityChestRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.client.render.block.entity.ChestBlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.block.entity.ChestBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(TileEntityChestRenderer.class)
-public abstract class MixinTileEntityChestRenderer extends TileEntitySpecialRenderer<TileEntityChest> {
+@Mixin(ChestBlockEntityRenderer.class)
+public abstract class MixinTileEntityChestRenderer extends BlockEntityRenderer<ChestBlockEntity> {
 
-    @Inject(method = "renderTileEntityAt(Lnet/minecraft/tileentity/TileEntityChest;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelChest;renderAll()V", shift = At.Shift.BEFORE))
-    private void setChestColor(TileEntityChest te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/block/entity/ChestBlockEntity;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/ChestEntityModel;method_2799()V", shift = At.Shift.BEFORE))
+    private void setChestColor(ChestBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
         TileEntityChestRendererHookKt.setChestColor(te, x, y, z, partialTicks, destroyStage, ci);
     }
 
-    @Inject(method = "renderTileEntityAt(Lnet/minecraft/tileentity/TileEntityChest;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelChest;renderAll()V", shift = At.Shift.AFTER))
-    private void setChestColorPost(TileEntityChest te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/block/entity/ChestBlockEntity;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/ChestEntityModel;method_2799()V", shift = At.Shift.AFTER))
+    private void setChestColorPost(ChestBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
         TileEntityChestRendererHookKt.setChestColorPost(te, x, y, z, partialTicks, destroyStage, ci);
     }
 

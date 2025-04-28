@@ -18,34 +18,34 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.inventory.Slot;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.screen.slot.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 //#if MC>=12000
-//$$ import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.screen.slot.SlotActionType;
 //#endif
 
-@Mixin(GuiContainer.class)
+@Mixin(HandledScreen.class)
 public interface AccessorGuiContainer {
-    @Accessor
+    @Accessor("backgroundWidth")
     int getXSize();
 
-    @Accessor
+    @Accessor("backgroundHeight")
     int getYSize();
 
-    @Accessor
+    @Accessor("x")
     int getGuiLeft();
 
-    @Accessor
+    @Accessor("y")
     int getGuiTop();
 
-    @Invoker
+    @Invoker("onMouseClick")
     //#if MC<12000
-    void invokeHandleMouseClick(Slot slotIn, int slotId, int clickedButton, int clickType);
+    //$$ void invokeHandleMouseClick(Slot slotIn, int slotId, int clickedButton, int clickType);
     //#else
-    //$$ void invokeHandleMouseClick(Slot slotIn, int slotId, int clickedButton, SlotActionType clickType);
+    void invokeHandleMouseClick(Slot slotIn, int slotId, int clickedButton, SlotActionType clickType);
     //#endif
 }

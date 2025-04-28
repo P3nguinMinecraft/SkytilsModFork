@@ -22,7 +22,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.entity.Entity
-import net.minecraft.util.Vec3
+import net.minecraft.util.math.Vec3d
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun removeEntityOnFire(
@@ -53,9 +53,9 @@ fun renderLivingLabel(
         (str.contains("Enderman") || str.contains("Zealot") ||
                 str.contains("Voidling") || str.contains("Voidgloom"))
     ) {
-        val player = mc.thePlayer
-        val vec3 = Vec3(entityIn.posX - player.posX, 0.0, entityIn.posZ - player.posZ).normalize()
-        matrixStack.translate(-vec3.xCoord, -1.5, -vec3.zCoord)
+        val player = mc.player
+        val vec3 = Vec3d(entityIn.x - player.x, 0.0, entityIn.z - player.z).normalize()
+        matrixStack.translate(-vec3.x, -1.5, -vec3.z)
     }
     matrixStack.applyToGlobalState()
 }

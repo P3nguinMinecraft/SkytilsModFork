@@ -24,12 +24,12 @@ import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.graphics.DynamicResource
 import gg.skytils.skytilsmod.utils.nextOrNull
 import kotlinx.coroutines.launch
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Identifier
 import javax.imageio.ImageIO
 
 data class GIFResource(
-    val loc: ResourceLocation,
-    val name: String = loc.resourcePath.substringAfterLast("/").substringBeforeLast("."),
+    val loc: Identifier,
+    val name: String = loc.path.substringAfterLast("/").substringBeforeLast("."),
     val frameDelay: Int = 1
 ) {
     init {
@@ -40,7 +40,7 @@ data class GIFResource(
 
     private val frames: List<DynamicResource> by lazy {
         return@lazy ImageIO.createImageInputStream(
-            mc.resourceManager.getResource(loc).inputStream
+            mc.resourceManager.method_14486(loc).inputStream
         ).use { stream ->
             ImageIO.getImageReaders(stream).nextOrNull()?.run {
                 input = stream

@@ -30,11 +30,11 @@ import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.network.play.server.S29PacketSoundEffect
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
 
 object MinionFeatures : EventSubscriber {
 
@@ -50,9 +50,9 @@ object MinionFeatures : EventSubscriber {
     }
 
     fun onGuiOpen(event: ScreenOpenEvent) {
-        if (event.screen is GuiChest) {
-            val chest = (event.screen as GuiChest).inventorySlots as ContainerChest
-            val chestName = chest.lowerChestInventory.displayName.unformattedText.trim()
+        if (event.screen is GenericContainerScreen) {
+            val chest = (event.screen as GenericContainerScreen).handler as GenericContainerScreenHandler
+            val chestName = chest.inventory.customName.string.trim()
             if (chestName == "Minion Chest") return
         }
         blockUnenchanted = false
@@ -60,9 +60,9 @@ object MinionFeatures : EventSubscriber {
 
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (event.packet is S29PacketSoundEffect) {
+        if (event.packet is PlaySoundIdS2CPacket) {
             val packet = event.packet
-            if (packet.soundName == "random.chestopen" && packet.pitch == 1f && packet.volume == 1f) {
+            if (packet.method_11460() == "random.chestopen" && packet.pitch == 1f && packet.volume == 1f) {
                 blockUnenchanted = false
             }
         }
@@ -70,40 +70,40 @@ object MinionFeatures : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock) return
-        if (event.container is ContainerChest) {
-            val chest = event.container as ContainerChest
-            val inventory = chest.lowerChestInventory
+        if (event.container is GenericContainerScreenHandler) {
+            val chest = event.container as GenericContainerScreenHandler
+            val inventory = chest.inventory
             val slot = event.slot ?: return
             val item = slot.stack
             if (Skytils.config.onlyCollectEnchantedItems && event.chestName.contains("Minion") && item != null) {
-                if (!item.isItemEnchanted && item.item != Items.skull) {
+                if (!item.hasEnchantments() && item.item != Items.PLAYER_HEAD) {
                     if (event.chestName == "Minion Chest") {
                         if (!blockUnenchanted) {
-                            for (i in 0..<inventory.sizeInventory) {
-                                val stack = inventory.getStackInSlot(i) ?: continue
-                                if (stack.isItemEnchanted || stack.item == Items.skull) {
+                            for (i in 0..<inventory.size()) {
+                                val stack = inventory.getStack(i) ?: continue
+                                if (stack.hasEnchantments() || stack.item == Items.PLAYER_HEAD) {
                                     blockUnenchanted = true
                                     break
                                 }
                             }
                         }
-                        if (blockUnenchanted && slot.inventory !== mc.thePlayer.inventory) event.cancelled = true
+                        if (blockUnenchanted && slot.inventory !== mc.player.inventory) event.cancelled = true
                     } else {
-                        val minionType = inventory.getStackInSlot(4)
+                        val minionType = inventory.getStack(4)
                         if (minionType != null) {
-                            if (minionType.displayName.stripControlCodes().contains("Minion")) {
+                            if (minionType.name.stripControlCodes().contains("Minion")) {
                                 if (!blockUnenchanted) {
-                                    val firstUpgrade = inventory.getStackInSlot(37)
-                                    val secondUpgrade = inventory.getStackInSlot(46)
+                                    val firstUpgrade = inventory.getStack(37)
+                                    val secondUpgrade = inventory.getStack(46)
                                     if (firstUpgrade != null) {
-                                        if (firstUpgrade.displayName.stripControlCodes()
+                                        if (firstUpgrade.name.stripControlCodes()
                                                 .contains("Super Compactor")
                                         ) {
                                             blockUnenchanted = true
                                         }
                                     }
                                     if (secondUpgrade != null) {
-                                        if (secondUpgrade.displayName.stripControlCodes()
+                                        if (secondUpgrade.name.stripControlCodes()
                                                 .contains("Super Compactor")
                                         ) {
                                             blockUnenchanted = true
@@ -111,7 +111,7 @@ object MinionFeatures : EventSubscriber {
                                     }
                                 }
                                 val index = slot.slotIndex
-                                if (blockUnenchanted && slot.inventory !== mc.thePlayer.inventory && index >= 21 && index <= 43 && index % 9 >= 3 && index % 9 <= 7) {
+                                if (blockUnenchanted && slot.inventory !== mc.player.inventory && index >= 21 && index <= 43 && index % 9 >= 3 && index % 9 <= 7) {
                                     event.cancelled = true
                                 }
                             }
@@ -124,24 +124,24 @@ object MinionFeatures : EventSubscriber {
 
     fun onRenderItemOverlayPost(event: GuiContainerPostDrawSlotEvent) {
         val item = event.slot.stack ?: return
-        if (!Utils.inSkyblock || item.stackSize != 1 || item.tagCompound?.hasKey("SkytilsNoItemOverlay") == true) return
+        if (!Utils.inSkyblock || item.count != 1 || item.nbt?.contains("SkytilsNoItemOverlay") == true) return
         val sbId = getSkyBlockItemID(item) ?: return
         if (Skytils.config.showMinionTier) {
             val matrixStack = UMatrixStack.Compat.get()
             val s = minionRegex.find(sbId)?.groups?.get("tier")?.value ?: return
-            GlStateManager.disableLighting()
-            GlStateManager.disableDepth()
-            GlStateManager.disableBlend()
+            RenderSystem.method_4406()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableBlend()
             UGraphics.drawString(
                 matrixStack,
                 s,
-                (event.slot.xDisplayPosition + 17 - UGraphics.getStringWidth(s)).toFloat(),
-                (event.slot.yDisplayPosition + 9).toFloat(),
+                (event.slot.x + 17 - UGraphics.getStringWidth(s)).toFloat(),
+                (event.slot.y + 9).toFloat(),
                 16777215,
                 true
             )
-            GlStateManager.enableLighting()
-            GlStateManager.enableDepth()
+            RenderSystem.method_4394()
+            RenderSystem.enableDepthTest()
         }
     }
 }

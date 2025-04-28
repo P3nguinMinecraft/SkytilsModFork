@@ -20,15 +20,15 @@ package gg.skytils.skytilsmod.mixins.hooks.particle
 
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
-import net.minecraft.block.state.IBlockState
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
+import net.minecraft.block.BlockState
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-fun onBlockDestroyEffect(pos: BlockPos, state: IBlockState, ci: CallbackInfo) {
+fun onBlockDestroyEffect(pos: BlockPos, state: BlockState, ci: CallbackInfo) {
     if (Skytils.config.randomStuff && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.phase2ClearTime == -1L) ci.cancel()
 }
 
-fun onBlockHitEffect(pos: BlockPos, facing: EnumFacing, ci: CallbackInfo) {
+fun onBlockHitEffect(pos: BlockPos, facing: Direction, ci: CallbackInfo) {
     if (Skytils.config.randomStuff && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.phase2ClearTime == -1L) ci.cancel()
 }

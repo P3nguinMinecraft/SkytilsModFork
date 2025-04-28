@@ -25,13 +25,13 @@ import gg.skytils.skytilsmod.Skytils.successPrefix
 import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.SkillUtils
-import net.minecraft.client.entity.EntityPlayerSP
+import net.minecraft.client.network.ClientPlayerEntity
 
 object CalcXPCommand : BaseCommand("skytilscalcxp", aliases = listOf("stcalcxp")) {
-    override fun getCommandUsage(player: EntityPlayerSP): String =
+    override fun getCommandUsage(player: ClientPlayerEntity): String =
         "/skytilscalcxp (dungeons/skill/zombie_slayer/spider_slayer/wolf_slayer/enderman_slayer) (start level) (end level)"
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         if (args.size != 3) {
             UChat.chat("$prefix §b" + getCommandUsage(player))
             return

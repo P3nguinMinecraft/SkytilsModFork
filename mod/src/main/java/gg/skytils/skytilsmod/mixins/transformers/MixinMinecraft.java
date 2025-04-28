@@ -22,10 +22,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.utils.ItemUtil;
 import gg.skytils.skytilsmod.utils.Utils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -36,21 +36,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
-@Mixin(Minecraft.class)
+@Mixin(MinecraftClient.class)
 public abstract class MixinMinecraft implements Executor {
     @Shadow
-    public EntityPlayerSP thePlayer;
+    public ClientPlayerEntity player;
 
     @Shadow
-    public abstract ListenableFuture<Object> addScheduledTask(Runnable runnableToSchedule);
+    public abstract ListenableFuture<Object> submit(Runnable runnableToSchedule);
 
-    @Inject(method = "clickMouse()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/EntityPlayerSP;swingItem()V", shift = At.Shift.AFTER))
+    @Inject(method = "doAttack()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;swingHand()V", shift = At.Shift.AFTER))
     private void clickMouse(CallbackInfo info) {
         if (!Utils.INSTANCE.getInSkyblock()) return;
 
-        ItemStack item = this.thePlayer.getHeldItem();
+        ItemStack item = this.player.method_0_7087();
         if (item != null) {
-            NBTTagCompound extraAttr = ItemUtil.getExtraAttributes(item);
+            NbtCompound extraAttr = ItemUtil.getExtraAttributes(item);
             String itemId = ItemUtil.getSkyBlockItemID(extraAttr);
 
             if (Objects.equals(itemId, "BLOCK_ZAPPER")) {
@@ -61,6 +61,6 @@ public abstract class MixinMinecraft implements Executor {
 
     @Override
     public void execute(@NotNull Runnable command) {
-        this.addScheduledTask(command);
+        this.submit(command);
     }
 }

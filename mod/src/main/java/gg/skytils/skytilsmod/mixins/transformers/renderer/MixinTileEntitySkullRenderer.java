@@ -20,11 +20,11 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import com.mojang.authlib.GameProfile;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntitySkullRendererHookKt;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.renderer.tileentity.TileEntitySkullRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.tileentity.TileEntitySkull;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.block.entity.SkullBlockEntity;
+import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -32,10 +32,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 
-@Mixin(TileEntitySkullRenderer.class)
-public abstract class MixinTileEntitySkullRenderer extends TileEntitySpecialRenderer<TileEntitySkull> {
-    @Inject(method = "renderSkull", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void addGlintToSkull(float x, float y, float z, EnumFacing face, float rotation, int type, GameProfile profile, int p_180543_8_, CallbackInfo ci, ModelBase model) {
+@Mixin(SkullBlockEntityRenderer.class)
+public abstract class MixinTileEntitySkullRenderer extends BlockEntityRenderer<SkullBlockEntity> {
+    @Inject(method = "method_3581", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;setAngles(Lnet/minecraft/entity/Entity;FFFFFF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void addGlintToSkull(float x, float y, float z, Direction face, float rotation, int type, GameProfile profile, int p_180543_8_, CallbackInfo ci, EntityModel model) {
         TileEntitySkullRendererHookKt.addGlintToSkull(x, y, z, face, rotation, type, profile, p_180543_8_, ci, model);
     }
 }

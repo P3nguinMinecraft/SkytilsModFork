@@ -32,22 +32,22 @@ import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.printDevMessage
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.block.BlockAir
-import net.minecraft.block.BlockColored
+import net.minecraft.block.AirBlock
+import net.minecraft.class_0_177
 import net.minecraft.entity.Entity
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.monster.EntityBlaze
-import net.minecraft.entity.monster.EntityPigZombie
-import net.minecraft.entity.monster.EntitySkeleton
-import net.minecraft.init.Blocks
-import net.minecraft.item.EnumDyeColor
-import net.minecraft.item.ItemSkull
-import net.minecraft.util.BlockPos
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.mob.BlazeEntity
+import net.minecraft.entity.mob.ZombifiedPiglinEntity
+import net.minecraft.entity.mob.AbstractSkeletonEntity
+import net.minecraft.block.Blocks
+import net.minecraft.util.DyeColor
+import net.minecraft.item.PlayerHeadItem
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
-class DemonlordSlayer(entity: EntityBlaze) :
-    ThrowingSlayer<EntityBlaze>(entity, "Inferno Demonlord", "§c☠ §bInferno Demonlord") {
-    var totemEntity: EntityArmorStand? = null
+class DemonlordSlayer(entity: BlazeEntity) :
+    ThrowingSlayer<BlazeEntity>(entity, "Inferno Demonlord", "§c☠ §bInferno Demonlord") {
+    var totemEntity: ArmorStandEntity? = null
     var totemPos: BlockPos? = null
 
     private var lastTickInvis = false
@@ -56,7 +56,7 @@ class DemonlordSlayer(entity: EntityBlaze) :
             return if (entity.isInvisible) {
                 if (quazii == null || typhoeus == null) {
                     null
-                } else if (typhoeusTimer?.displayName?.formattedText?.contains("IMMUNE") == true
+                } else if (typhoeusTimer?.displayName?.method_10865()?.contains("IMMUNE") == true
                     || (typhoeus?.health ?: 0f) <= 0f
                 ) {
                     quazii
@@ -72,7 +72,7 @@ class DemonlordSlayer(entity: EntityBlaze) :
             val relevantTimer = if (entity.isInvisible) {
                 if (quazii == null || typhoeus == null) {
                     null
-                } else if (typhoeusTimer?.displayName?.formattedText?.contains("IMMUNE") == true
+                } else if (typhoeusTimer?.displayName?.method_10865()?.contains("IMMUNE") == true
                     || (typhoeus?.health ?: 0f) <= 0f
                 ) {
                     quaziiTimer
@@ -82,15 +82,15 @@ class DemonlordSlayer(entity: EntityBlaze) :
             } else {
                 timerEntity
             } ?: return null
-            val attunement = relevantTimer.displayName.unformattedText.substringBefore(" ").stripControlCodes()
+            val attunement = relevantTimer.displayName.string.substringBefore(" ").stripControlCodes()
             return attunementColors[attunement]
         }
 
     // Is there a point making a class for the demons and storing the entity and the timer in the same place?
-    var quazii: EntitySkeleton? = null
-    var quaziiTimer: EntityArmorStand? = null
-    var typhoeus: EntityPigZombie? = null
-    var typhoeusTimer: EntityArmorStand? = null
+    var quazii: AbstractSkeletonEntity? = null
+    var quaziiTimer: ArmorStandEntity? = null
+    var typhoeus: ZombifiedPiglinEntity? = null
+    var typhoeusTimer: ArmorStandEntity? = null
 
     val activeFire = mutableSetOf<BlockPos>()
 
@@ -112,13 +112,13 @@ class DemonlordSlayer(entity: EntityBlaze) :
 
         private fun createBlazeFirePingTask() =
             tickTimer(4, repeats = true, register = false) {
-                if (Utils.inSkyblock && Config.blazeFireWarning && Skytils.mc.thePlayer != null) {
+                if (Utils.inSkyblock && Config.blazeFireWarning && Skytils.mc.player != null) {
                     (SlayerFeatures.slayer as? DemonlordSlayer)?.let {
-                        if (!Skytils.mc.thePlayer.onGround) return@tickTimer
+                        if (!Skytils.mc.player.onGround) return@tickTimer
                         val under = BlockPos(
-                            Skytils.mc.thePlayer.posX,
-                            Skytils.mc.thePlayer.posY - 0.5,
-                            Skytils.mc.thePlayer.posZ
+                            Skytils.mc.player.x,
+                            Skytils.mc.player.y - 0.5,
+                            Skytils.mc.player.z
                         )
                         if (under in it.activeFire) {
                             // The reason this is a title and not just sound is because there is much less time
@@ -145,32 +145,32 @@ class DemonlordSlayer(entity: EntityBlaze) :
     override fun tick(event: TickEvent) {
         if (entity.isInvisible && !lastTickInvis) {
             lastTickInvis = true
-            val prevBB = entity.entityBoundingBox.expand(3.0, 1.5, 3.0)
+            val prevBB = entity.boundingBox.expand(3.0, 1.5, 3.0)
             tickTimer(10) {
-                val demons = entity.entityWorld.getEntitiesInAABBexcluding(
+                val demons = entity.world.getOtherEntities(
                     entity, prevBB
-                ) { it is EntityPigZombie || (it is EntitySkeleton && it.skeletonType == 1) }
+                ) { it is ZombifiedPiglinEntity || (it is AbstractSkeletonEntity && it.method_0_7864() == 1) }
                 for (demon in demons) {
-                    val helmet = ItemUtil.getSkullTexture(demon.inventory.getOrNull(4) ?: continue)
-                    val helmetTexture = if (demon is EntitySkeleton) {
+                    val helmet = ItemUtil.getSkullTexture(demon.armorItems.getOrNull(4) ?: continue)
+                    val helmetTexture = if (demon is AbstractSkeletonEntity) {
                         quaziiTexture
                     } else {
                         typhoeusTexture
                     }
                     if (helmet == helmetTexture) {
-                        demon.entityWorld.getEntitiesInAABBexcluding(
-                            demon, demon.entityBoundingBox.expand(0.2, 3.0, 0.2)
+                        demon.world.getOtherEntities(
+                            demon, demon.boundingBox.expand(0.2, 3.0, 0.2)
                         ) {
-                            it is EntityArmorStand && it.isInvisible && it.hasCustomName()
-                                    && it.displayName.formattedText.matches(SlayerFeatures.timerRegex)
+                            it is ArmorStandEntity && it.isInvisible && it.hasCustomName()
+                                    && it.displayName.method_10865().matches(SlayerFeatures.timerRegex)
                         }.firstOrNull()?.let {
-                            if (demon is EntitySkeleton) {
+                            if (demon is AbstractSkeletonEntity) {
                                 quazii = demon
-                                quaziiTimer = it as EntityArmorStand
+                                quaziiTimer = it as ArmorStandEntity
                                 printDevMessage({ "Quazii" }, "slayer")
-                            } else if (demon is EntityPigZombie) {
+                            } else if (demon is ZombifiedPiglinEntity) {
                                 typhoeus = demon
-                                typhoeusTimer = it as EntityArmorStand
+                                typhoeusTimer = it as ArmorStandEntity
                                 printDevMessage({ "Typhoeus" }, "slayer")
                             }
                         }
@@ -183,9 +183,9 @@ class DemonlordSlayer(entity: EntityBlaze) :
     }
 
     override fun entityJoinWorld(event: EntityJoinWorldEvent) {
-        (event.entity as? EntityArmorStand)?.let { e ->
+        (event.entity as? ArmorStandEntity)?.let { e ->
             tickTimer(1) {
-                if (e.inventory[0]?.takeIf { it.item is ItemSkull }
+                if (e.armorItems[0]?.takeIf { it.item is PlayerHeadItem }
                         ?.let { ItemUtil.getSkullTexture(it) == thrownTexture } == true) {
                     printDevMessage(
                         "Found skull armor stand",
@@ -193,7 +193,7 @@ class DemonlordSlayer(entity: EntityBlaze) :
                     )
                     thrownEntity = e
                     return@tickTimer
-                } else if (e.name.matches(SlayerFeatures.totemRegex) && e.getDistanceSq(totemPos) < 9) {
+                } else if (e.name.matches(SlayerFeatures.totemRegex) && e.method_5831(totemPos) < 9) {
                     totemEntity = e
                 }
             }
@@ -201,12 +201,12 @@ class DemonlordSlayer(entity: EntityBlaze) :
     }
 
     override fun blockChange(event: BlockStateUpdateEvent) {
-        if (totemEntity != null && event.old.block == Blocks.stained_hardened_clay && event.update.block is BlockAir) {
+        if (totemEntity != null && event.old.block == Blocks.STAINED_HARDENED_CLAY && event.update.block is AirBlock) {
             totemEntity = null
             printDevMessage({ "removed totem entity" }, "totem")
             return
-        } else if ((thrownEntity?.position?.distanceSq(event.pos) ?: 0.0) < 9.0
-            && event.old.block is BlockAir && event.update.block == Blocks.stained_hardened_clay
+        } else if ((thrownEntity?.blockPos?.getSquaredDistance(event.pos) ?: 0.0) < 9.0
+            && event.old.block is AirBlock && event.update.block == Blocks.STAINED_HARDENED_CLAY
         ) {
             thrownEntity = null
             totemPos = event.pos
@@ -214,12 +214,12 @@ class DemonlordSlayer(entity: EntityBlaze) :
 
         // This also triggers on the totem, could check for yellow clay replacing red clay,
         // but might be better to not delay anything
-        if (event.update.block == Blocks.stained_hardened_clay
-            && event.update.getValue(BlockColored.COLOR) == EnumDyeColor.RED
+        if (event.update.block == Blocks.STAINED_HARDENED_CLAY
+            && event.update.testProperty(class_0_177.field_0_833) == DyeColor.RED
         ) {
             activeFire.add(event.pos)
-        } else if (event.old.block == Blocks.fire && event.update.block == Blocks.air) {
-            activeFire.remove(event.pos.down())
+        } else if (event.old.block == Blocks.field_0_677 && event.update.block == Blocks.AIR) {
+            activeFire.remove(event.pos.method_10074())
         }
     }
 }

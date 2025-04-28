@@ -18,28 +18,28 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.gui.ChatLine;
-import net.minecraft.client.gui.GuiNewChat;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.List;
 
-@Mixin(GuiNewChat.class)
+@Mixin(ChatHud.class)
 public interface AccessorGuiNewChat {
-    @Accessor
-    List<ChatLine> getChatLines();
+    @Accessor("messages")
+    List<ChatHudLine> getChatLines();
 
-    @Accessor
-    List<ChatLine> getDrawnChatLines();
+    @Accessor("visibleMessages")
+    List<ChatHudLine> getDrawnChatLines();
 
-    @Accessor
+    @Accessor("scrolledLines")
     int getScrollPos();
 
     //#if MC==10809
-    @Invoker
-    void invokeSetChatLine(IChatComponent chatComponent, int chatLineId, int updateCounter, boolean displayOnly);
+    //$$ @Invoker("addMessage")
+    //$$ void invokeSetChatLine(Text chatComponent, int chatLineId, int updateCounter, boolean displayOnly);
     //#endif
 }

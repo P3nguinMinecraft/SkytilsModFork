@@ -20,23 +20,23 @@ package gg.skytils.skytilsmod.mixins.hooks.inventory
 import gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals.SelectAllColorSolver
 import gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals.StartsWithSequenceSolver
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.inventory.Slot
+import net.minecraft.screen.slot.Slot
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.ILockableContainer
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.class_1272
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 fun markTerminalItems(slot: Slot, cir: CallbackInfoReturnable<ItemStack?>) {
-    if (!Utils.inSkyblock || slot.inventory !is ILockableContainer) return
-    val original = slot.inventory.getStackInSlot(slot.slotIndex) ?: return
-    if (!original.isItemEnchanted && (SelectAllColorSolver.shouldClick.contains(slot.slotNumber) ||
-                StartsWithSequenceSolver.shouldClick.contains(slot.slotNumber))
+    if (!Utils.inSkyblock || slot.inventory !is class_1272) return
+    val original = slot.inventory.getStack(slot.slotIndex) ?: return
+    if (!original.hasEnchantments() && (SelectAllColorSolver.shouldClick.contains(slot.id) ||
+                StartsWithSequenceSolver.shouldClick.contains(slot.id))
     ) {
         val item = original.copy()
-        if (item.tagCompound == null) {
-            item.tagCompound = NBTTagCompound()
+        if (item.nbt == null) {
+            item.nbt = NbtCompound()
         }
-        item.tagCompound.setBoolean("SkytilsForceGlint", true)
+        item.nbt.putBoolean("SkytilsForceGlint", true)
         cir.returnValue = item
     }
 }

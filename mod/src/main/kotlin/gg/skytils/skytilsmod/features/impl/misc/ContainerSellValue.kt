@@ -38,8 +38,8 @@ import gg.skytils.skytilsmod.utils.Utils.inDungeons
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 import java.awt.Color
 import kotlin.math.roundToLong
@@ -63,7 +63,7 @@ object ContainerSellValue : EventSubscriber {
         val lowestBIN: Double
             get() = stackedItems.sumOf(::getItemValue)
         val amount: Int
-            get() = stackedItems.sumOf { it.stackSize }
+            get() = stackedItems.sumOf { it.count }
 
         fun shouldDisplay(): Boolean = this.lowestBIN != 0.0
     }
@@ -97,7 +97,7 @@ object ContainerSellValue : EventSubscriber {
                 "§eTotal Value: §a900M"
             ).forEachIndexed { i, str ->
                 fr.drawString(
-                    str, textPosX, (i * fr.FONT_HEIGHT).toFloat(),
+                    str, textPosX, (i * fr.field_0_2811).toFloat(),
                     CommonColors.WHITE, alignment, textShadow
                 )
             }
@@ -106,9 +106,9 @@ object ContainerSellValue : EventSubscriber {
         override val toggled: Boolean
             get() = Skytils.config.containerSellValue
         override val height: Int
-            get() = fr.FONT_HEIGHT * 3
+            get() = fr.field_0_2811 * 3
         override val width: Int
-            get() = fr.getStringWidth("Dctr's Space Helmet - 900M")
+            get() = fr.getWidth("Dctr's Space Helmet - 900M")
 
         init {
             Skytils.guiManager.registerElement(this)
@@ -137,29 +137,29 @@ object ContainerSellValue : EventSubscriber {
             ), npcSellingBooks[identifier] ?: Double.MAX_VALUE
         )
 
-        if (itemStack.stackSize > 1 || !Skytils.config.includeModifiersInSellValue) return basePrice * itemStack.stackSize
+        if (itemStack.count > 1 || !Skytils.config.includeModifiersInSellValue) return basePrice * itemStack.count
 
         // Never add modifiers to randomized dungeon items
         if (ItemUtil.isSalvageable(itemStack) || ItemUtil.getSkyBlockItemID(itemStack) == "ICE_SPRAY_WAND") return basePrice
 
         val extraAttrs = ItemUtil.getExtraAttributes(itemStack) ?: return basePrice
         val recombValue =
-            if (extraAttrs.hasKey("rarity_upgrades")) AuctionData.lowestBINs["RECOMBOBULATOR_3000"] ?: 0.0 else 0.0
+            if (extraAttrs.contains("rarity_upgrades")) AuctionData.lowestBINs["RECOMBOBULATOR_3000"] ?: 0.0 else 0.0
 
-        val hpbCount = extraAttrs.getInteger("hot_potato_count")
+        val hpbCount = extraAttrs.getInt("hot_potato_count")
         val hpbValue = if (hpbCount > 0) (1..hpbCount).sumOf {
             AuctionData.lowestBINs[if (it >= 10) "FUMING_POTATO_BOOK" else "HOT_POTATO_BOOK"] ?: 0.0
         } else 0.0
 
         val enchantments = if (!identifier.startsWith("ENCHANTED_BOOK-"))
-            extraAttrs.getCompoundTag("enchantments") else null
-        val enchantValue = enchantments?.keySet?.sumOf {
-            val id = "ENCHANTED_BOOK-${it.uppercase()}-${enchantments.getInteger(it)}"
+            extraAttrs.getCompound("enchantments") else null
+        val enchantValue = enchantments?.keys?.sumOf {
+            val id = "ENCHANTED_BOOK-${it.uppercase()}-${enchantments.getInt(it)}"
             (AuctionData.lowestBINs[id] ?: 0.0).coerceAtMost(npcSellingBooks[id] ?: Double.MAX_VALUE)
         } ?: 0.0
 
         val masterStarCount =
-            if (itemStack.displayName?.contains("✪") == true) masterStarRegex.find(itemStack.displayName)?.destructured?.let { (tier) ->
+            if (itemStack.name?.contains("✪") == true) masterStarRegex.find(itemStack.name)?.destructured?.let { (tier) ->
                 masterStars.indexOf(tier) + 1
             } ?: 0 else 0
         val masterStarValue = if (masterStarCount > 0) (1..masterStarCount).sumOf { i ->
@@ -167,10 +167,10 @@ object ContainerSellValue : EventSubscriber {
         } else 0.0
 
         val artOfWarValue =
-            extraAttrs.getInteger("art_of_war_count") * (AuctionData.lowestBINs["THE_ART_OF_WAR"] ?: 0.0)
+            extraAttrs.getInt("art_of_war_count") * (AuctionData.lowestBINs["THE_ART_OF_WAR"] ?: 0.0)
 
         val farmingForDummiesValue =
-            extraAttrs.getInteger("farming_for_dummies_count") * (AuctionData.lowestBINs["FARMING_FOR_DUMMIES"] ?: 0.0)
+            extraAttrs.getInt("farming_for_dummies_count") * (AuctionData.lowestBINs["FARMING_FOR_DUMMIES"] ?: 0.0)
 
         val artOfPeaceValue =
             AuctionData.lowestBINs["THE_ART_OF_PEACE"].takeIf { extraAttrs.getBoolean("artOfPeaceApplied") } ?: 0.0
@@ -180,14 +180,14 @@ object ContainerSellValue : EventSubscriber {
 
     private val ItemStack.prettyDisplayName: String
         get() {
-            val extraAttr = ItemUtil.getExtraAttributes(this) ?: return this.displayName
-            if (ItemUtil.getSkyBlockItemID(extraAttr) == "ENCHANTED_BOOK" && extraAttr.hasKey("enchantments")) {
-                val enchants = extraAttr.getCompoundTag("enchantments")
-                if (enchants.keySet.size == 1) {
+            val extraAttr = ItemUtil.getExtraAttributes(this) ?: return this.name
+            if (ItemUtil.getSkyBlockItemID(extraAttr) == "ENCHANTED_BOOK" && extraAttr.contains("enchantments")) {
+                val enchants = extraAttr.getCompound("enchantments")
+                if (enchants.keys.size == 1) {
                     return ItemUtil.getItemLore(this).first()
                 }
             }
-            return this.displayName
+            return this.name
         }
 
     private val textLines = mutableListOf<String>()
@@ -195,8 +195,8 @@ object ContainerSellValue : EventSubscriber {
     private var lines: Int = 0
 
     private fun shouldRenderGuiComponent(): Boolean {
-        val container = (mc.currentScreen as? GuiChest)?.inventorySlots as? ContainerChest ?: return false
-        val chestName = container.lowerChestInventory.name
+        val container = (mc.currentScreen as? GenericContainerScreen)?.handler as? GenericContainerScreenHandler ?: return false
+        val chestName = container.inventory.name
 
         // Ensure that the gui element should be shown for the player's open container
         return Skytils.config.containerSellValue && textLines.isNotEmpty() && isChestNameValid(chestName) && totalContainerValue > 0.0
@@ -263,17 +263,17 @@ object ContainerSellValue : EventSubscriber {
             if (!Skytils.config.containerSellValue) return@tickTimer
 
 
-            val container = (mc.currentScreen as? GuiChest)?.inventorySlots as? ContainerChest ?: return@tickTimer
-            val chestName = container.lowerChestInventory.name
+            val container = (mc.currentScreen as? GenericContainerScreen)?.handler as? GenericContainerScreenHandler ?: return@tickTimer
+            val chestName = container.inventory.name
 
             if (!isChestNameValid(chestName)) return@tickTimer
 
             val isMinion = chestName.contains(" Minion ")
 
             // Map all of the items in the chest to their lowest BIN prices
-            val slots = container.inventorySlots.filter {
-                it.hasStack && it.inventory != mc.thePlayer.inventory
-                        && (!isMinion || it.slotNumber % 9 != 1) // Ignore minion upgrades and fuels
+            val slots = container.slots.filter {
+                it.hasStack() && it.inventory != mc.player.inventory
+                        && (!isMinion || it.id % 9 != 1) // Ignore minion upgrades and fuels
             }
 
             // Combine items with the same name to save space in the GUI
@@ -311,7 +311,7 @@ object ContainerSellValue : EventSubscriber {
         UGraphics.drawString(
             matrixStack, str,
             if (element.rightAlign) element.textPosX - UGraphics.getStringWidth(str) else element.textPosX,
-            (index * ScreenRenderer.fontRenderer.FONT_HEIGHT).toFloat(),
+            (index * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
             Color.WHITE.rgb, true
         )
     }

@@ -109,7 +109,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("Import from Clipboard").childOf(bottomButtons).constrain {
@@ -236,7 +236,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
 
     private fun importFromClipboard() {
         runCatching {
-            val clipboard = getClipboardString()
+            val clipboard = method_0_2804()
             val categories = Waypoints.getWaypointsFromString(clipboard)
             Waypoints.categories.addAll(categories)
             EssentialAPI.getNotifications().push(
@@ -271,7 +271,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 )
             }.toSet()
 
-            setClipboardString(Waypoints.getStringFromWaypoints(categories, versionDropdown.getValue() + 1))
+            method_0_2797(Waypoints.getStringFromWaypoints(categories, versionDropdown.getValue() + 1))
 
             val count = categories.sumOf { it.waypoints.size }
             EssentialAPI.getNotifications()

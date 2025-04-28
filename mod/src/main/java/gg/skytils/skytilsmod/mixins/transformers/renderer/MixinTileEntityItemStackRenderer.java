@@ -19,16 +19,16 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntityItemStackRendererHookKt;
-import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
+import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(TileEntityItemStackRenderer.class)
+@Mixin(BuiltinModelItemRenderer.class)
 public abstract class MixinTileEntityItemStackRenderer {
-    @Inject(method = "renderByItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntitySkullRenderer;renderSkull(FFFLnet/minecraft/util/EnumFacing;FILcom/mojang/authlib/GameProfile;I)V"))
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/entity/SkullBlockEntityRenderer;method_3581(FFFLnet/minecraft/util/math/Direction;FILcom/mojang/authlib/GameProfile;I)V"))
     private void fixGlintForSkulls(ItemStack itemStack, CallbackInfo ci) {
         TileEntityItemStackRendererHookKt.fixGlintForSkulls(itemStack, ci);
     }

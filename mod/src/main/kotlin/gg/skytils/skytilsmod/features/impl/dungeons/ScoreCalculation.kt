@@ -36,10 +36,10 @@ import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.network.play.server.S38PacketPlayerListItem
-import net.minecraft.network.play.server.S3EPacketTeams
-import net.minecraft.network.play.server.S45PacketTitle
-import net.minecraft.util.ChatComponentText
+import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket
+import net.minecraft.network.packet.s2c.play.TeamS2CPacket
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket
+import net.minecraft.text.LiteralTextContent
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
@@ -314,13 +314,13 @@ object ScoreCalculation: EventSubscriber {
     fun onScoreboardChange(event: MainReceivePacketEvent<*, *>) {
         if (
             !Utils.inSkyblock ||
-            event.packet !is S3EPacketTeams
+            event.packet !is TeamS2CPacket
         ) return
-        if (event.packet.action != 2) return
-        val line = event.packet.players.joinToString(
+        if (event.packet.mode != 2) return
+        val line = event.packet.playerList.joinToString(
             " ",
-            prefix = event.packet.prefix,
-            postfix = event.packet.suffix
+            prefix = event.packet.method_0_5600(),
+            postfix = event.packet.method_0_5601()
         ).stripControlCodes()
         printDevMessage(line, "scorecalcscoreboard")
         if (line.startsWith("Cleared: ")) {
@@ -350,12 +350,12 @@ object ScoreCalculation: EventSubscriber {
     fun onTabChange(event: MainReceivePacketEvent<*, *>) {
         if (
             !Utils.inDungeons ||
-            event.packet !is S38PacketPlayerListItem ||
-            (event.packet.action != S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME &&
-                    event.packet.action != S38PacketPlayerListItem.Action.ADD_PLAYER)
+            event.packet !is PlayerListS2CPacket ||
+            (event.packet.action != PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME &&
+                    event.packet.action != PlayerListS2CPacket.Action.ADD_PLAYER)
         ) return
         event.packet.entries.forEach { playerData ->
-            val name = playerData?.displayName?.formattedText ?: playerData?.profile?.name ?: return@forEach
+            val name = playerData?.displayName?.method_10865() ?: playerData?.profile?.name ?: return@forEach
             printDevMessage(name, "scorecalctab")
             when {
                 name.contains("Deaths:") -> {
@@ -416,10 +416,10 @@ object ScoreCalculation: EventSubscriber {
 
     @SubscribeEvent
     fun onTitle(event: MainReceivePacketEvent<*, *>) {
-        if (!Utils.inDungeons || event.packet !is S45PacketTitle || event.packet.type != S45PacketTitle.Type.TITLE) return
-        if (event.packet.message.formattedText == "§eYou became a ghost!§r") {
-            if (DungeonListener.hutaoFans.getIfPresent(mc.thePlayer.name) == true
-                && DungeonListener.team[mc.thePlayer.name]?.deaths == 0
+        if (!Utils.inDungeons || event.packet !is TitleS2CPacket || event.packet.action != TitleS2CPacket.Action.TITLE) return
+        if (event.packet.text.method_10865() == "§eYou became a ghost!§r") {
+            if (DungeonListener.hutaoFans.getIfPresent(mc.player.name) == true
+                && DungeonListener.team[mc.player.name]?.deaths == 0
             ) firstDeathHadSpirit.set(
                 true
             )
@@ -437,8 +437,8 @@ object ScoreCalculation: EventSubscriber {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChatReceived(event: ClientChatReceivedEvent) {
-        if (!Utils.inDungeons || mc.thePlayer == null || event.type == 2.toByte()) return
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        if (!Utils.inDungeons || mc.player == null || event.type == 2.toByte()) return
+        val unformatted = event.message.method_0_5147().stripControlCodes()
         if (Skytils.config.scoreCalculationReceiveAssist) {
             if (unformatted.startsWith("Party > ") || (unformatted.contains(":") && !unformatted.contains(">"))) {
                 if (unformatted.contains("\$SKYTILS-DUNGEON-SCORE-MIMIC$") || (Skytils.config.receiveHelpFromOtherModMimicDead && unformatted.containsAny(
@@ -464,9 +464,9 @@ object ScoreCalculation: EventSubscriber {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     fun canYouPleaseStopCryingThanks(event: ClientChatReceivedEvent) {
         if (!Utils.inDungeons || event.type != 0.toByte()) return
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val unformatted = event.message.method_0_5147().stripControlCodes()
         if ((unformatted.startsWith("Party > ") || unformatted.startsWith("P > ")) && unformatted.contains(": Skytils-SC > ")) {
-            event.message.siblings.filterIsInstance<ChatComponentText>().forEach {
+            event.message.siblings.filterIsInstance<LiteralTextContent>().forEach {
                 it as AccessorChatComponentText
                 if (it.text.startsWith("Skytils-SC > ")) {
                     it.text = it.text.substringAfter("Skytils-SC > ")
@@ -529,9 +529,9 @@ object ScoreCalculation: EventSubscriber {
         override val toggled: Boolean
             get() = Skytils.config.bigCryptsCounter
         override val height: Int
-            get() = fr.FONT_HEIGHT
+            get() = fr.field_0_2811
         override val width: Int
-            get() = fr.getStringWidth("Crypts: 5")
+            get() = fr.getWidth("Crypts: 5")
 
         init {
             Skytils.guiManager.registerElement(this)
@@ -576,9 +576,9 @@ object ScoreCalculation: EventSubscriber {
         }
 
         override val height: Int
-            get() = if (Skytils.config.minimizedScoreCalculation) ScreenRenderer.fontRenderer.FONT_HEIGHT else ScreenRenderer.fontRenderer.FONT_HEIGHT * demoText.size
+            get() = if (Skytils.config.minimizedScoreCalculation) ScreenRenderer.fontRenderer.field_0_2811 else ScreenRenderer.fontRenderer.field_0_2811 * demoText.size
         override val width: Int
-            get() = demoText.maxOf { ScreenRenderer.fontRenderer.getStringWidth(it) }
+            get() = demoText.maxOf { ScreenRenderer.fontRenderer.getWidth(it) }
 
         override val toggled: Boolean
             get() = Skytils.config.showScoreCalculation

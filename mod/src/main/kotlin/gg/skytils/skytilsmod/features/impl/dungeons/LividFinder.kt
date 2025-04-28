@@ -38,14 +38,14 @@ import gg.skytils.skytilsmod.utils.printDevMessage
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.sync.Mutex
-import net.minecraft.block.BlockStainedGlass
+import net.minecraft.class_0_308
 import net.minecraft.entity.Entity
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.item.EnumDyeColor
-import net.minecraft.potion.Potion
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumChatFormatting
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.util.DyeColor
+import net.minecraft.entity.effect.StatusEffect
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.Formatting
 import net.minecraft.world.World
 import java.awt.Color
 
@@ -57,28 +57,28 @@ object LividFinder : EventSubscriber {
     private var lock = Mutex()
 
     //https://wiki.hypixel.net/Livid
-    val dyeToChar: Map<EnumDyeColor, EnumChatFormatting> = mapOf(
-        EnumDyeColor.WHITE to EnumChatFormatting.WHITE,
-        EnumDyeColor.MAGENTA to EnumChatFormatting.LIGHT_PURPLE,
-        EnumDyeColor.RED to EnumChatFormatting.RED,
-        EnumDyeColor.GRAY to EnumChatFormatting.GRAY,
-        EnumDyeColor.GREEN to EnumChatFormatting.DARK_GREEN,
-        EnumDyeColor.LIME to EnumChatFormatting.GREEN,
-        EnumDyeColor.BLUE to EnumChatFormatting.BLUE,
-        EnumDyeColor.PURPLE to EnumChatFormatting.DARK_PURPLE,
-        EnumDyeColor.YELLOW to EnumChatFormatting.YELLOW
+    val dyeToChar: Map<DyeColor, Formatting> = mapOf(
+        DyeColor.WHITE to Formatting.WHITE,
+        DyeColor.MAGENTA to Formatting.LIGHT_PURPLE,
+        DyeColor.RED to Formatting.RED,
+        DyeColor.GRAY to Formatting.GRAY,
+        DyeColor.GREEN to Formatting.DARK_GREEN,
+        DyeColor.LIME to Formatting.GREEN,
+        DyeColor.BLUE to Formatting.BLUE,
+        DyeColor.PURPLE to Formatting.DARK_PURPLE,
+        DyeColor.YELLOW to Formatting.YELLOW
     )
 
-    val charToName: Map<EnumChatFormatting, String> = mapOf(
-        EnumChatFormatting.YELLOW to "Arcade",
-        EnumChatFormatting.WHITE to "Vendetta",
-        EnumChatFormatting.GRAY to "Doctor",
-        EnumChatFormatting.DARK_GREEN to "Frog",
-        EnumChatFormatting.DARK_PURPLE to "Purple",
-        EnumChatFormatting.RED to "Hockey",
-        EnumChatFormatting.LIGHT_PURPLE to "Crossed",
-        EnumChatFormatting.GREEN to "Smile",
-        EnumChatFormatting.BLUE to "Scream"
+    val charToName: Map<Formatting, String> = mapOf(
+        Formatting.YELLOW to "Arcade",
+        Formatting.WHITE to "Vendetta",
+        Formatting.GRAY to "Doctor",
+        Formatting.DARK_GREEN to "Frog",
+        Formatting.DARK_PURPLE to "Purple",
+        Formatting.RED to "Hockey",
+        Formatting.LIGHT_PURPLE to "Crossed",
+        Formatting.GREEN to "Smile",
+        Formatting.BLUE to "Scream"
     )
 
     override fun setup() {
@@ -89,16 +89,16 @@ object LividFinder : EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        if (mc.thePlayer == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
-        val blindnessDuration = mc.thePlayer.getActivePotionEffect(Potion.blindness)?.duration
+        if (mc.player == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
+        val blindnessDuration = mc.player.getStatusEffect(StatusEffect.field_0_7290)?.duration
         if ((!foundLivid || DungeonFeatures.dungeonFloor == "M5") && blindnessDuration != null) {
             if (lock.tryLock()) {
                 printDevMessage("Starting livid job", "livid")
                 tickTimer(blindnessDuration) {
                     runCatching {
-                        if (mc.thePlayer.ticksExisted > blindnessDuration) {
-                            val state = mc.theWorld.getBlockState(lividBlock)
-                            val color = state.getValue(BlockStainedGlass.COLOR)
+                        if (mc.player.age > blindnessDuration) {
+                            val state = mc.world.getBlockState(lividBlock)
+                            val color = state.testProperty(class_0_308.field_0_1192)
                             val mapped = dyeToChar[color]
                             getLivid(color, mapped)
                         } else printDevMessage("Player changed worlds?", "livid")
@@ -108,20 +108,20 @@ object LividFinder : EventSubscriber {
             } else printDevMessage("Livid job already started", "livid")
         }
 
-        if (lividTag?.isDead == true || livid?.isDead == true) {
+        if (lividTag?.isRemoved == true || livid?.isRemoved == true) {
             printDevMessage("Livid is dead?", "livid")
         }
     }
 
     fun onBlockChange(event: BlockStateUpdateEvent) {
-        if (mc.thePlayer == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
+        if (mc.player == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
         if (event.pos == lividBlock) {
             printDevMessage("Livid block changed", "livid")
             printDevMessage("block detection started", "livid")
-            val color = event.update.getValue(BlockStainedGlass.COLOR)
+            val color = event.update.testProperty(class_0_308.field_0_1192)
             val mapped = dyeToChar[color]
             printDevMessage({ "before blind ${color}" }, "livid")
-            val blindnessDuration = mc.thePlayer.getActivePotionEffect(Potion.blindness)?.duration
+            val blindnessDuration = mc.player.getStatusEffect(StatusEffect.field_0_7290)?.duration
             tickTimer(blindnessDuration ?: 2) {
                 getLivid(color, mapped)
                 printDevMessage("block detection done", "livid")
@@ -133,7 +133,7 @@ object LividFinder : EventSubscriber {
         if (!Utils.inDungeons) return
         if ((event.entity == lividTag) || (lividTag == null && event.entity == livid)) {
             val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
-            val aabb = livid?.entityBoundingBox ?: AxisAlignedBB(
+            val aabb = livid?.boundingBox ?: Box(
                 x - 0.5,
                 y - 2,
                 z - 0.5,
@@ -156,18 +156,18 @@ object LividFinder : EventSubscriber {
         foundLivid = false
     }
 
-    fun getLivid(blockColor: EnumDyeColor, mappedColor: EnumChatFormatting?) {
+    fun getLivid(blockColor: DyeColor, mappedColor: Formatting?) {
         val lividType = charToName[mappedColor]
         if (lividType == null) {
             UChat.chat("${Skytils.failPrefix} §cBlock color ${blockColor.name} is not mapped correctly. Please report this to discord.gg/skytils")
             return
         }
 
-        for (entity in mc.theWorld.loadedEntityList) {
-            if (entity !is EntityArmorStand) continue
-            if (entity.customNameTag.startsWith("$mappedColor﴾ $mappedColor§lLivid")) {
+        for (entity in mc.world.entities) {
+            if (entity !is ArmorStandEntity) continue
+            if (entity.customName.startsWith("$mappedColor﴾ $mappedColor§lLivid")) {
                 lividTag = entity
-                livid = mc.theWorld.playerEntities.find { it.name == "$lividType Livid" }
+                livid = mc.world.players.find { it.name == "$lividType Livid" }
                 foundLivid = true
                 return
             }
@@ -177,8 +177,8 @@ object LividFinder : EventSubscriber {
 
     internal class LividGuiElement : GuiElement("Livid HP", x = 0.05f, y = 0.4f) {
         override fun render() {
-            val player = mc.thePlayer
-            val world: World? = mc.theWorld
+            val player = mc.player
+            val world: World? = mc.world
             if (toggled && Utils.inDungeons && player != null && world != null) {
                 if (lividTag == null) return
 
@@ -210,9 +210,9 @@ object LividFinder : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§r§f﴾ Livid §e6.9M§c❤ §f﴿")
+            get() = ScreenRenderer.fontRenderer.getWidth("§r§f﴾ Livid §e6.9M§c❤ §f﴿")
 
         override val toggled: Boolean
             get() = Skytils.config.findCorrectLivid

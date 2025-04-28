@@ -20,24 +20,24 @@ package gg.skytils.skytilsmod.mixins.transformers.entity;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.IEntityMultiPart;
-import net.minecraft.entity.boss.EntityDragon;
-import net.minecraft.entity.boss.IBossDisplayData;
-import net.minecraft.entity.monster.IMob;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.class_1509;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.boss.BossEntity;
+import net.minecraft.entity.mob.Monster;
+import net.minecraft.particle.ParticleType;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(EntityDragon.class)
-public abstract class MixinEntityDragon extends EntityLiving implements IBossDisplayData, IEntityMultiPart, IMob {
+@Mixin(EnderDragonEntity.class)
+public abstract class MixinEntityDragon extends MobEntity implements BossEntity, class_1509, Monster {
     public MixinEntityDragon(World worldIn) {
         super(worldIn);
     }
 
-    @WrapWithCondition(method = "onDeathUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnParticle(Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V"))
-    private boolean removeDeathParticle(World instance, EnumParticleTypes particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
+    @WrapWithCondition(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
+    private boolean removeDeathParticle(World instance, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
         return !MasterMode7Features.INSTANCE.shouldHideDragonDeath();
     }
 }

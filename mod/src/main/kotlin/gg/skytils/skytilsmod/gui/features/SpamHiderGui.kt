@@ -62,7 +62,7 @@ class SpamHiderGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
 
     init {
         saveButton.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
     }
 
@@ -326,7 +326,7 @@ class SpamHiderGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 y = SiblingConstraint()
             } childOf customHiders
         copy.onMouseClick {
-            setClipboardString("¶")
+            method_0_2797("¶")
             copy.text.setText("Copied!")
         }.onMouseLeave {
             copy.text.setText("Click here to copy!")

@@ -20,22 +20,22 @@ package gg.skytils.skytilsmod.mixins.transformers.entity;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.mixins.hooks.entity.EntityBlazeHookKt;
-import net.minecraft.entity.monster.EntityBlaze;
-import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.entity.mob.BlazeEntity;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.particle.ParticleType;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(EntityBlaze.class)
-public abstract class MixinEntityBlaze extends EntityMob {
+@Mixin(BlazeEntity.class)
+public abstract class MixinEntityBlaze extends HostileEntity {
 
     public MixinEntityBlaze(World worldIn) {
         super(worldIn);
     }
 
-    @WrapWithCondition(method = "onLivingUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnParticle(Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V"))
-    private boolean spawnParticle(World world, EnumParticleTypes particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
+    @WrapWithCondition(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
+    private boolean spawnParticle(World world, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
         return EntityBlazeHookKt.removeBlazeSmokeParticle(world, particleType, xCoord, yCoord, zCoord, xOffset, yOffset, zOffset, p_175688_14_);
     }
 }

@@ -32,10 +32,10 @@ fun alwaysShowItemHighlight(orig: Int): Int {
 
 fun modifyItemHighlightPosition(args: Args, highlightingItemStack: ItemStack) {
     if (Skytils.config.moveableItemNameHighlight && Utils.inSkyblock) {
-        val fr = highlightingItemStack.item.getFontRenderer(highlightingItemStack) ?: mc.fontRendererObj
+        val fr = highlightingItemStack.item.getFontRenderer(highlightingItemStack) ?: mc.textRenderer
         val itemName = args.get<String>(0)
         val element: GuiElement = MiscFeatures.ItemNameHighlightDummy
-        val x = element.scaleX - fr!!.getStringWidth(itemName) / 2f
+        val x = element.scaleX - fr!!.getWidth(itemName) / 2f
         args.set(1, x)
         args.set(2, element.scaleY)
     }

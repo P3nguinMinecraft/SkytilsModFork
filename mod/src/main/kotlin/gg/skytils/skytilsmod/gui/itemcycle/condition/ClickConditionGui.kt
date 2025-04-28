@@ -114,7 +114,7 @@ class ClickConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cyc
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+            client.setScreen(ItemCycleConditionGui(cycle))
         }
 
         SimpleButton(if (condition == null) "Create" else "Edit").childOf(bottomButtons).constrain {
@@ -129,7 +129,7 @@ class ClickConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cyc
             cond.clickedButton = clickButton.getText().toIntOrNull() ?: return@onLeftClick
             cond.clickType = clickType.getText().toIntOrNull() ?: return@onLeftClick
 
-            mc.displayGuiScreen(ItemCycleConditionGui(cycle))
+            client.setScreen(ItemCycleConditionGui(cycle))
             PersistentSave.markDirty<ItemCycle>()
         }
     }

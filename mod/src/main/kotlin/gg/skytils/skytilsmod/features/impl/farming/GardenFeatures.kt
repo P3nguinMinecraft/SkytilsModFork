@@ -29,21 +29,21 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.hit.HitResult
 
 object GardenFeatures : EventSubscriber {
     private val cleanupRegex = Regex("^\\s*Cleanup: [\\d.]+%$")
     var isCleaningPlot = false
         private set
     val trashBlocks = setOf(
-        Blocks.tallgrass,
-        Blocks.red_flower,
-        Blocks.yellow_flower,
-        Blocks.double_plant,
-        Blocks.leaves,
-        Blocks.leaves2
+        Blocks.field_0_630,
+        Blocks.field_0_637,
+        Blocks.field_0_636,
+        Blocks.field_0_760,
+        Blocks.field_0_814,
+        Blocks.field_0_815
     )
     private val scythes = hashMapOf("SAM_SCYTHE" to 1, "GARDEN_SCYTHE" to 2)
 
@@ -63,7 +63,7 @@ object GardenFeatures : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
         if (!Skytils.config.visitorNotifications) return
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val unformatted = event.message.string.stripControlCodes()
         if (unformatted.matches(newVisitorRegex)) {
             EssentialAPI.getNotifications()
                 .push(
@@ -79,14 +79,14 @@ object GardenFeatures : EventSubscriber {
 
     init {
         tickTimer(5, repeats = true) {
-            if (mc.thePlayer != null) {
+            if (mc.player != null) {
                 val inGarden = SBInfo.mode == SkyblockIsland.TheGarden.mode
 
                 isCleaningPlot = inGarden && ScoreboardUtil.sidebarLines.any {
                     it.matches(cleanupRegex)
                 }.also {
                     if (it != isCleaningPlot && Skytils.config.gardenPlotCleanupHelper) {
-                        mc.renderGlobal.loadRenderers()
+                        mc.worldRenderer.reload()
                     }
                 }
             }
@@ -98,11 +98,11 @@ object GardenFeatures : EventSubscriber {
 
         val target = event.target ?: return
 
-        if (target.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return
+        if (target.type != HitResult.Type.BLOCK) return
 
-        val size = scythes[ItemUtil.getSkyBlockItemID(mc.thePlayer.heldItem)] ?: return
+        val size = scythes[ItemUtil.getSkyBlockItemID(mc.player.method_0_7087())] ?: return
         val base = target.blockPos
-        val baseState = mc.theWorld.getBlockState(base)
+        val baseState = mc.world.getBlockState(base)
 
         if (baseState.block !in trashBlocks) return
         RenderUtil.drawSelectionBox(
@@ -111,10 +111,10 @@ object GardenFeatures : EventSubscriber {
             Skytils.config.samScytheColor,
             event.partialTicks,
         )
-        for (pos in BlockPos.getAllInBox(
-            base.add(-size, -size, -size), base.add(size, size, size)
+        for (pos in BlockPos.iterate(
+            base.method_10069(-size, -size, -size), base.method_10069(size, size, size)
         )) {
-            val state = mc.theWorld.getBlockState(pos)
+            val state = mc.world.getBlockState(pos)
             if (state.block in trashBlocks) {
                 RenderUtil.drawSelectionBox(
                     pos,

@@ -28,12 +28,12 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.item.EnumDyeColor
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.util.DyeColor
 import net.minecraft.item.ItemStack
-import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2FPacketSetSlot
-import net.minecraft.network.play.server.S30PacketWindowItems
+import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
 
 object SelectAllColorSolver : EventSubscriber {
 
@@ -41,7 +41,7 @@ object SelectAllColorSolver : EventSubscriber {
     val shouldClick = hashSetOf<Int>()
     private var colorNeeded: String? = null
     private val colors by lazy {
-        EnumDyeColor.entries.associateWith { it.name.replace("_", " ").uppercase() }
+        DyeColor.entries.associateWith { it.name.replace("_", " ").uppercase() }
     }
     private var windowId: Int? = null
 
@@ -60,14 +60,14 @@ object SelectAllColorSolver : EventSubscriber {
     }
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (event.packet is S2DPacketOpenWindow) {
-            val chestName = event.packet.windowTitle.unformattedText
+        if (event.packet is OpenScreenS2CPacket) {
+            val chestName = event.packet.method_11435().string
             if (chestName.startsWith("Select all the")) {
-                windowId = event.packet.windowId
+                windowId = event.packet.syncId
 
                 val promptColor = colors.entries.find { (_, name) ->
                     chestName.contains(name)
-                }?.key?.unlocalizedName
+                }?.key?.method_0_8196()
                 if (promptColor != colorNeeded) {
                     colorNeeded = promptColor
                     shouldClick.clear()
@@ -82,13 +82,13 @@ object SelectAllColorSolver : EventSubscriber {
         if (!Skytils.config.selectAllColorTerminalSolver || !TerminalFeatures.isInPhase3()) return
 
         when (event.packet) {
-            is S2FPacketSetSlot -> {
-                if (event.packet.func_149175_c() != windowId) return
-                handleItemStack(event.packet.func_149173_d(), event.packet.func_149174_e())
+            is ScreenHandlerSlotUpdateS2CPacket -> {
+                if (event.packet.syncId != windowId) return
+                handleItemStack(event.packet.slot, event.packet.stack)
             }
-            is S30PacketWindowItems -> {
-                if (event.packet.func_148911_c() != windowId) return
-                event.packet.itemStacks.forEachIndexed(::handleItemStack)
+            is InventoryS2CPacket -> {
+                if (event.packet.syncId != windowId) return
+                event.packet.contents.forEachIndexed(::handleItemStack)
             }
         }
     }
@@ -96,9 +96,9 @@ object SelectAllColorSolver : EventSubscriber {
     private fun handleItemStack(slot: Int, item: ItemStack) {
         val column = slot % 9
         if (slot in 9..44 && column in 1..7) {
-            if (item.isItemEnchanted) {
+            if (item.hasEnchantments()) {
                 shouldClick.remove(slot)
-            } else if (item.unlocalizedName.contains(colorNeeded!!)) {
+            } else if (item.translationKey.contains(colorNeeded!!)) {
                 shouldClick.add(slot)
             }
         }
@@ -106,10 +106,10 @@ object SelectAllColorSolver : EventSubscriber {
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
         if (!TerminalFeatures.isInPhase3() || !Skytils.config.selectAllColorTerminalSolver) return
-        if (event.container is ContainerChest) {
+        if (event.container is GenericContainerScreenHandler) {
             if (event.chestName.startsWith("Select all the")) {
                 val slot = event.slot
-                if (shouldClick.isNotEmpty() && slot.slotNumber !in shouldClick && slot.inventory !== mc.thePlayer.inventory) {
+                if (shouldClick.isNotEmpty() && slot.id !in shouldClick && slot.inventory !== mc.player.inventory) {
                     event.cancelled = true
                 }
             }
@@ -118,15 +118,15 @@ object SelectAllColorSolver : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!TerminalFeatures.isInPhase3() || !Skytils.config.selectAllColorTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
-        if (event.container is ContainerChest && event.chestName.startsWith("Select all the")) {
+        if (event.container is GenericContainerScreenHandler && event.chestName.startsWith("Select all the")) {
             if (shouldClick.isNotEmpty() && !shouldClick.contains(event.slotId)) event.cancelled = true
         }
     }
 
     fun onTooltip(event: ItemTooltipEvent) {
         if (!Utils.inDungeons || !Skytils.config.selectAllColorTerminalSolver) return
-        val chest = mc.thePlayer?.openContainer as? ContainerChest ?: return
-        val chestName = chest.lowerChestInventory.displayName.unformattedText
+        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
+        val chestName = chest.inventory.customName.string
         if (chestName.startsWith("Select all the")) {
             event.tooltip.clear()
         }

@@ -20,9 +20,9 @@ package gg.skytils.skytilsmod.mixins.transformers.entity;
 
 import com.mojang.authlib.GameProfile;
 import gg.skytils.skytilsmod.mixins.hooks.entity.AbstractClientPlayerHook;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -30,8 +30,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(AbstractClientPlayer.class)
-public abstract class MixinAbstractClientPlayer extends EntityPlayer {
+@Mixin(AbstractClientPlayerEntity.class)
+public abstract class MixinAbstractClientPlayer extends PlayerEntity {
     public MixinAbstractClientPlayer(World worldIn, GameProfile gameProfileIn) {
         super(worldIn, gameProfileIn);
     }
@@ -39,17 +39,17 @@ public abstract class MixinAbstractClientPlayer extends EntityPlayer {
     @Unique
     private final AbstractClientPlayerHook hook = new AbstractClientPlayerHook(this);
 
-    @Inject(method = "getLocationSkin()Lnet/minecraft/util/ResourceLocation;", at = @At("RETURN"), cancellable = true)
-    private void replaceSkin(CallbackInfoReturnable<ResourceLocation> cir) {
+    @Inject(method = "getSkinTexture()Lnet/minecraft/util/Identifier;", at = @At("RETURN"), cancellable = true)
+    private void replaceSkin(CallbackInfoReturnable<Identifier> cir) {
         hook.replaceSkin(cir);
     }
 
-    @Inject(method = "hasSkin", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "hasSkinTexture", at = @At("RETURN"), cancellable = true)
     private void replaceHasSkin(CallbackInfoReturnable<Boolean> cir) {
         hook.replaceHasSkin(cir);
     }
 
-    @Inject(method = "getSkinType", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getModel", at = @At("RETURN"), cancellable = true)
     private void replaceSkinType(CallbackInfoReturnable<String> cir) {
         hook.replaceSkinType(cir);
     }

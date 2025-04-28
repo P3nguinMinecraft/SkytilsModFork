@@ -29,45 +29,45 @@ import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.base.ThrowingSlayer
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.printDevMessage
-import net.minecraft.block.BlockBeacon
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.monster.EntityEnderman
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
+import net.minecraft.block.BeaconBlock
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.mob.EndermanEntity
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
 import net.minecraft.item.Item
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.math.Box
 import kotlin.math.abs
 
-class SeraphSlayer(entity: EntityEnderman) :
-    ThrowingSlayer<EntityEnderman>(entity, "Voidgloom Seraph", "§c☠ §bVoidgloom Seraph") {
-    val nukekebiSkulls = mutableListOf<EntityArmorStand>()
+class SeraphSlayer(entity: EndermanEntity) :
+    ThrowingSlayer<EndermanEntity>(entity, "Voidgloom Seraph", "§c☠ §bVoidgloom Seraph") {
+    val nukekebiSkulls = mutableListOf<ArmorStandEntity>()
     var yangGlyphAdrenalineStressCount = -1L
     var lastYangGlyphSwitch = -1L
     var lastYangGlyphSwitchTicks = -1
-    var thrownBoundingBox: AxisAlignedBB? = null
+    var thrownBoundingBox: Box? = null
     val hitPhase: Boolean
-        get() = nameEntity?.customNameTag?.dropLastWhile { it == 's' }?.endsWith(" Hit") ?: false
+        get() = nameEntity?.customName?.dropLastWhile { it == 's' }?.endsWith(" Hit") ?: false
 
     override fun tick(event: TickEvent) {
         if (lastYangGlyphSwitchTicks >= 0) lastYangGlyphSwitchTicks++
         if (lastYangGlyphSwitchTicks > 120) lastYangGlyphSwitchTicks = -1
         if (Config.experimentalYangGlyphDetection && lastYangGlyphSwitchTicks >= 0 && thrownEntity == null && thrownLocation == null) {
-            Skytils.mc.theWorld.getEntitiesWithinAABB(
-                EntityArmorStand::class.java,
-                entity.entityBoundingBox.expand(20.69, 20.69, 20.69)
+            Skytils.mc.world.getEntitiesByClass(
+                ArmorStandEntity::class.java,
+                entity.boundingBox.expand(20.69, 20.69, 20.69)
             ) { e ->
-                e as EntityArmorStand
-                e.ticksExisted <= 300 && lastYangGlyphSwitchTicks + 5 > e.ticksExisted &&
-                        e.inventory[4]?.item == Item.getItemFromBlock(Blocks.beacon)
+                e as ArmorStandEntity
+                e.age <= 300 && lastYangGlyphSwitchTicks + 5 > e.age &&
+                        e.armorItems[4]?.item == Item.fromBlock(Blocks.field_0_727)
             }.minByOrNull {
-                (abs(lastYangGlyphSwitchTicks - it.ticksExisted) * 10) + SlayerFeatures.slayerEntity!!.getDistanceSqToEntity(
+                (abs(lastYangGlyphSwitchTicks - it.age) * 10) + SlayerFeatures.slayerEntity!!.squaredDistanceTo(
                     it
                 )
             }?.let { suspect ->
                 printDevMessage(
                     {
-                        "Found suspect glyph, $lastYangGlyphSwitchTicks switched, ${suspect.ticksExisted} existed, ${
-                            entity.getDistanceSqToEntity(
+                        "Found suspect glyph, $lastYangGlyphSwitchTicks switched, ${suspect.age} existed, ${
+                            entity.squaredDistanceTo(
                                 suspect
                             )
                         } distance"
@@ -80,8 +80,8 @@ class SeraphSlayer(entity: EntityEnderman) :
 
     override fun entityJoinWorld(event: EntityJoinWorldEvent) {
         tickTimer(1) {
-            (event.entity as? EntityArmorStand)?.let { e ->
-                if (e.inventory[4]?.item == Item.getItemFromBlock(Blocks.beacon)) {
+            (event.entity as? ArmorStandEntity)?.let { e ->
+                if (e.armorItems[4]?.item == Item.fromBlock(Blocks.field_0_727)) {
                     val time = System.currentTimeMillis() - 50
                     printDevMessage(
                         { "Found beacon armor stand, time diff ${time - lastYangGlyphSwitch}" },
@@ -89,12 +89,12 @@ class SeraphSlayer(entity: EntityEnderman) :
                         "seraph",
                         "seraphGlyph"
                     )
-                    if (lastYangGlyphSwitch != -1L && time - lastYangGlyphSwitch < 300 && e.entityBoundingBox.expand(
+                    if (lastYangGlyphSwitch != -1L && time - lastYangGlyphSwitch < 300 && e.boundingBox.expand(
                             4.5,
                             4.0,
                             4.5
                         )
-                            .intersectsWith(thrownBoundingBox ?: e.entityBoundingBox)
+                            .intersects(thrownBoundingBox ?: e.boundingBox)
                     ) {
                         printDevMessage(
                             "Beacon armor stand is close to slayer entity",
@@ -107,12 +107,12 @@ class SeraphSlayer(entity: EntityEnderman) :
                         lastYangGlyphSwitchTicks = -1
                     }
                     return@tickTimer
-                } else if (e.entityBoundingBox.expand(2.0, 3.0, 2.0)
-                        .intersectsWith(entity.entityBoundingBox)
+                } else if (e.boundingBox.expand(2.0, 3.0, 2.0)
+                        .intersects(entity.boundingBox)
                 ) {
                     printDevMessage({ "Found nearby armor stand" }, "slayer", "seraph", "seraphGlyph", "seraphFixation")
-                    if (e.inventory.any {
-                            it?.takeIf { it.item == Items.skull }
+                    if (e.armorItems.any {
+                            it?.takeIf { it.item == Items.PLAYER_HEAD }
                                 ?.let { ItemUtil.getSkullTexture(it) } == "eyJ0aW1lc3RhbXAiOjE1MzQ5NjM0MzU5NjIsInByb2ZpbGVJZCI6ImQzNGFhMmI4MzFkYTRkMjY5NjU1ZTMzYzE0M2YwOTZjIiwicHJvZmlsZU5hbWUiOiJFbmRlckRyYWdvbiIsInNpZ25hdHVyZVJlcXVpcmVkIjp0cnVlLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWIwNzU5NGUyZGYyNzM5MjFhNzdjMTAxZDBiZmRmYTExMTVhYmVkNWI5YjIwMjllYjQ5NmNlYmE5YmRiYjRiMyJ9fX0="
                         }) {
                         nukekebiSkulls.add(e)
@@ -124,14 +124,14 @@ class SeraphSlayer(entity: EntityEnderman) :
     }
 
     override fun blockChange(event: BlockStateUpdateEvent) {
-        if (event.pos == thrownLocation && event.old.block is BlockBeacon && event.update.block !is BlockBeacon) {
+        if (event.pos == thrownLocation && event.old.block is BeaconBlock && event.update.block !is BeaconBlock) {
             thrownLocation = null
             thrownEntity = null
             return
         }
         thrownEntity?.let { entity ->
             printDevMessage({ "Glyph Entity exists" }, "slayer", "seraph", "seraphGlyph")
-            if (event.update.block is BlockBeacon && entity.position.distanceSq(event.pos) <= 3.5 * 3.5) {
+            if (event.update.block is BeaconBlock && entity.blockPos.getSquaredDistance(event.pos) <= 3.5 * 3.5) {
                 printDevMessage({ "Beacon entity near beacon block!" }, "slayer", "seraph", "seraphGlyph")
                 thrownLocation = event.pos
                 thrownEntity = null
@@ -144,7 +144,7 @@ class SeraphSlayer(entity: EntityEnderman) :
             }
         }
         if (Config.experimentalYangGlyphDetection && thrownLocation == null) {
-            if (lastYangGlyphSwitchTicks in 0..5 && entity.getDistanceSq(event.pos) <= 5 * 5) {
+            if (lastYangGlyphSwitchTicks in 0..5 && entity.method_5831(event.pos) <= 5 * 5) {
                 if (Config.yangGlyphPing && Config.yangGlyphPingOnLand) GuiManager.createTitle(
                     "§cYang Glyph!",
                     30

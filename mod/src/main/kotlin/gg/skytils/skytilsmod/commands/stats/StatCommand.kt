@@ -27,9 +27,9 @@ import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.MojangUtil
 import gg.skytils.skytilsmod.utils.nonDashedString
 import kotlinx.coroutines.launch
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.IChatComponent
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.Text
 import java.util.*
 
 abstract class StatCommand(
@@ -39,14 +39,14 @@ abstract class StatCommand(
 ) :
     BaseCommand(name, aliases) {
 
-    override fun getCommandUsage(player: EntityPlayerSP): String = "/${this.commandName} [player]"
+    override fun getCommandUsage(player: ClientPlayerEntity): String = "/${this.commandName} [player]"
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         Skytils.IO.launch {
-            val username = if (args.isEmpty()) mc.thePlayer.name else args[0]
+            val username = if (args.isEmpty()) mc.player.name else args[0]
             printMessage("§aGetting data for ${username}...")
             val uuid = try {
-                (if (args.isEmpty()) mc.thePlayer.uniqueID else MojangUtil.getUUIDFromUsername(username))
+                (if (args.isEmpty()) mc.player.uuid else MojangUtil.getUUIDFromUsername(username))
             } catch (e: MojangUtil.MojangException) {
                 printMessage("$failPrefix §cFailed to get UUID, reason: ${e.message}")
                 return@launch
@@ -68,12 +68,12 @@ abstract class StatCommand(
         }
     }
 
-    protected fun printMessage(component: IChatComponent) {
+    protected fun printMessage(component: Text) {
         UMessage(component).chat()
     }
 
     protected fun printMessage(msg: String) {
-        printMessage(ChatComponentText(msg))
+        printMessage(LiteralTextContent(msg))
     }
 
     protected open fun displayStats(username: String, uuid: UUID, profileData: Member) {

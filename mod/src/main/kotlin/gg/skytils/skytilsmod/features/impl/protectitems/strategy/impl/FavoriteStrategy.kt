@@ -31,7 +31,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NbtCompound
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -41,7 +41,7 @@ object FavoriteStrategy : ItemProtectStrategy() {
     val favoriteItemIds = hashSetOf<String>()
     val save = FavoriteStrategySave
 
-    override fun worthProtecting(item: ItemStack, extraAttr: NBTTagCompound?, type: ProtectType): Boolean {
+    override fun worthProtecting(item: ItemStack, extraAttr: NbtCompound?, type: ProtectType): Boolean {
         if (type == ProtectType.HOTBARDROPKEY && DungeonFeatures.hasClearedText) return false
         return favoriteUUIDs.contains(extraAttr?.getString("uuid")) || favoriteItemIds.contains(
             ItemUtil.getSkyBlockItemID(

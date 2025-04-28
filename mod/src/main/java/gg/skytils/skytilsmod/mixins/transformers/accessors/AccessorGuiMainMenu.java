@@ -18,27 +18,27 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.gui.screen.TitleScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 //#if MC!=10809
-//$$ import net.minecraft.client.gui.screen.SplashTextRenderer;
+import net.minecraft.client.gui.screen.SplashTextRenderer;
 //#endif
 
-@Mixin(GuiMainMenu.class)
+@Mixin(TitleScreen.class)
 public interface AccessorGuiMainMenu {
     @Accessor
     //#if MC==10809
-    String getSplashText();
+    //$$ String getSplashText();
     //#else
-    //$$ SplashTextRenderer getSplashText();
+    SplashTextRenderer getSplashText();
     //#endif
 
     @Accessor
     //#if MC==10809
-    void setSplashText(String text);
+    //$$ void setSplashText(String text);
     //#else
-    //$$ void setSplashText(SplashTextRenderer text);
+    void setSplashText(SplashTextRenderer text);
     //#endif
 }

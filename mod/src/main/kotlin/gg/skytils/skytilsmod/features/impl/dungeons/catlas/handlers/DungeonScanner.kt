@@ -29,12 +29,12 @@ import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.printDevMessage
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonRoom
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 //#if MC>=12000
-//$$ import net.minecraft.world.chunk.ChunkStatus
+import net.minecraft.world.chunk.ChunkStatus
 //#endif
 
 /**
@@ -61,19 +61,19 @@ object DungeonScanner {
         get() = !isScanning && !hasScanned && System.currentTimeMillis() - lastScanTime >= 250 && dungeonFloorNumber != null
 
     //#if MC<11300
-    private val entranceDoorBlock = Blocks.monster_egg
+    //$$ private val entranceDoorBlock = Blocks.MONSTER_EGG
     //#else
-    //$$ private val entranceDoorBlock = Blocks.INFESTED_CHISELED_STONE_BRICKS
+    private val entranceDoorBlock = Blocks.INFESTED_CHISELED_STONE_BRICKS
     //#endif
 
     //#if MC<11300
-    private val bloodDoorBlock = Blocks.stained_hardened_clay
+    //$$ private val bloodDoorBlock = Blocks.STAINED_HARDENED_CLAY
     //#else
-    //$$ private val bloodDoorBlock = Blocks.RED_TERRACOTTA
+    private val bloodDoorBlock = Blocks.RED_TERRACOTTA
     //#endif
 
     fun scan() {
-        val world = mc.theWorld ?: return
+        val world = mc.world ?: return
         isScanning = true
         var allChunksLoaded = true
 
@@ -85,9 +85,9 @@ object DungeonScanner {
                 val zPos = startZ + z * (roomSize shr 1)
 
                 //#if MC==10809
-                if (!world.getChunkFromChunkCoords(xPos shr 4, zPos shr 4).isLoaded) {
+                //$$ if (!world.method_0_271(xPos shr 4, zPos shr 4).method_12229()) {
                 //#else
-                //$$ if (world.chunkManager.getChunk(xPos shr 4, zPos shr 4, ChunkStatus.FULL, false) != null) {
+                if (world.chunkManager.getChunk(xPos shr 4, zPos shr 4, ChunkStatus.FULL, false) != null) {
                 //#endif
                     // The room being scanned has not been loaded in.
                     allChunksLoaded = false
@@ -127,15 +127,15 @@ object DungeonScanner {
 
     private fun scanRoom(world: World, x: Int, z: Int, row: Int, column: Int): Tile? {
         //#if MC==10809
-        val chunk = mc.theWorld!!.getChunkFromChunkCoords(x shr 4, z shr 4)
+        //$$ val chunk = mc.world!!.method_0_271(x shr 4, z shr 4)
         //#else
-        //$$ val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
+        val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
         //#endif
         val height =
             //#if MC==10809
-            chunk.getHeightValue(x and 15, z and 15)
+            //$$ chunk.method_0_1367(x and 15, z and 15)
             //#else
-            //$$ chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
+            chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
             //#endif
         if (height == 0) return null
 
@@ -171,7 +171,7 @@ object DungeonScanner {
                     x, z,
                     // Finds door type from door block
                     type = when (world.getBlockState(BlockPos(x, 69, z)).block) {
-                        Blocks.coal_block -> {
+                        Blocks.COAL_BLOCK -> {
                             DungeonInfo.witherDoors++
                             DoorType.WITHER
                         }

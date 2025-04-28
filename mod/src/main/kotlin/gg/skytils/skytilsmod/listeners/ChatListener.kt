@@ -47,7 +47,7 @@ object ChatListener : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.isOnHypixel) return
-        val formatted = event.message.formattedText
+        val formatted = event.message.method_10865()
         val unformatted = formatted.stripControlCodes()
         if (Skytils.config.autoReparty) {
             if (formatted.endsWith("§r§ehas disbanded the party!§r")) {
@@ -68,8 +68,8 @@ object ChatListener : EventSubscriber {
                 }
             }
             if (unformatted.contains("You have 60 seconds to accept") && lastPartyDisbander.isNotEmpty() && event.message.siblings.size >= 7) {
-                val acceptMessage = event.message.siblings[6].chatStyle
-                if (acceptMessage.chatHoverEvent.value.unformattedText.contains(lastPartyDisbander)) {
+                val acceptMessage = event.message.siblings[6].style
+                if (acceptMessage.hoverEvent.value.string.contains(lastPartyDisbander)) {
                     Skytils.sendMessageQueue.add("/p accept $lastPartyDisbander")
                     lastPartyDisbander = ""
                     return
@@ -105,7 +105,7 @@ object ChatListener : EventSubscriber {
                     }
                 }
             } else if (unformatted.startsWith("Party M") || unformatted.startsWith("Party Leader")) {
-                val player = mc.thePlayer
+                val player = mc.player
                 val partyStart = party_start_pattern.find(unformatted)
                 val leader = leader_pattern.find(unformatted)
                 val members = members_pattern.findAll(unformatted)
@@ -207,7 +207,7 @@ object ChatListener : EventSubscriber {
 
     private fun tryRemoveLineAtIndex(index: Int) {
         val lines =
-            (mc.ingameGUI.chatGUI as AccessorGuiNewChat).drawnChatLines
+            (mc.inGameHud.chatHud as AccessorGuiNewChat).drawnChatLines
         if (lines.size > index) {
             lines.removeAt(index)
         }

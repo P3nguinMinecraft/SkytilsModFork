@@ -37,15 +37,15 @@ import gg.skytils.skytilsmod.gui.components.HelpComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils.checkThreadAndQueue
-import net.minecraft.client.audio.PositionedSoundRecord
-import net.minecraft.util.ResourceLocation
+import net.minecraft.client.sound.PositionedSoundInstance
+import net.minecraft.util.Identifier
 import java.awt.Color
 
 class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), ReopenableGUI {
 
     private val scrollComponent: ScrollComponent
-    val catSound: PositionedSoundRecord = PositionedSoundRecord.create(
-        ResourceLocation("records.cat"),
+    val catSound: PositionedSoundInstance = PositionedSoundInstance.record(
+        Identifier("records.cat"),
         UPlayer.getPosX().toFloat(),
         UPlayer.getPosY().toFloat(),
         UPlayer.getPosZ().toFloat()
@@ -55,7 +55,7 @@ class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopen
         SuperSecretSettings.add("chamberofsecrets")
         SuperSecretSettings.dirty = true
         checkThreadAndQueue {
-            UMinecraft.getMinecraft().soundHandler.playSound(catSound)
+            UMinecraft.getMinecraft().soundManager.play(catSound)
         }
         UIText("Shhhhhhh.. It's a secret...").childOf(window).constrain {
             x = CenterConstraint()
@@ -83,7 +83,7 @@ class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopen
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("Add Secret").childOf(bottomButtons).constrain {
@@ -141,6 +141,6 @@ class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopen
         }
 
         SuperSecretSettings.save()
-        mc.soundHandler.stopSound(catSound)
+        client.soundManager.stop(catSound)
     }
 }

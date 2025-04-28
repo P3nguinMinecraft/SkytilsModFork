@@ -31,13 +31,13 @@ import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.launch
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.monster.EntitySilverfish
-import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.mob.SilverfishEntity
+import net.minecraft.block.Blocks
+import net.minecraft.block.entity.ChestBlockEntity
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 import java.awt.Point
 import kotlin.math.abs
@@ -45,25 +45,25 @@ import kotlin.math.abs
 object IcePathSolver : EventSubscriber {
     private val steps: MutableList<Point> = ArrayList()
     private var silverfishChestPos: BlockPos? = null
-    private var roomFacing: EnumFacing? = null
+    private var roomFacing: Direction? = null
     private var grid: Array<IntArray>? = null
-    private var silverfish: EntitySilverfish? = null
+    private var silverfish: SilverfishEntity? = null
     private var silverfishPos: Point? = null
 
     init {
         tickTimer(20, repeats = true) {
-            if (!Utils.inDungeons || !Skytils.config.icePathSolver || mc.thePlayer == null || "Ice Path" !in DungeonListener.incompletePuzzles) return@tickTimer
+            if (!Utils.inDungeons || !Skytils.config.icePathSolver || mc.player == null || "Ice Path" !in DungeonListener.incompletePuzzles) return@tickTimer
             if (silverfishChestPos != null && roomFacing != null && silverfish != null) {
                 if (grid == null) {
                     grid = getGridLayout()
-                    silverfishPos = getGridPointFromPos(silverfish!!.position)
+                    silverfishPos = getGridPointFromPos(silverfish!!.blockPos)
                     steps.clear()
                     if (silverfishPos != null) {
                         steps.addAll(solve(grid!!, silverfishPos!!.x, silverfishPos!!.y, 9, 0))
                     }
                 } else if (silverfish != null) {
-                    val silverfishGridPos = getGridPointFromPos(silverfish!!.position)
-                    if (silverfish!!.isEntityAlive && silverfishGridPos != silverfishPos) {
+                    val silverfishGridPos = getGridPointFromPos(silverfish!!.blockPos)
+                    if (silverfish!!.isAlive && silverfishGridPos != silverfishPos) {
                         silverfishPos = silverfishGridPos
                         if (silverfishPos != null) {
                             steps.clear()
@@ -72,26 +72,26 @@ object IcePathSolver : EventSubscriber {
                     }
                 }
             } else {
-                mc.theWorld.loadedEntityList.find {
-                    it is EntitySilverfish && !it.isInvisible && mc.thePlayer.getDistanceSqToEntity(it) < 20 * 20
+                mc.world.entities.find {
+                    it is SilverfishEntity && !it.isInvisible && mc.player.squaredDistanceTo(it) < 20 * 20
                 }?.let {
-                    silverfish = it as EntitySilverfish
+                    silverfish = it as SilverfishEntity
                     if (silverfishChestPos == null || roomFacing == null) {
                         Skytils.launch {
-                            val playerX = mc.thePlayer.posX.toInt()
-                            val playerZ = mc.thePlayer.posZ.toInt()
+                            val playerX = mc.player.x.toInt()
+                            val playerZ = mc.player.z.toInt()
                             val xRange = playerX - 25..playerX + 25
                             val zRange = playerZ - 25..playerZ + 25
-                            findChest@ for (te in mc.theWorld.loadedTileEntityList) {
-                                if (te.pos.y == 67 && te is TileEntityChest && te.numPlayersUsing == 0 && te.pos.x in xRange && te.pos.z in zRange
+                            findChest@ for (te in mc.world.field_0_262) {
+                                if (te.pos.y == 67 && te is ChestBlockEntity && te.viewerCount == 0 && te.pos.x in xRange && te.pos.z in zRange
                                 ) {
                                     val pos = te.pos
-                                    if (mc.theWorld.getBlockState(pos.down()).block == Blocks.packed_ice && mc.theWorld.getBlockState(
+                                    if (mc.world.getBlockState(pos.method_10074()).block == Blocks.PACKED_ICE && mc.world.getBlockState(
                                             pos.up(2)
-                                        ).block == Blocks.hopper
+                                        ).block == Blocks.field_0_787
                                     ) {
                                         for (direction in UDirection.HORIZONTALS) {
-                                            if (mc.theWorld.getBlockState(pos.offset(direction)).block == Blocks.stonebrick) {
+                                            if (mc.world.getBlockState(pos.method_10093(direction)).block == Blocks.STONEBRICK) {
                                                 silverfishChestPos = pos
                                                 roomFacing = direction
                                                 println(
@@ -126,13 +126,13 @@ object IcePathSolver : EventSubscriber {
 
     fun onWorldRender(event: WorldDrawEvent) {
         if (!Skytils.config.icePathSolver) return
-        if (silverfishChestPos != null && roomFacing != null && grid != null && silverfish?.isEntityAlive == true) {
-            GlStateManager.disableCull()
+        if (silverfishChestPos != null && roomFacing != null && grid != null && silverfish?.isAlive == true) {
+            RenderSystem.disableCull()
 
-            val points = steps.map { getVec3RelativeToGrid(it.x, it.y)!!.addVector(0.5, 0.5, 0.5) }
+            val points = steps.map { getVec3RelativeToGrid(it.x, it.y)!!.add(0.5, 0.5, 0.5) }
             RenderUtil.draw3DLineStrip(points, 5, Color.RED, event.partialTicks, UMatrixStack.Compat.get())
 
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
         }
     }
 
@@ -145,12 +145,12 @@ object IcePathSolver : EventSubscriber {
         silverfishPos = null
     }
 
-    private fun getVec3RelativeToGrid(column: Int, row: Int): Vec3? {
+    private fun getVec3RelativeToGrid(column: Int, row: Int): Vec3d? {
         return silverfishChestPos?.let { chestPos ->
             roomFacing?.let { facing ->
-                Vec3(chestPos.offset(facing.opposite, 4)
-                    .offset(facing.rotateYCCW(), 8)
-                    .offset(facing.rotateY(), column)
+                Vec3d(chestPos.offset(facing.opposite, 4)
+                    .offset(facing.rotateYCounterclockwise(), 8)
+                    .offset(facing.rotateYClockwise(), column)
                     .offset(facing.opposite, row))
             }
         }
@@ -158,17 +158,17 @@ object IcePathSolver : EventSubscriber {
 
     private fun getGridPointFromPos(pos: BlockPos): Point? {
         if (silverfishChestPos == null || roomFacing == null) return null
-        val topLeft = silverfishChestPos!!.offset(roomFacing!!.opposite, 4).offset(roomFacing!!.rotateYCCW(), 8)
-        val diff = pos.subtract(topLeft)
+        val topLeft = silverfishChestPos!!.offset(roomFacing!!.opposite, 4).offset(roomFacing!!.rotateYCounterclockwise(), 8)
+        val diff = pos.method_10059(topLeft)
 
-        return Point(abs(diff.getValueOnAxis(roomFacing!!.rotateY().axis)), abs(diff.getValueOnAxis(roomFacing!!.opposite.axis)))
+        return Point(abs(diff.getValueOnAxis(roomFacing!!.rotateYClockwise().axis)), abs(diff.getValueOnAxis(roomFacing!!.opposite.axis)))
     }
 
-    private fun BlockPos.getValueOnAxis(axis: EnumFacing.Axis): Int {
+    private fun BlockPos.getValueOnAxis(axis: Direction.Axis): Int {
         return when (axis) {
-            EnumFacing.Axis.X -> this.x
-            EnumFacing.Axis.Y -> this.y
-            EnumFacing.Axis.Z -> this.z
+            Direction.Axis.X -> this.x
+            Direction.Axis.Y -> this.y
+            Direction.Axis.Z -> this.z
         }
     }
 
@@ -177,14 +177,14 @@ object IcePathSolver : EventSubscriber {
         val grid = Array(17) { IntArray(17) }
         for (row in 0..16) {
             for (column in 0..16) {
-                grid[row][column] = if (mc.theWorld.getBlockState(
+                grid[row][column] = if (mc.world.getBlockState(
                         BlockPos(
                             getVec3RelativeToGrid(
                                 column,
                                 row
                             )
                         )
-                    ).block !== Blocks.air
+                    ).block !== Blocks.AIR
                 ) 1 else 0
             }
             if (row == 16) return grid
@@ -247,12 +247,12 @@ object IcePathSolver : EventSubscriber {
         iceCave: Array<IntArray>?,
         iceCaveColors: Array<Array<Point?>>,
         currPos: Point,
-        dir: EnumFacing
+        dir: Direction
     ): Point? {
         val x = currPos.x
         val y = currPos.y
-        val diffX = dir.directionVec.x
-        val diffY = dir.directionVec.z
+        val diffX = dir.vector.x
+        val diffY = dir.vector.z
         var i = 1
         while (x + i * diffX >= 0 && x + i * diffX < iceCave!![0].size && y + i * diffY >= 0 && y + i * diffY < iceCave.size && iceCave[y + i * diffY][x + i * diffX] != 1) {
             i++

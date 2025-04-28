@@ -18,46 +18,41 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
+import gg.essential.universal.UScreen;
 import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.gui.OptionsGui;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.GameMenuScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiIngameMenu;
+import net.minecraft.client.gui.GuiScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(GameMenuScreen.class)
-public class MixinGuiIngameMenu extends Screen {
-    protected MixinGuiIngameMenu(Text title) {
-        super(title);
-    }
+@Mixin(GuiIngameMenu.class)
+public class MixinGuiIngameMenu extends GuiScreen {
 
-    @Inject(method = "init", at = @At("TAIL"))
+    @Inject(method = "initGui", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
         if (Skytils.getConfig().getConfigButtonOnPause()) {
             int x = this.width - 105;
             int y = this.height - 22;
-            for (Element element : this.children()) {
-                if (element instanceof ButtonWidget button) {
-                    int otherX = button.getX();
-                    int otherY = button.getY();
-                    if (otherX >= x && otherY < y + 20) {
-                        y = otherY - 20 - 2;
-                    }
+            for (GuiButton button : this.buttonList) {
+                int otherX = button.xPosition;
+                int otherY = button.yPosition;
+                if (otherX >= x && otherY < y + 20) {
+                    y = otherY - 20 - 2;
                 }
             }
-            this.addDrawableChild(
-                    ButtonWidget.builder(Text.literal("Skytils"), button -> {
-                        Skytils.displayScreen = new OptionsGui();
-                    })
-                            .position(x, Math.max(0, y))
-                            .size(100, 20)
-                            .build()
-            );
+            this.buttonList.add(new GuiButton(6969420, x, Math.max(0, y), 100, 20, "Skytils"));
+        }
+    }
+
+    @Inject(method = "actionPerformed", at = @At("HEAD"), cancellable = true)
+    private void clicked(GuiButton button, CallbackInfo ci) {
+        if (button.id == 6969420 && Skytils.getConfig().getConfigButtonOnPause()) {
+            UScreen.displayScreen(new OptionsGui());
+            ci.cancel();
         }
     }
 }

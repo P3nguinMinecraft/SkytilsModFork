@@ -24,8 +24,8 @@ import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.client.gui.screen.ingame.HandledScreen
 
 object MouseHelperHook : EventSubscriber {
     private var lastOpen = -1L
@@ -38,7 +38,7 @@ object MouseHelperHook : EventSubscriber {
 
     fun onGuiOpen(e: ScreenOpenEvent) {
         val oldGui = mc.currentScreen
-        if (e.screen is GuiChest && (oldGui is GuiContainer || oldGui == null)) {
+        if (e.screen is GenericContainerScreen && (oldGui is HandledScreen || oldGui == null)) {
             lastOpen = System.currentTimeMillis()
         }
     }

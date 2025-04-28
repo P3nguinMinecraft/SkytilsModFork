@@ -18,9 +18,9 @@
 package gg.skytils.skytilsmod.mixins.hooks.util
 
 import gg.essential.universal.wrappers.message.UTextComponent
-import net.minecraft.util.IChatComponent
+import net.minecraft.text.Text
 
-fun fixUTextComponentSerialize(component: IChatComponent): IChatComponent {
+fun fixUTextComponentSerialize(component: Text): Text {
     return if (component is UTextComponent) {
         component.component
     } else component

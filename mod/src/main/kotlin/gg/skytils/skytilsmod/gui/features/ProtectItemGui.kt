@@ -53,7 +53,7 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
     val unprotectedColor = Color(255, 0, 0, 190)
 
     val inventoryState: State<List<ItemStack?>?> by lazy {
-        val inv = mc.thePlayer.inventory.mainInventory.toList()
+        val inv = client.player.inventory.field_7547.toList()
         BasicState(inv.subList(9, inv.size) + inv.subList(0, 9))
     }
 
@@ -70,7 +70,7 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
         }
     } childOf window
 
-    val armorState: State<List<ItemStack?>> = BasicState(mc.thePlayer.inventory.armorInventory.reversed())
+    val armorState: State<List<ItemStack?>> = BasicState(client.player.inventory.field_7548.reversed())
     val armorComponent = WardrobeComponent.ArmorComponent(armorState, true).constrain {
         x = SubtractiveConstraint(inventoryComponent.constraints.x, 50.pixels)
         y = CramSiblingConstraint()
@@ -107,16 +107,16 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
     fun onLeftClickSlot(event: UIClickEvent, slot: SlotComponent): Boolean {
         val item = slot.item ?: return false
         val extraAttributes = ItemUtil.getExtraAttributes(item) ?: return false
-        if (extraAttributes.hasKey("uuid")) {
+        if (extraAttributes.contains("uuid")) {
             val uuid = extraAttributes.getString("uuid")
             if (FavoriteStrategy.favoriteUUIDs.remove(uuid)) {
                 PersistentSave.Companion.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-                UChat.chat("${Skytils.successPrefix} §cI will no longer protect your ${item.displayName}§a!")
+                UChat.chat("${Skytils.successPrefix} §cI will no longer protect your ${item.name}§a!")
                 return true
             } else {
                 FavoriteStrategy.favoriteUUIDs.add(uuid)
                 PersistentSave.Companion.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-                UChat.chat("${Skytils.successPrefix} §aI will now protect your ${item.displayName}!")
+                UChat.chat("${Skytils.successPrefix} §aI will now protect your ${item.name}!")
                 return true
             }
         } else {

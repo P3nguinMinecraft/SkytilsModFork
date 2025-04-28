@@ -24,28 +24,28 @@ import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.RenderUtil.getPartialTicks
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
-import net.minecraft.client.model.ModelBase
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.tileentity.TileEntitySkullRenderer
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.ResourceLocation
+import net.minecraft.client.render.entity.model.EntityModel
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer
+import net.minecraft.entity.LivingEntity
+import net.minecraft.util.math.Direction
+import net.minecraft.util.Identifier
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-val instance: TileEntitySkullRenderer = TileEntitySkullRenderer.instance
-private val enchantedItemGlintResource = ResourceLocation("textures/misc/enchanted_item_glint.png")
+val instance: SkullBlockEntityRenderer = SkullBlockEntityRenderer.INSTANCE
+private val enchantedItemGlintResource = Identifier("textures/misc/enchanted_item_glint.png")
 
 fun addGlintToSkull(
     x: Float,
     y: Float,
     z: Float,
-    face: EnumFacing,
+    face: Direction,
     rotation: Float,
     type: Int,
     profile: GameProfile?,
     p_180543_8_: Int,
     ci: CallbackInfo,
-    model: ModelBase
+    model: EntityModel
 ) {
     if (Utils.lastRenderedSkullStack != null && Utils.lastRenderedSkullEntity != null) {
         val itemId = getSkyBlockItemID(Utils.lastRenderedSkullStack)
@@ -55,36 +55,36 @@ fun addGlintToSkull(
     }
 }
 
-fun renderGlint(entity: EntityLivingBase?, model: ModelBase?, rotation: Float, color: CustomColor?) {
+fun renderGlint(entity: LivingEntity?, model: EntityModel?, rotation: Float, color: CustomColor?) {
     val partialTicks = getPartialTicks()
-    val f = entity!!.ticksExisted.toFloat() + partialTicks
-    mc.textureManager.bindTexture(enchantedItemGlintResource)
-    GlStateManager.enableBlend()
-    GlStateManager.depthFunc(514)
-    GlStateManager.depthMask(false)
+    val f = entity!!.age.toFloat() + partialTicks
+    mc.textureManager.bindTextureInner(enchantedItemGlintResource)
+    RenderSystem.enableBlend()
+    RenderSystem.depthFunc(514)
+    RenderSystem.depthMask(false)
     val f1 = 0.5f
-    GlStateManager.color(f1, f1, f1, 1.0f)
+    RenderSystem.setShaderColor(f1, f1, f1, 1.0f)
     //GlintCustomizer.glintColors.get(itemId).applyColor();
     for (i in 0..1) {
-        GlStateManager.disableLighting()
-        GlStateManager.blendFunc(768, 1)
+        RenderSystem.method_4406()
+        RenderSystem.blendFunc(768, 1)
         val f2 = 0.76f
-        if (color == null) GlStateManager.color(0.5f * f2, 0.25f * f2, 0.8f * f2, 1.0f) else color.applyColor()
-        GlStateManager.matrixMode(5890)
-        GlStateManager.loadIdentity()
+        if (color == null) RenderSystem.setShaderColor(0.5f * f2, 0.25f * f2, 0.8f * f2, 1.0f) else color.applyColor()
+        RenderSystem.method_4440(5890)
+        RenderSystem.loadIdentitiy()
         val f3 = 0.33333334f
-        GlStateManager.scale(f3, f3, f3)
-        GlStateManager.rotate(30.0f - i.toFloat() * 60.0f, 0.0f, 0.0f, 1.0f)
-        GlStateManager.translate(0.0f, f * (0.001f + i.toFloat() * 0.003f) * 20.0f, 0.0f)
-        GlStateManager.matrixMode(5888)
-        model!!.render(null, 0f, 0f, 0f, rotation, 0f, f)
+        RenderSystem.method_4384(f3, f3, f3)
+        RenderSystem.method_4445(30.0f - i.toFloat() * 60.0f, 0.0f, 0.0f, 1.0f)
+        RenderSystem.method_4348(0.0f, f * (0.001f + i.toFloat() * 0.003f) * 20.0f, 0.0f)
+        RenderSystem.method_4440(5888)
+        model!!.setAngles(null, 0f, 0f, 0f, rotation, 0f, f)
     }
-    GlStateManager.matrixMode(5890)
-    GlStateManager.loadIdentity()
-    GlStateManager.matrixMode(5888)
-    GlStateManager.enableLighting()
-    GlStateManager.depthMask(true)
-    GlStateManager.depthFunc(515)
+    RenderSystem.method_4440(5890)
+    RenderSystem.loadIdentitiy()
+    RenderSystem.method_4440(5888)
+    RenderSystem.method_4394()
+    RenderSystem.depthMask(true)
+    RenderSystem.depthFunc(515)
     //GlStateManager.disableBlend();
-    GlStateManager.blendFunc(770, 771)
+    RenderSystem.blendFunc(770, 771)
 }

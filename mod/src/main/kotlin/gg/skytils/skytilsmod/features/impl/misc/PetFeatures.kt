@@ -37,11 +37,11 @@ import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.setHoverText
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.event.ClickEvent
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.network.play.client.C02PacketUseEntity
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.text.ClickEvent
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
 
 object PetFeatures : EventSubscriber {
     val petItems = HashMap<String, Boolean>()
@@ -61,7 +61,7 @@ object PetFeatures : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        val message = event.message.formattedText
+        val message = event.message.method_10865()
         if (message.startsWith("§r§aYou despawned your §r§")) {
             lastPet = null
         } else if (message.startsWith("§r§aYou summoned your §r")) {
@@ -78,14 +78,14 @@ object PetFeatures : EventSubscriber {
     }
 
     fun onDraw(event: GuiContainerPreDrawSlotEvent) {
-        if (!Utils.inSkyblock || event.container !is ContainerChest) return
-        if (Skytils.config.highlightActivePet && (SBInfo.lastOpenContainerName?.startsWith("Pets") == true) && event.slot.hasStack && event.slot.slotNumber in 10..43) {
+        if (!Utils.inSkyblock || event.container !is GenericContainerScreenHandler) return
+        if (Skytils.config.highlightActivePet && (SBInfo.lastOpenContainerName?.startsWith("Pets") == true) && event.slot.hasStack() && event.slot.id in 10..43) {
             val item = event.slot.stack
             for (line in getItemLore(item)) {
                 if (line.startsWith("§7§cClick to despawn")) {
-                    GlStateManager.translate(0f, 0f, 3f)
+                    RenderSystem.method_4348(0f, 0f, 3f)
                     event.slot highlight Skytils.config.activePetColor
-                    GlStateManager.translate(0f, 0f, -3f)
+                    RenderSystem.method_4348(0f, 0f, -3f)
                     break
                 }
             }
@@ -94,8 +94,8 @@ object PetFeatures : EventSubscriber {
 
     fun onSendPacket(event: PacketSendEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.petItemConfirmation && (event.packet is C02PacketUseEntity || event.packet is C08PacketPlayerBlockPlacement)) {
-            val item = mc.thePlayer.heldItem ?: return
+        if (Skytils.config.petItemConfirmation && (event.packet is PlayerInteractEntityC2SPacket || event.packet is PlayerInteractBlockC2SPacket)) {
+            val item = mc.player.method_0_7087() ?: return
             val itemId = getSkyBlockItemID(item) ?: return
             if (itemId !in petItems) {
                 val isPetItem =

@@ -33,8 +33,8 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.displayNameStr
 import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
 import gg.skytils.skytilsmod.utils.toStringIfTrue
-import net.minecraft.init.Blocks
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.block.Blocks
+import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 
@@ -54,15 +54,15 @@ object ProtectItems : EventSubscriber {
         if (!Utils.inSkyblock) return
         val item =
             //#if MC==10809
-            mc.thePlayer?.inventory?.itemStack ?: return
+            //$$ mc.player?.inventory?.cursorStack ?: return
             //#else
-            //$$ event.container.cursorStack
+            event.container.cursorStack
             //#endif
         val extraAttr = ItemUtil.getExtraAttributes(item)
         val strategy = ItemProtectStrategy.findValidStrategy(item, extraAttr, ItemProtectStrategy.ProtectType.USERCLOSEWINDOW) ?: return
-        for (slot in event.container.inventorySlots) {
-            if (slot.inventory !== mc.thePlayer?.inventory || slot.hasStack || !slot.isItemValid(item)) continue
-            mc.playerController?.windowClick(event.container.windowId, slot.slotNumber, 0, SlotActionType.PICKUP, mc.thePlayer)
+        for (slot in event.container.slots) {
+            if (slot.inventory !== mc.player?.inventory || slot.hasStack() || !slot.canInsert(item)) continue
+            mc.interactionManager?.clickSlot(event.container.syncId, slot.id, 0, SlotActionType.PICKUP, mc.player)
             notifyStopped(null, "dropping", strategy)
             return
         }
@@ -78,21 +78,21 @@ object ProtectItems : EventSubscriber {
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inSkyblock) return
-        if (event.container is ContainerChest && ItemProtectStrategy.isAnyToggled()) {
-            val inv = (event.container as ContainerChest).lowerChestInventory
+        if (event.container is GenericContainerScreenHandler && ItemProtectStrategy.isAnyToggled()) {
+            val inv = (event.container as GenericContainerScreenHandler).inventory
             val chestName = event.chestName
-            if (event.slot != null && event.slot!!.hasStack) {
+            if (event.slot != null && event.slot!!.hasStack()) {
                 var item: ItemStack = event.slot!!.stack ?: return
                 var extraAttr = ItemUtil.getExtraAttributes(item)
                 if (chestName.startsWith("Salvage")) {
                     var inSalvageGui = false
                     if (item.displayNameStr.contains("Salvage") || item.displayNameStr.contains("Essence")) {
-                        val salvageItem = inv.getStackInSlot(13) ?: return
+                        val salvageItem = inv.getStack(13) ?: return
                         item = salvageItem
                         extraAttr = ItemUtil.getExtraAttributes(item) ?: return
                         inSalvageGui = true
                     }
-                    if (inSalvageGui || event.slot!!.inventory === mc.thePlayer?.inventory) {
+                    if (inSalvageGui || event.slot!!.inventory === mc.player?.inventory) {
                         val strategy = ItemProtectStrategy.findValidStrategy(
                             item,
                             extraAttr,
@@ -104,15 +104,15 @@ object ProtectItems : EventSubscriber {
                         }
                     }
                 }
-                if (chestName != "Large Chest" && inv.sizeInventory == 54) {
+                if (chestName != "Large Chest" && inv.size() == 54) {
                     if (!chestName.contains("Auction")) {
-                        val sellItem = inv.getStackInSlot(49)
+                        val sellItem = inv.getStack(49)
                         if (sellItem != null) {
                             if (sellItem.item === hopperItem && sellItem.displayNameStr.contains(
                                     "Sell Item"
                                 ) || ItemUtil.getItemLore(sellItem).any { s: String -> s.contains("buyback") }
                             ) {
-                                if (event.slotId != 49 && event.slot!!.inventory === mc.thePlayer?.inventory) {
+                                if (event.slotId != 49 && event.slot!!.inventory === mc.player?.inventory) {
                                     val strategy = ItemProtectStrategy.findValidStrategy(
                                         item,
                                         extraAttr,
@@ -126,7 +126,7 @@ object ProtectItems : EventSubscriber {
                             }
                         }
                     } else if (event.slotId == 29 && chestName.startsWith("Create ") && chestName.endsWith(" Auction")) {
-                        val itemForSale = inv.getStackInSlot(13)
+                        val itemForSale = inv.getStack(13)
                         if (itemForSale != null) {
                             val strategy = ItemProtectStrategy.findValidStrategy(
                                 itemForSale,
@@ -144,9 +144,9 @@ object ProtectItems : EventSubscriber {
         }
         val cursorStack =
             //#if MC==10809
-            mc.thePlayer?.inventory?.itemStack
+            //$$ mc.player?.inventory?.cursorStack
             //#else
-            //$$ event.container.cursorStack
+            event.container.cursorStack
             //#endif
         if (event.slotId == -999 && cursorStack != null && event.clickType != 5) {
             val extraAttr = ItemUtil.getExtraAttributes(cursorStack)
@@ -156,7 +156,7 @@ object ProtectItems : EventSubscriber {
                 return
             }
         }
-        if (event.clickType == 4 && event.slotId != -999 && event.slot != null && event.slot!!.hasStack) {
+        if (event.clickType == 4 && event.slotId != -999 && event.slot != null && event.slot!!.hasStack()) {
             val item = event.slot!!.stack
             val extraAttr = ItemUtil.getExtraAttributes(item)
             val strategy = ItemProtectStrategy.findValidStrategy(item, extraAttr, ItemProtectStrategy.ProtectType.DROPKEYININVENTORY)
@@ -175,8 +175,8 @@ object ProtectItems : EventSubscriber {
 
     private val hopperItem =
         //#if MC==10809
-        Item.getItemFromBlock(Blocks.hopper)
+        //$$ Item.fromBlock(Blocks.field_0_787)
         //#else
-        //$$ Blocks.HOPPER.asItem()
+        Blocks.HOPPER.asItem()
         //#endif
 }

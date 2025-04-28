@@ -53,12 +53,12 @@ object CommandAliases : PersistentSave(File(Skytils.modDir, "commandaliases.json
                             )
                         }"
                     if (event.addToHistory) {
-                        mc.ingameGUI.chatGUI.addToSentMessages(msg)
+                        mc.inGameHud.chatHud.addToMessageHistory(msg)
                     }
                     if (runClientCommand(msg) != 0) return
                     Skytils.sendMessageQueue.add(msg)
                 } catch (ignored: IllegalFormatException) {
-                    if (event.addToHistory) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
+                    if (event.addToHistory) mc.inGameHud.chatHud.addToMessageHistory(event.message)
                     UChat.chat("$failPrefix §cYou did not specify the correct amount of arguments for this alias!")
                 }
             } else {
@@ -74,12 +74,12 @@ object CommandAliases : PersistentSave(File(Skytils.modDir, "commandaliases.json
                             )
                         }"
                     if (event.addToHistory) {
-                        mc.ingameGUI.chatGUI.addToSentMessages(msg)
+                        mc.inGameHud.chatHud.addToMessageHistory(msg)
                     }
                     if (runClientCommand(msg) != 0) return
                     Skytils.sendMessageQueue.add(msg)
                 } catch (ignored: IllegalFormatException) {
-                    if (event.addToHistory) mc.ingameGUI.chatGUI.addToSentMessages(event.message)
+                    if (event.addToHistory) mc.inGameHud.chatHud.addToMessageHistory(event.message)
                     UChat.chat("$failPrefix §cYou did not specify the correct amount of arguments for this alias!")
                 }
             }

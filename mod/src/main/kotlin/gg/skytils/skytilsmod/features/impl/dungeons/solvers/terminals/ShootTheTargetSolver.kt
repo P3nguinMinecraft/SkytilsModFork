@@ -29,11 +29,11 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.block.BlockPressurePlateWeighted
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Blocks
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
+import net.minecraft.block.WeightedPressurePlateBlock
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
 object ShootTheTargetSolver : EventSubscriber {
@@ -58,12 +58,12 @@ object ShootTheTargetSolver : EventSubscriber {
         val old = event.old
         val state = event.update
         if (positions.contains(pos)) {
-            if (old.block == Blocks.emerald_block && state.block == Blocks.stained_hardened_clay) {
+            if (old.block == Blocks.EMERALD_BLOCK && state.block == Blocks.STAINED_HARDENED_CLAY) {
                 shot.add(pos)
             }
-        } else if (pos == plate && state.block is BlockPressurePlateWeighted) {
-            if (state.getValue(BlockPressurePlateWeighted.POWER) == 0 || old !is BlockPressurePlateWeighted || old.getValue(
-                    BlockPressurePlateWeighted.POWER
+        } else if (pos == plate && state.block is WeightedPressurePlateBlock) {
+            if (state.testProperty(WeightedPressurePlateBlock.POWER) == 0 || old !is WeightedPressurePlateBlock || old.testProperty(
+                    WeightedPressurePlateBlock.POWER
                 ) == 0
             ) {
                 shot.clear()
@@ -80,14 +80,14 @@ object ShootTheTargetSolver : EventSubscriber {
             val x = pos.x - viewerX
             val y = pos.y - viewerY
             val z = pos.z - viewerZ
-            GlStateManager.disableCull()
+            RenderSystem.disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
-                AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
+                Box(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Color.RED,
                 0.5f
             )
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
         }
     }
 

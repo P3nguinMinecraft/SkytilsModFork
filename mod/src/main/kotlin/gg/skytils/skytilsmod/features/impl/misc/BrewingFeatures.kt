@@ -28,14 +28,14 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.tileentity.TileEntityBrewingStand
-import net.minecraft.util.BlockPos
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
+import net.minecraft.block.entity.BrewingStandBlockEntity
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
 object BrewingFeatures : EventSubscriber {
-    var lastBrewingStand: TileEntityBrewingStand? = null
+    var lastBrewingStand: BrewingStandBlockEntity? = null
     val brewingStandToTimeMap = hashMapOf<BlockPos, Long>()
     val timeRegex = Regex("§a(?<sec>\\d+(?:.\\d)?)s")
     private val green = Color(0, 255, 0, 128)
@@ -45,7 +45,7 @@ object BrewingFeatures : EventSubscriber {
         tickTimer(100, repeats = true) {
             if (!Skytils.config.colorBrewingStands || !Utils.inSkyblock || SBInfo.mode != SkyblockIsland.PrivateIsland.mode) return@tickTimer
             brewingStandToTimeMap.entries.removeIf {
-                mc.theWorld?.getTileEntity(it.key) !is TileEntityBrewingStand
+                mc.world?.getBlockEntity(it.key) !is BrewingStandBlockEntity
             }
         }
     }
@@ -58,16 +58,16 @@ object BrewingFeatures : EventSubscriber {
 
     fun onPacketSend(event: PacketSendEvent<*>) {
         if (!Skytils.config.colorBrewingStands || !Utils.inSkyblock || SBInfo.mode != SkyblockIsland.PrivateIsland.mode) return
-        if (event.packet is C08PacketPlayerBlockPlacement && event.packet.position.y != -1) {
-            lastBrewingStand = mc.theWorld.getTileEntity(event.packet.position) as? TileEntityBrewingStand ?: return
+        if (event.packet is PlayerInteractBlockC2SPacket && event.packet.method_12548().y != -1) {
+            lastBrewingStand = mc.world.getBlockEntity(event.packet.method_12548()) as? BrewingStandBlockEntity ?: return
         }
     }
 
     fun onContainerUpdate(event: GuiContainerBackgroundDrawnEvent) {
         if (!Skytils.config.colorBrewingStands || !Utils.inSkyblock || SBInfo.mode != SkyblockIsland.PrivateIsland.mode) return
-        if (lastBrewingStand == null || event.container !is ContainerChest || event.chestName != "Brewing Stand") return
+        if (lastBrewingStand == null || event.container !is GenericContainerScreenHandler || event.chestName != "Brewing Stand") return
         val timeSlot = event.container.getSlot(22).stack ?: return
-        val time = timeRegex.find(timeSlot.displayName)?.groups?.get("sec")?.value?.toDoubleOrNull() ?: 0.0
+        val time = timeRegex.find(timeSlot.name)?.groups?.get("sec")?.value?.toDoubleOrNull() ?: 0.0
         brewingStandToTimeMap[lastBrewingStand!!.pos] = System.currentTimeMillis() + (time * 1000L).toLong()
     }
 

@@ -24,9 +24,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Entity.class)
 public interface AccessorEntity {
-    @Accessor
+    @Accessor("fireTicks")
     int getFire();
 
-    @Accessor
+    @Accessor("fireTicks")
     void setFire(int fire);
 }

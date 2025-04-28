@@ -32,9 +32,9 @@ import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.block.Blocks
+import net.minecraft.util.math.BlockPos
 
 object ThreeWeirdosSolver : EventSubscriber {
     val solutions = hashSetOf<String>()
@@ -50,7 +50,7 @@ object ThreeWeirdosSolver : EventSubscriber {
     }
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Skytils.config.threeWeirdosSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Three Weirdos")) return
-        val formatted = event.message.formattedText
+        val formatted = event.message.method_10865()
         if (formatted.startsWith("§a§lPUZZLE SOLVED!") && "wasn't fooled by " in formatted) {
             riddleNPC = null
             riddleChest = null
@@ -68,13 +68,13 @@ object ThreeWeirdosSolver : EventSubscriber {
                 riddleNPC = npcName
                 UChat.chat("$prefix §a§l${npcName.stripControlCodes()} §2has the blessing.")
 
-                mc.theWorld?.loadedEntityList?.find {
-                    it is EntityArmorStand && riddleNPC!! in it.customNameTag
+                mc.world?.entities?.find {
+                    it is ArmorStandEntity && riddleNPC!! in it.customName
                 }?.let {
-                    riddleChest = UDirection.HORIZONTALS.map { dir -> it.position.offset(dir)  }.find {
-                        mc.theWorld?.getBlockState(it)?.block == Blocks.chest
+                    riddleChest = UDirection.HORIZONTALS.map { dir -> it.blockPos.method_10093(dir)  }.find {
+                        mc.world?.getBlockState(it)?.block == Blocks.field_0_680
                     }
-                    println("Riddle NPC ${it.customNameTag} @ ${it.position} w/ chest @ $riddleChest")
+                    println("Riddle NPC ${it.customName} @ ${it.blockPos} w/ chest @ $riddleChest")
                 }
             }
         }

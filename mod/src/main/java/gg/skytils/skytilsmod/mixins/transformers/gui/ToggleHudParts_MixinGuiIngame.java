@@ -19,14 +19,14 @@
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
 import gg.skytils.skytilsmod.Skytils;
-import net.minecraftforge.client.GuiIngameForge;
+import net.minecraft.client.gui.hud.InGameHud;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(GuiIngameForge.class)
+@Mixin(InGameHud.class)
 public class ToggleHudParts_MixinGuiIngame {
     //TODO update when remapping between versions
     @Unique

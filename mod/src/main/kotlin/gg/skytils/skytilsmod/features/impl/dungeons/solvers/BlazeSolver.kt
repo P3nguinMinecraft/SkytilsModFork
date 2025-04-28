@@ -18,7 +18,7 @@
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
 //#if MC >= 11404
-//$$ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
 //#endif
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
@@ -38,13 +38,13 @@ import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.coroutines.launch
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.monster.EntityBlaze
-import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.mob.BlazeEntity
+import net.minecraft.block.Blocks
+import net.minecraft.block.entity.ChestBlockEntity
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Vec3d
 
 object BlazeSolver : EventSubscriber {
     var orderedBlazes = arrayListOf<ShootableBlaze>()
@@ -81,39 +81,39 @@ object BlazeSolver : EventSubscriber {
     }
 
     fun detectOrientation() {
-        if (blazeMode == 0 && orderedBlazes.size > 0 && mc.thePlayer != null) {
+        if (blazeMode == 0 && orderedBlazes.size > 0 && mc.player != null) {
             Skytils.launch {
                 //#if MC<=11202
-                val blazes = mc.theWorld.getEntities(
-                    EntityBlaze::class.java
-                ) { blaze: EntityBlaze? -> mc.thePlayer.getDistanceSqToEntity(blaze) < 100 * 100 }
+                //$$ val blazes = mc.world.method_8490(
+                //$$     BlazeEntity::class.java
+                //$$ ) { blaze: BlazeEntity? -> mc.player.squaredDistanceTo(blaze) < 100 * 100 }
                 //#else
-                //$$ val blazes = mc.world!!.getEntitiesByClass(BlazeEntity::class.java, mc.player!!.boundingBox.expand(100.0)) { true }
+                val blazes = mc.world!!.getEntitiesByClass(BlazeEntity::class.java, mc.player!!.boundingBox.expand(100.0)) { true }
                 //#endif
                 if (blazes.size > 10) {
                     println("More than 10 blazes, was there an update?")
                 } else if (blazes.size > 0) {
                     val diffY = 5 * (10 - blazes.size)
                     val blaze = blazes[0]
-                    val blazeX = blaze.posX.toInt()
-                    val blazeZ = blaze.posZ.toInt()
+                    val blazeX = blaze.x.toInt()
+                    val blazeZ = blaze.z.toInt()
                     val xRange = blazeX - 13..blazeX + 13
                     val zRange = blazeZ - 13..blazeZ + 13
                     val y1 = 70 + diffY
                     val y2 = 69 - diffY
                     //#if MC<=11202
-                    findChest@ for (te in mc.theWorld.loadedTileEntityList) {
+                    //$$ findChest@ for (te in mc.world.field_0_262) {
                     //#else
-                    //$$ findChest@ for (te in (mc.world!! as AccessorWorld).blockEntityTickers) {
+                    findChest@ for (te in (mc.world!! as AccessorWorld).blockEntityTickers) {
                     //#endif
                         val pos = te.pos
                         if ((pos.y == y1 || pos.y == y2) && pos.x in xRange && pos.z in zRange) {
                             //#if MC<=11202
-                            if (te is TileEntityChest && te.numPlayersUsing == 0) {
+                            //$$ if (te is ChestBlockEntity && te.viewerCount == 0) {
                             //#else
-                            //$$ if (te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world!!, pos) == 0) {
+                            if (te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world!!, pos) == 0) {
                             //#endif
-                                if (mc.theWorld!!.getBlockState(pos.up()).block == Blocks.iron_bars) {
+                                if (mc.world!!.getBlockState(pos.up()).block == Blocks.IRON_BARS) {
                                     if (pos.y == y1) {
                                         blazeChest = pos
                                         if (blazes.size < 10) {
@@ -134,7 +134,7 @@ object BlazeSolver : EventSubscriber {
                         }
                     }
                     if (blazeChest != null && blazes.size == 10) {
-                        blazeMode = if (mc.theWorld!!.getBlockState(blazeChest!!.down()).block == Blocks.stone) {
+                        blazeMode = if (mc.world!!.getBlockState(blazeChest!!.method_10074()).block == Blocks.STONE) {
                             println("Bottom block scanning determined lowest -> highest")
                             -1
                         } else {
@@ -148,15 +148,15 @@ object BlazeSolver : EventSubscriber {
     }
 
     fun calcOrder() {
-        if (mc.theWorld == null) return
+        if (mc.world == null) return
         orderedBlazes.clear()
-        for (entity in mc.theWorld!!.loadedEntityList) {
+        for (entity in mc.world!!.entities) {
             //#if MC<=11202
-            if (entity is EntityArmorStand && entity.name.contains("Blaze") && entity.name.contains("/")) {
-                val blazeName = entity.name.stripControlCodes()
+            //$$ if (entity is ArmorStandEntity && entity.name.contains("Blaze") && entity.name.contains("/")) {
+            //$$     val blazeName = entity.name.stripControlCodes()
             //#else
-            //$$ if (entity is ArmorStandEntity && entity.name.string.contains("Blaze") && entity.name.string.contains("/")) {
-            //$$   val blazeName = entity.name.string.stripControlCodes()
+            if (entity is ArmorStandEntity && entity.name.string.contains("Blaze") && entity.name.string.contains("/")) {
+              val blazeName = entity.name.string.stripControlCodes()
             //#endif
                 try {
                     val health =
@@ -165,20 +165,20 @@ object BlazeSolver : EventSubscriber {
                         if (blazeMode == -1 && health <= lastKilledBlazeHp) continue
                         if (blazeMode == 1 && health >= lastKilledBlazeHp) continue
                     }
-                    val aabb = AxisAlignedBB(
-                        entity.posX - 0.5,
-                        entity.posY - 2,
-                        entity.posZ - 0.5,
-                        entity.posX + 0.5,
-                        entity.posY,
-                        entity.posZ + 0.5
+                    val aabb = Box(
+                        entity.x - 0.5,
+                        entity.y - 2,
+                        entity.z - 0.5,
+                        entity.x + 0.5,
+                        entity.y,
+                        entity.z + 0.5
                     )
                     //#if MC<=11202
-                    val blazes = mc.theWorld.getEntitiesWithinAABB(
-                        EntityBlaze::class.java, aabb
-                    )
+                    //$$ val blazes = mc.world.method_0_319(
+                    //$$     BlazeEntity::class.java, aabb
+                    //$$ )
                     //#else
-                    //$$ val blazes = mc.world!!.getEntitiesByClass(BlazeEntity::class.java, aabb) { true}
+                    val blazes = mc.world!!.getEntitiesByClass(BlazeEntity::class.java, aabb) { true}
                     //#endif
                     if (blazes.isEmpty()) continue
                     orderedBlazes.add(ShootableBlaze(blazes[0], health))
@@ -208,7 +208,7 @@ object BlazeSolver : EventSubscriber {
     }
 
     fun onEntityDeath(event: LivingEntityDeathEvent) {
-        if (event.entity is EntityBlaze && orderedBlazes.isNotEmpty()) {
+        if (event.entity is BlazeEntity && orderedBlazes.isNotEmpty()) {
             orderedBlazes.firstOrNull { it.blaze == event.entity }?.let {
                 orderedBlazes.remove(it)
                 lastKilledBlazeHp = it.health
@@ -223,7 +223,7 @@ object BlazeSolver : EventSubscriber {
                 val shootableBlaze = orderedBlazes.first()
                 val lowestBlaze = shootableBlaze.blaze
                 RenderUtil.drawLabel(
-                    Vec3(lowestBlaze.posX, lowestBlaze.posY + 3, lowestBlaze.posZ),
+                    Vec3d(lowestBlaze.x, lowestBlaze.y + 3, lowestBlaze.z),
                     "§lSmallest",
                     Skytils.config.lowestBlazeColor,
                     event.partialTicks,
@@ -232,8 +232,8 @@ object BlazeSolver : EventSubscriber {
                 if (Skytils.config.lineToNextBlaze) {
                     val secondLowestBlaze = orderedBlazes.getOrNull(1)?.blaze ?: return
                     RenderUtil.draw3DLine(
-                        Vec3(lowestBlaze.posX, lowestBlaze.posY + 1.5, lowestBlaze.posZ),
-                        Vec3(secondLowestBlaze.posX, secondLowestBlaze.posY + 1.5, secondLowestBlaze.posZ),
+                        Vec3d(lowestBlaze.x, lowestBlaze.y + 1.5, lowestBlaze.z),
+                        Vec3d(secondLowestBlaze.x, secondLowestBlaze.y + 1.5, secondLowestBlaze.z),
                         5,
                         Skytils.config.lineToNextBlazeColor,
                         event.partialTicks,
@@ -245,7 +245,7 @@ object BlazeSolver : EventSubscriber {
                 val shootableBlaze = orderedBlazes.last()
                 val highestBlaze = shootableBlaze.blaze
                 RenderUtil.drawLabel(
-                    Vec3(highestBlaze.posX, highestBlaze.posY + 3, highestBlaze.posZ),
+                    Vec3d(highestBlaze.x, highestBlaze.y + 3, highestBlaze.z),
                     "§lBiggest",
                     Skytils.config.highestBlazeColor,
                     event.partialTicks,
@@ -254,8 +254,8 @@ object BlazeSolver : EventSubscriber {
                 if (Skytils.config.lineToNextBlaze) {
                     val secondHighestBlaze = orderedBlazes.getOrNull(orderedBlazes.size - 2)?.blaze ?: return
                     RenderUtil.draw3DLine(
-                        Vec3(highestBlaze.posX, highestBlaze.posY + 1.5, highestBlaze.posZ),
-                        Vec3(secondHighestBlaze.posX, secondHighestBlaze.posY + 1.5, secondHighestBlaze.posZ),
+                        Vec3d(highestBlaze.x, highestBlaze.y + 1.5, highestBlaze.z),
+                        Vec3d(secondHighestBlaze.x, secondHighestBlaze.y + 1.5, secondHighestBlaze.z),
                         5,
                         Skytils.config.lineToNextBlazeColor,
                         event.partialTicks,
@@ -283,5 +283,5 @@ object BlazeSolver : EventSubscriber {
         }
     }
 
-    data class ShootableBlaze(@JvmField var blaze: EntityBlaze, var health: Int)
+    data class ShootableBlaze(@JvmField var blaze: BlazeEntity, var health: Int)
 }

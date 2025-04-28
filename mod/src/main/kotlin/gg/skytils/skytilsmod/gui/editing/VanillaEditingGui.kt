@@ -27,14 +27,14 @@ import gg.skytils.skytilsmod.core.structure.ResizeButton
 import gg.skytils.skytilsmod.core.structure.ResizeButton.Corner
 import gg.skytils.skytilsmod.gui.ReopenableGUI
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.gui.widget.ClickableWidget
+import net.minecraft.client.gui.screen.Screen
+import com.mojang.blaze3d.systems.RenderSystem
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.Display
 import java.awt.Color
 
-open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
+open class VanillaEditingGui : Screen(), ReopenableGUI {
     private var xOffset = 0f
     private var yOffset = 0f
     private var resizing = false
@@ -42,54 +42,54 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
     private var dragging: GuiElement? = null
     private val locationButtons: MutableMap<GuiElement?, LocationButton> = HashMap()
     private var scaleCache = 0f
-    override fun doesGuiPauseGame() = false
+    override fun method_2222() = false
 
-    override fun initGui() {
+    override fun init() {
         for ((_, value) in Skytils.guiManager.elements) {
             val lb = LocationButton(value)
-            buttonList.add(lb)
+            widgetList.add(lb)
             locationButtons[value] = lb
         }
     }
 
-    override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun render(mouseX: Int, mouseY: Int, partialTicks: Float) {
         onMouseMove(mouseX, mouseY)
         recalculateResizeButtons()
-        drawGradientRect(0, 0, width, height, Color(0, 0, 0, 50).rgb, Color(0, 0, 0, 200).rgb)
-        for (button in buttonList) {
+        fillGradient(0, 0, width, height, Color(0, 0, 0, 50).rgb, Color(0, 0, 0, 200).rgb)
+        for (button in widgetList) {
             if (button is LocationButton) {
                 if (button.element.toggled) {
-                    GlStateManager.pushMatrix()
+                    RenderSystem.pushMatrix()
                     val scale = button.element.scale
-                    GlStateManager.translate(button.x, button.y, 0f)
-                    GlStateManager.scale(scale.toDouble(), scale.toDouble(), 1.0)
-                    button.drawButton(mc, mouseX, mouseY)
-                    GlStateManager.popMatrix()
-                    if (button.isMouseOver) {
-                        GlStateManager.translate(0f, 0f, 100f)
-                        drawHoveringText(listOf(button.element.name), mouseX, mouseY)
-                        GlStateManager.translate(0f, 0f, -100f)
+                    RenderSystem.method_4348(button.x, button.y, 0f)
+                    RenderSystem.method_4453(scale.toDouble(), scale.toDouble(), 1.0)
+                    button.render(client, mouseX, mouseY)
+                    RenderSystem.popMatrix()
+                    if (button.isHovered) {
+                        RenderSystem.method_4348(0f, 0f, 100f)
+                        method_2211(listOf(button.element.name), mouseX, mouseY)
+                        RenderSystem.method_4348(0f, 0f, -100f)
                     }
                 }
             } else if (button is ResizeButton) {
                 val element = button.element
-                GlStateManager.pushMatrix()
+                RenderSystem.pushMatrix()
                 val scale = element.scale
-                GlStateManager.translate(button.x, button.y, 0f)
-                GlStateManager.scale(scale.toDouble(), scale.toDouble(), 1.0)
-                button.drawButton(mc, mouseX, mouseY)
-                GlStateManager.popMatrix()
+                RenderSystem.method_4348(button.x, button.y, 0f)
+                RenderSystem.method_4453(scale.toDouble(), scale.toDouble(), 1.0)
+                button.render(client, mouseX, mouseY)
+                RenderSystem.popMatrix()
             } else {
-                button.drawButton(mc, mouseX, mouseY)
+                button.render(client, mouseX, mouseY)
             }
         }
     }
 
-    public override fun actionPerformed(button: GuiButton) {
+    public override fun method_0_2778(button: ClickableWidget) {
         val sr = UResolution
         val minecraftScale = sr.scaleFactor.toFloat()
         val floatMouseX = Mouse.getX() / minecraftScale
-        val floatMouseY = (mc.displayHeight - Mouse.getY()) / minecraftScale
+        val floatMouseY = (client.field_0_2582 - Mouse.getY()) / minecraftScale
         if (button is LocationButton) {
             dragging = button.element
             xOffset = floatMouseX - dragging!!.scaleX
@@ -104,17 +104,17 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
         }
     }
 
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
+    override fun method_0_2775(mouseX: Int, mouseY: Int, mouseButton: Int) {
         when (mouseButton) {
-            1 -> buttonList.filterIsInstance<LocationButton>().filter { it.mousePressed(mc, mouseX, mouseY) }.forEach {
+            1 -> widgetList.filterIsInstance<LocationButton>().filter { it.clicked(client, mouseX, mouseY) }.forEach {
                 it.element.setPos(10, 10)
                 it.element.scale = 1f
             }
-            2 -> buttonList.filterIsInstance<LocationButton>().filter { it.mousePressed(mc, mouseX, mouseY) }.forEach {
+            2 -> widgetList.filterIsInstance<LocationButton>().filter { it.clicked(client, mouseX, mouseY) }.forEach {
                 it.element.textShadow = SmartFontRenderer.TextShadow.entries[(it.element.textShadow.ordinal + 1) % SmartFontRenderer.TextShadow.entries.size]
             }
         }
-        super.mouseClicked(mouseX, mouseY, mouseButton)
+        super.method_0_2775(mouseX, mouseY, mouseButton)
     }
 
     /**
@@ -164,7 +164,7 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
                 null -> {}
             }
 
-            locationButton.drawButton(mc, mouseX, mouseY)
+            locationButton.render(client, mouseX, mouseY)
             recalculateResizeButtons()
         } else if (dragging != null) {
             val x = (floatMouseX - xOffset) / sr.scaledWidth.toFloat()
@@ -175,21 +175,21 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
     }
 
     private fun addResizeCorners(element: GuiElement) {
-        buttonList.removeIf { button: GuiButton? -> button is ResizeButton && button.element === element }
-        buttonList.removeIf { button: GuiButton? -> button is ResizeButton && button.element !== element }
+        widgetList.removeIf { button: ClickableWidget? -> button is ResizeButton && button.element === element }
+        widgetList.removeIf { button: ClickableWidget? -> button is ResizeButton && button.element !== element }
         val locationButton = locationButtons[element] ?: return
         val boxXOne = locationButton.x - ResizeButton.SIZE * element.scale
         val boxXTwo = locationButton.x + element.scaleWidth + ResizeButton.SIZE * 2 * element.scale
         val boxYOne = locationButton.y - ResizeButton.SIZE * element.scale
         val boxYTwo = locationButton.y + element.scaleHeight + ResizeButton.SIZE * 2 * element.scale
-        buttonList.add(ResizeButton(boxXOne, boxYOne, element, Corner.TOP_LEFT))
-        buttonList.add(ResizeButton(boxXTwo, boxYOne, element, Corner.TOP_RIGHT))
-        buttonList.add(ResizeButton(boxXOne, boxYTwo, element, Corner.BOTTOM_LEFT))
-        buttonList.add(ResizeButton(boxXTwo, boxYTwo, element, Corner.BOTTOM_RIGHT))
+        widgetList.add(ResizeButton(boxXOne, boxYOne, element, Corner.TOP_LEFT))
+        widgetList.add(ResizeButton(boxXTwo, boxYOne, element, Corner.TOP_RIGHT))
+        widgetList.add(ResizeButton(boxXOne, boxYTwo, element, Corner.BOTTOM_LEFT))
+        widgetList.add(ResizeButton(boxXTwo, boxYTwo, element, Corner.BOTTOM_RIGHT))
     }
 
     private fun recalculateResizeButtons() {
-        for (button in buttonList) {
+        for (button in widgetList) {
             if (button is ResizeButton) {
                 val corner = button.corner
                 val element = button.element
@@ -224,8 +224,8 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
     }
 
 
-    override fun handleMouseInput() {
-        super.handleMouseInput()
+    override fun method_0_2801() {
+        super.method_0_2801()
         val hovered = LocationButton.lastHoveredElement
         if (hovered != null) {
             hovered.scale = (hovered.scale + Mouse.getEventDWheel() / 1000f).coerceAtLeast(0.01f)
@@ -235,8 +235,8 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
     /**
      * Reset the dragged feature when the mouse is released.
      */
-    override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
-        super.mouseReleased(mouseX, mouseY, state)
+    override fun method_0_2787(mouseX: Int, mouseY: Int, state: Int) {
+        super.method_0_2787(mouseX, mouseY, state)
         dragging = null
         resizing = false
         scaleCache = 0f
@@ -245,7 +245,7 @@ open class VanillaEditingGui : GuiScreen(), ReopenableGUI {
     /**
      * Saves the positions when the gui is closed
      */
-    override fun onGuiClosed() {
+    override fun removed() {
         PersistentSave.markDirty<GuiManager>()
     }
 }

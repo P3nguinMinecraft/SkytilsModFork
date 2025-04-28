@@ -18,8 +18,8 @@
 
 package gg.skytils.skytilsmod.utils
 
-import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.util.GlAllocationUtils
+import com.mojang.blaze3d.systems.RenderSystem
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GLContext
@@ -53,7 +53,7 @@ class GlState {
     var blendAlphaDst = 0
     var alphaState = false
     var depthState = false
-    var colorState: FloatBuffer = GLAllocation.createDirectByteBuffer(64).asFloatBuffer()
+    var colorState: FloatBuffer = GlAllocationUtils.allocateByteBuffer(64).asFloatBuffer()
 
     fun pushState() {
         lightingState = GL11.glIsEnabled(GL11.GL_LIGHTING)
@@ -72,16 +72,16 @@ class GlState {
     }
 
     fun popState() {
-        if (depthState) GlStateManager.enableDepth()
-        else GlStateManager.disableDepth()
+        if (depthState) RenderSystem.enableDepthTest()
+        else RenderSystem.disableDepthTest()
 
-        if (blendState) GlStateManager.enableBlend()
-        else GlStateManager.disableBlend()
+        if (blendState) RenderSystem.enableBlend()
+        else RenderSystem.disableBlend()
 
-        if (alphaState) GlStateManager.enableAlpha()
-        else GlStateManager.disableAlpha()
+        if (alphaState) RenderSystem.method_4456()
+        else RenderSystem.method_4441()
 
-        GlStateManager.tryBlendFuncSeparate(blendSrc, blendDst, blendAlphaSrc, blendAlphaDst)
-        GlStateManager.color(colorState.get(0), colorState.get(1), colorState.get(2), colorState.get(3))
+        RenderSystem.blendFuncSeparate(blendSrc, blendDst, blendAlphaSrc, blendAlphaDst)
+        RenderSystem.setShaderColor(colorState.get(0), colorState.get(1), colorState.get(2), colorState.get(3))
     }
 }

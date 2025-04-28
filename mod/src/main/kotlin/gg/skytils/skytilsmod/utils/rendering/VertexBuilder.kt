@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.utils.rendering
 
 import gg.essential.universal.UMatrixStack
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.util.GlAllocationUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
@@ -116,7 +116,7 @@ class VertexArray internal constructor(val id: Int, val vertexCount: Int, val sc
     }
 }
 
-fun Collection<Float>.toBuffer(): FloatBuffer = GLAllocation.createDirectFloatBuffer(this.size).put(this.toFloatArray())
+fun Collection<Float>.toBuffer(): FloatBuffer = GlAllocationUtils.allocateFloatBuffer(this.size).put(this.toFloatArray())
 fun <T> MutableCollection<T>.addAll(vararg elements: T) = addAll(elements.toList())
 
 interface VertexScope {

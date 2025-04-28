@@ -41,13 +41,13 @@ import gg.skytils.skytilsmod.core.GuiManager.createTitle
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Blocks
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.network.play.server.S3EPacketTeams
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.block.Blocks
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.network.packet.s2c.play.TeamS2CPacket
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 import java.util.regex.Pattern
 
@@ -74,7 +74,7 @@ object MiningFeatures : EventSubscriber {
 
     fun onBossBar(event: BossBarSetEvent) {
         if (!Utils.inSkyblock) return
-        val unformatted = event.data.displayName.unformattedText.stripControlCodes()
+        val unformatted = event.data.displayName.string.stripControlCodes()
         if (Skytils.config.raffleWarning) {
             if (unformatted.contains("EVENT")) {
                 eventPattern.find(unformatted)?.groups?.let {
@@ -96,8 +96,8 @@ object MiningFeatures : EventSubscriber {
 //    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        val formatted = event.message.formattedText
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val formatted = event.message.method_10865()
+        val unformatted = event.message.string.stripControlCodes()
         if (Skytils.config.powerGhastPing) {
             if (unformatted.startsWith("Find the Powder Ghast near the")) {
                 createTitle("§cPOWDER GHAST", 20)
@@ -168,8 +168,8 @@ object MiningFeatures : EventSubscriber {
     }
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
-        if (!Utils.inSkyblock || event.container !is ContainerChest) return
-        if (!event.slot.hasStack) return
+        if (!Utils.inSkyblock || event.container !is GenericContainerScreenHandler) return
+        if (!event.slot.hasStack()) return
         if (Skytils.config.highlightDisabledHOTMPerks && SBInfo.lastOpenContainerName == "Heart of the Mountain") {
             if (ItemUtil.getItemLore(event.slot.stack).any { it == "§c§lDISABLED" }) {
                 event.slot highlight Color(255, 0, 0)
@@ -177,7 +177,7 @@ object MiningFeatures : EventSubscriber {
         }
         if (Skytils.config.highlightCompletedCommissions && SBInfo.lastOpenContainerName.equals("Commissions")) {
             val item = event.slot.stack
-            if (item.displayName.startsWith("§6Commission #") && item.item == Items.writable_book) {
+            if (item.name.startsWith("§6Commission #") && item.item == Items.WRITABLE_BOOK) {
                 if (ItemUtil.getItemLore(item).any {
                         it == "§eClick to claim rewards!"
                     }) {
@@ -191,7 +191,7 @@ object MiningFeatures : EventSubscriber {
         if (!Utils.inSkyblock) return
         if (Skytils.config.raffleWaypoint && inRaffle) {
             val block = UMinecraft.getWorld()?.getBlockState(event.pos) ?: return
-            if (block.block === Blocks.jukebox) {
+            if (block.block === Blocks.JUKEBOX) {
                 lastJukebox = event.pos
             }
         }
@@ -206,36 +206,36 @@ object MiningFeatures : EventSubscriber {
             val x = puzzlerSolution!!.x - viewerX
             val y = puzzlerSolution!!.y - viewerY
             val z = puzzlerSolution!!.z - viewerZ
-            GlStateManager.disableCull()
+            RenderSystem.disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
-                AxisAlignedBB(x, y, z, x + 1, y + 1.01, z + 1),
+                Box(x, y, z, x + 1, y + 1.01, z + 1),
                 Color(255, 0, 0, 200),
                 1f
             )
-            GlStateManager.enableCull()
+            RenderSystem.enableCull()
         }
         if (Skytils.config.raffleWaypoint && inRaffle && raffleBox != null) {
-            GlStateManager.disableDepth()
-            GlStateManager.disableCull()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableCull()
             RenderUtil.renderWaypointText("Raffle Box", raffleBox!!, event.partialTicks, matrixStack)
-            GlStateManager.disableLighting()
-            GlStateManager.enableDepth()
-            GlStateManager.enableCull()
+            RenderSystem.method_4406()
+            RenderSystem.enableDepthTest()
+            RenderSystem.enableCull()
         }
     }
 
     fun onScoreboardChange(event: PacketReceiveEvent<*>) {
         if (
             !Utils.inSkyblock ||
-            event.packet !is S3EPacketTeams
+            event.packet !is TeamS2CPacket
         ) return
-        if (event.packet.action != 2) return
+        if (event.packet.mode != 2) return
         if (
-            event.packet.players.joinToString(
+            event.packet.playerList.joinToString(
                 " ",
-                prefix = event.packet.prefix,
-                postfix = event.packet.suffix
+                prefix = event.packet.method_0_5600(),
+                postfix = event.packet.method_0_5601()
             ).contains("12:00am") &&
             Skytils.config.skymallReminder && SBInfo.mode == SkyblockIsland.DwarvenMines.mode
         ) {

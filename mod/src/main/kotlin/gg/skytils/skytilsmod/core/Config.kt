@@ -41,15 +41,15 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.vigilance.property
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Identifier
 import java.awt.Color
 import java.io.File
 import java.net.URI
 
 //#if FORGE
-import net.minecraftforge.client.ClientCommandHandler
-import net.minecraftforge.fml.common.Loader
-import net.minecraftforge.fml.common.LoaderState
+//$$ import net.minecraftforge.client.ClientCommandHandler
+//$$ import net.minecraftforge.fml.common.Loader
+//$$ import net.minecraftforge.fml.common.LoaderState
 //#endif
 
 object Config : Vigilant(
@@ -4494,22 +4494,22 @@ object Config : Vigilant(
             "gardenPlotCleanupHelper",
             "recolorCarpets"
         ).forEach { propertyName ->
-            registerListener(propertyName) { _: Boolean -> mc.renderGlobal.loadRenderers() }
+            registerListener(propertyName) { _: Boolean -> mc.worldRenderer.reload() }
         }
 
         registerListener("itemRarityShape") { i: Int ->
             //#if FORGE
-            if (i == 4 && Loader.instance().hasReachedState(LoaderState.POSTINITIALIZATION)) {
+            //$$ if (i == 4 && Loader.instance().hasReachedState(LoaderState.POSTINITIALIZATION)) {
             //#else
-            //$$ if (i == 4 && mc.isFinishedLoading) {
+            if (i == 4 && mc.isFinishedLoading) {
             //#endif
                 val old = itemRarityShape
                 runCatching {
-                    val loc = ResourceLocation("skytils:gui/customrarity.png")
+                    val loc = Identifier("skytils:gui/customrarity.png")
                     //#if MC==10809
-                    mc.resourceManager.getResource(loc)
+                    //$$ mc.resourceManager.method_14486(loc)
                     //#else
-                    //$$ mc.resourceManager.getResourceOrThrow(loc)
+                    mc.resourceManager.getResourceOrThrow(loc)
                     //#endif
                 }.onFailure {
                     tickTimer(1) {
@@ -4527,17 +4527,17 @@ object Config : Vigilant(
             if (state) {
                 //TODO
                 //#if MC==10809
-                (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["reparty"] =
-                    RepartyCommand
-                (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["rp"] =
-                    RepartyCommand
+                //$$ (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["reparty"] =
+                //$$     RepartyCommand
+                //$$ (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["rp"] =
+                //$$     RepartyCommand
                 //#endif
             }
         }
 
         registerListener("connectToWS") { state: Boolean ->
             if (state) {
-                if (mc.theWorld != null && !WSClient.connected) {
+                if (mc.world != null && !WSClient.connected) {
                     WSClient.openConnection()
                 }
             } else {

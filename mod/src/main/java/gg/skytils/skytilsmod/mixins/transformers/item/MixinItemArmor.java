@@ -20,28 +20,28 @@ package gg.skytils.skytilsmod.mixins.transformers.item;
 
 import gg.skytils.skytilsmod.mixins.hooks.item.ItemArmorHookKt;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ItemArmor.class)
+@Mixin(ArmorItem.class)
 public abstract class MixinItemArmor extends Item {
 
-    @Inject(method = "getColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getTagCompound()Lnet/minecraft/nbt/NBTTagCompound;"), cancellable = true)
+    @Inject(method = "method_0_8149", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getNbt()Lnet/minecraft/nbt/NbtCompound;"), cancellable = true)
     private void replaceArmorColor(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
         ItemArmorHookKt.replaceArmorColor(stack, cir);
     }
 
-    @Inject(method = "getColorFromItemStack", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "method_0_8237", at = @At("HEAD"), cancellable = true)
     private void replaceStackArmorColor(ItemStack stack, int renderPass, CallbackInfoReturnable<Integer> cir) {
         if (renderPass > 0) return;
         ItemArmorHookKt.replaceArmorColor(stack, cir);
     }
 
-    @Inject(method = "hasColor", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "method_0_8153", at = @At("HEAD"), cancellable = true)
     private void hasCustomArmorColor(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         ItemArmorHookKt.hasCustomArmorColor(stack, cir);
     }

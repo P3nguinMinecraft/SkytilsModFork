@@ -33,10 +33,10 @@ import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import net.minecraft.client.gui.Gui
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.init.Items
-import net.minecraft.inventory.ContainerChest
+import net.minecraft.client.gui.DrawContext
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.item.Items
+import net.minecraft.screen.GenericContainerScreenHandler
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -59,35 +59,35 @@ object SpiritLeap : PersistentSave(File(Skytils.modDir, "spiritleap.json")), Eve
 
     fun onGuiDrawPost(event: GuiContainerForegroundDrawnEvent) {
         if (!Utils.inDungeons) return
-        if (event.container is ContainerChest) {
+        if (event.container is GenericContainerScreenHandler) {
             if ((Skytils.config.spiritLeapNames && event.chestName == "Spirit Leap") || (Skytils.config.reviveStoneNames && event.chestName == "Revive A Teammate") || (Skytils.config.ghostTeleportMenuNames && event.chestName == "Teleport to Player")) {
                 val fr = ScreenRenderer.fontRenderer
                 var people = 0
-                GlStateManager.disableLighting()
-                GlStateManager.enableBlend()
-                for (slot in event.container.inventorySlots) {
-                    if (slot.inventory == mc.thePlayer.inventory) continue
-                    if (!slot.hasStack || slot.stack.item != Items.skull) continue
+                RenderSystem.method_4406()
+                RenderSystem.enableBlend()
+                for (slot in event.container.slots) {
+                    if (slot.inventory == mc.player.inventory) continue
+                    if (!slot.hasStack() || slot.stack.item != Items.PLAYER_HEAD) continue
                     val item = slot.stack
                     people++
 
-                    val x = slot.xDisplayPosition.toFloat()
-                    val y = slot.yDisplayPosition + if (people % 2 != 0) -15f else 20f
-                    val name = nameSlotCache[slot.slotNumber]
+                    val x = slot.x.toFloat()
+                    val y = slot.y + if (people % 2 != 0) -15f else 20f
+                    val name = nameSlotCache[slot.id]
                     if (name == null || name == "Unknown") {
-                        nameSlotCache[slot.slotNumber] =
-                            playerPattern.find(item.displayName.stripControlCodes())?.groups?.get("name")?.value
+                        nameSlotCache[slot.id] =
+                            playerPattern.find(item.name.stripControlCodes())?.groups?.get("name")?.value
                                 ?: continue
                         continue
                     }
                     val teammate = DungeonListener.team[name] ?: continue
                     val dungeonClass = teammate.dungeonClass
                     val text = shortenedNameCache.getOrPut(name) {
-                        fr.trimStringToWidth(item.displayName.substring(0, 2) + name, 32)
+                        fr.method_0_2384(item.name.substring(0, 2) + name, 32)
                     }
                     val scale = 0.9f
                     val scaleReset = 1 / scale
-                    GlStateManager.pushMatrix()
+                    RenderSystem.pushMatrix()
                     if (Skytils.config.highlightDoorOpener && name == doorOpener) {
                         slot highlight 1174394112
                     } else if (names.getOrDefault(name, false)) {
@@ -95,12 +95,12 @@ object SpiritLeap : PersistentSave(File(Skytils.modDir, "spiritleap.json")), Eve
                     } else if (classes.getOrDefault(dungeonClass, false)) {
                         slot highlight 1157693184
                     }
-                    GlStateManager.translate(0f, 0f, 299f)
-                    Gui.drawRect(
-                        (x - 2 - fr.getStringWidth(text) / 2).toInt(),
+                    RenderSystem.method_4348(0f, 0f, 299f)
+                    DrawContext.fill(
+                        (x - 2 - fr.getWidth(text) / 2).toInt(),
                         (y - 2).toInt(),
-                        (x + fr.getStringWidth(text) / 2 + 2).toInt(),
-                        (y + fr.FONT_HEIGHT + 2).toInt(),
+                        (x + fr.getWidth(text) / 2 + 2).toInt(),
+                        (y + fr.field_0_2811 + 2).toInt(),
                         -13686744
                     )
                     fr.drawString(
@@ -110,17 +110,17 @@ object SpiritLeap : PersistentSave(File(Skytils.modDir, "spiritleap.json")), Eve
                         alignment = SmartFontRenderer.TextAlignment.MIDDLE,
                         shadow = SmartFontRenderer.TextShadow.OUTLINE
                     )
-                    GlStateManager.scale(scale, scale, 1f)
-                    fr.drawString(
+                    RenderSystem.method_4384(scale, scale, 1f)
+                    fr.method_0_2383(
                         dungeonClass.className.first().uppercase(),
                         scaleReset * x,
-                        scaleReset * slot.yDisplayPosition,
+                        scaleReset * slot.y,
                         -256,
                         true
                     )
-                    GlStateManager.popMatrix()
+                    RenderSystem.popMatrix()
                 }
-                GlStateManager.disableBlend()
+                RenderSystem.disableBlend()
             }
         }
     }

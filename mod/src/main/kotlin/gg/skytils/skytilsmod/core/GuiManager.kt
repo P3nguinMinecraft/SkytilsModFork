@@ -37,8 +37,8 @@ import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.toast.Toast
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.MinecraftClient
+import com.mojang.blaze3d.systems.RenderSystem
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -111,28 +111,28 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
 
     fun onRenderHUD(event: RenderHUDEvent) {
         if (
-            Minecraft.getMinecraft().currentScreen is VanillaEditingGui ||
-            Minecraft.getMinecraft().currentScreen == demoHud
+            MinecraftClient.getInstance().currentScreen is VanillaEditingGui ||
+            MinecraftClient.getInstance().currentScreen == demoHud
             ) return
-        mc.mcProfiler.startSection("SkytilsHUD")
+        mc.tickProfilerResult.push("SkytilsHUD")
         gui.draw(UMatrixStack.Compat.get())
         hud.draw(UMatrixStack.Compat.get())
         for ((_, element) in elements) {
-            mc.mcProfiler.startSection(element.name)
+            mc.tickProfilerResult.push(element.name)
             try {
-                GlStateManager.pushMatrix()
-                GlStateManager.translate(element.scaleX, element.scaleY, 0f)
-                GlStateManager.scale(element.scale, element.scale, 0f)
+                RenderSystem.pushMatrix()
+                RenderSystem.method_4348(element.scaleX, element.scaleY, 0f)
+                RenderSystem.method_4384(element.scale, element.scale, 0f)
                 element.render()
-                GlStateManager.popMatrix()
+                RenderSystem.popMatrix()
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 UChat.chat("${Skytils.failPrefix} §cSkytils ${Skytils.VERSION} caught and logged an ${ex::class.simpleName ?: "error"} while rendering ${element.name}. Please report this on the Discord server at discord.gg/skytils.")
             }
-            mc.mcProfiler.endSection()
+            mc.tickProfilerResult.pop()
         }
         renderTitles()
-        mc.mcProfiler.endSection()
+        mc.tickProfilerResult.pop()
     }
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
@@ -156,51 +156,51 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
      * @author BiscuitDevelopment
      */
     private fun renderTitles() {
-        if (mc.theWorld == null || mc.thePlayer == null || !Utils.inSkyblock) {
+        if (mc.world == null || mc.player == null || !Utils.inSkyblock) {
             return
         }
         val scaledWidth = UResolution.scaledWidth
         val scaledHeight = UResolution.scaledHeight
         if (title != null) {
-            val stringWidth = mc.fontRendererObj.getStringWidth(title)
+            val stringWidth = mc.textRenderer.getWidth(title)
             var scale = 4f // Scale is normally 4, but if its larger than the screen, scale it down...
             if (stringWidth * scale > scaledWidth * 0.9f) {
                 scale = scaledWidth * 0.9f / stringWidth.toFloat()
             }
-            GlStateManager.pushMatrix()
-            GlStateManager.translate((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
-            GlStateManager.enableBlend()
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-            GlStateManager.pushMatrix()
-            GlStateManager.scale(scale, scale, scale) // TODO Check if changing this scale breaks anything...
-            mc.fontRendererObj.drawString(
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4348((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
+            RenderSystem.enableBlend()
+            RenderSystem.blendFuncSeparate(770, 771, 1, 0)
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4384(scale, scale, scale) // TODO Check if changing this scale breaks anything...
+            mc.textRenderer.method_0_2383(
                 title,
-                (-mc.fontRendererObj.getStringWidth(title) / 2).toFloat(),
+                (-mc.textRenderer.getWidth(title) / 2).toFloat(),
                 -20.0f,
                 0xFF0000,
                 true
             )
-            GlStateManager.popMatrix()
-            GlStateManager.popMatrix()
+            RenderSystem.popMatrix()
+            RenderSystem.popMatrix()
         }
         if (subtitle != null) {
-            val stringWidth = mc.fontRendererObj.getStringWidth(subtitle)
+            val stringWidth = mc.textRenderer.getWidth(subtitle)
             var scale = 2f // Scale is normally 2, but if its larger than the screen, scale it down...
             if (stringWidth * scale > scaledWidth * 0.9f) {
                 scale = scaledWidth * 0.9f / stringWidth.toFloat()
             }
-            GlStateManager.pushMatrix()
-            GlStateManager.translate((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
-            GlStateManager.enableBlend()
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-            GlStateManager.pushMatrix()
-            GlStateManager.scale(scale, scale, scale) // TODO Check if changing this scale breaks anything...
-            mc.fontRendererObj.drawString(
-                subtitle, -mc.fontRendererObj.getStringWidth(subtitle) / 2f, -23.0f,
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4348((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
+            RenderSystem.enableBlend()
+            RenderSystem.blendFuncSeparate(770, 771, 1, 0)
+            RenderSystem.pushMatrix()
+            RenderSystem.method_4384(scale, scale, scale) // TODO Check if changing this scale breaks anything...
+            mc.textRenderer.method_0_2383(
+                subtitle, -mc.textRenderer.getWidth(subtitle) / 2f, -23.0f,
                 0xFF0000, true
             )
-            GlStateManager.popMatrix()
-            GlStateManager.popMatrix()
+            RenderSystem.popMatrix()
+            RenderSystem.popMatrix()
         }
     }
 

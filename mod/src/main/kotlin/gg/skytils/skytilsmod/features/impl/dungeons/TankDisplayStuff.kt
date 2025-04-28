@@ -28,7 +28,7 @@ import gg.skytils.skytilsmod.utils.DungeonClass
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.bindColor
-import net.minecraft.client.renderer.GlStateManager
+import com.mojang.blaze3d.systems.RenderSystem
 import org.lwjgl.opengl.GL11
 
 object TankDisplayStuff : EventSubscriber {
@@ -45,78 +45,78 @@ object TankDisplayStuff : EventSubscriber {
             if (teammate.dungeonClass == DungeonClass.TANK) {
                 if (Skytils.config.showTankRadius) {
                     // not sba healing circle wall code
-                    GlStateManager.pushMatrix()
+                    RenderSystem.pushMatrix()
                     GL11.glNormal3f(0.0f, 1.0f, 0.0f)
 
-                    GlStateManager.disableLighting()
-                    GlStateManager.depthMask(false)
-                    GlStateManager.enableDepth()
-                    GlStateManager.enableBlend()
-                    GlStateManager.depthFunc(GL11.GL_LEQUAL)
-                    GlStateManager.disableCull()
-                    GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-                    GlStateManager.enableAlpha()
-                    GlStateManager.disableTexture2D()
+                    RenderSystem.method_4406()
+                    RenderSystem.depthMask(false)
+                    RenderSystem.enableDepthTest()
+                    RenderSystem.enableBlend()
+                    RenderSystem.depthFunc(GL11.GL_LEQUAL)
+                    RenderSystem.disableCull()
+                    RenderSystem.blendFuncSeparate(770, 771, 1, 0)
+                    RenderSystem.method_4456()
+                    RenderSystem.method_4407()
 
                     if (Skytils.config.showTankRadiusWall) {
                         Skytils.config.tankRadiusDisplayColor.bindColor()
                         RenderUtil.drawCylinderInWorld(
-                            player.posX,
-                            player.posY - 30,
-                            player.posZ,
+                            player.x,
+                            player.y - 30,
+                            player.z,
                             30f,
                             60f,
                             event.partialTicks
                         )
                     } else {
-                        GlStateManager.disableDepth()
+                        RenderSystem.disableDepthTest()
                         RenderUtil.drawCircle(
                             player,
                             event.partialTicks,
                             30.0,
                             Skytils.config.tankRadiusDisplayColor
                         )
-                        GlStateManager.enableDepth()
+                        RenderSystem.enableDepthTest()
                     }
 
-                    GlStateManager.enableCull()
-                    GlStateManager.enableTexture2D()
-                    GlStateManager.enableDepth()
-                    GlStateManager.depthMask(true)
-                    GlStateManager.enableLighting()
-                    GlStateManager.disableBlend()
-                    GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
-                    GlStateManager.popMatrix()
+                    RenderSystem.enableCull()
+                    RenderSystem.method_4397()
+                    RenderSystem.enableDepthTest()
+                    RenderSystem.depthMask(true)
+                    RenderSystem.method_4394()
+                    RenderSystem.disableBlend()
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
+                    RenderSystem.popMatrix()
                 }
-                if (Skytils.config.boxedTanks && (teammate.player != mc.thePlayer || mc.gameSettings.thirdPersonView != 0)) {
-                    GlStateManager.disableCull()
-                    GlStateManager.disableDepth()
+                if (Skytils.config.boxedTanks && (teammate.player != mc.player || mc.options.perspective != 0)) {
+                    RenderSystem.disableCull()
+                    RenderSystem.disableDepthTest()
                     RenderUtil.drawOutlinedBoundingBox(
-                        player.entityBoundingBox,
+                        player.boundingBox,
                         Skytils.config.boxedTankColor,
                         2f,
                         1f
                     )
-                    GlStateManager.enableDepth()
-                    GlStateManager.enableCull()
+                    RenderSystem.enableDepthTest()
+                    RenderSystem.enableCull()
                 }
             }
-            if (Skytils.config.boxedProtectedTeammates && (player != mc.thePlayer || mc.gameSettings.thirdPersonView != 0)) {
+            if (Skytils.config.boxedProtectedTeammates && (player != mc.player || mc.options.perspective != 0)) {
                 if (DungeonListener.team.values.any {
-                        it.canRender() && it.dungeonClass == DungeonClass.TANK && it != teammate && it.player?.getDistanceToEntity(
+                        it.canRender() && it.dungeonClass == DungeonClass.TANK && it != teammate && it.player?.distanceTo(
                             player
                         )!! <= 30
                     }) {
-                    GlStateManager.disableCull()
-                    GlStateManager.disableDepth()
+                    RenderSystem.disableCull()
+                    RenderSystem.disableDepthTest()
                     RenderUtil.drawOutlinedBoundingBox(
-                        player.entityBoundingBox,
+                        player.boundingBox,
                         Skytils.config.boxedProtectedTeammatesColor,
                         2f,
                         1f
                     )
-                    GlStateManager.enableDepth()
-                    GlStateManager.enableCull()
+                    RenderSystem.enableDepthTest()
+                    RenderSystem.enableCull()
                 }
             }
         }

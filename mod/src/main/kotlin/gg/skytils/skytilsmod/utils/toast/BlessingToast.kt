@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.utils.toast
 
 import gg.essential.elementa.components.UIImage
 import gg.essential.universal.ChatColor
-import net.minecraft.util.EnumChatFormatting
+import net.minecraft.util.Formatting
 
 class BlessingToast(blessingType: String, buffs: List<BlessingBuff>) :
     Toast(
@@ -39,12 +39,12 @@ class BlessingToast(blessingType: String, buffs: List<BlessingBuff>) :
         subtextState.set(
             buffs.joinToString(separator = " ") { buff ->
                 val color: String = when (buff.symbol) {
-                    "❤", "❁" -> EnumChatFormatting.RED.toString()
-                    "✎" -> EnumChatFormatting.AQUA.toString()
-                    "❈", "HP" -> EnumChatFormatting.GREEN.toString()
-                    "✦" -> EnumChatFormatting.WHITE.toString()
-                    "☠" -> EnumChatFormatting.BLUE.toString()
-                    else -> EnumChatFormatting.GRAY.toString()
+                    "❤", "❁" -> Formatting.RED.toString()
+                    "✎" -> Formatting.AQUA.toString()
+                    "❈", "HP" -> Formatting.GREEN.toString()
+                    "✦" -> Formatting.WHITE.toString()
+                    "☠" -> Formatting.BLUE.toString()
+                    else -> Formatting.GRAY.toString()
                 }
                 "$color${buff.amount}${buff.symbol}"
             }

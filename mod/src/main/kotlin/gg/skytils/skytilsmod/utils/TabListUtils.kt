@@ -18,82 +18,82 @@
 package gg.skytils.skytilsmod.utils
 
 //#if MC<11400
-import com.google.common.collect.ComparisonChain
-import com.google.common.collect.Ordering
+//$$ import com.google.common.collect.ComparisonChain
+//$$ import com.google.common.collect.Ordering
 //#endif
 import gg.skytils.skytilsmod.Skytils.mc
-import net.minecraft.client.network.NetworkPlayerInfo
-import net.minecraft.network.play.server.S38PacketPlayerListItem
-import net.minecraft.scoreboard.ScorePlayerTeam
+import net.minecraft.client.network.PlayerListEntry
+import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket
+import net.minecraft.scoreboard.Team
 //#if MC<11400
-import net.minecraft.world.WorldSettings
+//$$ import net.minecraft.world.level.LevelInfo
 //#else
-//$$ import net.minecraft.text.Text
-//$$ import net.minecraft.util.Formatting
-//$$ import net.minecraft.world.GameMode
+import net.minecraft.text.Text
+import net.minecraft.util.Formatting
+import net.minecraft.world.GameMode
 //#endif
 
-val NetworkPlayerInfo.text: String
+val PlayerListEntry.text: String
     //#if MC<11400
-    get() = displayName?.formattedText ?: ScorePlayerTeam.formatPlayerName(
-        playerTeam,
-        gameProfile.name
-    )
+    //$$ get() = displayName?.method_10865() ?: Team.method_1142(
+    //$$     scoreboardTeam,
+    //$$     profile.name
+    //$$ )
     //#else
-    //$$ get() {
-    //$$    return if (gameMode != GameMode.SPECTATOR)
-    //$$    displayName?.string ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).string
-    //$$    else displayName?.copy()?.formatted(Formatting.ITALIC)?.string ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).formatted(Formatting.ITALIC).string
-    //$$ }
+    get() {
+       return if (gameMode != GameMode.SPECTATOR)
+       displayName?.string ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).string
+       else displayName?.copy()?.formatted(Formatting.ITALIC)?.string ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).formatted(Formatting.ITALIC).string
+    }
     //#endif
 
-val S38PacketPlayerListItem.AddPlayerData.text: String
-    get() = displayName?.formattedText ?: ScorePlayerTeam.formatPlayerName(
+val PlayerListS2CPacket.Entry.text: String
+    get() = displayName?.method_10865() ?: Team.decorateName(
         team,
         profile.name
     )
 
-val S38PacketPlayerListItem.AddPlayerData.team
-    get() = mc.theWorld?.scoreboard?.getPlayersTeam(profile.name)
+val PlayerListS2CPacket.Entry.team
+    get() = mc.world?.scoreboard?.getScoreHolderTeam(profile.name)
 
 
 object TabListUtils {
     //#if MC<11400
-    private val playerInfoOrdering = object : Ordering<NetworkPlayerInfo>() {
-        override fun compare(p1: NetworkPlayerInfo?, p2: NetworkPlayerInfo?): Int {
-            return when {
-                p1 != null && p2 != null -> {
-                    ComparisonChain.start().compareTrueFirst(
-                        p1.gameType != WorldSettings.GameType.SPECTATOR,
-                        p2.gameType != WorldSettings.GameType.SPECTATOR
-                    ).compare(
-                        p1.playerTeam?.registeredName ?: "",
-                        p2.playerTeam?.registeredName ?: ""
-                    ).compare(p1.gameProfile.name, p2.gameProfile.name).result()
-                }
-
-                p1 == null -> -1
-                else -> 0
-            }
-        }
-    }
-    //#else
-    //$$ private val comparator: Comparator<PlayerListEntry> = Comparator.comparingInt<PlayerListEntry> {
-    //$$    if (it.gameMode == GameMode.SPECTATOR) 1 else 0
-    //$$ }.thenComparing { o ->
-    //$$    o.scoreboardTeam?.name ?: ""
-    //$$ }.thenComparing { o ->
-    //$$    o.profile.name.lowercase()
+    //$$ private val playerInfoOrdering = object : Ordering<PlayerListEntry>() {
+    //$$     override fun compare(p1: PlayerListEntry?, p2: PlayerListEntry?): Int {
+    //$$         return when {
+    //$$             p1 != null && p2 != null -> {
+    //$$                 ComparisonChain.start().compareTrueFirst(
+    //$$                     p1.method_2958() != LevelInfo.GameMode.SPECTATOR,
+    //$$                     p2.method_2958() != LevelInfo.GameMode.SPECTATOR
+    //$$                 ).compare(
+    //$$                     p1.scoreboardTeam?.name ?: "",
+    //$$                     p2.scoreboardTeam?.name ?: ""
+    //$$                 ).compare(p1.profile.name, p2.profile.name).result()
+    //$$             }
+    //$$
+    //$$             p1 == null -> -1
+    //$$             else -> 0
+    //$$         }
+    //$$     }
     //$$ }
+    //#else
+    private val comparator: Comparator<PlayerListEntry> = Comparator.comparingInt<PlayerListEntry> {
+       if (it.gameMode == GameMode.SPECTATOR) 1 else 0
+    }.thenComparing { o ->
+       o.scoreboardTeam?.name ?: ""
+    }.thenComparing { o ->
+       o.profile.name.lowercase()
+    }
     //#endif
-    var tabEntries: List<Pair<NetworkPlayerInfo, String>> = emptyList()
-    fun fetchTabEntries(): List<NetworkPlayerInfo> = mc.thePlayer?.let {
+    var tabEntries: List<Pair<PlayerListEntry, String>> = emptyList()
+    fun fetchTabEntries(): List<PlayerListEntry> = mc.player?.let {
         //#if MC < 11400
-        playerInfoOrdering.immutableSortedCopy(
-            it.sendQueue.playerInfoMap
-        )
+        //$$ playerInfoOrdering.immutableSortedCopy(
+        //$$     it.networkHandler.playerList
+        //$$ )
         //#else
-        //$$ it.networkHandler.listedPlayerListEntries.sortedWith(comparator).take(80)
+        it.networkHandler.listedPlayerListEntries.sortedWith(comparator).take(80)
         //#endif
     } ?: emptyList()
 }

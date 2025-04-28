@@ -19,33 +19,33 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderItemHookKt;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.entity.RenderItem;
-import net.minecraft.client.resources.model.IBakedModel;
+import net.minecraft.client.TextRenderer;
+import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(RenderItem.class)
+@Mixin(ItemRenderer.class)
 public abstract class MixinRenderItem {
-    @Inject(method = "renderItemIntoGUI", at = @At("HEAD"))
+    @Inject(method = "method_4021", at = @At("HEAD"))
     private void renderRarity(ItemStack stack, int x, int y, CallbackInfo ci) {
         RenderItemHookKt.renderRarity(stack, x, y, ci);
     }
 
-    @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/resources/model/IBakedModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;scale(FFF)V", shift = At.Shift.AFTER))
-    private void renderItemPre(ItemStack stack, IBakedModel model, CallbackInfo ci) {
+    @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4384(FFF)V", shift = At.Shift.AFTER))
+    private void renderItemPre(ItemStack stack, BlockStateModel model, CallbackInfo ci) {
         RenderItemHookKt.renderItemPre(stack, model, ci);
     }
 
-    @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/resources/model/IBakedModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderEffect(Lnet/minecraft/client/resources/model/IBakedModel;)V", shift = At.Shift.BEFORE), cancellable = true)
-    private void modifyGlintRendering(ItemStack stack, IBakedModel model, CallbackInfo ci) {
+    @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/ItemRenderer;method_4011(Lnet/minecraft/client/render/model/BlockStateModel;)V", shift = At.Shift.BEFORE), cancellable = true)
+    private void modifyGlintRendering(ItemStack stack, BlockStateModel model, CallbackInfo ci) {
         RenderItemHookKt.modifyGlintRendering(stack, model, ci);
     }
 
-    @Inject(method = "renderEffect", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "method_4011", at = @At("HEAD"), cancellable = true)
     public void onRenderEffect(CallbackInfo ci) {
         if (RenderItemHookKt.getSkipGlint()) {
             ci.cancel();

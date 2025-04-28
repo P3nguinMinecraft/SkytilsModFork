@@ -39,7 +39,7 @@ import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.coroutineScope
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import java.util.*
 
 object PacketHandler : IPacketHandler {
@@ -47,16 +47,16 @@ object PacketHandler : IPacketHandler {
         val serverId = UUID.randomUUID().toString().replace("-".toRegex(), "")
         mc.sessionService.joinServer(
             //#if MC==10809
-            mc.session.profile,
+            //$$ mc.session.profile,
             //#else
-            //$$ mc.session.uuidOrNull,
+            mc.session.uuidOrNull,
             //#endif
-            mc.session.token, serverId)
+            mc.session.accessToken, serverId)
         WSClient.sendPacket(C2SPacketLogin(mc.session.username,
             //#if MC==10809
-            mc.session.profile.id.toString(),
+            //$$ mc.session.profile.id.toString(),
             //#else
-            //$$ mc.session.uuidOrNull!!.toString(),
+            mc.session.uuidOrNull!!.toString(),
             //#endif
             Reference.VERSION, SkytilsWS.version, serverId))
     }
@@ -101,7 +101,7 @@ object PacketHandler : IPacketHandler {
             is S2CPacketCHWaypoint -> {
                 val currentServer = SBInfo.server
                 if (currentServer == packet.serverId) {
-                    val worldTime = mc.theWorld?.realWorldTime
+                    val worldTime = mc.world?.realWorldTime
 
                     if (worldTime != null && worldTime < packet.serverTime) {
                         WSClient.sendPacket(C2SPacketCHReset(packet.serverId))

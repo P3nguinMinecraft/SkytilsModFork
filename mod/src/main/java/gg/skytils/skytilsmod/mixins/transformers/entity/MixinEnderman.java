@@ -20,15 +20,15 @@ package gg.skytils.skytilsmod.mixins.transformers.entity;
 
 import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.utils.Utils;
-import net.minecraft.entity.monster.EntityEnderman;
+import net.minecraft.entity.mob.EndermanEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(EntityEnderman.class)
+@Mixin(EndermanEntity.class)
 public class MixinEnderman {
-    @Inject(method = "teleportTo", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "method_0_7820", at = @At("HEAD"), cancellable = true)
     private void cancelTeleport(CallbackInfoReturnable<Boolean> cir) {
         if (Utils.INSTANCE.getInSkyblock() && Skytils.getConfig().getDisableEndermanTeleport()) {
             cir.setReturnValue(false);

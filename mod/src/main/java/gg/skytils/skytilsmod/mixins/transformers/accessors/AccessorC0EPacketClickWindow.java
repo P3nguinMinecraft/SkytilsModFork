@@ -19,12 +19,12 @@
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(C0EPacketClickWindow.class)
+@Mixin(ClickSlotC2SPacket.class)
 public interface AccessorC0EPacketClickWindow {
-    @Accessor
+    @Accessor("stack")
     void setClickedItem(ItemStack item);
 }

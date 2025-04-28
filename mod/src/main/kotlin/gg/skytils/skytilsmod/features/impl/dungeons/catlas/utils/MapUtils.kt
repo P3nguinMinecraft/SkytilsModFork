@@ -25,33 +25,33 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonMapCo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.displayNameStr
-import net.minecraft.item.ItemMap
-import net.minecraft.util.Vec4b
-import net.minecraft.world.storage.MapData
+import net.minecraft.item.FilledMapItem
+import net.minecraft.item.map.MapDecoration
+import net.minecraft.item.map.MapState
 
 object MapUtils {
 
-    val Vec4b.mapX
-        get() = (this.func_176112_b() + 128) shr 1
+    val MapDecoration.mapX
+        get() = (this.x + 128) shr 1
 
-    val Vec4b.mapZ
-        get() = (this.func_176113_c() + 128) shr 1
+    val MapDecoration.mapZ
+        get() = (this.z + 128) shr 1
 
-    val Vec4b.yaw
-        get() = this.func_176111_d() * 22.5f
+    val MapDecoration.yaw
+        get() = this.rotation * 22.5f
 
     var startCorner = Pair(5, 5)
     var mapRoomSize = 16
     var coordMultiplier = 0.625
     var calibrated = false
 
-    fun getMapData(): MapData? {
-        val map = mc.thePlayer?.inventory?.getStackInSlot(8) ?: return null
-        if (map.item !is ItemMap || !map.displayNameStr.contains("Magical Map")) return null
+    fun getMapData(): MapState? {
+        val map = mc.player?.inventory?.getStack(8) ?: return null
+        if (map.item !is FilledMapItem || !map.displayNameStr.contains("Magical Map")) return null
         //#if MC==10809
-        return (map.item as ItemMap).getMapData(map, mc.theWorld)
+        //$$ return (map.item as FilledMapItem).method_8001(map, mc.world)
         //#else
-        //$$ return FilledMapItem.getMapState(map, mc.world!!)
+        return FilledMapItem.getMapState(map, mc.world!!)
         //#endif
     }
 

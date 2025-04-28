@@ -21,8 +21,8 @@ package gg.skytils.skytilsmod.mixins.transformers.patcher;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.utils.PatcherCompatability;
-import net.minecraft.client.gui.GuiIngame;
-import net.minecraft.client.renderer.EntityRenderer;
+import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.GameRenderer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class MixinHUDCaching {
     @Dynamic
     @WrapOperation(method = "renderCachedHud", at = @At(value = "FIELD", target = "Lclub/sk1er/patcher/config/PatcherConfig;hudCaching:Z", opcode = Opcodes.GETSTATIC))
-    private static boolean renderCachedHud(Operation<Boolean> original, EntityRenderer renderer, GuiIngame guiIngame) {
+    private static boolean renderCachedHud(Operation<Boolean> original, GameRenderer renderer, InGameHud guiIngame) {
         return !PatcherCompatability.INSTANCE.getDisableHUDCaching() && original.call();
     }
 }

@@ -26,7 +26,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import net.minecraft.client.entity.EntityOtherPlayerMP
+import net.minecraft.client.network.OtherClientPlayerEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
@@ -57,8 +57,8 @@ object MojangUtil {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onEntityJoinWorld(event: EntityJoinWorldEvent) {
-        val uuid = event.entity.uniqueID
-        if (event.entity is EntityOtherPlayerMP && uuid.version() == 4) {
+        val uuid = event.entity.uuid
+        if (event.entity is OtherClientPlayerEntity && uuid.version() == 4) {
             val name = event.entity.name.lowercase()
             uuidToUsername[uuid] = name
             usernameToUuid[name] = uuid

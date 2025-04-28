@@ -20,20 +20,20 @@ package gg.skytils.skytilsmod.features.impl.slayer.base
 
 import gg.skytils.event.impl.entity.EntityJoinWorldEvent
 import gg.skytils.event.impl.world.BlockStateUpdateEvent
-import net.minecraft.entity.EntityLiving
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.util.BlockPos
+import net.minecraft.entity.mob.MobEntity
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.util.math.BlockPos
 
 /**
  * Represents a slayer which can throw a thing
  *
  * Subtype of [Slayer]
  */
-abstract class ThrowingSlayer<T : EntityLiving>(entity: T, name: String, nameStart: String) : Slayer<T>(
+abstract class ThrowingSlayer<T : MobEntity>(entity: T, name: String, nameStart: String) : Slayer<T>(
     entity, name, nameStart,
 ) {
     var thrownLocation: BlockPos? = null
-    var thrownEntity: EntityArmorStand? = null
+    var thrownEntity: ArmorStandEntity? = null
 
     open fun entityJoinWorld(event: EntityJoinWorldEvent) {}
 

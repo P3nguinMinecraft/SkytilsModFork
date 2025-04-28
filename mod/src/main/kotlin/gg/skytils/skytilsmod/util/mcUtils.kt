@@ -16,9 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#if MC>=12000
 package gg.skytils.skytilsmod.util
 
 import net.minecraft.text.Text
 
 val Text.formattedText: String
     get() = ControlCodeVisitor().also { visitor -> visit(visitor, style) }.getFormattedString()
+//#endif

@@ -46,17 +46,17 @@ import gg.skytils.skytilsmod.mixins.extensions.ExtensionChatStyle
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiChat
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiNewChat
 import gg.skytils.skytilsmod.utils.*
-import net.minecraft.client.gui.ChatLine
-import net.minecraft.client.gui.GuiChat
-import net.minecraft.client.gui.GuiNewChat
-import net.minecraft.client.gui.GuiScreen
-import net.minecraft.network.play.server.S02PacketChat
-import net.minecraft.util.IChatComponent
+import net.minecraft.client.gui.hud.ChatHudLine
+import net.minecraft.client.gui.screen.ChatScreen
+import net.minecraft.client.gui.hud.ChatHud
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.text.Text
 import java.awt.Color
 
 object ChatTabs : EventSubscriber {
     var selectedTab = ChatTab.ALL
-    var hoveredChatLine: ChatLine? = null
+    var hoveredChatLine: ChatHudLine? = null
 
     override fun setup() {
         register(::onChat, EventPriority.Highest)
@@ -67,36 +67,36 @@ object ChatTabs : EventSubscriber {
     }
 
     fun onChat(event: PacketReceiveEvent<*>) {
-        if (!Utils.isOnHypixel || !Skytils.config.chatTabs || event.packet !is S02PacketChat || event.packet.type == 2.toByte()) return
+        if (!Utils.isOnHypixel || !Skytils.config.chatTabs || event.packet !is GameMessageS2CPacket || event.packet.type == 2.toByte()) return
 
-        val style = event.packet.chatComponent.chatStyle
+        val style = event.packet.message.style
         style as ExtensionChatStyle
         if (style.chatTabType == null) {
-            val cc = event.packet.chatComponent
-            val formatted = cc.formattedText
+            val cc = event.packet.message
+            val formatted = cc.method_10865()
             style.chatTabType = ChatTab.entries.filter { it.isValid(cc, formatted) }.toTypedArray()
         }
     }
 
     @JvmStatic
-    fun setBGColor(origColor: Int, line: ChatLine): Int {
+    fun setBGColor(origColor: Int, line: ChatHudLine): Int {
         if (line != hoveredChatLine) return origColor
         return RenderUtil.mixColors(Color(origColor), Color.RED).rgb
     }
 
-    fun shouldAllow(component: IChatComponent): Boolean {
+    fun shouldAllow(component: Text): Boolean {
         if (!Utils.isOnHypixel || !Skytils.config.chatTabs) return true
-        val style = component.chatStyle
+        val style = component.style
         style as ExtensionChatStyle
         if (style.chatTabType == null) {
             style.chatTabType =
-                ChatTab.entries.filter { it.isValid(component, component.formattedText) }.toTypedArray()
+                ChatTab.entries.filter { it.isValid(component, component.method_10865()) }.toTypedArray()
         }
         return style.chatTabType!!.contains(selectedTab)
     }
 
     fun onOpenGui(event: ScreenOpenEvent) {
-        if (!Skytils.config.chatTabs || !Skytils.config.preFillChatTabCommands || !Utils.isOnHypixel || event.screen !is GuiChat) return
+        if (!Skytils.config.chatTabs || !Skytils.config.preFillChatTabCommands || !Utils.isOnHypixel || event.screen !is ChatScreen) return
         if ((event.screen as AccessorGuiChat).defaultInputFieldText.isBlank()) {
             (event.screen as AccessorGuiChat).defaultInputFieldText =
                 when (selectedTab) {
@@ -110,38 +110,38 @@ object ChatTabs : EventSubscriber {
     }
 
     fun drawScreen(event: ScreenDrawEvent) {
-        if (!Skytils.config.chatTabs || !Utils.isOnHypixel || event.screen !is GuiChat) return
+        if (!Skytils.config.chatTabs || !Utils.isOnHypixel || event.screen !is ChatScreen) return
         ChatTab.screen.draw(UMatrixStack.Compat.get())
         UMinecraft.getChatGUI()?.let { chat ->
             hoveredChatLine =
-                if (Skytils.config.copyChat && chat.chatOpen) chat.getChatLine(event.mouseX, event.mouseY) else null
+                if (Skytils.config.copyChat && chat.isChatFocused) chat.getChatLine(event.mouseX, event.mouseY) else null
         }
     }
 
     fun mouseInput(event: ScreenMouseInputEvent) {
-        if (!Utils.isOnHypixel || event.screen !is GuiChat) return
+        if (!Utils.isOnHypixel || event.screen !is ChatScreen) return
         event.cancelled = event.cancelled || ChatTab.screen.clickMouse(event.mouseX.toDouble(), event.mouseY.toDouble(), event.button)
-        val chat = mc.ingameGUI.chatGUI
+        val chat = mc.inGameHud.chatHud
         chat as AccessorGuiNewChat
-        if (GuiScreen.isCtrlKeyDown() && DevTools.getToggle("chat")) {
+        if (Screen.method_2238() && DevTools.getToggle("chat")) {
             if (event.button != 0 && event.button != 1) return
             val chatLine = hoveredChatLine ?: return
             if (event.button == 0) {
-                val component = (chatLine as ExtensionChatLine).fullComponent ?: chatLine.chatComponent
-                GuiScreen.setClipboardString(component.formattedText)
+                val component = (chatLine as ExtensionChatLine).fullComponent ?: chatLine.text
+                Screen.method_0_2797(component.method_10865())
                 printDevMessage("Copied formatted message to clipboard!", "chat")
             } else {
                 val component =
                     chat.chatLines.find {
-                        it.chatComponent.unformattedText == ((chatLine as ExtensionChatLine).fullComponent
-                            ?: chatLine.chatComponent).unformattedText
-                    }?.chatComponent
+                        it.text.string == ((chatLine as ExtensionChatLine).fullComponent
+                            ?: chatLine.text).string
+                    }?.text
                         ?: ((chatLine as ExtensionChatLine).fullComponent
-                            ?: chatLine.chatComponent)
+                            ?: chatLine.text)
 
                 printDevMessage("Copied serialized message to clipboard!", "chat")
-                GuiScreen.setClipboardString(
-                    IChatComponent.Serializer.componentToJson(
+                Screen.method_0_2797(
+                    Text.Serializer.toJson(
                         component
                     )
                 )
@@ -149,17 +149,17 @@ object ChatTabs : EventSubscriber {
         } else if (Skytils.config.copyChat) {
             if (event.button != 0) return
             val chatLine = hoveredChatLine ?: return
-            val component = if (GuiScreen.isCtrlKeyDown()) (chatLine as ExtensionChatLine).fullComponent
-                ?: chatLine.chatComponent else if (GuiScreen.isShiftKeyDown()) chatLine.chatComponent else return
-            GuiScreen.setClipboardString(component.unformattedText.stripControlCodes())
+            val component = if (Screen.method_2238()) (chatLine as ExtensionChatLine).fullComponent
+                ?: chatLine.text else if (Screen.method_2223()) chatLine.text else return
+            Screen.method_0_2797(component.string.stripControlCodes())
             EssentialAPI.getNotifications()
-                .push("Copied chat", component.unformattedText.stripControlCodes(), 1f)
+                .push("Copied chat", component.string.stripControlCodes(), 1f)
         }
     }
 
     fun onDisconnect(event: ClientDisconnectEvent) {
         runCatching {
-            mc.ingameGUI.chatGUI.refreshChat()
+            mc.inGameHud.chatHud.reset()
         }.onFailure {
             it.printStackTrace()
             UChat.chat("$failPrefix §cSkytils ran into an error while refreshing chat tabs. Please send your logs on our Discord server at discord.gg/skytils!")
@@ -168,7 +168,7 @@ object ChatTabs : EventSubscriber {
 
     enum class ChatTab(
         text: String,
-        val isValid: (IChatComponent, String) -> Boolean = { _, _ -> true }
+        val isValid: (Text, String) -> Boolean = { _, _ -> true }
     ) {
         ALL("A"),
         PARTY("P", { _, formatted ->
@@ -207,18 +207,18 @@ object ChatTabs : EventSubscriber {
             val chat = UMinecraft.getChatGUI() ?: return@onMouseClick
             chat as AccessorGuiNewChat
             runCatching {
-                chat.refreshChat()
+                chat.reset()
             }.onFailure { e ->
                 e.printStackTrace()
                 UChat.chat("$failPrefix §cSkytils ran into an error while refreshing chat tabs. Please send your logs on our Discord server at discord.gg/skytils!")
                 chat.drawnChatLines.clear()
                 chat.resetScroll()
                 for (line in chat.chatLines.asReversed()) {
-                    if (line?.chatComponent == null) continue
+                    if (line?.text == null) continue
                     chat.invokeSetChatLine(
-                        line.chatComponent,
-                        line.chatLineID,
-                        line.updatedCounter,
+                        line.text,
+                        line.id,
+                        line.creationTick,
                         true
                     )
                 }
@@ -253,14 +253,14 @@ object ChatTabs : EventSubscriber {
 
             private fun calculateChatHeight() =
                 UMinecraft.getChatGUI()?.let { chat ->
-                    chat.chatHeight.coerceAtMost((chat as AccessorGuiNewChat).drawnChatLines.size * UMinecraft.getFontRenderer().FONT_HEIGHT)
+                    chat.height.coerceAtMost((chat as AccessorGuiNewChat).drawnChatLines.size * UMinecraft.getFontRenderer().field_0_2811)
                 } ?: 0
         }
     }
 }
 
-fun GuiNewChat.getChatLine(mouseX: Double, mouseY: Double): ChatLine? {
-    if (chatOpen && this is AccessorGuiNewChat) {
+fun ChatHud.getChatLine(mouseX: Double, mouseY: Double): ChatHudLine? {
+    if (isChatFocused && this is AccessorGuiNewChat) {
         val extraOffset =
             if (
                 ReflectionHelper.getFieldFor("club.sk1er.patcher.config.PatcherConfig", "chatPosition")
@@ -270,8 +270,8 @@ fun GuiNewChat.getChatLine(mouseX: Double, mouseY: Double): ChatLine? {
         val y = (((UResolution.scaledHeight - mouseY) - 30 - extraOffset) / chatScale).toInt()
 
         if (x >= 0 && y >= 0) {
-            val l = lineCount.coerceAtMost(drawnChatLines.size)
-            if (x <= chatWidth / chatScale && y < UGraphics.getFontHeight() * l + l) {
+            val l = visibleLineCount.coerceAtMost(drawnChatLines.size)
+            if (x <= width / chatScale && y < UGraphics.getFontHeight() * l + l) {
                 val lineNum = y / UGraphics.getFontHeight() + scrollPos
                 return drawnChatLines.getOrNull(lineNum)
             }

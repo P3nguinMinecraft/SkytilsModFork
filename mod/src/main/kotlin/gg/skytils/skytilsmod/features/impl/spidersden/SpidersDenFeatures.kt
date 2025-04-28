@@ -32,9 +32,9 @@ import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.util.BlockPos
+import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.util.math.BlockPos
 
 object SpidersDenFeatures : EventSubscriber {
     private var shouldShowArachneSpawn = false
@@ -53,15 +53,15 @@ object SpidersDenFeatures : EventSubscriber {
 
     fun onTick(event: TickEvent) {
         arachneName =
-            if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.SpiderDen.mode || !Skytils.config.showArachneHP) null else mc.theWorld?.loadedEntityList?.find {
-                val name = it.displayName.formattedText
-                it is EntityArmorStand && name.endsWith("§c❤") && (name.contains("§cArachne §") || name.contains("§5Runic Arachne §"))
-            }?.displayName?.formattedText
+            if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.SpiderDen.mode || !Skytils.config.showArachneHP) null else mc.world?.entities?.find {
+                val name = it.displayName.method_10865()
+                it is ArmorStandEntity && name.endsWith("§c❤") && (name.contains("§cArachne §") || name.contains("§5Runic Arachne §"))
+            }?.displayName?.method_10865()
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        val unformatted = event.message.unformattedText.stripControlCodes()
+        val unformatted = event.message.string.stripControlCodes()
         if (unformatted.startsWith("☄") && (unformatted.contains("placed an Arachne Fragment! (") || unformatted.contains(
                 "placed an Arachne Crystal! Something is awakening!"
             ))
@@ -77,12 +77,12 @@ object SpidersDenFeatures : EventSubscriber {
         if (shouldShowArachneSpawn && Skytils.config.showArachneSpawn) {
             val spawnPos = BlockPos(-282, 49, -178)
             val matrixStack = UMatrixStack()
-            GlStateManager.disableDepth()
-            GlStateManager.disableCull()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableCull()
             RenderUtil.renderWaypointText("Arachne Spawn", spawnPos, event.partialTicks, matrixStack)
-            GlStateManager.disableLighting()
-            GlStateManager.enableDepth()
-            GlStateManager.enableCull()
+            RenderSystem.method_4406()
+            RenderSystem.enableDepthTest()
+            RenderSystem.enableCull()
         }
     }
 
@@ -125,9 +125,9 @@ object SpidersDenFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.FONT_HEIGHT
+            get() = ScreenRenderer.fontRenderer.field_0_2811
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getStringWidth("§8[§7Lv500§8] §cArachne §a17.6M§f/§a20M§c❤§r")
+            get() = ScreenRenderer.fontRenderer.getWidth("§8[§7Lv500§8] §cArachne §a17.6M§f/§a20M§c❤§r")
         override val toggled: Boolean
             get() = Skytils.config.showArachneHP
 

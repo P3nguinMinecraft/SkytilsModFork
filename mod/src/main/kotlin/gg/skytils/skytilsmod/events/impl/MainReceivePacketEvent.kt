@@ -19,9 +19,9 @@
 package gg.skytils.skytilsmod.events.impl
 
 import gg.skytils.skytilsmod.events.SkytilsEvent
-import net.minecraft.network.INetHandler
-import net.minecraft.network.Packet
+import net.minecraft.network.listener.PacketListener
+import net.minecraft.network.packet.Packet
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 
 @Cancelable
-data class MainReceivePacketEvent<T : Packet<U>, U : INetHandler>(val handler: U, val packet: T) : SkytilsEvent()
+data class MainReceivePacketEvent<T : Packet<U>, U : PacketListener>(val handler: U, val packet: T) : SkytilsEvent()

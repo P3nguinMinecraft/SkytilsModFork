@@ -28,17 +28,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 //#if MC==10809
-import net.minecraft.launchwrapper.Launch;
+//$$ import net.minecraft.launchwrapper.Launch;
 //#else
-//$$ import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.FabricLoader;
 //#endif
 
 public class SuperSecretSettings {
     public static final LinkedHashSet<String> settings = new LinkedHashSet<>();
     //#if MC==10809
-    public static final File saveLoc = new File(Launch.minecraftHome, "config/skytils/supersecretsettings.txt");
+    //$$ public static final File saveLoc = new File(Launch.minecraftHome, "config/skytils/supersecretsettings.txt");
     //#else
-    //$$ public static final File saveLoc = FabricLoader.getInstance().getConfigDir().resolve("skytils/supersecretsettings.txt").toFile();
+    public static final File saveLoc = FabricLoader.getInstance().getConfigDir().resolve("skytils/supersecretsettings.txt").toFile();
     //#endif
     public static boolean dirty = false;
 

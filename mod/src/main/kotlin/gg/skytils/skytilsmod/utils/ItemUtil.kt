@@ -18,11 +18,11 @@
 package gg.skytils.skytilsmod.utils
 
 import gg.skytils.skytilsmod.utils.ItemRarity.Companion.RARITY_PATTERN
-import net.minecraft.init.Items
+import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagList
-import net.minecraft.nbt.NBTTagString
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtList
+import net.minecraft.nbt.NbtString
 import net.minecraftforge.common.util.Constants
 import java.util.*
 import kotlin.math.max
@@ -42,10 +42,10 @@ object ItemUtil {
      */
     @JvmStatic
     fun getDisplayName(item: ItemStack): String {
-        var s = item.item.getItemStackDisplayName(item)
-        if (item.tagCompound != null && item.tagCompound.hasKey("display", 10)) {
-            val nbtTagCompound = item.tagCompound.getCompoundTag("display")
-            if (nbtTagCompound.hasKey("Name", 8)) {
+        var s = item.item.getName(item)
+        if (item.nbt != null && item.nbt.contains("display", 10)) {
+            val nbtTagCompound = item.nbt.getCompound("display")
+            if (nbtTagCompound.contains("Name", 8)) {
                 s = nbtTagCompound.getString("Name")
             }
         }
@@ -65,7 +65,7 @@ object ItemUtil {
             return null
         }
         val extraAttributes = getExtraAttributes(item) ?: return null
-        return if (!extraAttributes.hasKey("id", NBT_STRING)) {
+        return if (!extraAttributes.contains("id", NBT_STRING)) {
             null
         } else extraAttributes.getString("id")
     }
@@ -78,10 +78,10 @@ object ItemUtil {
      * @return the item's `ExtraAttributes` compound tag or `null` if the item doesn't have one
      */
     @JvmStatic
-    fun getExtraAttributes(item: ItemStack?): NBTTagCompound? {
-        return if (item == null || !item.hasTagCompound()) {
+    fun getExtraAttributes(item: ItemStack?): NbtCompound? {
+        return if (item == null || !item.hasNbt()) {
             null
-        } else item.getSubCompound("ExtraAttributes", false)
+        } else item.getOrCreateSubNbt("ExtraAttributes", false)
     }
 
     /**
@@ -92,7 +92,7 @@ object ItemUtil {
      * @return the Skyblock Item ID of this item or `null` if this isn't a valid Skyblock NBT
      */
     @JvmStatic
-    fun getSkyBlockItemID(extraAttributes: NBTTagCompound?): String? {
+    fun getSkyBlockItemID(extraAttributes: NbtCompound?): String? {
         if (extraAttributes != null) {
             val itemId = extraAttributes.getString("id")
             if (itemId.isNotEmpty()) {
@@ -113,13 +113,13 @@ object ItemUtil {
      */
     @JvmStatic
     fun getItemLore(itemStack: ItemStack): List<String> {
-        if (itemStack.hasTagCompound() && itemStack.tagCompound.hasKey("display", NBT_COMPOUND)) {
-            val display = itemStack.tagCompound.getCompoundTag("display")
-            if (display.hasKey("Lore", NBT_LIST)) {
-                val lore = display.getTagList("Lore", NBT_STRING)
-                val loreAsList = ArrayList<String>(lore.tagCount())
-                for (lineNumber in 0..<lore.tagCount()) {
-                    loreAsList.add(lore.getStringTagAt(lineNumber))
+        if (itemStack.hasNbt() && itemStack.nbt.contains("display", NBT_COMPOUND)) {
+            val display = itemStack.nbt.getCompound("display")
+            if (display.contains("Lore", NBT_LIST)) {
+                val lore = display.getList("Lore", NBT_STRING)
+                val loreAsList = ArrayList<String>(lore.size())
+                for (lineNumber in 0..<lore.size()) {
+                    loreAsList.add(lore.getString(lineNumber))
                 }
                 return Collections.unmodifiableList(loreAsList)
             }
@@ -144,19 +144,19 @@ object ItemUtil {
      * @return the rarity of the item if a valid rarity is found, `null` if no rarity is found, `null` if item is `null`
      */
     fun getRarity(item: ItemStack?): ItemRarity {
-        if (item == null || !item.hasTagCompound()) {
+        if (item == null || !item.hasNbt()) {
             return ItemRarity.NONE
         }
-        val display = item.getSubCompound("display", false)
-        if (display == null || !display.hasKey("Lore")) {
+        val display = item.getOrCreateSubNbt("display", false)
+        if (display == null || !display.contains("Lore")) {
             return ItemRarity.NONE
         }
-        val lore = display.getTagList("Lore", Constants.NBT.TAG_STRING)
+        val lore = display.getList("Lore", Constants.NBT.TAG_STRING)
         val name = display.getString("Name")
 
         // Determine the item's rarity
-        for (i in (lore.tagCount() - 1) downTo 0) {
-            val currentLine = lore.getStringTagAt(i)
+        for (i in (lore.size() - 1) downTo 0) {
+            val currentLine = lore.getString(i)
             val rarityMatcher = RARITY_PATTERN.find(currentLine)
             if (rarityMatcher != null) {
                 val rarity = rarityMatcher.groups["rarity"]?.value ?: continue
@@ -178,11 +178,11 @@ object ItemUtil {
     }
 
     fun isPet(item: ItemStack?): Boolean {
-        if (item == null || !item.hasTagCompound()) {
+        if (item == null || !item.hasNbt()) {
             return false
         }
-        val display = item.getSubCompound("display", false)
-        if (display == null || !display.hasKey("Lore")) {
+        val display = item.getOrCreateSubNbt("display", false)
+        if (display == null || !display.contains("Lore")) {
             return false
         }
         val name = display.getString("Name")
@@ -191,50 +191,50 @@ object ItemUtil {
     }
 
     fun setSkullTexture(item: ItemStack, texture: String, SkullOwner: String): ItemStack {
-        val textureTagCompound = NBTTagCompound()
-        textureTagCompound.setString("Value", texture)
+        val textureTagCompound = NbtCompound()
+        textureTagCompound.putString("Value", texture)
 
-        val textures = NBTTagList()
-        textures.appendTag(textureTagCompound)
+        val textures = NbtList()
+        textures.add(textureTagCompound)
 
-        val properties = NBTTagCompound()
-        properties.setTag("textures", textures)
+        val properties = NbtCompound()
+        properties.put("textures", textures)
 
-        val skullOwner = NBTTagCompound()
-        skullOwner.setString("Id", SkullOwner)
-        skullOwner.setTag("Properties", properties)
+        val skullOwner = NbtCompound()
+        skullOwner.putString("Id", SkullOwner)
+        skullOwner.put("Properties", properties)
 
-        val nbtTag = NBTTagCompound()
-        nbtTag.setTag("SkullOwner", skullOwner)
+        val nbtTag = NbtCompound()
+        nbtTag.put("SkullOwner", skullOwner)
 
-        item.tagCompound = nbtTag
+        item.nbt = nbtTag
         return item
     }
 
     fun getSkullTexture(item: ItemStack?): String? {
-        if (item?.item != Items.skull) return null
-        val nbt = item?.tagCompound ?: return null
-        if (!nbt.hasKey("SkullOwner")) return null
-        return nbt.getCompoundTag("SkullOwner").getCompoundTag("Properties")
-            .getTagList("textures", Constants.NBT.TAG_COMPOUND).getCompoundTagAt(0).getString("Value")
+        if (item?.item != Items.PLAYER_HEAD) return null
+        val nbt = item?.nbt ?: return null
+        if (!nbt.contains("SkullOwner")) return null
+        return nbt.getCompound("SkullOwner").getCompound("Properties")
+            .getList("textures", Constants.NBT.TAG_COMPOUND).getCompound(0).getString("Value")
     }
 
     fun ItemStack.setLore(lines: List<String>): ItemStack {
-        setTagInfo("display", getSubCompound("display", true).apply {
-            setTag("Lore", NBTTagList().apply {
-                for (line in lines) appendTag(NBTTagString(line))
+        setSubNbt("display", getOrCreateSubNbt("display", true).apply {
+            put("Lore", NbtList().apply {
+                for (line in lines) add(NbtString(line))
             })
         })
         return this
     }
 
-    fun getStarCount(extraAttributes: NBTTagCompound) =
-        max(extraAttributes.getInteger("upgrade_level"), extraAttributes.getInteger("dungeon_item_level"))
+    fun getStarCount(extraAttributes: NbtCompound) =
+        max(extraAttributes.getInt("upgrade_level"), extraAttributes.getInt("dungeon_item_level"))
 
     fun isSalvageable(stack: ItemStack): Boolean {
         val extraAttr = getExtraAttributes(stack)
         val sbId = getSkyBlockItemID(extraAttr)
-        return extraAttr != null && extraAttr.hasKey("baseStatBoostPercentage") && getStarCount(
+        return extraAttr != null && extraAttr.contains("baseStatBoostPercentage") && getStarCount(
             extraAttr
         ) == 0 && sbId != "ICE_SPRAY_WAND"
     }

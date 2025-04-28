@@ -27,15 +27,15 @@ import gg.skytils.skytilsmod.features.impl.handlers.ArmorColor
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
-import net.minecraft.client.entity.EntityPlayerSP
-import net.minecraft.command.SyntaxErrorException
-import net.minecraft.command.WrongUsageException
-import net.minecraft.item.ItemArmor
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.class_0_1371
+import net.minecraft.class_0_1374
+import net.minecraft.item.ArmorItem
 
 object ArmorColorCommand : BaseCommand("armorcolor", listOf("armourcolour", "armorcolour", "armourcolor")) {
-    override fun getCommandUsage(player: EntityPlayerSP): String = "/armorcolor <clearall/clear/set>"
+    override fun getCommandUsage(player: ClientPlayerEntity): String = "/armorcolor <clearall/clear/set>"
 
-    override fun processCommand(player: EntityPlayerSP, args: Array<String>) {
+    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
         if (args.isEmpty()) {
             UChat.chat("$prefix §b" + getCommandUsage(player))
             return
@@ -46,28 +46,28 @@ object ArmorColorCommand : BaseCommand("armorcolor", listOf("armourcolour", "arm
             PersistentSave.markDirty<ArmorColor>()
             UChat.chat("$successPrefix §aCleared all your custom armor colors!")
         } else if (subcommand == "clear" || subcommand == "set") {
-            if (!Utils.inSkyblock) throw WrongUsageException("You must be in Skyblock to use this command!")
-            val item = player.heldItem
-                ?: throw WrongUsageException("You must hold a leather armor piece to use this command")
-            if ((item.item as? ItemArmor)?.armorMaterial != ItemArmor.ArmorMaterial.LEATHER) throw WrongUsageException("You must hold a leather armor piece to use this command")
+            if (!Utils.inSkyblock) throw class_0_1374("You must be in Skyblock to use this command!")
+            val item = player.method_0_7087()
+                ?: throw class_0_1374("You must hold a leather armor piece to use this command")
+            if ((item.item as? ArmorItem)?.material != ArmorItem.class_1740.LEATHER) throw class_0_1374("You must hold a leather armor piece to use this command")
             val extraAttributes = ItemUtil.getExtraAttributes(item)
-            if (extraAttributes == null || !extraAttributes.hasKey("uuid")) throw WrongUsageException("This item does not have a UUID!")
+            if (extraAttributes == null || !extraAttributes.contains("uuid")) throw class_0_1374("This item does not have a UUID!")
             val uuid = extraAttributes.getString("uuid")
             if (subcommand == "set") {
-                if (args.size != 2) throw WrongUsageException("You must specify a valid hex color!")
+                if (args.size != 2) throw class_0_1374("You must specify a valid hex color!")
                 val color: CustomColor = try {
                     Utils.customColorFromString(args[1])
                 } catch (e: IllegalArgumentException) {
-                    throw SyntaxErrorException("$failPrefix §cUnable to get a color from inputted string.")
+                    throw class_0_1371("$failPrefix §cUnable to get a color from inputted string.")
                 }
                 ArmorColor.armorColors[uuid] = color
                 PersistentSave.markDirty<ArmorColor>()
-                UChat.chat("$successPrefix §aSet the color of your ${item.displayName}§a to ${args[1]}!")
+                UChat.chat("$successPrefix §aSet the color of your ${item.name}§a to ${args[1]}!")
             } else {
                 if (ArmorColor.armorColors.containsKey(uuid)) {
                     ArmorColor.armorColors.remove(uuid)
                     PersistentSave.markDirty<ArmorColor>()
-                    UChat.chat("$successPrefix §aCleared the custom color for your ${item.displayName}§a!")
+                    UChat.chat("$successPrefix §aCleared the custom color for your ${item.name}§a!")
                 } else UChat.chat("§cThat item doesn't have a custom color!")
             }
         } else UChat.chat(getCommandUsage(player))

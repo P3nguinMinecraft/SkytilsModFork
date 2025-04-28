@@ -19,18 +19,18 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderBatHookKt;
-import net.minecraft.client.renderer.entity.RenderBat;
-import net.minecraft.entity.passive.EntityBat;
+import net.minecraft.client.render.entity.BatEntityRenderer;
+import net.minecraft.entity.passive.BatEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(RenderBat.class)
+@Mixin(BatEntityRenderer.class)
 public abstract class MixinRenderBat {
 
-    @Inject(method = "preRenderCallback", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;scale(FFF)V", shift = At.Shift.AFTER))
-    private void preRender(EntityBat bat, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "scale", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4384(FFF)V", shift = At.Shift.AFTER))
+    private void preRender(BatEntity bat, float partialTicks, CallbackInfo ci) {
         RenderBatHookKt.preRenderBat(bat, partialTicks, ci);
     }
 }

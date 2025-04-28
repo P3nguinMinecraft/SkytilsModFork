@@ -78,7 +78,7 @@ class PotionNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            mc.displayGuiScreen(null)
+            client.setScreen(null)
         }
 
         SimpleButton("Add Potion").childOf(bottomButtons).constrain {

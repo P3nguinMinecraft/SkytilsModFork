@@ -19,24 +19,24 @@
 package gg.skytils.skytilsmod.mixins.transformers.particle;
 
 import gg.skytils.skytilsmod.mixins.hooks.particle.EffectRendererHookKt;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.particle.EffectRenderer;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(EffectRenderer.class)
+@Mixin(ParticleManager.class)
 public class MixinEffectRenderer {
-    @Inject(method = "addBlockHitEffects(Lnet/minecraft/util/BlockPos;Lnet/minecraft/util/EnumFacing;)V", at = @At("HEAD"), cancellable = true)
-    private void onBlockHitEffects(BlockPos j, EnumFacing k, CallbackInfo ci) {
+    @Inject(method = "addBlockBreakingParticles(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Direction;)V", at = @At("HEAD"), cancellable = true)
+    private void onBlockHitEffects(BlockPos j, Direction k, CallbackInfo ci) {
         EffectRendererHookKt.onBlockHitEffect(j, k, ci);
     }
 
-    @Inject(method = "addBlockDestroyEffects", at = @At("HEAD"), cancellable = true)
-    private void onBlockDestroyEffects(BlockPos d1, IBlockState d2, CallbackInfo ci) {
+    @Inject(method = "addBlockBreakParticles", at = @At("HEAD"), cancellable = true)
+    private void onBlockDestroyEffects(BlockPos d1, BlockState d2, CallbackInfo ci) {
         EffectRendererHookKt.onBlockDestroyEffect(d1, d2, ci);
     }
 }
