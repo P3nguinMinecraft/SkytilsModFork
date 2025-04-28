@@ -30,12 +30,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(TileEntityChestRenderer.class)
 public abstract class MixinTileEntityChestRenderer extends TileEntitySpecialRenderer<TileEntityChest> {
 
-    @Inject(method = "renderTileEntityAt", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelChest;renderAll()V", shift = At.Shift.BEFORE))
+    @Inject(method = "renderTileEntityAt(Lnet/minecraft/tileentity/TileEntityChest;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelChest;renderAll()V", shift = At.Shift.BEFORE))
     private void setChestColor(TileEntityChest te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
         TileEntityChestRendererHookKt.setChestColor(te, x, y, z, partialTicks, destroyStage, ci);
     }
 
-    @Inject(method = "renderTileEntityAt", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelChest;renderAll()V", shift = At.Shift.AFTER))
+    @Inject(method = "renderTileEntityAt(Lnet/minecraft/tileentity/TileEntityChest;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelChest;renderAll()V", shift = At.Shift.AFTER))
     private void setChestColorPost(TileEntityChest te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
         TileEntityChestRendererHookKt.setChestColorPost(te, x, y, z, partialTicks, destroyStage, ci);
     }

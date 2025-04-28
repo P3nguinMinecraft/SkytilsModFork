@@ -32,9 +32,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SoundManager.class)
 public abstract class MixinSoundManager {
 
-    @Inject(method = "getNormalizedVolume", at = @At("HEAD"), cancellable = true)
-    private void bypassPlayerVolume(ISound sound, SoundPoolEntry entry, SoundCategory category, CallbackInfoReturnable<Float> cir) {
-        SoundManagerHookKt.bypassPlayerVolume(sound, entry, category, cir);
+    @Inject(method = "getNormalizedVolume*", at = @At("HEAD"), cancellable = true)
+    private void bypassPlayerVolume(CallbackInfoReturnable<Float> cir) {
+        SoundManagerHookKt.bypassPlayerVolume(cir);
     }
 
     @Inject(method = "playSound", at = @At("HEAD"), cancellable = true)

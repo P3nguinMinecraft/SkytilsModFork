@@ -20,15 +20,10 @@ package gg.skytils.skytilsmod.mixins.hooks.audio
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.audio.ISound
-import net.minecraft.client.audio.SoundCategory
-import net.minecraft.client.audio.SoundPoolEntry
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 fun bypassPlayerVolume(
-    sound: ISound,
-    entry: SoundPoolEntry,
-    category: SoundCategory,
     cir: CallbackInfoReturnable<Float>
 ) {
     if (Utils.shouldBypassVolume) cir.returnValue = 1f
