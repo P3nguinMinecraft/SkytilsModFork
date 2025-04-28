@@ -34,7 +34,7 @@ pluginManagement {
     }
 
     plugins {
-        val kotlinVersion = "1.9.22"
+        val kotlinVersion = "2.0.21"
         kotlin("jvm") version kotlinVersion apply false
         kotlin("plugin.serialization") version kotlinVersion apply false
         id("gg.essential.multi-version.root") version "0.6.7"
@@ -55,7 +55,6 @@ project(":events").apply {
 listOf(
     "1.8.9-forge",
     "1.8.9-fabric",
-    "1.20.4-fabric",
     "1.21.5-fabric"
 ).forEach { version ->
     include(":events:$version")
@@ -73,7 +72,6 @@ project(":mod").apply {
 listOf(
     "1.8.9-forge",
     "1.8.9-fabric",
-    "1.20.4-fabric",
     "1.21.5-fabric"
 ).forEach { version ->
     include(":mod:$version")
