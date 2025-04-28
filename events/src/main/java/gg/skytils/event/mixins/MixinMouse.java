@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#if MC>=12000
 package gg.skytils.event.mixins;
 
 import gg.skytils.event.EventsKt;
@@ -50,3 +51,4 @@ public class MixinMouse {
         }
     }
 }
+//#endif

@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#if MC>=12000
 package gg.skytils.event.mixins.gui;
 
 import gg.skytils.event.EventsKt;
@@ -24,14 +25,24 @@ import net.minecraft.client.gui.screen.ChatScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ChatScreen.class)
 public class MixinChatScreen {
     @Inject(method = "sendMessage", at = @At("HEAD"), cancellable = true)
-    public void onSendChatMessage(String chatText, boolean addToHistory, CallbackInfoReturnable<Boolean> cir) {
+    //#if MC>=12100
+    public void onSendChatMessage(String chatText, boolean addToHistory, CallbackInfo ci) {
+    //#else
+    //$$ public void onSendChatMessage(String chatText, boolean addToHistory, CallbackInfoReturnable<Boolean> cir) {
+    //#endif
         if (EventsKt.postCancellableSync(new ChatMessageSentEvent(chatText, addToHistory))) {
-            cir.setReturnValue(true); // returning a value of false prevents the chat window from closing, but this wouldn't match 1.8.9 behavior
+            //#if MC>=12100
+            ci.cancel();
+            //#else
+            //$$ cir.setReturnValue(true); // returning a value of false prevents the chat window from closing, but this wouldn't match 1.8.9 behavior
+            //#endif
         }
     }
 }
+//#endif

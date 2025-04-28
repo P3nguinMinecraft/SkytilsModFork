@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#if MC>=12000
 package gg.skytils.event.mixins.render;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
@@ -44,3 +45,4 @@ public class MixinWorldRenderer {
         return !EventsKt.postCancellableSync(event);
     }
 }
+//#endif

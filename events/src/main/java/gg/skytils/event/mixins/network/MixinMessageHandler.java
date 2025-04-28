@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#if MC>=12000
 package gg.skytils.event.mixins.network;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -53,3 +54,4 @@ public class MixinMessageHandler {
         original.call(instance, event.getMessage(), tinted);
     }
 }
+//#endif
