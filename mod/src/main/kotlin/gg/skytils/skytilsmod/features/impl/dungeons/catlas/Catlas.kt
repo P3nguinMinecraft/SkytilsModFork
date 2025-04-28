@@ -115,7 +115,7 @@ object Catlas : EventSubscriber {
                     it.state = RoomState.PREVISITED
                 }
             }
-            DungeonListener.team[player.name]?.mapPlayer?.yaw = player.yaw
+            MapUpdater.updatePlayersUsingEntity()
         }
     }
 
