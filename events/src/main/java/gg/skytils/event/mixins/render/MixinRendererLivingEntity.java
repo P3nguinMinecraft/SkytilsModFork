@@ -37,7 +37,7 @@ import net.minecraft.client.util.math.MatrixStack;
 //#endif
 
 //#if MC>=12100
-//$$ import net.minecraft.client.render.entity.state.LivingEntityRenderState;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 //#endif
 
 @Mixin(LivingEntityRenderer.class)
@@ -46,9 +46,9 @@ public class MixinRendererLivingEntity
         //$$ <T extends LivingEntity>
         //#else
         //#if MC<12100
-        <T extends LivingEntity, M extends EntityModel<T>>
+        //$$ <T extends LivingEntity, M extends EntityModel<T>>
         //#else
-        //$$ <T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>>
+        <T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>>
         //#endif
         //#endif
 {
@@ -69,9 +69,9 @@ public class MixinRendererLivingEntity
         //$$ LivingEntityPreRenderEvent<T>
         //#else
         //#if MC<12100
-        LivingEntityPreRenderEvent<T, M>
+        //$$ LivingEntityPreRenderEvent<T, M>
         //#else
-        //$$ LivingEntityPreRenderEvent<T, S, M>
+        LivingEntityPreRenderEvent<T, S, M>
         //#endif
         //#endif
                 event =
@@ -80,9 +80,9 @@ public class MixinRendererLivingEntity
                     //$$ (LivingEntityRenderer<T>) (Object) this,
                     //#else
                     //#if MC<12100
-                    (LivingEntityRenderer<T, M>) (Object) this,
+                    //$$ (LivingEntityRenderer<T, M>) (Object) this,
                     //#else
-                    //$$ (LivingEntityRenderer<T, S, M>) (Object) this,
+                    (LivingEntityRenderer<T, S, M>) (Object) this,
                     //#endif
                     //#endif
                     renderX, renderY, renderZ, partialTicks);
