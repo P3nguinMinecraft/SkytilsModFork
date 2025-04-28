@@ -24,6 +24,7 @@ plugins {
 }
 
 repositories {
+    maven("https://repo.spongepowered.org/repository/maven-public/")
     if (project.platform.isFabric && project.platform.mcVersion == 10809) maven("https://repo.legacyfabric.net/repository/legacyfabric/")
 }
 
@@ -37,7 +38,7 @@ dependencies {
 group = "gg.skytils.events"
 
 java.toolchain {
-    languageVersion = if (platform.mcVersion < 11600) JavaLanguageVersion.of(8) else JavaLanguageVersion.of(17)
+    languageVersion.set(JavaLanguageVersion.of(platform.javaVersion.asInt()))
 }
 
 loom.mixin {
@@ -54,3 +55,5 @@ tasks.withType<AbstractArchiveTask> {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }
+
+fun JavaVersion.asInt() = this.ordinal + 1

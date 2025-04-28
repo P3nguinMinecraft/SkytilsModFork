@@ -38,6 +38,7 @@ repositories {
     mavenCentral()
     maven("https://repo.essential.gg/repository/maven-public/")
     maven("https://repo.essential.gg/repository/maven-releases/")
+    maven("https://repo.spongepowered.org/repository/maven-public/")
     maven("https://repo.hypixel.net/repository/Hypixel/")
     maven("https://jitpack.io") {
         mavenContent {
@@ -108,9 +109,16 @@ dependencies {
         shadowMe("gg.essential:loader-launchwrapper:1.2.3")
     } else {
         include(modRuntimeOnly("gg.essential:loader-fabric:1.2.3")!!)
-        modImplementation("net.fabricmc.fabric-api:fabric-api:0.99.4+1.20.6")
+        modImplementation("net.fabricmc.fabric-api:fabric-api") {
+            version {
+                require(when {
+                    platform.mcVersion == 12105 -> "0.121.0+1.21.5"
+                    else -> "0.119.2+1.21.4"
+                })
+            }
+        }
     }
-    modCompileOnly("gg.essential:essential-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:16425+g3a090c5c88") {
+    modCompileOnly("gg.essential:essential-${if (platform.mcVersion >= 12006) "1.20.6-fabric" else if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:17141+gd6f4cfd3a8") {
         exclude(module = "asm")
         exclude(module = "asm-commons")
         exclude(module = "asm-tree")
@@ -200,7 +208,7 @@ sourceSets {
 
 val enabledVersions = setOf(
     "1.8.9-forge",
-    "1.20.4-fabric"
+    "1.21.5-fabric"
 )
 
 tasks {
