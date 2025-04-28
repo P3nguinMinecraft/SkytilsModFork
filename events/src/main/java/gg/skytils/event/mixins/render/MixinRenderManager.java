@@ -20,18 +20,18 @@ package gg.skytils.event.mixins.render;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.render.CheckRenderEntityEvent;
-import net.minecraft.client.renderer.culling.ICamera;
-import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(RenderManager.class)
+@Mixin(EntityRenderDispatcher.class)
 public class MixinRenderManager {
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
-    private void shouldRender(Entity entityIn, ICamera camera, double camX, double camY, double camZ, CallbackInfoReturnable<Boolean> cir) {
+    private void shouldRender(Entity entityIn, Frustum camera, double camX, double camY, double camZ, CallbackInfoReturnable<Boolean> cir) {
         CheckRenderEntityEvent<Entity> event = new CheckRenderEntityEvent<>(entityIn);
         if (EventsKt.postCancellableSync(event)) {
             cir.setReturnValue(false);

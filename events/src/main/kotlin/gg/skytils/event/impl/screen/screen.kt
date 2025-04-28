@@ -19,15 +19,15 @@
 package gg.skytils.event.impl.screen
 
 import gg.skytils.event.CancellableEvent
-import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.screen.Screen
 
 /**
  * [gg.skytils.event.mixins.MixinMinecraft.openScreen]
  */
-class ScreenOpenEvent(var screen: GuiScreen?) : CancellableEvent()
+class ScreenOpenEvent(var screen: Screen?) : CancellableEvent()
 
-class ScreenKeyInputEvent(val screen: GuiScreen, val keyCode: Int) : CancellableEvent()
+class ScreenKeyInputEvent(val screen: Screen, val keyCode: Int) : CancellableEvent()
 
-class ScreenMouseInputEvent(val screen: GuiScreen, val mouseX: Double, val mouseY: Double, val button: Int) : CancellableEvent()
+class ScreenMouseInputEvent(val screen: Screen, val mouseX: Double, val mouseY: Double, val button: Int) : CancellableEvent()
 
-class ScreenDrawEvent(val screen: GuiScreen, val mouseX: Double, val mouseY: Double) : CancellableEvent()
+class ScreenDrawEvent(val screen: Screen, val mouseX: Double, val mouseY: Double) : CancellableEvent()

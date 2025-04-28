@@ -19,9 +19,9 @@
 package gg.skytils.event.impl.entity
 
 import gg.skytils.event.Event
-import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.LivingEntity
 
 /**
  * [gg.skytils.event.mixins.entity.MixinEntityLivingBase.onDeath]
  */
-class LivingEntityDeathEvent(val entity: EntityLivingBase) : Event()
+class LivingEntityDeathEvent(val entity: LivingEntity) : Event()

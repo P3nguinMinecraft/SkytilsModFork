@@ -18,36 +18,22 @@
 
 package gg.skytils.event.mixins.world;
 
-import com.google.common.collect.Iterators;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.entity.EntityJoinWorldEvent;
+import net.minecraft.client.world.ClientEntityManager;
 import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityLike;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Iterator;
-
-@Mixin(World.class)
-public class MixinWorld {
-    @Inject(method = "spawnEntityInWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;addEntity(Lnet/minecraft/entity/Entity;)V"), cancellable = true)
-    public void spawnEntityInWorld(Entity entityIn, CallbackInfoReturnable<Boolean> cir) {
-        if (EventsKt.postCancellableSync(new EntityJoinWorldEvent(entityIn))) {
-            cir.setReturnValue(false);
+@Mixin(ClientEntityManager.class)
+public class MixinWorld<T extends EntityLike> {
+    @Inject(method = "addEntity", at = @At("HEAD"), cancellable = true)
+    public void addEntity(T entity, CallbackInfo ci) {
+        if (entity instanceof Entity && EventsKt.postCancellableSync(new EntityJoinWorldEvent((Entity) entity))) {
+            ci.cancel();
         }
-    }
-
-    @ModifyExpressionValue(method = "loadEntities", at = @At(value = "INVOKE", target = "Ljava/util/Collection;iterator()Ljava/util/Iterator;"))
-    public Iterator<Entity> loadEntities(Iterator<Entity> original) {
-        return Iterators.filter(original, entity -> EventsKt.postCancellableSync(new EntityJoinWorldEvent(entity)));
-    }
-
-    @ModifyExpressionValue(method = "joinEntityInSurroundings", at = @At(value = "INVOKE", target = "Ljava/util/List;contains(Ljava/lang/Object;)Z"))
-    public boolean joinEntityInSurroundings(boolean original, @Local(argsOnly = true) Entity entity) {
-        return !EventsKt.postCancellableSync(new EntityJoinWorldEvent(entity)) && original;
     }
 }

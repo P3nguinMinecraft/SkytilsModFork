@@ -20,10 +20,10 @@ package gg.skytils.event.impl.screen
 
 import gg.skytils.event.CancellableEvent
 import gg.skytils.event.Event
-import net.minecraft.client.gui.inventory.GuiContainer
-import net.minecraft.inventory.Container
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.inventory.Slot
+import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.screen.ScreenHandler
+import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.screen.slot.Slot
 
 
 /**
@@ -31,7 +31,7 @@ import net.minecraft.inventory.Slot
  */
 class GuiContainerBackgroundDrawnEvent(
     val gui: ContainerGui,
-    val container: Container,
+    val container: ScreenHandler,
     val mouseX: Int,
     val mouseY: Int,
     val partialTicks: Float
@@ -44,7 +44,7 @@ class GuiContainerBackgroundDrawnEvent(
 /**
  * [gg.skytils.event.mixins.gui.MixinGuiContainer.closeWindowPressed]
  */
-class GuiContainerCloseWindowEvent(val gui: ContainerGui, val container: Container) : CancellableEvent() {
+class GuiContainerCloseWindowEvent(val gui: ContainerGui, val container: ScreenHandler) : CancellableEvent() {
     val chestName by lazy {
         getChestName(gui)
     }
@@ -53,7 +53,7 @@ class GuiContainerCloseWindowEvent(val gui: ContainerGui, val container: Contain
 /**
  * [gg.skytils.event.mixins.gui.MixinGuiContainer.onDrawSlot]
  */
-class GuiContainerPreDrawSlotEvent(val gui: ContainerGui, val container: Container, val slot: Slot) : CancellableEvent() {
+class GuiContainerPreDrawSlotEvent(val gui: ContainerGui, val container: ScreenHandler, val slot: Slot) : CancellableEvent() {
     val chestName by lazy {
         getChestName(gui)
     }
@@ -62,7 +62,7 @@ class GuiContainerPreDrawSlotEvent(val gui: ContainerGui, val container: Contain
 /**
  * [gg.skytils.event.mixins.gui.MixinGuiContainer.onDrawSlotPost]
  */
-class GuiContainerPostDrawSlotEvent(val gui: ContainerGui, val container: Container, val slot: Slot) : Event() {
+class GuiContainerPostDrawSlotEvent(val gui: ContainerGui, val container: ScreenHandler, val slot: Slot) : Event() {
     val chestName by lazy {
         getChestName(gui)
     }
@@ -73,7 +73,7 @@ class GuiContainerPostDrawSlotEvent(val gui: ContainerGui, val container: Contai
  */
 class GuiContainerForegroundDrawnEvent(
     val gui: ContainerGui,
-    val container: Container,
+    val container: ScreenHandler,
     val mouseX: Int,
     val mouseY: Int,
     val partialTicks: Float
@@ -88,7 +88,7 @@ class GuiContainerForegroundDrawnEvent(
  */
 class GuiContainerSlotClickEvent(
     val gui: ContainerGui,
-    val container: Container,
+    val container: ScreenHandler,
     val slot: Slot?,
     val slotId: Int,
     val clickedButton: Int,
@@ -101,15 +101,15 @@ class GuiContainerSlotClickEvent(
 
 private fun getChestName(containerGui: ContainerGui): String {
     //#if MC<12000
-    return (containerGui.inventorySlots as? ContainerChest)?.lowerChestInventory?.displayName?.unformattedText?.trim() ?: error("Container is not a chest")
+    //$$ return (containerGui.handler as? GenericContainerScreenHandler)?.inventory?.displayName?.method_0_5147()?.trim() ?: error("Container is not a chest")
     //#else
-    //$$ return containerGui.title.string
+    return containerGui.title.string
     //#endif
 }
 
 typealias ContainerGui =
         //#if MC<12000
-        GuiContainer
+        //$$ HandledScreen
         //#else
-        //$$ HandledScreen<*>
+        HandledScreen<*>
         //#endif

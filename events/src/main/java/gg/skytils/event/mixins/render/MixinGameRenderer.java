@@ -23,11 +23,11 @@ import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.render.SelectionBoxDrawEvent;
 import gg.skytils.event.impl.render.WorldDrawEvent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.hit.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,36 +35,36 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //#if MC>=12000
-//$$ import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.MatrixStack;
 //#endif
 
-@Mixin(EntityRenderer.class)
+@Mixin(GameRenderer.class)
 public class MixinGameRenderer {
-    @Shadow private Minecraft mc;
+    @Shadow private MinecraftClient client;
 
     @Inject(method =
             //#if MC<12000
-            "renderWorldPass",
+            //$$ "renderWorldInternal",
             //#else
-            //$$ "renderWorld",
+            "renderWorld",
             //#endif
             at = @At(value = "CONSTANT", args = "stringValue=hand", shift = At.Shift.BEFORE))
     //#if MC<12000
-    public void renderWorld(int pass, float partialTicks, long finishTimeNano, CallbackInfo ci) {
-        EventsKt.postSync(new WorldDrawEvent(partialTicks));
-    }
-    //#else
-    //$$ public void renderWorld(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo ci) {
-    //$$     EventsKt.postSync(new WorldDrawEvent(tickDelta));
+    //$$ public void renderWorld(int pass, float partialTicks, long finishTimeNano, CallbackInfo ci) {
+    //$$     EventsKt.postSync(new WorldDrawEvent(partialTicks));
     //$$ }
+    //#else
+    public void renderWorld(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo ci) {
+        EventsKt.postSync(new WorldDrawEvent(tickDelta));
+    }
     //#endif
 
     // Moved to WorldRenderer
     //#if MC<12000
-    @WrapWithCondition(method = "renderWorldPass", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderGlobal;drawSelectionBox(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/util/MovingObjectPosition;IF)V"))
-    public boolean renderSelectionBox(RenderGlobal instance, EntityPlayer d1, MovingObjectPosition d2, int f, float blockpos, @Local(argsOnly = true) float partialTicks) {
-        SelectionBoxDrawEvent event = new SelectionBoxDrawEvent(this.mc.objectMouseOver, partialTicks);
-        return !EventsKt.postCancellableSync(event);
-    }
+    //$$ @WrapWithCondition(method = "renderWorldInternal", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;method_3294(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/hit/HitResult;IF)V"))
+    //$$ public boolean renderSelectionBox(WorldRenderer instance, PlayerEntity d1, HitResult d2, int f, float blockpos, @Local(argsOnly = true) float partialTicks) {
+    //$$     SelectionBoxDrawEvent event = new SelectionBoxDrawEvent(this.client.crosshairTarget, partialTicks);
+    //$$     return !EventsKt.postCancellableSync(event);
+    //$$ }
     //#endif
 }

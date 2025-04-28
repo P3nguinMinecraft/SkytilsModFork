@@ -22,7 +22,7 @@ import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.entity.EntityAttackEvent;
 import gg.skytils.event.impl.play.EntityInteractEvent;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,13 +30,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //#if MC>12000
-//$$ import net.minecraft.util.ActionResult;
-//$$ import net.minecraft.util.Hand;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 //#endif
 
-@Mixin(EntityPlayer.class)
+@Mixin(PlayerEntity.class)
 public class MixinEntityPlayer {
-    @Inject(method = "attackTargetEntityWithCurrentItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void onAttack(Entity targetEntity, CallbackInfo ci) {
         if (EventsKt.postCancellableSync(new EntityAttackEvent((Entity) (Object) this, targetEntity))) {
             ci.cancel();

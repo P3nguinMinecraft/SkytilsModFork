@@ -20,10 +20,10 @@ package gg.skytils.event.mixins.gui;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.screen.*;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,106 +31,106 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //#if MC >= 12000
-//$$ import net.minecraft.client.gui.DrawContext;
-//$$ import net.minecraft.screen.slot.SlotActionType;
-//$$ import net.minecraft.text.Text;
-//$$
-//$$ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.text.Text;
+
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //#endif
 
-@Mixin(GuiContainer.class)
-public abstract class MixinGuiContainer extends GuiScreen {
+@Mixin(HandledScreen.class)
+public abstract class MixinGuiContainer extends Screen {
 
-    @Shadow public Container inventorySlots;
+    @Shadow public ScreenHandler handler;
 
     //#if MC>=12000
-    //$$ protected MixinGuiContainer(Text title) {
-    //$$    super(title);
-    //$$ }
+    protected MixinGuiContainer(Text title) {
+       super(title);
+    }
     //#endif
 
     @Inject(
             //#if MC>=12000
-            //$$ method = "keyPressed",
+            method = "keyPressed",
             //#else
-            method = "keyTyped",
+            //$$ method = "method_0_2773",
             //#endif
             at = @At(
                     value = "INVOKE",
                     target =
                         //#if MC>=12000
-                        //$$ "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;close()V",
+                        "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;close()V",
                         //#else
-                        "Lnet/minecraft/client/entity/EntityPlayerSP;closeScreen()V",
+                        //$$ "Lnet/minecraft/client/network/ClientPlayerEntity;closeHandledScreen()V",
                         //#endif
                     shift = At.Shift.BEFORE
             ), cancellable = true)
     //#if MC>=12000
-    //$$ private void closeWindowPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    private void closeWindowPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     //#else
-    private void closeWindowPressed(CallbackInfo ci) {
+    //$$ private void closeWindowPressed(CallbackInfo ci) {
     //#endif
-        if (EventsKt.postCancellableSync(new GuiContainerCloseWindowEvent((GuiContainer) (Object) this, this.inventorySlots))) {
+        if (EventsKt.postCancellableSync(new GuiContainerCloseWindowEvent((HandledScreen) (Object) this, this.handler))) {
             //#if MC>=12000
-            //$$ cir.setReturnValue(true);
+            cir.setReturnValue(true);
             //#else
-            ci.cancel();
+            //$$ ci.cancel();
             //#endif
         }
     }
 
     //#if MC>=12000
-    //$$ @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;render(Lnet/minecraft/client/gui/DrawContext;IIF)V", shift = At.Shift.AFTER))
-    //$$ private void backgroundDrawn(DrawContext context, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;render(Lnet/minecraft/client/gui/DrawContext;IIF)V", shift = At.Shift.AFTER))
+    private void backgroundDrawn(DrawContext context, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
     //#else
-    @Inject(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;color(FFFF)V", ordinal = 1, shift = At.Shift.AFTER))
-    private void backgroundDrawn(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+    //$$ @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/GlStateManager;setShaderColor(FFFF)V", ordinal = 1, shift = At.Shift.AFTER))
+    //$$ private void backgroundDrawn(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
     //#endif
-        EventsKt.postSync(new GuiContainerBackgroundDrawnEvent((GuiContainer) (Object) this, this.inventorySlots, mouseX, mouseY, partialTicks));
+        EventsKt.postSync(new GuiContainerBackgroundDrawnEvent((HandledScreen) (Object) this, this.handler, mouseX, mouseY, partialTicks));
     }
 
     //#if MC>=12000
-    //$$ @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V", shift = At.Shift.AFTER))
-    //$$ private void onForegroundDraw(DrawContext context, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V", shift = At.Shift.AFTER))
+    private void onForegroundDraw(DrawContext context, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
     //#else
-    @Inject(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/inventory/GuiContainer;drawGuiContainerForegroundLayer(II)V", shift = At.Shift.AFTER))
-    private void onForegroundDraw(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+    //$$ @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(II)V", shift = At.Shift.AFTER))
+    //$$ private void onForegroundDraw(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
     //#endif
-        EventsKt.postSync(new GuiContainerForegroundDrawnEvent((GuiContainer) (Object) this, this.inventorySlots, mouseX, mouseY, partialTicks));
+        EventsKt.postSync(new GuiContainerForegroundDrawnEvent((HandledScreen) (Object) this, this.handler, mouseX, mouseY, partialTicks));
     }
 
     @Inject(method = "drawSlot", at = @At("HEAD"), cancellable = true)
     //#if MC>=12000
-    //$$ private void onDrawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlot(DrawContext context, Slot slot, CallbackInfo ci) {
     //#else
-    private void onDrawSlot(Slot slot, CallbackInfo ci) {
+    //$$ private void onDrawSlot(Slot slot, CallbackInfo ci) {
     //#endif
-        if (EventsKt.postCancellableSync(new GuiContainerPreDrawSlotEvent((GuiContainer) (Object) this, this.inventorySlots, slot))) {
+        if (EventsKt.postCancellableSync(new GuiContainerPreDrawSlotEvent((HandledScreen) (Object) this, this.handler, slot))) {
             ci.cancel();
         }
     }
 
     @Inject(method = "drawSlot", at = @At("RETURN"))
     //#if MC>=12000
-    //$$ private void onDrawSlotPost(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlotPost(DrawContext context, Slot slot, CallbackInfo ci) {
     //#else
-    private void onDrawSlotPost(Slot slot, CallbackInfo ci) {
+    //$$ private void onDrawSlotPost(Slot slot, CallbackInfo ci) {
     //#endif
-        EventsKt.postSync(new GuiContainerPostDrawSlotEvent((GuiContainer) (Object) this, this.inventorySlots, slot));
+        EventsKt.postSync(new GuiContainerPostDrawSlotEvent((HandledScreen) (Object) this, this.handler, slot));
     }
 
     //#if MC>=12000
-    //$$ @Inject(method = "onMouseClick(Lnet/minecraft/screen/slot/Slot;IILnet/minecraft/screen/slot/SlotActionType;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;clickSlot(IIILnet/minecraft/screen/slot/SlotActionType;Lnet/minecraft/entity/player/PlayerEntity;)V"), cancellable = true)
-    //$$ private void onMouseClickEvent(Slot slot, int slotId, int button, SlotActionType actionType, CallbackInfo ci) {
-    //$$    this.onMouseClickEvent(slot, slotId, button, actionType.ordinal(), ci);
-    //$$ }
+    @Inject(method = "onMouseClick(Lnet/minecraft/screen/slot/Slot;IILnet/minecraft/screen/slot/SlotActionType;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;clickSlot(IIILnet/minecraft/screen/slot/SlotActionType;Lnet/minecraft/entity/player/PlayerEntity;)V"), cancellable = true)
+    private void onMouseClickEvent(Slot slot, int slotId, int button, SlotActionType actionType, CallbackInfo ci) {
+       this.onMouseClickEvent(slot, slotId, button, actionType.ordinal(), ci);
+    }
     //#endif
 
     //#if MC<12000
-    @Inject(method = "handleMouseClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/PlayerControllerMP;windowClick(IIIILnet/minecraft/entity/player/EntityPlayer;)Lnet/minecraft/item/ItemStack;"), cancellable = true)
+    //$$ @Inject(method = "method_2383", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;clickSlot(IIIILnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/item/ItemStack;"), cancellable = true)
     //#endif
     private void onMouseClickEvent(Slot slot, int slotId, int clickedButton, int clickType, CallbackInfo ci) {
-        if (EventsKt.postCancellableSync(new GuiContainerSlotClickEvent((GuiContainer) (Object) this, this.inventorySlots, slot, slotId, clickedButton, clickType))) {
+        if (EventsKt.postCancellableSync(new GuiContainerSlotClickEvent((HandledScreen) (Object) this, this.handler, slot, slotId, clickedButton, clickType))) {
             ci.cancel();
         }
     }

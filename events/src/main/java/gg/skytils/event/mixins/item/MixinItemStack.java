@@ -20,7 +20,7 @@ package gg.skytils.event.mixins.item;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.item.ItemTooltipEvent;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +32,7 @@ import java.util.List;
 @Mixin(ItemStack.class)
 public class MixinItemStack {
     @Inject(method = "getTooltip", at = @At("RETURN"), cancellable = true)
-    private void getTooltip(EntityPlayer playerIn, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
+    private void getTooltip(PlayerEntity playerIn, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
         ItemTooltipEvent event = new ItemTooltipEvent((ItemStack) (Object) this, cir.getReturnValue(), advanced);
         EventsKt.postSync(event);
         cir.setReturnValue(event.getTooltip());

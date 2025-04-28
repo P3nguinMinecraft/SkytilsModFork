@@ -20,10 +20,10 @@ package gg.skytils.event.mixins.network;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.network.ClientDisconnectEvent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.network.INetHandler;
-import net.minecraft.network.NetworkManager;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.listener.PacketListener;
+import net.minecraft.network.ClientConnection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -31,32 +31,32 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(NetworkManager.class)
+@Mixin(ClientConnection.class)
 public class MixinNetworkManager {
 
-    @Shadow private INetHandler packetListener;
+    @Shadow private PacketListener packetListener;
 
     @Inject(method = "channelInactive", at = @At("HEAD"), remap = false)
     public void channelInactive(CallbackInfo ci) {
-        if (this.packetListener instanceof NetHandlerPlayClient) {
+        if (this.packetListener instanceof ClientPlayNetworkHandler) {
             skytils$postDisconnectEvent();
         }
     }
 
-    @Inject(method = "checkDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/INetHandler;onDisconnect(Lnet/minecraft/util/IChatComponent;)V"))
+    @Inject(method = "handleDisconnection", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/listener/PacketListener;onDisconnected(Lnet/minecraft/text/Text;)V"))
     public void onDisconnect(CallbackInfo ci) {
-        if (this.packetListener instanceof NetHandlerPlayClient) {
+        if (this.packetListener instanceof ClientPlayNetworkHandler) {
             skytils$postDisconnectEvent();
         }
     }
 
     @Unique
     private void skytils$postDisconnectEvent() {
-        Minecraft.getMinecraft()
+        MinecraftClient.getInstance()
         //#if MC>=12000
-        //$$ .execute(
+        .execute(
         //#else
-        .addScheduledTask(
+        //$$ .submit(
         //#endif
             () -> {
                 EventsKt.postSync(new ClientDisconnectEvent());

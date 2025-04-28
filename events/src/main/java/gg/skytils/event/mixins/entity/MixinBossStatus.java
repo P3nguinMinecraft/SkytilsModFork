@@ -18,22 +18,22 @@
 
 package gg.skytils.event.mixins.entity;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.entity.BossBarSetEvent;
-import net.minecraft.entity.boss.BossStatus;
-import net.minecraft.entity.boss.IBossDisplayData;
+import net.minecraft.client.gui.hud.ClientBossBar;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(BossStatus.class)
+import java.util.Map;
+
+@Mixin(targets = "net.minecraft.client.gui.hud.BossBarHud$1")
 public class MixinBossStatus {
-    @Inject(method = "setBossStatus", at = @At("HEAD"), cancellable = true)
-    private static void onSetBossStatus(IBossDisplayData displayData, boolean hasColorModifierIn, CallbackInfo ci) {
-        BossBarSetEvent event = new BossBarSetEvent(displayData, hasColorModifierIn);
-        if (EventsKt.postCancellableSync(event)) {
-            ci.cancel();
+    @WrapOperation(method = "add", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
+    public void onSetBossStatus(Map instance, Object uuid, ClientBossBar bossBar, Operation<Object> original) {
+        if (!EventsKt.postCancellableSync(new BossBarSetEvent(bossBar, false))) {
+            original.call(instance, uuid, bossBar);
         }
     }
 }

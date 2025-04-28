@@ -19,10 +19,10 @@
 package gg.skytils.event.impl.world
 
 import gg.skytils.event.Event
-import net.minecraft.block.state.IBlockState
-import net.minecraft.util.BlockPos
+import net.minecraft.block.BlockState
+import net.minecraft.util.math.BlockPos
 
 /**
  * [gg.skytils.event.mixins.world.MixinChunk.onBlockChange]
  */
-class BlockStateUpdateEvent(val pos: BlockPos, val old: IBlockState, val update: IBlockState) : Event()
+class BlockStateUpdateEvent(val pos: BlockPos, val old: BlockState, val update: BlockState) : Event()

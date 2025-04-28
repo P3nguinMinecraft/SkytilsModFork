@@ -21,53 +21,53 @@ package gg.skytils.event.mixins.render;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.render.LivingEntityPostRenderEvent;
 import gg.skytils.event.impl.render.LivingEntityPreRenderEvent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.RendererLivingEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //#if MC>12000
-//$$ import net.minecraft.client.render.entity.model.EntityModel;
-//$$ import net.minecraft.client.render.VertexConsumerProvider;
-//$$ import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.util.math.MatrixStack;
 //#endif
 
-@Mixin(RendererLivingEntity.class)
+@Mixin(LivingEntityRenderer.class)
 public class MixinRendererLivingEntity
         //#if MC<12000
-        <T extends EntityLivingBase>
+        //$$ <T extends LivingEntity>
         //#else
-        //$$ <T extends LivingEntity, M extends EntityModel<T>>
+        <T extends LivingEntity, M extends EntityModel<T>>
         //#endif
 {
     //#if MC<12000
-    @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("HEAD"), cancellable = true)
-    private void onRender(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
+    //$$ @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;DDDFF)V", at = @At("HEAD"), cancellable = true)
+    //$$ private void onRender(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
     //#else
-    //$$ @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"), cancellable = true)
-    //$$ private void onRender(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"), cancellable = true)
+    private void onRender(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
     //#endif
-        Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+        Entity viewEntity = MinecraftClient.getInstance().getCameraEntity();
         if (viewEntity == null) return;
-        double renderX = entity.lastTickPosX + (entity.getPositionVector().xCoord - entity.lastTickPosX - viewEntity.getPositionVector().xCoord + viewEntity.lastTickPosX) * partialTicks - viewEntity.lastTickPosX;
-        double renderY = entity.lastTickPosY + (entity.getPositionVector().yCoord - entity.lastTickPosY - viewEntity.getPositionVector().yCoord + viewEntity.lastTickPosY) * partialTicks - viewEntity.lastTickPosY;
-        double renderZ = entity.lastTickPosZ + (entity.getPositionVector().zCoord - entity.lastTickPosZ - viewEntity.getPositionVector().zCoord + viewEntity.lastTickPosZ) * partialTicks - viewEntity.lastTickPosZ;
+        double renderX = entity.lastRenderX + (entity.getPos().x - entity.lastRenderX - viewEntity.getPos().x + viewEntity.lastRenderX) * partialTicks - viewEntity.lastRenderX;
+        double renderY = entity.lastRenderY + (entity.getPos().y - entity.lastRenderY - viewEntity.getPos().y + viewEntity.lastRenderY) * partialTicks - viewEntity.lastRenderY;
+        double renderZ = entity.lastRenderZ + (entity.getPos().z - entity.lastRenderZ - viewEntity.getPos().z + viewEntity.lastRenderZ) * partialTicks - viewEntity.lastRenderZ;
         @SuppressWarnings("unchecked")
         //#if MC<12000
-        LivingEntityPreRenderEvent<T>
+        //$$ LivingEntityPreRenderEvent<T>
         //#else
-        //$$ LivingEntityPreRenderEvent<T, M>
+        LivingEntityPreRenderEvent<T, M>
         //#endif
                 event =
                 new LivingEntityPreRenderEvent<>(entity,
                     //#if MC<12000
-                    (RendererLivingEntity<T>) (Object) this,
+                    //$$ (LivingEntityRenderer<T>) (Object) this,
                     //#else
-                    //$$ (LivingEntityRenderer<T, M>) (Object) this,
+                    (LivingEntityRenderer<T, M>) (Object) this,
                     //#endif
                     renderX, renderY, renderZ, partialTicks);
         if (EventsKt.postCancellableSync(event)) {
@@ -76,11 +76,11 @@ public class MixinRendererLivingEntity
     }
 
     //#if MC<12000
-    @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("TAIL"))
-    private void onRenderPost(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
+    //$$ @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;DDDFF)V", at = @At("TAIL"))
+    //$$ private void onRenderPost(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
     //#else
-    //$$ @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("TAIL"))
-    //$$ private void onRenderPost(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("TAIL"))
+    private void onRenderPost(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
     //#endif
         EventsKt.postSync(new LivingEntityPostRenderEvent(entity));
     }

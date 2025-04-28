@@ -20,17 +20,17 @@ package gg.skytils.event.mixins.entity;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.entity.LivingEntityDeathEvent;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.DamageSource;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(EntityLivingBase.class)
+@Mixin(LivingEntity.class)
 public class MixinEntityLivingBase {
     @Inject(method = "onDeath", at = @At("HEAD"))
     public void onDeath(DamageSource source, CallbackInfo ci) {
-        EventsKt.postSync(new LivingEntityDeathEvent((EntityLivingBase) (Object) this));
+        EventsKt.postSync(new LivingEntityDeathEvent((LivingEntity) (Object) this));
     }
 }
