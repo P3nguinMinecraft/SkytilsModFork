@@ -42,17 +42,17 @@ public abstract class MixinCrashReport {
     @Unique
     private final CrashReportHook hook = new CrashReportHook((CrashReport) (Object) this);
 
-    @Inject(method = "asString", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", shift = At.Shift.AFTER, remap = false, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", shift = At.Shift.AFTER, remap = false, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
     private void thereIsNoOtherWay(CallbackInfoReturnable<String> cir, StringBuilder stringbuilder) {
         hook.checkSkytilsCrash(cir, stringbuilder);
     }
 
-    @ModifyArg(method = "asString", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", remap = false, ordinal = 10))
+    @ModifyArg(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", remap = false, ordinal = 10))
     private String otherReplaceCauseForLauncher(String theCauseStackTraceOrString) {
         return hook.generateCauseForLauncher(theCauseStackTraceOrString);
     }
 
-    @ModifyArg(method = "asString", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", ordinal = 2, remap = false, args = "matches=method::getWittyComment"))
+    @ModifyArg(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", ordinal = 2, remap = false, args = "matches=method::getWittyComment"))
     private String replaceWittyComment(String comment) {
         return hook.generateWittyComment(comment);
     }

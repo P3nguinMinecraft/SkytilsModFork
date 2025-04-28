@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemEntityRenderer.class)
 public abstract class MixinRenderEntityItem {
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;pushMatrix()V", shift = At.Shift.AFTER, ordinal = 1))
+    @Inject(method = "render(Lnet/minecraft/client/render/entity/state/ItemEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;pushMatrix()V", shift = At.Shift.AFTER, ordinal = 1))
     private void scaleItemDrop(ItemEntity entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
         RenderEntityItemHookKt.scaleItemDrop(entity, x, y, z, entityYaw, partialTicks, ci);
     }
