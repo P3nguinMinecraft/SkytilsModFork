@@ -306,11 +306,11 @@ tasks {
                     /*"-opt-in=kotlin.RequiresOptIn", */
                     "-Xjvm-default=all",
                     //"-Xjdk-release=1.8",
-                    "-Xbackend-threads=0",
+                    // "-Xbackend-threads=0",
                     /*"-Xuse-k2"*/
                 )
-            languageVersion = "1.9"
-            apiVersion = "1.9"
+            languageVersion = "2.0"
+            apiVersion = "2.0"
         }
         kotlinDaemonJvmArguments.set(
             listOf(

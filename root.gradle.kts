@@ -29,9 +29,6 @@ buildscript {
                 dependencySubstitution {
                     substitute(module("com.github.replaymod:preprocessor")).using(module("com.github.skytils:preprocessor:0a04a5668b0db4fbb4efefaaf0e3fd73f695ee28"))
                     substitute(module("com.github.Fallen-Breath:remap")).using(module("com.github.Skytils:remap:2480d8a1b9"))
-
-                    // for Loom 1.9 since we're not using Kotlin 2.0
-                    substitute(module("org.jetbrains.kotlin:kotlin-metadata-jvm")).using(module("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.20"))
                 }
             }
         }
