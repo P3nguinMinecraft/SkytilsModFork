@@ -21,5 +21,9 @@ package gg.skytils.skytilsmod.commands
 //#if MC==10809
 //$$ typealias SkytilsCommandSender = net.minecraft.command.ICommandSender
 //#else
-typealias SkytilsCommandSender = net.minecraft.client.network.ClientCommandSource
+//#if FABRIC
+typealias SkytilsCommandSender = net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+//#else
+//$$ typealias SkytilsCommandSender = net.minecraft.client.network.ClientCommandSource
+//#endif
 //#endif

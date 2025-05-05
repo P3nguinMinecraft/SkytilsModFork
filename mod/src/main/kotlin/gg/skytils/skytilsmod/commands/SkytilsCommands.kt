@@ -19,17 +19,31 @@
 package gg.skytils.skytilsmod.commands
 
 import gg.skytils.skytilsmod.commands.impl.*
-import gg.skytils.skytilsmod.commands.utils.legacy.LegacyForgeRegistrationHandler
-import net.minecraft.command.ICommandSender
-import org.incendo.cloud.CommandManager
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
+import org.incendo.cloud.fabric.FabricClientCommandManager
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 
-object SkytilsCommands : CommandManager<SkytilsCommandSender>(ExecutionCoordinator.simpleCoordinator(),
-    LegacyForgeRegistrationHandler
-) {
-    val annotationParser = AnnotationParser(this, SkytilsCommandSender::class.java)
+//#if MC==10809 && FORGE
+//$$ import gg.skytils.skytilsmod.commands.utils.legacy.LegacyForgeRegistrationHandler
+//$$ import org.incendo.cloud.CommandManager
+//#endif
+
+
+//#if MC==10809 && FABRIC
+//$$ object SkytilsCommands : CommandManager<SkytilsCommandSender>(ExecutionCoordinator.simpleCoordinator(),
+//$$    LegacyForgeRegistrationHandler
+//$$ ) {
+//#endif
+object SkytilsCommands {
+    val commandManager = FabricClientCommandManager.createNative(ExecutionCoordinator.simpleCoordinator())
+    val annotationParser = AnnotationParser(
+        //#if MC==10809 && FORGE
+        //$$ this,
+        //#else
+        commandManager,
+        //#endif
+        SkytilsCommandSender::class.java)
 
     init {
         runCatching {
@@ -57,8 +71,10 @@ object SkytilsCommands : CommandManager<SkytilsCommandSender>(ExecutionCoordinat
         }
     }
 
-    override fun hasPermission(
-        sender: ICommandSender,
-        permission: String
-    ): Boolean = true
+    //#if MC==10809 && FORGE
+    //$$ override fun hasPermission(
+    //$$    sender: SkytilsCommandSender,
+    //$$    permission: String
+    //$$ ): Boolean = true
+    //#endif
 }

@@ -186,7 +186,12 @@ dependencies {
     }
     compileOnly("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
-    shadowMe("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") { excludeKotlin() }
+    if (platform.isFabric && !isLegacyFabric) {
+        include(modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")!!)
+    }
+    annotationProcessor(
+        shadowMe("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") { excludeKotlin() }
+    )
     shadowMe("org.incendo:cloud-kotlin-extensions:2.0.0") { excludeKotlin() }
 
     if (platform.isLegacyForge) {
