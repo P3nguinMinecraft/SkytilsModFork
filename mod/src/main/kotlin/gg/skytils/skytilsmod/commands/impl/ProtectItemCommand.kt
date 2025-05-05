@@ -19,41 +19,49 @@ package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
+import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.successPrefix
-import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
 import gg.skytils.skytilsmod.gui.features.ProtectItemGui
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.class_0_1374
+import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Commands
+import org.incendo.cloud.annotations.Flag
 
-object ProtectItemCommand : BaseCommand("protectitem") {
-    override fun getCommandUsage(player: ClientPlayerEntity): String = "/protectitem <clearall>"
+@Commands
+object ProtectItemCommand {
+    @Command("protectitem clearall")
+    fun clearAll() {
+        FavoriteStrategy.favoriteUUIDs.clear()
+        FavoriteStrategy.favoriteItemIds.clear()
+        PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
+        UChat.chat("$successPrefix §aCleared all your protected items!")
+    }
 
-    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
-        val subcommand = args.getOrNull(0)?.lowercase()
-        if (subcommand == "clearall") {
-            FavoriteStrategy.favoriteUUIDs.clear()
-            FavoriteStrategy.favoriteItemIds.clear()
-            PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
-            UChat.chat("$successPrefix §aCleared all your protected items!")
-            return
-        }
-        if (!Utils.inSkyblock) throw class_0_1374("You must be in Skyblock to use this command!")
+    @Command("protectitem gui")
+    fun openGui() {
+        if (!Utils.inSkyblock) throw IllegalArgumentException("You must be in Skyblock to use this command!")
+        Skytils.displayScreen = ProtectItemGui()
+    }
 
-        if (subcommand == "gui") {
-            Skytils.displayScreen = ProtectItemGui()
-            return
-        }
-
-        val item = player.method_0_7087()
-            ?: throw class_0_1374("You must hold an item to use this command")
+    @Command("protectitem")
+    fun toggleFavorite(
+        @Flag("itemId", description = "Use the item ID instead of the UUID")
+        useItemId: Boolean = false
+    ) {
+        if (!Utils.inSkyblock) throw IllegalArgumentException("You must be in Skyblock to use this command!")
+        val item = mc.player?.mainHandStack
+            ?: throw IllegalArgumentException("You must hold an item to use this command")
         val extraAttributes = ItemUtil.getExtraAttributes(item)
-            ?: throw class_0_1374("This isn't a Skyblock Item? Where'd you get it from cheater...")
-        if (extraAttributes.contains("uuid") && subcommand != "itemid") {
-            val uuid = extraAttributes.getString("uuid")
+            ?: throw IllegalArgumentException("This isn't a Skyblock Item? Where'd you get it from cheater...")
+        //#if MC<12100
+        //$$ if (extraAttributes.hasKey("uuid") && !useItemId) {
+        //#else
+        if (extraAttributes.getString("uuid").isPresent && !useItemId) {
+        //#endif
+            val uuid = extraAttributes.getString("uuid").get()
             if (FavoriteStrategy.favoriteUUIDs.remove(uuid)) {
                 PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
                 UChat.chat("$successPrefix §cI will no longer protect your ${item.name}§a!")
@@ -64,7 +72,7 @@ object ProtectItemCommand : BaseCommand("protectitem") {
             }
         } else {
             val itemId =
-                ItemUtil.getSkyBlockItemID(item) ?: throw class_0_1374("This item doesn't have a Skyblock ID.")
+                ItemUtil.getSkyBlockItemID(item) ?: throw IllegalArgumentException("This item doesn't have a Skyblock ID.")
             if (FavoriteStrategy.favoriteItemIds.remove(itemId)) {
                 PersistentSave.markDirty<FavoriteStrategy.FavoriteStrategySave>()
                 UChat.chat("$successPrefix §cI will no longer protect all of your ${itemId}s!")

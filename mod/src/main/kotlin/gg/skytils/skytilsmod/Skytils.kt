@@ -30,9 +30,7 @@ import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
-import gg.skytils.skytilsmod.commands.impl.*
-import gg.skytils.skytilsmod.commands.stats.impl.CataCommand
-import gg.skytils.skytilsmod.commands.stats.impl.SlayerCommand
+import gg.skytils.skytilsmod.commands.SkytilsCommands
 import gg.skytils.skytilsmod.core.*
 import gg.skytils.skytilsmod.features.impl.crimson.KuudraChestProfit
 import gg.skytils.skytilsmod.features.impl.crimson.KuudraFeatures
@@ -73,7 +71,6 @@ import gg.skytils.skytilsmod.localapi.LocalAPI
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityLivingBase
 import gg.skytils.skytilsmod.mixins.hooks.entity.EntityPlayerSPHook
 import gg.skytils.skytilsmod.mixins.hooks.util.MouseHelperHook
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorCommandHandler
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiStreamUnavailable
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorSettingsGui
 import gg.skytils.skytilsmod.tweaker.DependencyLoader
@@ -101,7 +98,6 @@ import net.minecraft.client.option.KeyBinding
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.screen.PlayerScreenHandler
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
-import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
 import sun.misc.Unsafe
 import java.io.File
@@ -312,6 +308,7 @@ object Skytils : CoroutineScope, EventSubscriber {
         arrayOf(
             this,
             Funny,
+            NEUCompatibility,
             ScoreCalculation,
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
@@ -430,50 +427,7 @@ object Skytils : CoroutineScope, EventSubscriber {
 
         ScreenRenderer.init()
 
-
-        //FIXME
-        val cch = ClientCommandHandler.instance
-
-        if (cch !is AccessorCommandHandler) throw RuntimeException(
-            "Skytils was unable to mixin to the CommandHandler. Please report this on our Discord at discord.gg/skytils."
-        )
-        cch.method_0_5866(SkytilsCommand)
-
-        cch.method_0_5866(CataCommand)
-        cch.method_0_5866(CalcXPCommand)
-        cch.method_0_5866(FragBotCommand)
-        cch.method_0_5866(HollowWaypointCommand)
-        cch.method_0_5866(ItemCycleCommand)
-        cch.method_0_5866(OrderedWaypointCommand)
-        cch.method_0_5866(ScamCheckCommand)
-        cch.method_0_5866(SlayerCommand)
-        cch.method_0_5866(TrophyFishCommand)
-
-        if (!cch.method_0_6231().containsKey("armorcolor")) {
-            cch.method_0_5866(ArmorColorCommand)
-        }
-
-        if (!cch.method_0_6231().containsKey("glintcustomize")) {
-            cch.method_0_5866(GlintCustomizeCommand)
-        }
-
-        if (!cch.method_0_6231().containsKey("protectitem")) {
-            cch.method_0_5866(ProtectItemCommand)
-        }
-
-        if (!cch.method_0_6231().containsKey("trackcooldown")) {
-            cch.method_0_5866(TrackCooldownCommand)
-        }
-
-        cch.commandSet.add(RepartyCommand)
-        cch.commandMap["skytilsreparty"] = RepartyCommand
-        if (config.overrideReparty || !cch.method_0_6231().containsKey("reparty")) {
-            cch.commandMap["reparty"] = RepartyCommand
-        }
-
-        if (config.overrideReparty || !cch.method_0_6231().containsKey("rp")) {
-            cch.commandMap["rp"] = RepartyCommand
-        }
+        SkytilsCommands
 
         if (UpdateChecker.currentVersion.specialVersionType != UpdateChecker.UpdateType.RELEASE && config.updateChannel == 2) {
             if (ModChecker.canShowNotifications) {

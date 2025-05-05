@@ -20,23 +20,25 @@ package gg.skytils.skytilsmod.commands.impl
 import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
-import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod.Skytils.successPrefix
-import gg.skytils.skytilsmod.commands.BaseCommand
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.CooldownTracker
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.class_0_1374
+import org.incendo.cloud.annotation.specifier.Greedy
+import org.incendo.cloud.annotations.Argument
+import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Commands
 
-object TrackCooldownCommand : BaseCommand("trackcooldown", listOf("cooldowntracker")) {
-    override fun getCommandUsage(player: ClientPlayerEntity): String = "/trackcooldown <cooldown> <ability>"
-
-    override fun processCommand(player: ClientPlayerEntity, args: Array<String>) {
+@Commands
+object TrackCooldownCommand {
+    @Command("trackcooldown|cooldowntracker <seconds> <ability>")
+    fun trackCooldown(
+        @Argument("seconds") seconds: Double,
+        @Greedy
+        @Argument("ability") ability: String
+    ) {
         if (!Skytils.config.itemCooldownDisplay) return UChat.chat("$failPrefix §cYou must turn on Item Cooldown Display to use this command!")
-        if (args.size < 2) UChat.chat("$prefix ${getCommandUsage(player)}")
-        val seconds = args[0].toDoubleOrNull() ?: throw class_0_1374("You must specify a valid number")
-        val ability = args.drop(1).joinToString(" ")
-        if (ability.isBlank()) throw class_0_1374("You must specify valid arguments.")
+        if (seconds < 0) throw IllegalArgumentException("You must specify a valid number")
+        if (ability.isBlank()) throw IllegalArgumentException("You must specify valid arguments.")
         if (CooldownTracker.itemCooldowns[ability] == seconds) {
             CooldownTracker.itemCooldowns.remove(ability)
             PersistentSave.markDirty<CooldownTracker>()

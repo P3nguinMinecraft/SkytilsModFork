@@ -23,14 +23,9 @@ import gg.essential.universal.utils.MCHoverEventAction
 import gg.essential.universal.wrappers.message.UMessage
 import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.hypixel.types.skyblock.Member
-<<<<<<<< HEAD:mod/src/main/kotlin/gg/skytils/skytilsmod/commands/stats/impl/CataCommand.kt
-import gg.skytils.skytilsmod.Skytils.failPrefix
-import gg.skytils.skytilsmod.commands.stats.StatCommand
-========
 import gg.skytils.skytilsmod.Skytils
-import gg.skytils.skytilsmod.Skytils.Companion.failPrefix
-import gg.skytils.skytilsmod.Skytils.Companion.mc
->>>>>>>> origin/dev:mod/src/main/kotlin/gg/skytils/skytilsmod/commands/impl/CataCommand.kt
+import gg.skytils.skytilsmod.Skytils.failPrefix
+import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.*
 import kotlinx.coroutines.launch
@@ -49,10 +44,10 @@ object CataCommand {
         @Argument("name")
         name: String? = null
     ) = Skytils.IO.launch {
-        val username = name ?: mc.thePlayer.name
+        val username = name ?: mc.player!!.gameProfile.name
         UChat.chat("§aGetting data for ${username}...")
         val uuid = try {
-            if (name == null) mc.thePlayer.uniqueID else MojangUtil.getUUIDFromUsername(username)
+            if (name == null) mc.player!!.uuid else MojangUtil.getUUIDFromUsername(username)
         } catch (e: MojangUtil.MojangException) {
             UChat.chat("$failPrefix §cFailed to get UUID, reason: ${e.message}")
             return@launch
@@ -283,7 +278,7 @@ object CataCommand {
                 )
                 .chat()
         } catch (e: Throwable) {
-            UChat.chat("${Skytils.Companion.failPrefix} §cCatacombs XP Lookup Failed: ${e.message ?: e::class.simpleName}")
+            UChat.chat("$failPrefix §cCatacombs XP Lookup Failed: ${e.message ?: e::class.simpleName}")
             e.printStackTrace()
         }
     }

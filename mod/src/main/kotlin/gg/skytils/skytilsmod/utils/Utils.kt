@@ -52,6 +52,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtList
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
+import net.minecraft.text.Text
 import net.minecraft.util.*
 import net.minecraft.world.World
 import net.minecraftforge.client.event.ClientChatReceivedEvent
@@ -68,7 +69,6 @@ import kotlin.math.floor
 //#if FABRIC
 import net.minecraft.util.math.*
 //#endif
-
 
 object Utils {
 

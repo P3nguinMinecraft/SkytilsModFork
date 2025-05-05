@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,21 +16,55 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.commands.stats.impl
+package gg.skytils.skytilsmod.commands.impl
 
+import gg.essential.universal.UChat
 import gg.essential.universal.wrappers.message.UMessage
 import gg.skytils.hypixel.types.skyblock.Member
+import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
+import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
-import gg.skytils.skytilsmod.commands.stats.StatCommand
+import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.*
+import kotlinx.coroutines.launch
+import org.incendo.cloud.annotations.Argument
+import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Commands
 import java.util.*
 
+@Commands
+object SlayerCommand {
+    @Command("skytilsslayer [name]")
+    suspend fun processCommand(
+        @Argument("name")
+        name: String? = null
+    ) = Skytils.IO.launch {
+        val username = name ?: mc.player!!.gameProfile.name
+        UChat.chat("§aGetting data for ${username}...")
+        val uuid = try {
+            if (name == null)  mc.player!!.uuid else MojangUtil.getUUIDFromUsername(username)
+        } catch (e: MojangUtil.MojangException) {
+            UChat.chat("$failPrefix §cFailed to get UUID, reason: ${e.message}")
+            return@launch
+        } ?: return@launch
+        val profile = try {
+            API.getSelectedSkyblockProfile(uuid)?.members?.get(uuid.nonDashedString())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            UChat.chat(
+                "$failPrefix §cUnable to retrieve profile information: ${
+                    e.message
+                }"
+            )
+            return@launch
+        } ?: return@launch
+        displayStats(username, uuid, profile)
+    }
 
-object SlayerCommand : StatCommand("skytilsslayer") {
-    override fun displayStats(username: String, uuid: UUID, profileData: Member) {
+    suspend fun displayStats(username: String, uuid: UUID, profileData: Member) {
         val slayersObject = profileData.slayer.slayer_bosses.ifNull {
-            printMessage("$failPrefix §cUnable to retrieve slayer information")
+            UChat.chat("$failPrefix §cUnable to retrieve slayer information")
             return@ifNull
         }
 
