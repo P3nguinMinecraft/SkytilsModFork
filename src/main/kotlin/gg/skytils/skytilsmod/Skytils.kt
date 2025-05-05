@@ -21,9 +21,7 @@ package gg.skytils.skytilsmod
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UKeyboard
-import gg.skytils.skytilsmod.commands.impl.*
-import gg.skytils.skytilsmod.commands.stats.impl.CataCommand
-import gg.skytils.skytilsmod.commands.stats.impl.SlayerCommand
+import gg.skytils.skytilsmod.commands.SkytilsCommands
 import gg.skytils.skytilsmod.core.*
 import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
 import gg.skytils.skytilsmod.events.impl.PacketEvent
@@ -331,6 +329,8 @@ class Skytils {
             SoundQueue,
             UpdateChecker,
 
+            NEUCompatibility,
+
             AlignmentTaskSolver,
             AntiFool,
             ArmorColor,
@@ -440,48 +440,7 @@ class Skytils {
 
     @Mod.EventHandler
     fun loadComplete(event: FMLLoadCompleteEvent) {
-        val cch = ClientCommandHandler.instance
-
-        if (cch !is AccessorCommandHandler) throw RuntimeException(
-            "Skytils was unable to mixin to the CommandHandler. Please report this on our Discord at discord.gg/skytils."
-        )
-        cch.registerCommand(SkytilsCommand)
-
-        cch.registerCommand(CataCommand)
-        cch.registerCommand(CalcXPCommand)
-        cch.registerCommand(FragBotCommand)
-        cch.registerCommand(HollowWaypointCommand)
-        cch.registerCommand(ItemCycleCommand)
-        cch.registerCommand(OrderedWaypointCommand)
-        cch.registerCommand(ScamCheckCommand)
-        cch.registerCommand(SlayerCommand)
-        cch.registerCommand(TrophyFishCommand)
-
-        if (!cch.commands.containsKey("armorcolor")) {
-            cch.registerCommand(ArmorColorCommand)
-        }
-
-        if (!cch.commands.containsKey("glintcustomize")) {
-            cch.registerCommand(GlintCustomizeCommand)
-        }
-
-        if (!cch.commands.containsKey("protectitem")) {
-            cch.registerCommand(ProtectItemCommand)
-        }
-
-        if (!cch.commands.containsKey("trackcooldown")) {
-            cch.registerCommand(TrackCooldownCommand)
-        }
-
-        cch.commandSet.add(RepartyCommand)
-        cch.commandMap["skytilsreparty"] = RepartyCommand
-        if (config.overrideReparty || !cch.commands.containsKey("reparty")) {
-            cch.commandMap["reparty"] = RepartyCommand
-        }
-
-        if (config.overrideReparty || !cch.commands.containsKey("rp")) {
-            cch.commandMap["rp"] = RepartyCommand
-        }
+        SkytilsCommands
 
         if (UpdateChecker.currentVersion.specialVersionType != UpdateChecker.UpdateType.RELEASE && config.updateChannel == 2) {
             if (ModChecker.canShowNotifications) {

@@ -29,19 +29,16 @@ import gg.essential.vigilance.data.SortingBehavior
 import gg.skytils.skytilsmod.Reference
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
-import gg.skytils.skytilsmod.commands.impl.RepartyCommand
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
-import gg.skytils.skytilsmod.gui.features.ProtectItemGui
 import gg.skytils.skytilsmod.gui.features.PotionNotificationsGui
+import gg.skytils.skytilsmod.gui.features.ProtectItemGui
 import gg.skytils.skytilsmod.gui.features.SpiritLeapNamesGui
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorCommandHandler
 import gg.skytils.skytilsmod.utils.ModChecker
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsws.client.WSClient
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.client.ClientCommandHandler
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.LoaderState
 import java.awt.Color
@@ -191,16 +188,6 @@ object Config : Vigilant(
         i18nSubcategory = "skytils.config.general.other"
     )
     var reopenOptionsMenu = true
-
-    @Property(
-        type = PropertyType.SWITCH, name = "Override other reparty commands",
-        description = "Uses Skytils' reparty command instead of other mods'. \n§cRequires restart to disable",
-        category = "General", subcategory = "Reparty",
-        i18nName = "skytils.config.general.reparty.override_other_reparty_commands",
-        i18nCategory = "skytils.config.general",
-        i18nSubcategory = "skytils.config.general.reparty"
-    )
-    var overrideReparty = true
 
     @Property(
         type = PropertyType.SWITCH, name = "Coop Add Confirmation",
@@ -4535,15 +4522,6 @@ object Config : Vigilant(
                         }
                     }
                 }
-            }
-        }
-
-        registerListener("overrideReparty") { state: Boolean ->
-            if (state) {
-                (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["reparty"] =
-                    RepartyCommand
-                (ClientCommandHandler.instance as AccessorCommandHandler).commandMap["rp"] =
-                    RepartyCommand
             }
         }
 
