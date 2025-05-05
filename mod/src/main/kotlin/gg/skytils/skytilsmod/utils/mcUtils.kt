@@ -28,6 +28,13 @@ import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 
+//#if MC>=12000
+import net.minecraft.text.Style
+import net.minecraft.text.Text
+import net.minecraft.util.Formatting
+import java.util.Optional
+//#endif
+
 //#if FORGE
 //$$ import net.minecraft.launchwrapper.Launch
 //$$ import net.minecraftforge.client.ClientCommandHandler
@@ -98,3 +105,26 @@ val ItemStack.displayNameStr: String
         //#if MC>=11600
         .string
         //#endif
+
+//#if MC>=12000
+val Text.formattedText: String
+    get() = buildString {
+        append(serializeFormattingToString(style))
+        this@formattedText.visit<String> {
+            append(it)
+            Optional.empty()
+        }
+        append("§r")
+        siblings.forEach { append(it.formattedText) }
+    }
+
+
+fun serializeFormattingToString(style: Style): String = buildString {
+    style.color?.name?.let(Formatting::byName)?.let(::append)
+    if (style.isBold) append("§l")
+    if (style.isItalic) append("§o")
+    if (style.isUnderlined) append("§n")
+    if (style.isObfuscated) append("§k")
+    if (style.isStrikethrough) append("§m")
+}
+//#endif
