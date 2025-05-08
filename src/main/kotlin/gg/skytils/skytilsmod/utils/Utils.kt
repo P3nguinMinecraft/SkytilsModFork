@@ -126,7 +126,8 @@ object Utils {
      * @author BiscuitDevelopment
      */
     fun playLoudSound(sound: String?, pitch: Double) {
-        shouldBypassVolume = true
+        if (!Skytils.config.disableVolumeOverrides)
+            shouldBypassVolume = true
         mc.thePlayer.playSound(sound, 1f, pitch.toFloat())
         shouldBypassVolume = false
     }

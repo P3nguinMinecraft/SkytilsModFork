@@ -180,6 +180,16 @@ object Config : Vigilant(
     var configButtonOnPause = true
 
     @Property(
+        type = PropertyType.SWITCH, name = "Disable Volume Overrides",
+        description = "Disables overriding your volume to play sounds at max category volume.",
+        category = "General", subcategory = "Other",
+        i18nName = "skytils.config.general.other.disable_volume_overrides",
+        i18nCategory = "skytils.config.general",
+        i18nSubcategory = "skytils.config.general.other"
+    )
+    var disableVolumeOverrides = false
+
+    @Property(
         type = PropertyType.SWITCH, name = "Reopen Options Menu",
         description = "Sets the menu to the Skytils options menu instead of exiting when on a Skytils config menu.",
         category = "General", subcategory = "Other",

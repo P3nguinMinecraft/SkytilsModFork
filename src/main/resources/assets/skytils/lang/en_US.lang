@@ -10,6 +10,7 @@ skytils.config.general.other.first_launch=First Launch
 skytils.config.general.other.last_launched_skytils_version=Last Launched Skytils Version
 skytils.config.general.other.always_sprint_in_skyblock=Always Sprint in Skyblock
 skytils.config.general.other.config_button_on_pause=Config Button on Pause
+skytils.config.general.other.disable_volume_overrides=Disable Volume Overrides
 skytils.config.general.other.reopen_options_menu=Reopen Options Menu
 skytils.config.general.reparty.override_other_reparty_commands=Override other reparty commands
 skytils.config.general.hypixel.coop_add_confirmation=Coop Add Confirmation
