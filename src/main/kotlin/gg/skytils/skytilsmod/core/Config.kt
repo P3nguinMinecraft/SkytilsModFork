@@ -2141,6 +2141,16 @@ object Config : Vigilant(
     var pricePaid = false
 
     @Property(
+        type = PropertyType.SWITCH, name = "Block Zapper: Left Click to Undo",
+        description = "Left clicking the block zapper will automatically run /undozap",
+        category = "Miscellaneous", subcategory = "Items",
+        i18nName = "skytils.config.miscellaneous.items.block_zapper_left_click_to_undo",
+        i18nCategory = "skytils.config.miscellaneous",
+        i18nSubcategory = "skytils.config.miscellaneous.items"
+    )
+    var blockZapperLeftClickUndo = false
+
+    @Property(
         type = PropertyType.SWITCH, name = "Disable Block Animation",
         description = "Removes the block animation on swords.",
         category = "Miscellaneous", subcategory = "Items",
