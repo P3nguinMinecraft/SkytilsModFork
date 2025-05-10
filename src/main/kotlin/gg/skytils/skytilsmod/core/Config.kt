@@ -30,6 +30,7 @@ import gg.skytils.skytilsmod.Reference
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
+import gg.skytils.skytilsmod.features.impl.handlers.CommandAliases
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.gui.features.PotionNotificationsGui
 import gg.skytils.skytilsmod.gui.features.ProtectItemGui
@@ -4402,6 +4403,10 @@ object Config : Vigilant(
     var windHider = 0
 
     init {
+        registerListener("commandAliasesSpaces") { prop: Boolean ->
+            CommandAliases.recreateMap(prop)
+        }
+
         addDependency("showEtherwarpTeleportPosColor", "showEtherwarpTeleportPos")
 
         addDependency("samScytheColor", "showSamScytheBlocks")
