@@ -41,7 +41,9 @@ import net.minecraft.util.math.Vec3d
 import java.awt.Color
 
 //#if MC>12000
-import gg.sktyils.skytilsmod.util.formattedText
+import gg.skytils.skytilsmod.utils.formattedText
+import net.minecraft.entity.EntityType
+import com.mojang.blaze3d.opengl.GlStateManager
 //#endif
 
 object BossHPDisplays : EventSubscriber {
@@ -117,13 +119,13 @@ object BossHPDisplays : EventSubscriber {
                     //#endif
                         ?: continue
                     if (name.startsWith("§c ☠ §7 ") && name.endsWith(" §c ☠ §7")) {
-                        val nameTag = mc.world.method_0_319(
-                            ArmorStandEntity::class.java,
+                        val nameTag = mc.world?.getEntitiesByType<ArmorStandEntity>(
+                            EntityType.ARMOR_STAND,
                             entity.boundingBox.expand(2.0, 5.0, 2.0)
-                        ).find {
-                            it.customName.endsWith(" Guardian §e0§c❤")
-                        } ?: continue
-                        guardianNameRegex.find(nameTag.customName)?.let {
+                        ) {
+                            it.customName?.string?.endsWith(" Guardian §e0§c❤") == true
+                        }?.firstOrNull() ?: continue
+                        guardianNameRegex.find(nameTag.customName!!.string)?.let {
                             timerRegex.find(name)?.let {
                                 add("${it.groupValues[1]}: ${it.groupValues[1]}")
                             }
@@ -137,19 +139,19 @@ object BossHPDisplays : EventSubscriber {
     fun onRenderWorld(event: WorldDrawEvent) {
         if (!Utils.inDungeons || !Skytils.config.showGiantHPAtFeet) return
         val matrixStack = UMatrixStack()
-        RenderSystem.disableCull()
-        RenderSystem.disableDepthTest()
+        GlStateManager._disableCull()
+        GlStateManager._disableDepthTest()
         for ((name, pos) in giantNames) {
             RenderUtil.drawLabel(
                 pos,
-                name.method_10865(),
+                name.formattedText,
                 Color.WHITE,
                 event.partialTicks,
                 matrixStack
             )
         }
-        RenderSystem.enableDepthTest()
-        RenderSystem.enableCull()
+        GlStateManager._enableCull()
+        GlStateManager._enableDepthTest()
     }
 
     class GuardianRespawnTimer : GuiElement("Guardian Respawn Timer", x = 200, y = 30) {
