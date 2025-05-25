@@ -17,6 +17,11 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.state.v2.clear
+import gg.essential.elementa.state.v2.mutableListStateOf
+import gg.essential.elementa.state.v2.setAll
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -27,7 +32,9 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloorNumber
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
@@ -44,18 +51,19 @@ import java.awt.Color
 import gg.skytils.skytilsmod.utils.formattedText
 import net.minecraft.entity.EntityType
 import com.mojang.blaze3d.opengl.GlStateManager
+
 //#endif
 
 object BossHPDisplays : EventSubscriber {
     private var canGiantsSpawn = false
     private var giantNames = emptyList<Pair<Text, Vec3d>>()
-    private var guardianRespawnTimers = emptyList<String>()
+    private var guardianRespawnTimers = mutableListStateOf<String>()
     private val guardianNameRegex = Regex("§c(Healthy|Reinforced|Chaos|Laser) Guardian §e0§c❤")
     private val timerRegex = Regex("§c ☠ §7 (.+?) §c ☠ §7")
 
     init {
+        Skytils.guiManager.registerElement(GuardianRespawnTimer())
         GiantHPElement()
-        GuardianRespawnTimer()
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
@@ -80,7 +88,7 @@ object BossHPDisplays : EventSubscriber {
     fun onWorldChange(event: WorldUnloadEvent) {
         canGiantsSpawn = false
         giantNames = emptyList()
-        guardianRespawnTimers = emptyList()
+        guardianRespawnTimers.clear()
     }
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
@@ -109,7 +117,7 @@ object BossHPDisplays : EventSubscriber {
         } else giantNames = emptyList()
 
         if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && world != null) {
-            guardianRespawnTimers = mutableListOf<String>().apply {
+            guardianRespawnTimers.setAll(mutableListOf<String>().apply {
                 for (entity in world.entities) {
                     if (size >= 4) break
                     if (entity !is ArmorStandEntity) continue
@@ -132,7 +140,7 @@ object BossHPDisplays : EventSubscriber {
                         }
                     }
                 }
-            }
+            })
         }
     }
 
@@ -154,38 +162,19 @@ object BossHPDisplays : EventSubscriber {
         GlStateManager._enableDepthTest()
     }
 
-    class GuardianRespawnTimer : GuiElement("Guardian Respawn Timer", x = 200, y = 30) {
-        override fun render() {
-            if (toggled && guardianRespawnTimers.isNotEmpty()) {
-                RenderUtil.drawAllInList(this, guardianRespawnTimers)
+    class GuardianRespawnTimer : HudElement("Guardian Respawn Timer", x = 200f, y = 30f) {
+        override fun LayoutScope.render() {
+            column {
+                forEach(guardianRespawnTimers) { timer ->
+                    text(timer)
+                }
             }
         }
 
-        override fun demoRender() {
-
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "Guardian Respawn Timer Here",
-                if (leftAlign) 0f else 0f + width,
-                0f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            text("Guardian Respawn Timer Here")
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Guardian Respawn Timer Here")
-
-        override val toggled: Boolean
-            get() = Skytils.config.showGuardianRespawnTimer
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
     class GiantHPElement : GuiElement("Show Giant HP", x = 200, y = 30) {
