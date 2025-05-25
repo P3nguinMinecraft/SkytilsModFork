@@ -20,8 +20,10 @@ package gg.skytils.skytilsmod.features.impl.dungeons
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.column
 import gg.essential.elementa.state.v2.clear
+import gg.essential.elementa.state.v2.listStateOf
 import gg.essential.elementa.state.v2.mutableListStateOf
 import gg.essential.elementa.state.v2.setAll
+import gg.essential.elementa.state.v2.stateOf
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -31,15 +33,12 @@ import gg.skytils.event.impl.render.WorldDrawEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloorNumber
+import gg.skytils.skytilsmod.gui.components.UIMCText
 import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.entity.decoration.ArmorStandEntity
@@ -56,14 +55,14 @@ import com.mojang.blaze3d.opengl.GlStateManager
 
 object BossHPDisplays : EventSubscriber {
     private var canGiantsSpawn = false
-    private var giantNames = emptyList<Pair<Text, Vec3d>>()
+    private var giantNames = mutableListStateOf<Pair<Text, Vec3d>>()
     private var guardianRespawnTimers = mutableListStateOf<String>()
     private val guardianNameRegex = Regex("§c(Healthy|Reinforced|Chaos|Laser) Guardian §e0§c❤")
     private val timerRegex = Regex("§c ☠ §7 (.+?) §c ☠ §7")
 
     init {
         Skytils.guiManager.registerElement(GuardianRespawnTimer())
-        GiantHPElement()
+        Skytils.guiManager.registerElement(GiantHPElement())
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
@@ -87,7 +86,7 @@ object BossHPDisplays : EventSubscriber {
 
     fun onWorldChange(event: WorldUnloadEvent) {
         canGiantsSpawn = false
-        giantNames = emptyList()
+        giantNames.clear()
         guardianRespawnTimers.clear()
     }
 
@@ -102,19 +101,21 @@ object BossHPDisplays : EventSubscriber {
                 .string
                 //#endif
             }
-            giantNames = world.entities.filterIsInstance<ArmorStandEntity>().filter {
-                val name = it.displayName?.string ?: return@filter false
-                name.contains("❤") && (!hasSadanPlayer && name.contains("﴾ Sadan") || (name.contains("Giant") && dungeonFloorNumber?.let { it >= 6 } == true) || GiantHPElement.GIANT_NAMES.any {
-                    name.contains(
-                        it
-                    )
-                })
-            }.mapNotNull { entity ->
-                entity.displayName?.let { name ->
-                    Pair(name, entity.pos.add(0.0, -10.0, 0.0))
+            giantNames.setAll(
+                world.entities.filterIsInstance<ArmorStandEntity>().filter {
+                    val name = it.displayName?.string ?: return@filter false
+                    name.contains("❤") && (!hasSadanPlayer && name.contains("﴾ Sadan") || (name.contains("Giant") && dungeonFloorNumber?.let { it >= 6 } == true) || GiantHPElement.GIANT_NAMES.any {
+                        name.contains(
+                            it
+                        )
+                    })
+                }.mapNotNull { entity ->
+                    entity.displayName?.let { name ->
+                        Pair(name, entity.pos.add(0.0, -10.0, 0.0))
+                    }
                 }
-            }
-        } else giantNames = emptyList()
+            )
+        } else giantNames.clear()
 
         if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && world != null) {
             guardianRespawnTimers.setAll(mutableListOf<String>().apply {
@@ -149,7 +150,7 @@ object BossHPDisplays : EventSubscriber {
         val matrixStack = UMatrixStack()
         GlStateManager._disableCull()
         GlStateManager._disableDepthTest()
-        for ((name, pos) in giantNames) {
+        for ((name, pos) in giantNames.getUntracked()) {
             RenderUtil.drawLabel(
                 pos,
                 name.formattedText,
@@ -177,29 +178,22 @@ object BossHPDisplays : EventSubscriber {
 
     }
 
-    class GiantHPElement : GuiElement("Show Giant HP", x = 200, y = 30) {
-        override fun render() {
-            if (toggled && giantNames.isNotEmpty()) {
-                RenderUtil.drawAllInList(
-                    this,
-                    (giantNames.takeIf { it.size == 1 } ?: giantNames.filter { !it.first.string.contains("Sadan") }).map {
-                        it.first.method_10865()
-                    }
-                )
+    class GiantHPElement : HudElement("Show Giant HP", x = 200f, y = 30f) {
+        override fun LayoutScope.render() {
+            column {
+                forEach(giantNames) { (name, _) ->
+                    UIMCText(stateOf(name))
+                }
             }
         }
 
-        override fun demoRender() {
-            RenderUtil.drawAllInList(this, GIANT_NAMES.map { "$it §a19.5M§c❤" })
+        override fun LayoutScope.demoRender() {
+           column {
+               GIANT_NAMES.forEach { name ->
+                   text(name)
+               }
+           }
         }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * GIANT_NAMES.size
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§3§lThe Diamond Giant §a19.5M§c❤")
-
-        override val toggled: Boolean
-            get() = Skytils.config.showGiantHP
 
         companion object {
             val GIANT_NAMES =
@@ -210,10 +204,6 @@ object BossHPDisplays : EventSubscriber {
                     "§d§lJolly Pink Giant",
                     "§d§lMutant Giant"
                 )
-        }
-
-        init {
-            Skytils.guiManager.registerElement(this)
         }
     }
 
