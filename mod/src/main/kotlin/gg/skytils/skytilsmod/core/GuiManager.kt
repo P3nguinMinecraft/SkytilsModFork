@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.core
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.Window
@@ -38,7 +39,9 @@ import gg.skytils.skytilsmod.utils.toast.Toast
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.minecraft.client.MinecraftClient
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UMinecraft
+import net.minecraft.client.font.TextRenderer
+import net.minecraft.util.profiler.Profilers
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -114,25 +117,25 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
             MinecraftClient.getInstance().currentScreen is VanillaEditingGui ||
             MinecraftClient.getInstance().currentScreen == demoHud
             ) return
-        mc.tickProfilerResult.push("SkytilsHUD")
+        val profiler = Profilers.get()!!
+        profiler.push("SkytilsHUD")
         gui.draw(UMatrixStack.Compat.get())
         hud.draw(UMatrixStack.Compat.get())
         for ((_, element) in elements) {
-            mc.tickProfilerResult.push(element.name)
+            profiler.push(element.name)
             try {
-                RenderSystem.pushMatrix()
-                RenderSystem.method_4348(element.scaleX, element.scaleY, 0f)
-                RenderSystem.method_4384(element.scale, element.scale, 0f)
-                element.render()
-                RenderSystem.popMatrix()
+                val matrix = UMatrixStack.Compat.get()
+                matrix.translate(element.scaleX, element.scaleY, 0f)
+                matrix.scale(element.scale, element.scale, 0f)
+                matrix.runWithGlobalState(element::render)
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 UChat.chat("${Skytils.failPrefix} §cSkytils ${Skytils.VERSION} caught and logged an ${ex::class.simpleName ?: "error"} while rendering ${element.name}. Please report this on the Discord server at discord.gg/skytils.")
             }
-            mc.tickProfilerResult.pop()
+            profiler.pop()
         }
         renderTitles()
-        mc.tickProfilerResult.pop()
+        profiler.pop()
     }
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
@@ -161,27 +164,34 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         }
         val scaledWidth = UResolution.scaledWidth
         val scaledHeight = UResolution.scaledHeight
+        val matrixStack = UMatrixStack.Compat.get()
         if (title != null) {
             val stringWidth = mc.textRenderer.getWidth(title)
             var scale = 4f // Scale is normally 4, but if its larger than the screen, scale it down...
             if (stringWidth * scale > scaledWidth * 0.9f) {
                 scale = scaledWidth * 0.9f / stringWidth.toFloat()
             }
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4348((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
-            RenderSystem.enableBlend()
-            RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4384(scale, scale, scale) // TODO Check if changing this scale breaks anything...
-            mc.textRenderer.method_0_2383(
+            matrixStack.push()
+            matrixStack.translate((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
+            GlStateManager._enableBlend()
+            GlStateManager._blendFuncSeparate(770, 771, 1, 0)
+            matrixStack.push()
+            matrixStack.scale(scale, scale, scale) // TODO Check if changing this scale breaks anything...
+            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+            mc.textRenderer.draw(
                 title,
                 (-mc.textRenderer.getWidth(title) / 2).toFloat(),
                 -20.0f,
                 0xFF0000,
-                true
+                true,
+                matrixStack.peek().model,
+                vertexConsumer,
+                TextRenderer.TextLayerType.NORMAL,
+                0, 15728880
             )
-            RenderSystem.popMatrix()
-            RenderSystem.popMatrix()
+            matrixStack.runWithGlobalState(vertexConsumer::draw)
+            matrixStack.pop()
+            matrixStack.pop()
         }
         if (subtitle != null) {
             val stringWidth = mc.textRenderer.getWidth(subtitle)
@@ -189,18 +199,26 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
             if (stringWidth * scale > scaledWidth * 0.9f) {
                 scale = scaledWidth * 0.9f / stringWidth.toFloat()
             }
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4348((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
-            RenderSystem.enableBlend()
-            RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4384(scale, scale, scale) // TODO Check if changing this scale breaks anything...
-            mc.textRenderer.method_0_2383(
-                subtitle, -mc.textRenderer.getWidth(subtitle) / 2f, -23.0f,
-                0xFF0000, true
+            matrixStack.push()
+            matrixStack.translate((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
+            GlStateManager._enableBlend()
+            GlStateManager._blendFuncSeparate(770, 771, 1, 0)
+            matrixStack.push()
+            matrixStack.scale(scale, scale, scale) // TODO Check if changing this scale breaks anything...
+            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+            mc.textRenderer.draw(
+                subtitle,
+                -mc.textRenderer.getWidth(subtitle) / 2f, -23.0f,
+                0xFF0000,
+                true,
+                matrixStack.peek().model,
+                vertexConsumer,
+                TextRenderer.TextLayerType.NORMAL,
+                0, 15728880
             )
-            RenderSystem.popMatrix()
-            RenderSystem.popMatrix()
+            matrixStack.runWithGlobalState(vertexConsumer::draw)
+            matrixStack.pop()
+            matrixStack.pop()
         }
     }
 
