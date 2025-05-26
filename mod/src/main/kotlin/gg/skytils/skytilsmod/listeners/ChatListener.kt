@@ -31,10 +31,12 @@ import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.AdManager
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiNewChat
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.runClientCommand
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.minecraft.text.HoverEvent
 
 object ChatListener : EventSubscriber {
     private var lastPartyDisbander = ""
@@ -47,7 +49,7 @@ object ChatListener : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.isOnHypixel) return
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
         val unformatted = formatted.stripControlCodes()
         if (Skytils.config.autoReparty) {
             if (formatted.endsWith("§r§ehas disbanded the party!§r")) {
@@ -69,7 +71,7 @@ object ChatListener : EventSubscriber {
             }
             if (unformatted.contains("You have 60 seconds to accept") && lastPartyDisbander.isNotEmpty() && event.message.siblings.size >= 7) {
                 val acceptMessage = event.message.siblings[6].style
-                if (acceptMessage.hoverEvent.value.string.contains(lastPartyDisbander)) {
+                if ((acceptMessage.hoverEvent as? HoverEvent.ShowText)?.value?.string?.contains(lastPartyDisbander) == true) {
                     Skytils.sendMessageQueue.add("/p accept $lastPartyDisbander")
                     lastPartyDisbander = ""
                     return
@@ -112,13 +114,13 @@ object ChatListener : EventSubscriber {
                 if (partyStart != null && partyStart.groupValues[1].toInt() == 1) {
                     UChat.chat("$failPrefix §cYou cannot reparty yourself.")
                     RepartyCommand.partyThread!!.interrupt()
-                } else if (leader != null && leader.groupValues[1] != player.name) {
+                } else if (leader != null && leader.groupValues[1] != player?.name?.string) {
                     UChat.chat("$failPrefix §cYou are not party leader.")
                     RepartyCommand.partyThread!!.interrupt()
                 } else {
                     members.forEach {
                         val partyMember = it.groupValues[1]
-                        if (partyMember != player.name) {
+                        if (partyMember != player?.name?.string) {
                             RepartyCommand.party.add(partyMember)
                             println(partyMember)
                         }
