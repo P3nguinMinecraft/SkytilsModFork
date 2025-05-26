@@ -22,6 +22,7 @@ import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UKeyboard
+import gg.essential.universal.UMinecraft
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.network.ClientConnectEvent
@@ -48,7 +49,6 @@ import gg.skytils.skytilsmod.features.impl.farming.FarmingFeatures
 import gg.skytils.skytilsmod.features.impl.farming.GardenFeatures
 import gg.skytils.skytilsmod.features.impl.farming.TreasureHunterSolver
 import gg.skytils.skytilsmod.features.impl.farming.VisitorHelper
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.features.impl.handlers.*
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
 import gg.skytils.skytilsmod.features.impl.mining.MiningFeatures
@@ -71,7 +71,6 @@ import gg.skytils.skytilsmod.localapi.LocalAPI
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityLivingBase
 import gg.skytils.skytilsmod.mixins.hooks.entity.EntityPlayerSPHook
 import gg.skytils.skytilsmod.mixins.hooks.util.MouseHelperHook
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiStreamUnavailable
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorSettingsGui
 import gg.skytils.skytilsmod.tweaker.DependencyLoader
 import gg.skytils.skytilsmod.utils.*
@@ -305,12 +304,12 @@ object Skytils : CoroutineScope, EventSubscriber {
         CatlasConfig
         UpdateChecker.downloadDeleteTask()
 
-        arrayOf(
-            this,
-            Funny,
-            NEUCompatibility,
-            ScoreCalculation,
-        ).forEach(MinecraftForge.EVENT_BUS::register)
+//        arrayOf(
+//            this,
+//            Funny,
+//            NEUCompatibility,
+//            ScoreCalculation,
+//        ).forEach(MinecraftForge.EVENT_BUS::register)
 
         arrayOf(
             this,
@@ -496,7 +495,7 @@ object Skytils : CoroutineScope, EventSubscriber {
                     UDesktop.setClipboardString(
                         "Name: '${name}', Items: ${
                             chest.slots.filter { it.inventory == chest.inventory }
-                                .map { it.stack?.serializeNBT() }
+                                .map { it.stack?.toNbt(UMinecraft.getMinecraft().player!!.registryManager) }
                         }"
                     )
 
@@ -562,11 +561,6 @@ object Skytils : CoroutineScope, EventSubscriber {
                     if (mc.player?.currentScreenHandler is PlayerScreenHandler)
                         displayScreen = OptionsGui()
                 }
-            }
-        }
-        if (old is AccessorGuiStreamUnavailable) {
-            if (config.twitchFix && event.screen == null && !(Utils.inSkyblock && old.parentScreen is DeathScreen)) {
-                event.screen = old.parentScreen
             }
         }
     }
