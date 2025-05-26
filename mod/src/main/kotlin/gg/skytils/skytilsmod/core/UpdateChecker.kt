@@ -40,11 +40,16 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.minecraft.client.gui.screen.TitleScreen
-import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.StandardCopyOption
 import kotlin.io.path.*
+
+//#if FABRIC
+import net.fabricmc.loader.api.Version
+//#else
+//$$ import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion
+//#endif
 
 object UpdateChecker : EventSubscriber {
     val updateGetter = UpdateGetter()
@@ -229,7 +234,13 @@ object UpdateChecker : EventSubscriber {
         val isSafe by lazy { matched != null }
 
         val version by lazy { matched!!.groups["version"]!!.value }
-        val versionArtifact by lazy { DefaultArtifactVersion(matched!!.groups["version"]!!.value) }
+        val versionArtifact by lazy {
+            //#if FABRIC
+            Version.parse(matched!!.groups["version"]!!.value)
+            //#else
+            //$$ DefaultArtifactVersion(matched!!.groups["version"]!!.value)
+            //#endif
+        }
         val specialVersionType by lazy {
             val typeString = matched!!.groups["type"]?.value ?: return@lazy UpdateType.RELEASE
 
