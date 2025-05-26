@@ -32,6 +32,7 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.TabListUtils
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.skytilsws.shared.packet.C2SPacketJerryVote
@@ -114,7 +115,7 @@ object MayorInfo : EventSubscriber {
         ) return
         if (event.container is GenericContainerScreenHandler) {
             val chestName = event.chestName
-            if (event.slot.hasStack() && ((chestName == "Mayor Jerry" && (event.slot.id == 13 || event.slot.stack?.name == "§dJERRY IS MAYOR!!!")) || (chestName == "Calendar and Events" && event.slot.id == 37))) {
+            if (event.slot.hasStack() && ((chestName == "Mayor Jerry" && (event.slot.id == 13 || event.slot.stack?.name?.formattedText == "§dJERRY IS MAYOR!!!")) || (chestName == "Calendar and Events" && event.slot.id == 37))) {
                 val lore = ItemUtil.getItemLore(event.slot.stack)
                 if (!lore.contains("§9Perkpocalypse Perks:")) return
                 val endingIn = lore.asReversed().find { it.startsWith("§7Next set of perks in") } ?: return
