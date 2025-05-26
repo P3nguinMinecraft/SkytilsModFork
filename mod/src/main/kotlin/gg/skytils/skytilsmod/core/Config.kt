@@ -4493,7 +4493,7 @@ object Config : Vigilant(
             //#endif
                 val old = itemRarityShape
                 runCatching {
-                    val loc = Identifier("skytils:gui/customrarity.png")
+                    val loc = Identifier.of("skytils", "gui/customrarity.png")
                     //#if MC==10809
                     //$$ mc.resourceManager.method_14486(loc)
                     //#else
