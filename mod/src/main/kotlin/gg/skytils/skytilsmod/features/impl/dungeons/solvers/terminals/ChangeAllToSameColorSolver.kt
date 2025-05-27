@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.item.ItemTooltipEvent
@@ -27,13 +28,17 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.client.gui.screen.ingame.HandledScreen
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMatrixStack
+import gg.skytils.skytilsmod.utils.formattedText
+import net.minecraft.block.StainedGlassPaneBlock
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.item.BlockItem
+import net.minecraft.item.ItemStack
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.util.DyeColor
+import java.awt.Color
 
 object ChangeAllToSameColorSolver : EventSubscriber {
     private val ordering =
@@ -44,9 +49,9 @@ object ChangeAllToSameColorSolver : EventSubscriber {
             DyeColor.GREEN,
             DyeColor.BLUE
         ).withIndex().associate { (i, c) ->
-            c.index to i
+            c to i
         }
-    private var mostCommon = DyeColor.RED.index
+    private var mostCommon = DyeColor.RED
     private var isLocked = false
 
     override fun setup() {
@@ -57,7 +62,7 @@ object ChangeAllToSameColorSolver : EventSubscriber {
     }
 
     fun onWindowClose(event: ScreenOpenEvent) {
-        if (event.screen as? HandledScreen == null) isLocked = false
+        if (event.screen as? HandledScreen<*> == null) isLocked = false
     }
 
 
@@ -65,11 +70,11 @@ object ChangeAllToSameColorSolver : EventSubscriber {
         if (!Utils.inDungeons || !Skytils.config.changeAllSameColorTerminalSolver || event.container !is GenericContainerScreenHandler || event.chestName != "Change all to same color!") return
         val container = event.container as? GenericContainerScreenHandler ?: return
         val grid = container.slots.filter {
-            it.inventory == container.inventory && it.stack?.name?.startsWith("§a") == true
+            it.inventory == container.inventory && it.stack?.name?.formattedText?.startsWith("§a") == true
         }
 
         if (!Skytils.config.changeToSameColorLock || !isLocked) {
-            val counts = ordering.keys.associateWith { c -> grid.count { it.stack?.method_0_8356() == c } }
+            val counts = ordering.keys.associateWith { c -> grid.count { getColorFromItem(it.stack) == c } }
             val currentPath = counts[mostCommon]!!
             val (candidate, maxCount) = counts.maxBy { it.value }
 
@@ -80,57 +85,62 @@ object ChangeAllToSameColorSolver : EventSubscriber {
         }
 
         val targetIndex = ordering[mostCommon]!!
-        val mapping = grid.filter { it.stack.method_0_8356() != mostCommon }.associateWith { slot ->
+        val mapping = grid.filter { getColorFromItem(it.stack) != mostCommon }.associateWith { slot ->
             val stack = slot.stack
-            val myIndex = ordering[stack.method_0_8356()]!!
+            val myIndex = ordering[getColorFromItem(stack)]!!
             val normalCycle = ((targetIndex - myIndex) % ordering.size + ordering.size) % ordering.size
             val otherCycle = -((myIndex - targetIndex) % ordering.size + ordering.size) % ordering.size
             normalCycle to otherCycle
         }
-        RenderSystem.pushMatrix()
-        RenderSystem.method_4348(0f, 0f, 299f)
+        val matrixStack = UMatrixStack.Compat.get()
+        matrixStack.push()
+        matrixStack.translate(0f, 0f, 299f)
         for ((slot, clicks) in mapping) {
             var betterOpt = if (clicks.first > -clicks.second) clicks.second else clicks.first
-            var color = CommonColors.WHITE
+            var color = Color.WHITE
             if (Skytils.config.changeToSameColorMode == 1) {
                 betterOpt = clicks.first
                 when (betterOpt) {
-                    1 -> color = CommonColors.GREEN
-                    2, 3 -> color = CommonColors.YELLOW
-                    4 -> color = CommonColors.RED
+                    1 -> color = Color.GREEN
+                    2, 3 -> color = Color.YELLOW
+                    4 -> color = Color.RED
                 }
             }
 
-            RenderSystem.method_4406()
-            RenderSystem.disableDepthTest()
-            RenderSystem.disableBlend()
-            ScreenRenderer.fontRenderer.drawString(
-                "$betterOpt",
-                slot.x + 9f,
-                slot.y + 4f,
-                color,
-                SmartFontRenderer.TextAlignment.MIDDLE,
-                SmartFontRenderer.TextShadow.NORMAL
-            )
-            RenderSystem.method_4394()
-            RenderSystem.enableDepthTest()
+            matrixStack.runWithGlobalState {
+                // disable lighting
+                GlStateManager._disableDepthTest()
+                GlStateManager._disableBlend()
+                UGraphics.drawString(
+                    matrixStack,
+                    "$betterOpt",
+                    slot.x + 9f,
+                    slot.y + 4f,
+                    color.rgb,
+                    false
+                )
+                // enable lighting
+                GlStateManager._enableDepthTest()
+            }
         }
-        RenderSystem.popMatrix()
+        matrixStack.pop()
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
         if (!Utils.inDungeons || !Skytils.config.changeAllSameColorTerminalSolver || !Skytils.config.blockIncorrectTerminalClicks) return
         if (event.container is GenericContainerScreenHandler && event.chestName == "Change all to same color!") {
-            if (event.slot?.stack?.method_0_8356() == mostCommon) event.cancelled = true
+            if (event.slot?.stack?.let(::getColorFromItem) == mostCommon) event.cancelled = true
         }
     }
 
     fun onTooltip(event: ItemTooltipEvent) {
         if (!Utils.inDungeons || !Skytils.config.changeAllSameColorTerminalSolver) return
-        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
-        val chestName = chest.inventory.customName.string
+        val chestName = mc.currentScreen?.takeIf { it is GenericContainerScreen }?.title?.string
         if (chestName == "Change all to same color!") {
             event.tooltip.clear()
         }
     }
+
+    private fun getColorFromItem(itemstack: ItemStack): DyeColor =
+        ((itemstack.item as BlockItem).block as StainedGlassPaneBlock).color
 }
