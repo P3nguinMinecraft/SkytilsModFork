@@ -53,7 +53,8 @@ import net.minecraft.item.map.MapState
 
 //#if MC>=11600
 import net.minecraft.item.FilledMapItem
-import net.minecraft.item.map.MapDecoration
+import net.minecraft.item.map.MapDecorationTypes
+
 //#endif
 
 object Catlas : EventSubscriber {
@@ -164,14 +165,14 @@ object Catlas : EventSubscriber {
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (event.packet is MapUpdateS2CPacket && Utils.inDungeons && DungeonInfo.dungeonMap == null) {
             val world = mc.world ?: return
-            val id = event.packet.id
+            val id = event.packet.mapId.id
             if (id and 1000 == 0) {
                 //#if MC==10809
                 //$$ val guess = world.method_0_259().method_120(MapState::class.java, "map_${id}") as MapState? ?: return
                 //$$ if (guess.icons.any { it.value.typeId == 1.toByte() }) {
                 //#else
-                val guess = FilledMapItem.getMapState(id, world) ?: return
-                if (guess.decorations.any { it.type == MapDecoration.Type.PLAYER }) {
+                val guess = FilledMapItem.getMapState(event.packet.mapId, world) ?: return
+                if (guess.decorations.any { it.type == MapDecorationTypes.PLAYER }) {
                 //#endif
                     DungeonInfo.guessMapData = guess
                 }
