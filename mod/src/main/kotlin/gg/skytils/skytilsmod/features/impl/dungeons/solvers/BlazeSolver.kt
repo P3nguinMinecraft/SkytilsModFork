@@ -134,7 +134,7 @@ object BlazeSolver : EventSubscriber {
                         }
                     }
                     if (blazeChest != null && blazes.size == 10) {
-                        blazeMode = if (mc.world!!.getBlockState(blazeChest!!.method_10074()).block == Blocks.STONE) {
+                        blazeMode = if (mc.world!!.getBlockState(blazeChest!!.down()).block == Blocks.STONE) {
                             println("Bottom block scanning determined lowest -> highest")
                             -1
                         } else {
