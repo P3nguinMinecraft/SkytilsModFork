@@ -34,6 +34,8 @@ import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.item.ItemStack
 import kotlin.concurrent.fixedRateTimer
+import kotlin.jvm.optionals.getOrDefault
+import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.jvm.javaField
 
 object AuctionData : EventSubscriber {
@@ -48,13 +50,13 @@ object AuctionData : EventSubscriber {
         val extraAttr = ItemUtil.getExtraAttributes(item) ?: return null
         var id = ItemUtil.getSkyBlockItemID(extraAttr) ?: return null
         when (id) {
-            "PET" -> if (extraAttr.getString("petInfo").startsWith("{")) {
-                val petInfo = json.decodeFromString<Pet>(extraAttr.getString("petInfo"))
+            "PET" -> if (extraAttr.getString("petInfo").getOrDefault("").startsWith("{")) {
+                val petInfo = json.decodeFromString<Pet>(extraAttr.getString("petInfo").getOrDefault("{\"type\":\"null\",\"tier\":\"null\"}"))
                 id = "PET-${petInfo.type}-${petInfo.tier}"
             }
 
             "ATTRIBUTE_SHARD" -> if (extraAttr.contains("attributes")) {
-                val attributes = extraAttr.getCompound("attributes")
+                val attributes = extraAttr.getCompound("attributes").getOrNull() ?: return null
                 val attribute = attributes.keys.firstOrNull()
                 if (attribute != null) {
                     id = "ATTRIBUTE_SHARD-${attribute.uppercase()}-${attributes.getInt(attribute)}"
@@ -62,7 +64,7 @@ object AuctionData : EventSubscriber {
             }
 
             "ENCHANTED_BOOK" -> if (extraAttr.contains("enchantments")) {
-                val enchants = extraAttr.getCompound("enchantments")
+                val enchants = extraAttr.getCompound("enchantments").getOrNull() ?: return null
                 val enchant = enchants.keys.firstOrNull()
                 if (enchant != null) {
                     id = "ENCHANTED_BOOK-${enchant.uppercase()}-${enchants.getInt(enchant)}"
@@ -71,7 +73,7 @@ object AuctionData : EventSubscriber {
 
             "POTION" -> if (extraAttr.contains("potion") && extraAttr.contains("potion_level")) {
                 id = "POTION-${
-                    extraAttr.getString("potion")
+                    extraAttr.getString("potion").getOrDefault("")
                         .uppercase()
                 }-${extraAttr.getInt("potion_level")}${"-ENHANCED".toStringIfTrue(extraAttr.contains("enhanced"))}${
                     "-EXTENDED".toStringIfTrue(
@@ -83,7 +85,7 @@ object AuctionData : EventSubscriber {
             }
 
             "RUNE", "UNIQUE_RUNE" -> if (extraAttr.contains("runes")) {
-                val runes = extraAttr.getCompound("runes")
+                val runes = extraAttr.getCompound("runes").getOrNull() ?: return null
                 val rune = runes.keys.firstOrNull()
                 if (rune != null) {
                     id = "RUNE-${rune.uppercase()}-${runes.getInt(rune)}"
