@@ -67,7 +67,7 @@ object BrewingFeatures : EventSubscriber {
         if (!Skytils.config.colorBrewingStands || !Utils.inSkyblock || SBInfo.mode != SkyblockIsland.PrivateIsland.mode) return
         if (lastBrewingStand == null || event.container !is GenericContainerScreenHandler || event.chestName != "Brewing Stand") return
         val timeSlot = event.container.getSlot(22).stack ?: return
-        val time = timeRegex.find(timeSlot.name)?.groups?.get("sec")?.value?.toDoubleOrNull() ?: 0.0
+        val time = timeRegex.find(timeSlot.name.formattedText)?.groups?.get("sec")?.value?.toDoubleOrNull() ?: 0.0
         brewingStandToTimeMap[lastBrewingStand!!.pos] = System.currentTimeMillis() + (time * 1000L).toLong()
     }
 
