@@ -58,8 +58,8 @@ object BrewingFeatures : EventSubscriber {
 
     fun onPacketSend(event: PacketSendEvent<*>) {
         if (!Skytils.config.colorBrewingStands || !Utils.inSkyblock || SBInfo.mode != SkyblockIsland.PrivateIsland.mode) return
-        if (event.packet is PlayerInteractBlockC2SPacket && event.packet.method_12548().y != -1) {
-            lastBrewingStand = mc.world.getBlockEntity(event.packet.method_12548()) as? BrewingStandBlockEntity ?: return
+        if (event.packet is PlayerInteractBlockC2SPacket && event.packet.blockHitResult.pos.y.toInt() != -1) {
+            lastBrewingStand = mc.world?.getBlockEntity(event.packet.blockHitResult.blockPos) as? BrewingStandBlockEntity ?: return
         }
     }
 
