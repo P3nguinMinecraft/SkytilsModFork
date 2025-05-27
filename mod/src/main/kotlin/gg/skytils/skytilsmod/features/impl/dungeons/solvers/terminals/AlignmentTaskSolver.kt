@@ -111,7 +111,7 @@ object AlignmentTaskSolver : EventSubscriber {
                                 else -> SpaceType.EMPTY
                             }
                         } ?: SpaceType.EMPTY
-                        grid.add(MazeSpace(frame?.decorationBlockPos, type, coords))
+                        grid.add(MazeSpace(frame?.blockPos, type, coords))
                     }
                 }
             } else if (directionSet.isEmpty()) {
@@ -136,7 +136,7 @@ object AlignmentTaskSolver : EventSubscriber {
         for (space in grid) {
             if (space.type != SpaceType.PATH || space.framePos == null) continue
             val frame =
-                (mc.world?.entities?.find { it is ItemFrameEntity && it.decorationBlockPos == space.framePos }
+                (mc.world?.entities?.find { it is ItemFrameEntity && it.blockPos == space.framePos }
                     ?: continue) as ItemFrameEntity
             val neededClicks = getTurnsNeeded(frame.rotation, directionSet.getOrElse(space.coords) { 0 })
             clicks[space.framePos] = neededClicks
@@ -148,7 +148,7 @@ object AlignmentTaskSolver : EventSubscriber {
             if ((Skytils.config.blockIncorrectTerminalClicks || Skytils.config.predictAlignmentClicks)) {
                 val entity = event.entity
                 if (entity !is ItemFrameEntity) return
-                val pos = entity.decorationBlockPos
+                val pos = entity.blockPos
                 val clicks = clicks[pos]
                 val pending = pendingClicks[pos] ?: 0
 
@@ -157,7 +157,7 @@ object AlignmentTaskSolver : EventSubscriber {
                         printDevMessage({ "Click packet on $pos was cancelled, rot: ${entity.rotation}, clicks: ${clicks}, pending: $pending" }, "predictalignment")
                         event.cancelled = true
                     } else {
-                        val blockBehind = mc.world?.getBlockState(pos.method_10093(entity.horizontalFacing.opposite))
+                        val blockBehind = mc.world?.getBlockState(pos.offset(entity.horizontalFacing.opposite))
                         if (blockBehind?.block == Blocks.SEA_LANTERN) {
                             printDevMessage({ "Click packet on $pos was cancelled, reason: lantern" }, "predictalignment")
                             event.cancelled = true
@@ -178,7 +178,7 @@ object AlignmentTaskSolver : EventSubscriber {
         if (directionSet.isNotEmpty() && Skytils.config.alignmentTerminalSolver && isSolverActive()) {
             if (Skytils.config.predictAlignmentClicks && event.packet is EntityTrackerUpdateS2CPacket) {
                 val entity = mc.world?.getEntityById(event.packet.id()) as? ItemFrameEntity ?: return
-                val pos = entity.decorationBlockPos
+                val pos = entity.blockPos
                 val pending = pendingClicks[pos]
                 if (pending != null) {
                     val newRot = (event.packet.trackedValues.find { it.id() == 9 }?.value() as? Byte ?: return).toInt()
