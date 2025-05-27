@@ -26,6 +26,7 @@ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorS3BPacketScor
 import gg.skytils.skytilsmod.utils.ScoreboardUtil
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.network.packet.s2c.play.ScoreboardObjectiveUpdateS2CPacket
+import net.minecraft.text.Text
 
 object AntiFool : EventSubscriber {
     private val CHARS = (('0'..'9') + ('a'..'f') + 'z' + 'k')
@@ -37,8 +38,8 @@ object AntiFool : EventSubscriber {
 
     fun fixStuff(event: MainThreadPacketReceiveEvent<*>) {
         (event.packet as? ScoreboardObjectiveUpdateS2CPacket)?.let { packet ->
-            if (ScoreboardUtil.cleanSB(packet.displayName.stripControlCodes()).contains("SKIBLOCK")) {
-                (packet as AccessorS3BPacketScoreboardObjective).setObjectiveValue("§${e}§lSKYBLOCK")
+            if (ScoreboardUtil.cleanSB(packet.displayName.string.stripControlCodes()).contains("SKIBLOCK")) {
+                (packet as AccessorS3BPacketScoreboardObjective).setObjectiveValue(Text.literal("§${e}§lSKYBLOCK"))
             }
         }
     }
