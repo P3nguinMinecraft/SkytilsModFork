@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
@@ -88,7 +89,7 @@ object BoulderSolver : EventSubscriber {
                         BoulderPushDirection.LEFT -> boulderFacing!!.rotateYCounterclockwise()
                         BoulderPushDirection.RIGHT -> boulderFacing!!.rotateYClockwise()
                     }
-                    val buttonPos = boulderPos.offset(actualDirection!!.opposite, 2).method_10074()
+                    val buttonPos = boulderPos.offset(actualDirection!!.opposite, 2).down()
                     val x = buttonPos.x - viewerX
                     val y = buttonPos.y - viewerY
                     val z = buttonPos.z - viewerZ
@@ -96,7 +97,7 @@ object BoulderSolver : EventSubscriber {
                     //#if MC<11300
                     //$$ GlStateManager.disableCull()
                     //#else
-                    RenderSystem.disableCull()
+                    GlStateManager._disableCull()
                     //#endif
 
                     RenderUtil.drawFilledBoundingBox(
@@ -109,7 +110,7 @@ object BoulderSolver : EventSubscriber {
                     //#if MC<11300
                     //$$ GlStateManager.enableCull()
                     //#else
-                    RenderSystem.enableCull()
+                    GlStateManager._enableCull()
                     //#endif
                     break
                 }
@@ -180,7 +181,7 @@ object BoulderSolver : EventSubscriber {
                             if (te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world!!, te.pos) == 0) {
                             //#endif
                                 val potentialChestPos = te.pos
-                                if (world.getBlockState(potentialChestPos.method_10074()).block ==
+                                if (world.getBlockState(potentialChestPos.down()).block ==
                                     //#if MC<11300
                                     //$$ Blocks.STONEBRICK
                                     //#else
@@ -193,7 +194,7 @@ object BoulderSolver : EventSubscriber {
                                     boulderChest = potentialChestPos
                                     println("Boulder chest is at $boulderChest")
                                     for (direction in UDirection.HORIZONTALS) {
-                                        if (world.getBlockState(potentialChestPos.method_10093(direction)).block == Blocks.STAINED_HARDENED_CLAY) {
+                                        if (world.getBlockState(potentialChestPos.offset(direction)).block == Blocks.CYAN_TERRACOTTA) {
                                             boulderFacing = direction
                                             println("Boulder room is facing $direction")
                                             break@findChest
