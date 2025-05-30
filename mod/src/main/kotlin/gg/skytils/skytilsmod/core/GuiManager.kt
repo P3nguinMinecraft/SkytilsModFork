@@ -23,6 +23,7 @@ import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.Window
 import gg.essential.elementa.dsl.pixels
 import gg.essential.universal.UChat
+import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UResolution
 import gg.skytils.event.EventPriority
@@ -39,9 +40,8 @@ import gg.skytils.skytilsmod.utils.toast.Toast
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.minecraft.client.MinecraftClient
-import gg.essential.universal.UMinecraft
-import net.minecraft.client.font.TextRenderer
 import net.minecraft.util.profiler.Profilers
+import org.lwjgl.opengl.GL11
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -117,7 +117,11 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
             MinecraftClient.getInstance().currentScreen is VanillaEditingGui ||
             MinecraftClient.getInstance().currentScreen == demoHud
             ) return
-        val profiler = Profilers.get()!!
+        //#if MC>=12000
+        val profiler = Profilers.get()
+        //#else
+        //$$ val profiler = mc.tickProfilerResult
+        //#endif
         profiler.push("SkytilsHUD")
         gui.draw(UMatrixStack.Compat.get())
         hud.draw(UMatrixStack.Compat.get())
@@ -174,23 +178,18 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
             matrixStack.push()
             matrixStack.translate((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
             GlStateManager._enableBlend()
-            GlStateManager._blendFuncSeparate(770, 771, 1, 0)
-            matrixStack.push()
+            GlStateManager._blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO)
             matrixStack.scale(scale, scale, scale) // TODO Check if changing this scale breaks anything...
-            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-            mc.textRenderer.draw(
-                title,
-                (-mc.textRenderer.getWidth(title) / 2).toFloat(),
-                -20.0f,
-                0xFF0000,
-                true,
-                matrixStack.peek().model,
-                vertexConsumer,
-                TextRenderer.TextLayerType.NORMAL,
-                0, 15728880
-            )
-            matrixStack.runWithGlobalState(vertexConsumer::draw)
-            matrixStack.pop()
+            matrixStack.runWithGlobalState {
+                UGraphics.drawString(
+                    matrixStack,
+                    title,
+                    (-mc.textRenderer.getWidth(title) / 2).toFloat(),
+                    -20.0f,
+                    0xFF0000,
+                    true
+                )
+            }
             matrixStack.pop()
         }
         if (subtitle != null) {
@@ -202,22 +201,15 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
             matrixStack.push()
             matrixStack.translate((scaledWidth / 2).toFloat(), (scaledHeight / 2).toFloat(), 0.0f)
             GlStateManager._enableBlend()
-            GlStateManager._blendFuncSeparate(770, 771, 1, 0)
-            matrixStack.push()
+            GlStateManager._blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO)
             matrixStack.scale(scale, scale, scale) // TODO Check if changing this scale breaks anything...
-            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-            mc.textRenderer.draw(
-                subtitle,
-                -mc.textRenderer.getWidth(subtitle) / 2f, -23.0f,
-                0xFF0000,
-                true,
-                matrixStack.peek().model,
-                vertexConsumer,
-                TextRenderer.TextLayerType.NORMAL,
-                0, 15728880
-            )
-            matrixStack.runWithGlobalState(vertexConsumer::draw)
-            matrixStack.pop()
+            matrixStack.runWithGlobalState {
+                UGraphics.drawString(
+                    matrixStack,
+                    subtitle, -mc.textRenderer.getWidth(subtitle) / 2f, -23.0f,
+                    0xFF0000, true
+                )
+            }
             matrixStack.pop()
         }
     }

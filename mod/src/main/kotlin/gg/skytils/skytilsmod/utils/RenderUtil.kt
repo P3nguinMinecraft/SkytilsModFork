@@ -428,11 +428,19 @@ object RenderUtil {
             renderZ = z
         }
         drawNametag(renderX, renderY, renderZ, str, Color.WHITE, partialTicks, matrixStack)
-        matrixStack.rotate(-mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
-        matrixStack.rotate(mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
+        //#if MC>=12000
+        matrixStack.multiply(mc.entityRenderDispatcher.rotation)
+        //#else
+        //$$ matrixStack.rotate(-mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
+        //$$ matrixStack.rotate(mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
+        //#endif
         matrixStack.translate(0.0, -0.25, 0.0)
-        matrixStack.rotate(-mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
-        matrixStack.rotate(mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
+        //#if MC>=12000
+        matrixStack.multiply(mc.entityRenderDispatcher.rotation.invert())
+        //#else
+        //$$ matrixStack.rotate(-mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
+        //$$ matrixStack.rotate(mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
+        //#endif
         drawNametag(
             renderX,
             renderY,
@@ -460,8 +468,12 @@ object RenderUtil {
         matrixStack.push()
         matrixStack.translate(x1, y1, z1)
         GL11.glNormal3f(0f, 1f, 0f)
-        matrixStack.rotate(-mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
-        matrixStack.rotate(mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
+        //#if MC>=12000
+        matrixStack.multiply(mc.entityRenderDispatcher.rotation)
+        //#else
+        //$$ matrixStack.rotate(-mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
+        //$$ matrixStack.rotate(mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
+        //#endif
         matrixStack.scale(-f1, -f1, -f1)
         UGraphics.disableLighting()
         UGraphics.depthMask(false)
@@ -469,14 +481,14 @@ object RenderUtil {
         UGraphics.tryBlendFuncSeparate(770, 771, 1, 0)
         if (background) {
             val worldRenderer = UGraphics.getFromTessellator()
-            worldRenderer.beginWithDefaultShader(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+            worldRenderer.beginWithDefaultShader(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
             worldRenderer.pos(matrixStack, (-width - 1.0), -1.0, 0.0).color(0f, 0f, 0f, 0.25f).endVertex()
             worldRenderer.pos(matrixStack, (-width - 1.0), 8.0, 0.0).color(0f, 0f, 0f, 0.25f).endVertex()
             worldRenderer.pos(matrixStack, width + 1.0, 8.0, 0.0).color(0f, 0f, 0f, 0.25f).endVertex()
             worldRenderer.pos(matrixStack, width + 1.0, -1.0, 0.0).color(0f, 0f, 0f, 0.25f).endVertex()
             worldRenderer.drawDirect()
         }
-        RenderSystem.method_4397()
+        UGraphics.enableTexture2D()
         DefaultFonts.VANILLA_FONT_RENDERER.drawString(
             matrixStack,
             str,

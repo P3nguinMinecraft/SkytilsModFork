@@ -20,7 +20,6 @@ package gg.skytils.skytilsmod.features.impl.dungeons
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.column
 import gg.essential.elementa.state.v2.clear
-import gg.essential.elementa.state.v2.listStateOf
 import gg.essential.elementa.state.v2.mutableListStateOf
 import gg.essential.elementa.state.v2.setAll
 import gg.essential.elementa.state.v2.stateOf
@@ -40,7 +39,6 @@ import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.text.Text
 import net.minecraft.util.math.Vec3d
@@ -50,7 +48,7 @@ import java.awt.Color
 import gg.skytils.skytilsmod.utils.formattedText
 import net.minecraft.entity.EntityType
 import com.mojang.blaze3d.opengl.GlStateManager
-
+import java.util.LinkedList
 //#endif
 
 object BossHPDisplays : EventSubscriber {
@@ -128,13 +126,22 @@ object BossHPDisplays : EventSubscriber {
                     //#endif
                         ?: continue
                     if (name.startsWith("§c ☠ §7 ") && name.endsWith(" §c ☠ §7")) {
-                        val nameTag = mc.world?.getEntitiesByType<ArmorStandEntity>(
-                            EntityType.ARMOR_STAND,
-                            entity.boundingBox.expand(2.0, 5.0, 2.0)
-                        ) {
-                            it.customName?.string?.endsWith(" Guardian §e0§c❤") == true
-                        }?.firstOrNull() ?: continue
-                        guardianNameRegex.find(nameTag.customName!!.string)?.let {
+                        val box = entity.boundingBox.expand(2.0, 5.0, 2.0)
+                        //#if MC==10809
+                        //$$ val nameTag = mc.world.method_0_319(
+                        //$$    ArmorStandEntity::class.java,
+                        //$$    box
+                        //$$ ).find {
+                        //$$    it.customName.endsWith(" Guardian §e0§c❤")
+                        //$$ } ?: continue
+                        //$$ guardianNameRegex.find(nameTag.customName)?.let {
+                        //#else
+                        val firstMatch = LinkedList<ArmorStandEntity>()
+                        mc.world!!.collectEntitiesByType(EntityType.ARMOR_STAND, box, {
+                            it.customName?.formattedText?.endsWith(" Guardian §e0§c❤") ?: false
+                        }, firstMatch, 1)
+                        guardianNameRegex.find(firstMatch.firstOrNull()?.customName?.formattedText ?: continue)?.let {
+                        //#endif
                             timerRegex.find(name)?.let {
                                 add("${it.groupValues[1]}: ${it.groupValues[1]}")
                             }

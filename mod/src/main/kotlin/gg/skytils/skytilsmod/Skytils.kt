@@ -90,7 +90,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.DeathScreen
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.client.option.KeyBinding
@@ -113,6 +112,11 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
+
+//#if MC==10809
+//$$ import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiStreamUnavailable
+//$$ import net.minecraft.client.gui.screen.DeathScreen
+//#endif
 
 //#if FORGE
 //$$ import net.minecraftforge.common.MinecraftForge
@@ -563,6 +567,13 @@ object Skytils : CoroutineScope, EventSubscriber {
                 }
             }
         }
+
+        //#if MC==10809
+        //$$ if (old is AccessorGuiStreamUnavailable) {
+        //$$    if (config.twitchFix && event.screen == null && !(Utils.inSkyblock && old.parentScreen is DeathScreen)) {
+        //$$        event.screen = old.parentScreen
+        //$$    }
+        //$$ }
     }
 
     private fun checkSystemTime() {
