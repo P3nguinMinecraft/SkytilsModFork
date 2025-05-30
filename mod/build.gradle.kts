@@ -125,7 +125,9 @@ dependencies {
         exclude(module = "gson")
         exclude(module = "vigilance")
         exclude(module = "kotlinx-coroutines-core-jvm")
+        exclude(module = "universalcraft-1.20.6-fabric")
     }
+    modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:396")
     shadowMe("gg.essential:elementa-unstable-layoutdsl:676")
     shadowMe("com.github.Skytils.Vigilance:vigilance-${if (!isLegacyFabric) if (platform.mcVersion >= 11801) "1.18.1-${platform.loaderStr}" else platform.toString() else "${platform.mcVersionStr}-forge"}:afb0909442") {
         isTransitive = false
