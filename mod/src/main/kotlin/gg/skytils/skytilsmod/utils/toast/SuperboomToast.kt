@@ -26,7 +26,7 @@ import net.minecraft.item.ItemStack
 //$$ import net.minecraft.enchantment.Enchantment
 //$$ import net.minecraft.item.Item
 //#else
-import net.minecraft.enchantment.Enchantments
+import net.minecraft.component.DataComponentTypes
 //#endif
 
 class SuperboomToast :
@@ -41,7 +41,7 @@ class SuperboomToast :
         //$$     .apply { addEnchantment(Enchantment.field_0_137, 1) }
         //#else
          private val superboom = ItemStack(Blocks.TNT.asItem())
-           .apply { addEnchantment(Enchantments.UNBREAKING, 1) }
+           .apply { set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true) }
         //#endif
     }
 }
