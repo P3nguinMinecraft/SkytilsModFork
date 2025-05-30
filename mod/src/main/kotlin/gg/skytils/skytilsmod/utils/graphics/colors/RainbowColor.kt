@@ -18,6 +18,7 @@
 package gg.skytils.skytilsmod.utils.graphics.colors
 
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UGraphics
 import java.awt.Color
 import kotlin.math.min
 
@@ -31,7 +32,7 @@ class RainbowColor(var speed: Int, var offset: Int, var saturation: Float, var b
 
     override fun applyColor() {
         val color = rainbowColor
-        RenderSystem.method_4426(color.red / 255f, color.blue / 255f, color.green / 255f)
+        UGraphics.directColor3f(color.red / 255f, color.blue / 255f, color.green / 255f)
     }
 
     override fun toHSV(): FloatArray {
