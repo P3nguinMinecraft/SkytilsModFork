@@ -18,6 +18,8 @@
 
 package gg.skytils.skytilsmod.features.impl.misc
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.column
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UResolution
@@ -29,8 +31,10 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.mixins.hooks.item.masterStarRegex
 import gg.skytils.skytilsmod.mixins.hooks.item.masterStars
 import gg.skytils.skytilsmod.utils.*
@@ -42,6 +46,8 @@ import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 import java.awt.Color
+import kotlin.jvm.optionals.getOrDefault
+import kotlin.jvm.optionals.getOrNull
 import kotlin.math.roundToLong
 
 /**
@@ -75,40 +81,23 @@ object ContainerSellValue : EventSubscriber {
      * of this class so that the user can move the element around normally.
      * @see renderGuiComponent
      */
-    class SellValueDisplay : GuiElement("Container Sell Value", x = 0.258f, y = 0.283f) {
-
-        internal val rightAlign: Boolean
-            get() = scaleX > (UResolution.scaledWidth * 0.75f) ||
-                    (scaleX < UResolution.scaledWidth / 2f && scaleX > UResolution.scaledWidth / 4f)
-        internal val textPosX: Float
-            get() = if (rightAlign) scaleWidth else 0f
-        internal val alignment: SmartFontRenderer.TextAlignment
-            get() = if (rightAlign) SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            else SmartFontRenderer.TextAlignment.LEFT_RIGHT
-
-        override fun render() {
+    class SellValueDisplay : HudElement("Container Sell Value", x = 0.258f, y = 0.283f) {
+        override fun LayoutScope.render() {
             // Rendering is handled in the BackgroundDrawnEvent to give the text proper lighting
+            // FIXME: still create component here, just call render later
         }
 
-        override fun demoRender() {
-            listOf(
-                "§cDctr's Space Helmet§8 - §a900M",
-                "§fDirt §7x64 §8 - §a1k",
-                "§eTotal Value: §a900M"
-            ).forEachIndexed { i, str ->
-                fr.drawString(
-                    str, textPosX, (i * fr.field_0_2811).toFloat(),
-                    CommonColors.WHITE, alignment, textShadow
-                )
+        override fun LayoutScope.demoRender() {
+            column {
+                listOf(
+                    "§cDctr's Space Helmet§8 - §a900M",
+                    "§fDirt §7x64 §8 - §a1k",
+                    "§eTotal Value: §a900M"
+                ).forEach { line ->
+                    text(line)
+                }
             }
         }
-
-        override val toggled: Boolean
-            get() = Skytils.config.containerSellValue
-        override val height: Int
-            get() = fr.field_0_2811 * 3
-        override val width: Int
-            get() = fr.getWidth("Dctr's Space Helmet - 900M")
 
         init {
             Skytils.guiManager.registerElement(this)
@@ -146,20 +135,20 @@ object ContainerSellValue : EventSubscriber {
         val recombValue =
             if (extraAttrs.contains("rarity_upgrades")) AuctionData.lowestBINs["RECOMBOBULATOR_3000"] ?: 0.0 else 0.0
 
-        val hpbCount = extraAttrs.getInt("hot_potato_count")
+        val hpbCount = extraAttrs.getInt("hot_potato_count").getOrDefault(0)
         val hpbValue = if (hpbCount > 0) (1..hpbCount).sumOf {
             AuctionData.lowestBINs[if (it >= 10) "FUMING_POTATO_BOOK" else "HOT_POTATO_BOOK"] ?: 0.0
         } else 0.0
 
         val enchantments = if (!identifier.startsWith("ENCHANTED_BOOK-"))
-            extraAttrs.getCompound("enchantments") else null
+            extraAttrs.getCompound("enchantments").getOrNull() else null
         val enchantValue = enchantments?.keys?.sumOf {
             val id = "ENCHANTED_BOOK-${it.uppercase()}-${enchantments.getInt(it)}"
             (AuctionData.lowestBINs[id] ?: 0.0).coerceAtMost(npcSellingBooks[id] ?: Double.MAX_VALUE)
         } ?: 0.0
 
         val masterStarCount =
-            if (itemStack.name?.contains("✪") == true) masterStarRegex.find(itemStack.name)?.destructured?.let { (tier) ->
+            if (itemStack.name?.string?.contains("✪") == true) masterStarRegex.find(itemStack.name.formattedText)?.destructured?.let { (tier) ->
                 masterStars.indexOf(tier) + 1
             } ?: 0 else 0
         val masterStarValue = if (masterStarCount > 0) (1..masterStarCount).sumOf { i ->
@@ -167,27 +156,27 @@ object ContainerSellValue : EventSubscriber {
         } else 0.0
 
         val artOfWarValue =
-            extraAttrs.getInt("art_of_war_count") * (AuctionData.lowestBINs["THE_ART_OF_WAR"] ?: 0.0)
+            extraAttrs.getInt("art_of_war_count").getOrDefault(0) * (AuctionData.lowestBINs["THE_ART_OF_WAR"] ?: 0.0)
 
         val farmingForDummiesValue =
-            extraAttrs.getInt("farming_for_dummies_count") * (AuctionData.lowestBINs["FARMING_FOR_DUMMIES"] ?: 0.0)
+            extraAttrs.getInt("farming_for_dummies_count").getOrDefault(0) * (AuctionData.lowestBINs["FARMING_FOR_DUMMIES"] ?: 0.0)
 
         val artOfPeaceValue =
-            AuctionData.lowestBINs["THE_ART_OF_PEACE"].takeIf { extraAttrs.getBoolean("artOfPeaceApplied") } ?: 0.0
+            AuctionData.lowestBINs["THE_ART_OF_PEACE"].takeIf { extraAttrs.getBoolean("artOfPeaceApplied").getOrDefault(false) } ?: 0.0
 
         return basePrice + enchantValue + recombValue + hpbValue + masterStarValue + artOfWarValue + farmingForDummiesValue + artOfPeaceValue
     }
 
     private val ItemStack.prettyDisplayName: String
         get() {
-            val extraAttr = ItemUtil.getExtraAttributes(this) ?: return this.name
+            val extraAttr = ItemUtil.getExtraAttributes(this) ?: return this.name.formattedText
             if (ItemUtil.getSkyBlockItemID(extraAttr) == "ENCHANTED_BOOK" && extraAttr.contains("enchantments")) {
-                val enchants = extraAttr.getCompound("enchantments")
+                val enchants = extraAttr.getCompound("enchantments").getOrNull() ?: return this.name.formattedText
                 if (enchants.keys.size == 1) {
                     return ItemUtil.getItemLore(this).first()
                 }
             }
-            return this.name
+            return this.name.formattedText
         }
 
     private val textLines = mutableListOf<String>()
@@ -195,8 +184,7 @@ object ContainerSellValue : EventSubscriber {
     private var lines: Int = 0
 
     private fun shouldRenderGuiComponent(): Boolean {
-        val container = (mc.currentScreen as? GenericContainerScreen)?.handler as? GenericContainerScreenHandler ?: return false
-        val chestName = container.inventory.name
+        val chestName = (mc.currentScreen as? GenericContainerScreen)?.title?.string ?: return false
 
         // Ensure that the gui element should be shown for the player's open container
         return Skytils.config.containerSellValue && textLines.isNotEmpty() && isChestNameValid(chestName) && totalContainerValue > 0.0
@@ -233,8 +221,9 @@ object ContainerSellValue : EventSubscriber {
         // Translate and scale manually because we're not rendering inside the GuiElement#render() method
         val stack = UMatrixStack()
         stack.push()
-        stack.translate(element.scaleX, element.scaleY, 0f)
-        stack.scale(element.scale, element.scale, 0f)
+        stack.translate(element.component.getLeft(), element.component.getTop(), 0f)
+        //FIXME: fix this when hud elements get scales
+//        stack.scale(element.scale, element.scale, 0f)
 
         textLines.forEachIndexed { i, str -> drawLine(stack, i, str) }
         if (lines > Skytils.config.containerSellValueMaxItems) {
@@ -263,8 +252,8 @@ object ContainerSellValue : EventSubscriber {
             if (!Skytils.config.containerSellValue) return@tickTimer
 
 
-            val container = (mc.currentScreen as? GenericContainerScreen)?.handler as? GenericContainerScreenHandler ?: return@tickTimer
-            val chestName = container.inventory.name
+            val container = (mc.currentScreen as? GenericContainerScreen)?.screenHandler ?: return@tickTimer
+            val chestName = mc.currentScreen?.title?.string ?: return@tickTimer
 
             if (!isChestNameValid(chestName)) return@tickTimer
 
@@ -272,7 +261,7 @@ object ContainerSellValue : EventSubscriber {
 
             // Map all of the items in the chest to their lowest BIN prices
             val slots = container.slots.filter {
-                it.hasStack() && it.inventory != mc.player.inventory
+                it.hasStack() && it.inventory != mc.player?.inventory
                         && (!isMinion || it.id % 9 != 1) // Ignore minion upgrades and fuels
             }
 
@@ -308,12 +297,13 @@ object ContainerSellValue : EventSubscriber {
     }
 
     private fun drawLine(matrixStack: UMatrixStack, index: Int, str: String) {
-        UGraphics.drawString(
-            matrixStack, str,
-            if (element.rightAlign) element.textPosX - UGraphics.getStringWidth(str) else element.textPosX,
-            (index * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-            Color.WHITE.rgb, true
-        )
+        // FIXME
+//        UGraphics.drawString(
+//            matrixStack, str,
+//            if (element.rightAlign) element.textPosX - UGraphics.getStringWidth(str) else element.textPosX,
+//            (index * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
+//            Color.WHITE.rgb, true
+//        )
     }
 
     override fun setup() {
