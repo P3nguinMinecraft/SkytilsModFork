@@ -43,6 +43,10 @@ import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMatrixStack
+import gg.essential.universal.UMinecraft
+import net.minecraft.client.font.TextRenderer
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
@@ -98,14 +102,17 @@ object DungeonChestProfit : EventSubscriber {
                     chestType.items.add(DungeonChestLootItem(lootSlot, value))
                 }
             }
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4412(
+            val matrixStack = UMatrixStack.Compat.get()
+            matrixStack.push()
+            matrixStack.translate(
                 (-(event.gui as AccessorGuiContainer).guiLeft).toDouble(),
                 -(event.gui as AccessorGuiContainer).guiTop.toDouble(),
                 299.0
             )
-            drawChestProfit(chestType)
-            RenderSystem.popMatrix()
+            matrixStack.runWithGlobalState {
+                drawChestProfit(chestType)
+            }
+            matrixStack.pop()
         } else if (croesusChestRegex.matches(event.chestName)) {
             for (i in 10..16) {
                 val openChest = inv.getStack(i) ?: continue
@@ -136,7 +143,7 @@ object DungeonChestProfit : EventSubscriber {
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
         if (!Skytils.config.croesusChestHighlight) return
         if (SBInfo.mode != SkyblockIsland.DungeonHub.mode) return
-        if (event.container !is GenericContainerScreenHandler || event.slot.inventory == mc.player.inventory) return
+        if (event.container !is GenericContainerScreenHandler || event.slot.inventory == mc.player?.inventory) return
         val stack = event.slot.stack ?: return
         if (stack.item == Items.PLAYER_HEAD) {
             val name = stack.displayNameStr
@@ -210,31 +217,39 @@ object DungeonChestProfit : EventSubscriber {
             val leftAlign = element.scaleX < UResolution.scaledWidth / 2f
             val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-            RenderSystem.method_4406()
+            // disable lighting
             var drawnLines = 1
             val profit = chest.profit
 
-            ScreenRenderer.fontRenderer.drawString(
+            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+            val matrixStack = UMatrixStack.Compat.get()
+            mc.textRenderer.draw(
                 chest.displayText + "§f: §" + (if (profit > 0) "a" else "c") + NumberUtil.nf.format(
                     profit
                 ),
                 if (leftAlign) element.scaleX else element.scaleX + element.width,
                 element.scaleY,
-                chest.displayColor,
-                alignment,
-                textShadow_
+                chest.displayColor.rgb,
+                false,
+                matrixStack.peek().model,
+                vertexConsumer,
+                TextRenderer.TextLayerType.NORMAL,
+                0, 15728880
             )
 
             for (item in chest.items) {
                 val itemName = item.item.displayNameStr
                 val line = itemName + "§f: §a" + NumberUtil.nf.format(item.value)
-                ScreenRenderer.fontRenderer.drawString(
+                mc.textRenderer.draw(
                     line,
                     if (leftAlign) element.scaleX else element.scaleX + element.width,
-                    element.scaleY + drawnLines * ScreenRenderer.fontRenderer.field_0_2811,
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow_
+                    element.scaleY + drawnLines * mc.textRenderer.fontHeight,
+                    0xFFFFFF,
+                    false,
+                    matrixStack.peek().model,
+                    vertexConsumer,
+                    TextRenderer.TextLayerType.NORMAL,
+                    0, 15728880
                 )
                 drawnLines++
             }
@@ -269,13 +284,13 @@ object DungeonChestProfit : EventSubscriber {
         }
     }
 
-    private enum class DungeonChest(var displayText: String, var displayColor: CustomColor) {
-        WOOD("Wood Chest", CommonColors.BROWN),
-        GOLD("Gold Chest", CommonColors.YELLOW),
-        DIAMOND("Diamond Chest", CommonColors.LIGHT_BLUE),
-        EMERALD("Emerald Chest", CommonColors.LIGHT_GREEN),
-        OBSIDIAN("Obsidian Chest", CommonColors.BLACK),
-        BEDROCK("Bedrock Chest", CommonColors.LIGHT_GRAY);
+    private enum class DungeonChest(var displayText: String, var displayColor: Color) {
+        WOOD("Wood Chest", Color(0x563100)),
+        GOLD("Gold Chest", Color.YELLOW),
+        DIAMOND("Diamond Chest", Color(0x00e9ff)),
+        EMERALD("Emerald Chest", Color(0x49ff59)),
+        OBSIDIAN("Obsidian Chest", Color.BLACK),
+        BEDROCK("Bedrock Chest", Color(0xadadad));
 
         var price = 0.0
         var value = 0.0
@@ -303,22 +318,30 @@ object DungeonChestProfit : EventSubscriber {
     private data class DungeonChestLootItem(var item: ItemStack, var value: Double) : Comparable<DungeonChestLootItem> {
         override fun compareTo(other: DungeonChestLootItem): Int = value.compareTo(other.value)
     }
+    // TODO: Migrate to new hud system
     class DungeonChestProfitElement : GuiElement("Dungeon Chest Profit", x = 200, y = 120) {
         override fun render() {
             if (toggled && (Utils.inDungeons || SBInfo.mode == SkyblockIsland.DungeonHub.mode)) {
                 val leftAlign = scaleX < sr.scaledWidth / 2f
                 textShadow_ = textShadow
                 RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-                RenderSystem.method_4406()
+                // disable lighting
+                val matrixStack = UMatrixStack.Compat.get()
+                val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
                 DungeonChest.entries.filter { it.items.isNotEmpty() }.forEachIndexed { i, chest ->
                     val profit = chest.value - chest.price
-                    ScreenRenderer.fontRenderer.drawString(
+                    // TODO: Fix text shadow
+                    mc.textRenderer.draw(
                         "${chest.displayText}§f: §${(if (profit > 0) "a" else "c")}${NumberUtil.format(profit.toLong())}",
                         if (leftAlign) 0f else width.toFloat(),
-                        (i * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                        chest.displayColor,
-                        if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT,
-                        textShadow
+                        (i * mc.textRenderer.fontHeight).toFloat(),
+                        chest.displayColor.rgb,
+                        false,
+                        matrixStack.peek().model,
+                        vertexConsumer,
+                        TextRenderer.TextLayerType.NORMAL,
+                        0,
+                        15728880
                     )
                 }
             }
@@ -329,9 +352,9 @@ object DungeonChestProfit : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * DungeonChest.entries.size
+            get() = mc.textRenderer.fontHeight * DungeonChest.entries.size
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Obsidian Chest: +300M")
+            get() = UGraphics.getStringWidth("Obsidian Chest: +300M")
 
         override val toggled: Boolean
             get() = Skytils.config.dungeonChestProfit
