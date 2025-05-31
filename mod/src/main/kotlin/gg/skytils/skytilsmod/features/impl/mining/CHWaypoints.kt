@@ -18,12 +18,10 @@
 
 package gg.skytils.skytilsmod.features.impl.mining
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UChat
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
@@ -49,12 +47,17 @@ import gg.skytils.skytilsws.shared.structs.CHWaypointType
 import kotlinx.coroutines.launch
 import net.minecraft.client.network.OtherClientPlayerEntity
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.render.VertexFormats
-import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.text.Style
+import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.Identifier
+import net.minecraft.util.math.Vec3d
 import kotlin.jvm.optionals.getOrNull
 
 object CHWaypoints : EventSubscriber {
@@ -70,7 +73,7 @@ object CHWaypoints : EventSubscriber {
     val chWaypointsList = hashMapOf<String, CHInstance>()
     class CHInstance {
         val createTime = System.currentTimeMillis()
-        val waypoints = hashMapOf<CHWaypointType, BlockPos>()
+        val waypoints = hashMapOf<CHWaypointType, Vec3d>()
     }
 
     init {
@@ -111,7 +114,7 @@ object CHWaypoints : EventSubscriber {
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
         if (Skytils.config.crystalHollowDeathWaypoint && event.packet is PlayerPositionLookS2CPacket && mc.player != null) {
-            lastTPLoc = mc.player.blockPos
+            lastTPLoc = mc.player!!.blockPos
         }
     }
 
@@ -147,23 +150,21 @@ object CHWaypoints : EventSubscriber {
                          * Sends the waypoints message except it suggests which one should be used based on
                          * the name contained in the message and converts it to the internally used names for the waypoints.
                          */
-                        UMessage("§3Skytils > §eFound coordinates in a chat message, click a button to set a waypoint.\n")
+                        val text = Text.literal("§3Skytils > §eFound coordinates in a chat message, click a button to set a waypoint.\n")
                             .append(
-                                UTextComponent("§f${loc.displayName} ")
-                                    .setClick(
-                                        MCClickEventAction.RUN_COMMAND,
-                                        "/skytilshollowwaypoint set $x $y $z ${loc.id}"
+                                Text.literal("§f${loc.displayName} ")
+                                    .setStyle(
+                                        Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/skytilshollowwaypoint set $x $y $z ${loc.id}"))
+                                            .withHoverEvent(HoverEvent.ShowText(Text.of("§eSet waypoint for ${loc.displayName}")))
                                     )
-                                    .setHoverText("§eSet waypoint for ${loc.displayName}")
+                            ).append(
+                                Text.literal("§e[Custom]")
+                                    .setStyle(
+                                        Style.EMPTY.withClickEvent(ClickEvent.SuggestCommand("/skytilshollowwaypoint set $x $y $z n"))
+                                            .withHoverEvent(HoverEvent.ShowText(Text.of("§eSet custom waypoint")))
+                                    )
                             )
-                            .append(
-                                UTextComponent("§e[Custom]")
-                                    .setClick(
-                                        MCClickEventAction.SUGGEST_COMMAND,
-                                        "/skytilshollowwaypoint set $x $y $z name_here"
-                                    )
-                                    .setHoverText("§eSet custom waypoint")
-                            ).chat()
+                        UMinecraft.getChatGUI()!!.addMessage(text)
                     }
             }
         }
@@ -172,7 +173,7 @@ object CHWaypoints : EventSubscriber {
         ) {
             val yolkar = CrystalHollowsMap.Locations.KingYolkar
 
-            val nametag = mc.world!!.entities.find { it is ArmorStandEntity && it.customName == "§6King Yolkar" }
+            val nametag = mc.world!!.entities.find { it is ArmorStandEntity && it.customName?.formattedText == "§6King Yolkar" }
 
             if (nametag != null) {
                 val shifted = nametag.pos.subtract(200.0, 0.0, 200.0)
@@ -194,10 +195,10 @@ object CHWaypoints : EventSubscriber {
                 50 //this is to make sure the scoreboard has time to update and nothing moves halfway across the map
             if (Skytils.config.crystalHollowDeathWaypoint && SBInfo.mode == SkyblockIsland.CrystalHollows.mode && lastTPLoc != null) {
                 UChat.chat(
-                    UTextComponent("$prefix §eClick to set a death waypoint at ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z}").setClick(
-                        MCClickEventAction.RUN_COMMAND,
-                        "/sthw set ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z} Last Death"
-                    )
+                    Text.literal("$prefix §eClick to set a death waypoint at ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z}")
+                        .setStyle(
+                            Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/sthw set ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z} Last Death"))
+                        )
                 )
             }
         } else if (unformatted.startsWith("Warp")) {
@@ -206,47 +207,50 @@ object CHWaypoints : EventSubscriber {
     }
 
     private fun waypointChatMessage(x: String, y: String, z: String) {
-        val message = UMessage(
+        val message = Text.literal(
             "$prefix §eFound coordinates in a chat message, click a button to set a waypoint.\n"
         )
         for (loc in CrystalHollowsMap.Locations.entries) {
             if (loc.loc.exists()) continue
             message.append(
-                UTextComponent("${loc.displayName.substring(0, 2)}[${loc.displayName}] ")
-                    .setClick(MCClickEventAction.SUGGEST_COMMAND, "/sthw set $x $y $z ${loc.id}")
-                    .setHoverText("§eSet waypoint for ${loc.cleanName}")
+                Text.literal("${loc.displayName.substring(0, 2)}[${loc.displayName}] ")
+                    .setStyle(
+                        Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/sthw set $x $y $z ${loc.id}"))
+                            .withHoverEvent(HoverEvent.ShowText(Text.literal("§eSet waypoint for ${loc.cleanName}")))
+                    )
             )
         }
         message.append(
-            UTextComponent("§e[Custom]").setClick(
-                MCClickEventAction.SUGGEST_COMMAND,
-                "/sthw set $x $y $z Name"
-            ).setHoverText("§eSet waypoint for custom location")
+            Text.literal("§e[Custom]")
+                .setStyle(
+                    Style.EMPTY.withClickEvent(ClickEvent.SuggestCommand("/sthw set $x $y $z Name"))
+                        .withHoverEvent(HoverEvent.ShowText(Text.literal("§eSet waypoint for custom location")))
+                )
         )
-        message.chat()
+        UMinecraft.getChatGUI()!!.addMessage(message)
     }
 
     fun onRenderWorld(event: WorldDrawEvent) {
         if (!Utils.inSkyblock) return
         val matrixStack = UMatrixStack()
         if (Skytils.config.crystalHollowWaypoints && SBInfo.mode == SkyblockIsland.CrystalHollows.mode) {
-            RenderSystem.disableDepthTest()
+            GlStateManager._disableDepthTest()
             for (loc in CrystalHollowsMap.Locations.entries) {
                 loc.loc.drawWaypoint(loc.cleanName, event.partialTicks, matrixStack)
             }
             RenderUtil.renderWaypointText("Crystal Nucleus", 513.5, 107.0, 513.5, event.partialTicks, matrixStack)
             for ((key, value) in waypoints)
                 RenderUtil.renderWaypointText(key, value, event.partialTicks, matrixStack)
-            RenderSystem.enableDepthTest()
+            GlStateManager._enableDepthTest()
         }
     }
 
-    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*>) {
+    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*, *, *>) {
         if (!Utils.inSkyblock) return
         if (Skytils.config.crystalHollowWaypoints &&
             event.entity is OtherClientPlayerEntity &&
-            event.entity.name == "Team Treasurite" &&
-            mc.player.canSee(event.entity) &&
+            event.entity.name.string == "Team Treasurite" &&
+            mc.player!!.canSee(event.entity) &&
             event.entity.baseMaxHealth == if (MayorInfo.allPerks.contains("DOUBLE MOBS HP!!!")) 2_000_000.0 else 1_000_000.0
         ) {
             val corleone = CrystalHollowsMap.Locations.Corleone
@@ -276,7 +280,7 @@ object CHWaypoints : EventSubscriber {
         val instance = chWaypointsList.getOrPut(SBInfo.server ?: "") { CHInstance() }
         CrystalHollowsMap.Locations.entries.forEach {
             if (it.loc.exists()) {
-                instance.waypoints[it.packetType] = BlockPos(it.loc.locX!!, it.loc.locY!!, it.loc.locZ!!)
+                instance.waypoints[it.packetType] = Vec3d(it.loc.locX!!, it.loc.locY!!, it.loc.locZ!!)
             }
             it.loc.reset()
         }
@@ -286,7 +290,7 @@ object CHWaypoints : EventSubscriber {
 
 
     class CrystalHollowsMap : GuiElement(name = "Crystal Hollows Map", x = 0, y = 0) {
-        val mapLocation = Identifier("skytils", "crystalhollowsmap.png")
+        val mapLocation = Identifier.of("skytils", "crystalhollowsmap.png")
 
         enum class Locations(val displayName: String, val id: String, val color: Int, val packetType: CHWaypointType, val size: Int = 50) {
             LostPrecursorCity("§fLost Precursor City", "internal_city", ColorFactory.WHITE.rgb, CHWaypointType.LostPrecursorCity),
@@ -318,6 +322,8 @@ object CHWaypoints : EventSubscriber {
         override fun render() {
             if (!toggled || SBInfo.mode != SkyblockIsland.CrystalHollows.mode || mc.player == null) return
             val stack = UMatrixStack()
+            val player = mc.player ?: return
+            // FIXME: use new rendering stuff
             UMatrixStack.Compat.runLegacyMethod(stack) {
                 stack.scale(0.1, 0.1, 1.0)
                 UGraphics.disableLighting()
@@ -329,19 +335,20 @@ object CHWaypoints : EventSubscriber {
                         }
                     }
                 }
-                val x = (mc.player.x - 202).coerceIn(0.0, 624.0)
-                val y = (mc.player.z - 202).coerceIn(0.0, 624.0)
+                val x = (player.x - 202).coerceIn(0.0, 624.0)
+                val y = (player.z - 202).coerceIn(0.0, 624.0)
                 val playerScale = Skytils.config.crystalHollowsMapPlayerScale
 
                 // player marker code
                 val wr = UGraphics.getFromTessellator()
-                mc.textureManager.bindTextureInner(Identifier("textures/map/map_icons.png"))
+                val texture = mc.textureManager.getTexture(Identifier.ofVanilla("textures/map/map_icons.png")).glTexture
+                RenderSystem.setShaderTexture(11, texture)
 
                 stack.push()
                 stack.translate(x, y, 0.0)
 
                 // Rotate about the center to match the player's yaw
-                stack.rotate((mc.player.headYaw + 180f) % 360f, 0f, 0f, 1f)
+                stack.rotate((player.headYaw + 180f) % 360f, 0f, 0f, 1f)
                 stack.scale(playerScale, playerScale, 1f)
                 stack.translate((-0.125f*playerScale).toDouble(), (0.125f*playerScale).toDouble(), 0.0)
                 UGraphics.color4f(1f, 1f, 1f, 1f)
@@ -403,12 +410,13 @@ object CHWaypoints : EventSubscriber {
         }
 
         fun set() {
-            locMinX = (mc.player.x - 200).coerceIn(0.0, 624.0).coerceAtMost(locMinX)
-            locMinY = mc.player.y.coerceIn(0.0, 256.0).coerceAtMost(locMinY)
-            locMinZ = (mc.player.z - 200).coerceIn(0.0, 624.0).coerceAtMost(locMinZ)
-            locMaxX = (mc.player.x - 200).coerceIn(0.0, 624.0).coerceAtLeast(locMaxX)
-            locMaxY = mc.player.y.coerceIn(0.0, 256.0).coerceAtLeast(locMaxY)
-            locMaxZ = (mc.player.z - 200).coerceIn(0.0, 624.0).coerceAtLeast(locMaxZ)
+            val player = mc.player ?: return
+            locMinX = (player.x - 200).coerceIn(0.0, 624.0).coerceAtMost(locMinX)
+            locMinY = player.y.coerceIn(0.0, 256.0).coerceAtMost(locMinY)
+            locMinZ = (player.z - 200).coerceIn(0.0, 624.0).coerceAtMost(locMinZ)
+            locMaxX = (player.x - 200).coerceIn(0.0, 624.0).coerceAtLeast(locMaxX)
+            locMaxY = player.y.coerceIn(0.0, 256.0).coerceAtLeast(locMaxY)
+            locMaxZ = (player.z - 200).coerceIn(0.0, 624.0).coerceAtLeast(locMaxZ)
             locX = (locMinX + locMaxX) / 2
             locY = (locMinY + locMaxY) / 2
             locZ = (locMinZ + locMaxZ) / 2
