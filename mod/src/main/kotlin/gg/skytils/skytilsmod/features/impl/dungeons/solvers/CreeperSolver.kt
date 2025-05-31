@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
@@ -59,7 +60,7 @@ object CreeperSolver : EventSubscriber {
                 it != null && !it.isInvisible && it.maxHealth == 20f && it.health == 20f && !it.hasCustomName()
             }?.firstOrNull()
         } else if (solutionPairs.isEmpty()) {
-            val baseBlock = BlockPos(this.creeper!!.x, 75.0, this.creeper!!.z).toBoundingBox()
+            val baseBlock = BlockPos.ofFloored(this.creeper!!.x, 75.0, this.creeper!!.z).toBoundingBox()
             val validBox = Box(baseBlock.minX, baseBlock.minY, baseBlock.minZ, baseBlock.maxX, baseBlock.maxY + 2, baseBlock.maxZ)
 
             val roomBB = this.creeper!!.boundingBox.expand(14.0, 10.0, 13.0)
@@ -98,7 +99,7 @@ object CreeperSolver : EventSubscriber {
         ) {
             val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
 
-            RenderSystem.disableCull()
+            GlStateManager._disableCull()
             val blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND)
             UGraphics.enableBlend()
             UGraphics.tryBlendFuncSeparate(770, 771, 1, 0)
@@ -135,7 +136,7 @@ object CreeperSolver : EventSubscriber {
                 )
             }
             if (!blendEnabled) UGraphics.disableBlend()
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
     }
 
