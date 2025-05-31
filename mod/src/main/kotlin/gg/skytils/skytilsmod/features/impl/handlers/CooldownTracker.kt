@@ -18,6 +18,9 @@
 
 package gg.skytils.skytilsmod.features.impl.handlers
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ActionBarReceivedEvent
@@ -26,6 +29,8 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.DungeonClass
 import gg.skytils.skytilsmod.utils.Utils
@@ -33,6 +38,7 @@ import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import kotlinx.serialization.encodeToString
+import java.awt.Color
 import java.io.File
 import java.io.Reader
 import java.io.Writer
@@ -73,53 +79,39 @@ object CooldownTracker : PersistentSave(File(Skytils.modDir, "cooldowntracker.js
     }
 
     init {
-        CooldownDisplayElement()
+        Skytils.guiManager.registerElement(CooldownDisplayHud())
     }
 
-    class CooldownDisplayElement : GuiElement("Item Cooldown Display", x = 10, y = 10) {
-
-        override fun render() {
-            if (Utils.inSkyblock && toggled) {
-                cooldowns.entries.removeAll {
-                    it.value <= System.currentTimeMillis()
-                }
-                for ((i, entry) in (cooldowns.entries).withIndex()) {
-                    val elapsed = (entry.value - System.currentTimeMillis()) / 1000.0
-                    ScreenRenderer.fontRenderer.drawString(
-                        "${entry.key.replace("_", " ")}: ${"%.1f".format(elapsed)}s",
-                        0f,
-                        (ScreenRenderer.fontRenderer.field_0_2811 * i).toFloat(),
-                        CommonColors.ORANGE,
-                        SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                        textShadow
-                    )
-                }
-            }
+    class CooldownDisplayHud : HudElement("Item Cooldown Display", x = 10f, y = 10f) {
+        override fun LayoutScope.render() {
+            // TODO: requires some kind of state that updates based on time
         }
 
-        override fun demoRender() {
-            ScreenRenderer.fontRenderer.drawString(
-                "Ice Spray: 5s",
-                0f,
-                0f,
-                CommonColors.ORANGE,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
+//        override fun render() {
+//            if (Utils.inSkyblock && toggled) {
+//                cooldowns.entries.removeAll {
+//                    it.value <= System.currentTimeMillis()
+//                }
+//                for ((i, entry) in (cooldowns.entries).withIndex()) {
+//                    val elapsed = (entry.value - System.currentTimeMillis()) / 1000.0
+//                    ScreenRenderer.fontRenderer.drawString(
+//                        "${entry.key.replace("_", " ")}: ${"%.1f".format(elapsed)}s",
+//                        0f,
+//                        (ScreenRenderer.fontRenderer.field_0_2811 * i).toFloat(),
+//                        CommonColors.ORANGE,
+//                        SmartFontRenderer.TextAlignment.LEFT_RIGHT,
+//                        textShadow
+//                    )
+//                }
+//            }
+//        }
+
+        override fun LayoutScope.demoRender() {
+            text("Ice Spray: 5s", Modifier.color(Color(0xff9000)))
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Ice Spray: 5s")
-
-        override val toggled: Boolean
-            get() = Skytils.config.itemCooldownDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
+
 
     override fun read(reader: Reader) {
         itemCooldowns.clear()
