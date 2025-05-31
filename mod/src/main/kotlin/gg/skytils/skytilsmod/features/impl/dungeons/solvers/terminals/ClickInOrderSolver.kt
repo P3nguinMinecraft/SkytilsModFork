@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.item.ItemTooltipEvent
@@ -31,7 +32,12 @@ import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multAlpha
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UMatrixStack
+import gg.essential.universal.UMinecraft
 import net.minecraft.block.Blocks
+import net.minecraft.block.StainedGlassPaneBlock
+import net.minecraft.client.font.TextRenderer
+import net.minecraft.item.BlockItem
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.Item
 import org.lwjgl.opengl.GL11
@@ -60,7 +66,7 @@ object ClickInOrderSolver : EventSubscriber {
         if (event.chestName == "Click in order!") {
             for (i in menuSlots) {
                 val itemStack = invSlots[i].stack ?: continue
-                if (itemStack.item != Item.fromBlock(Blocks.field_0_762) || (itemStack.damage != 14 && itemStack.damage != 5)) continue
+                if ((itemStack.item as? BlockItem)?.block is StainedGlassPaneBlock || (itemStack.damage != 14 && itemStack.damage != 5)) continue
                 if (itemStack.damage == 5 && itemStack.count > neededClick) {
                     neededClick = itemStack.count
                 }
@@ -72,7 +78,7 @@ object ClickInOrderSolver : EventSubscriber {
         val secondSlot = slotOrder[neededClick + 1]
         val thirdSlot = slotOrder[neededClick + 2]
         val lightingState = GL11.glIsEnabled(GL11.GL_LIGHTING)
-        RenderSystem.method_4406()
+        // disable lighting
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
         if (firstSlot != null) {
             val slot = invSlots[firstSlot]
@@ -86,7 +92,7 @@ object ClickInOrderSolver : EventSubscriber {
             val slot = invSlots[thirdSlot]
             if (slot != null) slot highlight Skytils.config.clickInOrderThird
         }
-        if (lightingState) RenderSystem.method_4394()
+        if (lightingState) {} // enable lighting
     }
 
     fun onDrawSlotLow(event: GuiContainerPreDrawSlotEvent) {
@@ -98,18 +104,26 @@ object ClickInOrderSolver : EventSubscriber {
             if (event.chestName == "Click in order!") {
                 if (slot.hasStack() && slot.inventory !== mc.player?.inventory) {
                     val item = slot.stack
-                    if (item.item === Item.fromBlock(Blocks.field_0_762) && item.damage == 14) {
-                        RenderSystem.method_4406()
-                        RenderSystem.disableDepthTest()
-                        RenderSystem.disableBlend()
-                        fr.method_0_2382(
+                    if ((item.item as? BlockItem)?.block is StainedGlassPaneBlock && item.damage == 14) {
+                        // disable lighting
+                        GlStateManager._disableDepthTest()
+                        GlStateManager._disableBlend()
+                        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+                        mc.textRenderer.draw(
                             item.count.toString(),
                             (slot.x + 9 - fr.getWidth(item.count.toString()) / 2).toFloat(),
                             (slot.y + 4).toFloat(),
-                            16777215
+                            16777215,
+                            false,
+                            UMatrixStack.Compat.get().peek().model,
+                            vertexConsumer,
+                            TextRenderer.TextLayerType.NORMAL,
+                            0,
+                            15728880
                         )
-                        RenderSystem.method_4394()
-                        RenderSystem.enableDepthTest()
+                        vertexConsumer.draw()
+                        // enable lighting
+                        GlStateManager._enableDepthTest()
                         event.cancelled = true
                     }
                 }
@@ -119,9 +133,8 @@ object ClickInOrderSolver : EventSubscriber {
 
     fun onTooltip(event: ItemTooltipEvent) {
         if (!TerminalFeatures.isInPhase3() || !Skytils.config.clickInOrderTerminalSolver) return
-        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
-        val chestName = chest.inventory.customName.string
-        if (chestName == "Click in order!") {
+        val chestName = mc.currentScreen?.title ?: return
+        if (chestName.string == "Click in order!") {
             event.tooltip.clear()
         }
     }
