@@ -26,12 +26,14 @@ import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.utils.RegexAsString
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import kotlinx.coroutines.launch
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import java.io.File
 import java.io.Reader
@@ -41,9 +43,9 @@ object CustomNotifications : PersistentSave(File(Skytils.modDir, "customnotifica
     val notifications = hashSetOf<Notification>()
 
     fun onMessage(event: PacketReceiveEvent<*>) {
-        if (!Utils.inSkyblock || event.packet !is GameMessageS2CPacket || event.packet.type != 0.toByte() || notifications.isEmpty()) return
+        if (!Utils.inSkyblock || event.packet !is ChatMessageS2CPacket || notifications.isEmpty()) return
         Skytils.launch {
-            val formatted = event.packet.message.method_10865()
+            val formatted = event.packet.unsignedContent?.formattedText ?: return@launch
             for ((regex, text, displayTicks, enabled) in notifications) {
                 if (!enabled) continue
                 val match = regex.find(formatted) ?: continue
