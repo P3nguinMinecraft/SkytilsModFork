@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
@@ -45,20 +46,24 @@ import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.structure.GuiElement
-import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorC0EPacketClickWindow
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.ItemUtil.setLore
 import gg.skytils.skytilsmod.utils.Utils.equalsOneOf
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.client.network.OtherClientPlayerEntity
-import net.minecraft.client.gui.screen.Screen
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.class_0_1003
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.universal.UDesktop
+import gg.essential.universal.UMinecraft
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.ItemEntity
 import net.minecraft.entity.mob.BlazeEntity
@@ -67,15 +72,23 @@ import net.minecraft.entity.passive.BatEntity
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
 import net.minecraft.block.Blocks
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityType
+import net.minecraft.item.DyeItem
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.PlayerHeadItem
 import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket
-import net.minecraft.network.play.server.*
+import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket
+import net.minecraft.sound.SoundEvents
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
-import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.Text
 import java.awt.Color
 
 object DungeonFeatures : EventSubscriber {
@@ -171,20 +184,20 @@ object DungeonFeatures : EventSubscriber {
                     is BlockUpdateS2CPacket -> {
                         if (packet.pos == lastBlockPos) {
                             lastLitUpTime =
-                                if (packet.field_12051.block === Blocks.SEA_LANTERN) System.currentTimeMillis() else -1L
+                                if (packet.state.block === Blocks.SEA_LANTERN) System.currentTimeMillis() else -1L
                             printDevMessage({ "light $lastLitUpTime" }, "spiritbear")
                         }
                     }
 
-                    is GameMessageS2CPacket -> {
-                        if (lastLitUpTime != -1L && packet.message.method_10865() == "§r§a§lA §r§5§lSpirit Bear §r§a§lhas appeared!§r") {
+                    is ChatMessageS2CPacket -> {
+                        if (lastLitUpTime != -1L && packet.unsignedContent?.formattedText == "§r§a§lA §r§5§lSpirit Bear §r§a§lhas appeared!§r") {
                             printDevMessage({ "chat ${System.currentTimeMillis() - lastLitUpTime}" }, "spiritbear")
                             lastLitUpTime = -1L
                         }
                     }
 
-                    is PlayerSpawnS2CPacket -> {
-                        if (lastLitUpTime != -1L && packet.playerUuid.version() == 2) {
+                    is EntitySpawnS2CPacket -> {
+                        if (lastLitUpTime != -1L && packet.entityType == EntityType.PLAYER && packet.uuid.version() == 2) {
                             printDevMessage({ "spawn ${System.currentTimeMillis() - lastLitUpTime}" }, "spiritbear")
                             //lastLitUpTime = -1L
                         }
@@ -211,25 +224,13 @@ object DungeonFeatures : EventSubscriber {
             if (!hasClearedText) {
                 hasClearedText = ScoreboardUtil.sidebarLines.any { it.startsWith("Cleared: ") }
             }
-            if (isInTerracottaPhase && terracottaEndTime > 0 && Skytils.config.showSadanInterest) {
-                val timeLeft = terracottaEndTime - System.currentTimeMillis()
-                    .toDouble() / 1000f
-                if (timeLeft >= 0) {
-                    class_0_1003.field_0_4178 = timeLeft.toFloat() / if (dungeonFloor == "F6") 105 else 115
-                    class_0_1003.field_0_4179 = 100
-                    class_0_1003.field_0_4180 = "§r§c§lSadan's Interest: §r§6" + timeLeft.toInt() + "s"
-                    class_0_1003.field_0_4181 = false
-                } else {
-                    terracottaEndTime = -2.0
-                }
-            }
 
-            if (Skytils.config.spiritPetWarning && !alertedSpiritPet && DungeonTimer.dungeonStartTime == -1L && mc.world.entities.any {
+            if (Skytils.config.spiritPetWarning && !alertedSpiritPet && DungeonTimer.dungeonStartTime == -1L && mc.world?.entities?.any {
                     if (it !is ArmorStandEntity || it.hasCustomName()) return@any false
-                    val item = it.method_0_7087() ?: return@any false
+                    val item = it.getEquippedStack(EquipmentSlot.HEAD) ?: return@any false
                     if (item.item !is PlayerHeadItem) return@any false
                     return@any (SPIRIT_PET_TEXTURES.contains(ItemUtil.getSkullTexture(item)))
-                }) {
+                } == true) {
                 UChat.chat(
                     "$prefix §cSomeone in your party has a Spirit Pet equipped!"
                 )
@@ -245,26 +246,27 @@ object DungeonFeatures : EventSubscriber {
     fun onTickLowest(event: TickEvent) {
         if (!Utils.inDungeons) return
         if (Skytils.config.injectFakeDungeonMap && DungeonTimer.bossEntryTime == -1L) {
-            (DungeonInfo.dungeonMap ?: DungeonInfo.guessMapData)?.let {
-                val slot = mc.player?.inventory?.getStack(8)
-                if (slot != null && slot.item != Items.FILLED_MAP) {
-                    if (fakeDungeonMap == null) {
-                        val guessMapId = it.key.substringAfter("map_").toIntOrNull()
-                        if (guessMapId == null) {
-                            mc.world.method_0_325("map_-1337", it)
-                        }
-                        fakeDungeonMap = ItemStack(Items.FILLED_MAP, 1337, guessMapId ?: -1337).also {
-                            it.setCustomName("§bMagical Map")
-                            it.setLore(listOf("§7Shows the layout of the Dungeon as", "§7it is explored and completed.", "", "§cThis isn't the real map!", "§eSkytils injected this data in for you."))
-                        }
-                    }
-                    intendedItemStack = slot
-                    mc.player.inventory.setStack(8, fakeDungeonMap)
-                }
-            }.ifNull {
-                fakeDungeonMap = null
-                intendedItemStack = null
-            }
+            //FIXME
+//            (DungeonInfo.dungeonMap ?: DungeonInfo.guessMapData)?.let {
+//                val slot = mc.player?.inventory?.getStack(8)
+//                if (slot != null && slot.item != Items.FILLED_MAP) {
+//                    if (fakeDungeonMap == null) {
+//                        val guessMapId = it.key.substringAfter("map_").toIntOrNull()
+//                        if (guessMapId == null) {
+//                            mc.world.method_0_325("map_-1337", it)
+//                        }
+//                        fakeDungeonMap = ItemStack(Items.FILLED_MAP, 1337, guessMapId ?: -1337).also {
+//                            it.setCustomName("§bMagical Map")
+//                            it.setLore(listOf("§7Shows the layout of the Dungeon as", "§7it is explored and completed.", "", "§cThis isn't the real map!", "§eSkytils injected this data in for you."))
+//                        }
+//                    }
+//                    intendedItemStack = slot
+//                    mc.player.inventory.setStack(8, fakeDungeonMap)
+//                }
+//            }.ifNull {
+//                fakeDungeonMap = null
+//                intendedItemStack = null
+//            }
         } else {
             fakeDungeonMap = null
             intendedItemStack = null
@@ -272,32 +274,28 @@ object DungeonFeatures : EventSubscriber {
     }
 
     fun onPacketSend(event: PacketSendEvent<*>) {
-        if (fakeDungeonMap != null && event.packet is ClickSlotC2SPacket && event.packet.stack == fakeDungeonMap) {
-            (event.packet as AccessorC0EPacketClickWindow).setClickedItem(intendedItemStack)
+        if (fakeDungeonMap != null && event.packet is ClickSlotC2SPacket && UMinecraft.getMinecraft().player?.inventory?.getStack(
+                event.packet.slot.toInt()
+            ) == fakeDungeonMap) {
+            (event.packet as AccessorC0EPacketClickWindow).setClickedItem(intendedItemStack) //FIXME
         }
     }
 
     fun onBossBarSet(event: BossBarSetEvent) {
         if (!Utils.inDungeons) return
         val displayData = event.data
-        val unformatted = displayData.displayName.string.stripControlCodes()
+        val unformatted = displayData.name.string.stripControlCodes()
         if (dungeonFloorNumber == 7) {
             if (equalsOneOf(unformatted, "Maxor", "Storm", "Goldor", "Necron")) {
                 when (Skytils.config.necronHealth) {
                     2 -> {
-                        class_0_1003.field_0_4178 = displayData.health / displayData.maxHealth
-                        class_0_1003.field_0_4179 = 100
-                        class_0_1003.field_0_4180 = displayData.displayName.method_10865() + "§r§8 - §r§d" + String.format(
+                        displayData.name = displayData.name + "§r§8 - §r§d" + String.format(
                             "%.1f",
-                            class_0_1003.field_0_4178 * 100
+                            displayData.percent * 100
                         ) + "%"
-                        class_0_1003.field_0_4181 = event.hasColorModifier
-                        event.cancelled = true
                     }
 
                     1 -> {
-                        class_0_1003.field_0_4178 = displayData.health / displayData.maxHealth
-                        class_0_1003.field_0_4179 = 100
                         val isMaster = dungeonFloor == "M7"
                         val health = when (unformatted) {
                             "Maxor" -> if (isMaster) 800_000_000 else 100_000_000
@@ -306,11 +304,9 @@ object DungeonFeatures : EventSubscriber {
                             "Necron" -> if (isMaster) 1_400_000_000 else 1_000_000_000
                             else -> 69
                         }
-                        class_0_1003.field_0_4180 = displayData.displayName.method_10865() + "§r§8 - §r§a" + NumberUtil.format(
-                            (class_0_1003.field_0_4178 * health).toLong()
+                        displayData.name = displayData.name + "§r§8 - §r§a" + NumberUtil.format(
+                            (displayData.percent * health).toLong()
                         ) + "§r§8/§r§a${NumberUtil.format(health)}§r§c❤"
-                        class_0_1003.field_0_4181 = event.hasColorModifier
-                        event.cancelled = true
                     }
 
                     0 -> {
@@ -325,8 +321,17 @@ object DungeonFeatures : EventSubscriber {
                     val length = if (dungeonFloor == "F6") 105 else 115
                     terracottaEndTime = System.currentTimeMillis().toDouble() / 1000f + length
                 }
-            } else if (terracottaEndTime > 0 && Skytils.config.showSadanInterest) {
-                event.cancelled = true
+            }
+            if (Skytils.config.showSadanInterest) {
+                val timeLeft = terracottaEndTime - System.currentTimeMillis()
+                    .toDouble() / 1000f
+                if (timeLeft >= 0) {
+                    event.data.percent = timeLeft.toFloat() / if (dungeonFloor == "F6") 105 else 115
+                    event.data.name = Text.literal("§r§c§lSadan's Interest: §r§6" + timeLeft.toInt() + "s")
+                } else {
+                    terracottaEndTime = -2.0
+                }
+
             }
             return
         }
@@ -334,7 +339,7 @@ object DungeonFeatures : EventSubscriber {
 
     fun onDeath(event: LivingEntityDeathEvent) {
         if (!Utils.inDungeons) return
-        if (event.entity is OtherClientPlayerEntity && terracottaEndTime > 0 && event.entity.name == "Terracotta ") {
+        if (event.entity is OtherClientPlayerEntity && terracottaEndTime > 0 && event.entity.name.string == "Terracotta ") {
             //for some reason this event fires twice for players
             printDevMessage("terracotta died", "terracotta")
             terracottaEndTime -= 1
@@ -363,17 +368,15 @@ object DungeonFeatures : EventSubscriber {
                         )
                     } && DungeonListener.team.keys.any { unformatted.contains(it) })) {
                     if (!unformatted.contains("disconnect")) {
-                        Screen.method_0_2797(unformatted)
+                        UDesktop.setClipboardString(unformatted)
                         UChat.chat("$prefix §aCopied fail to clipboard.")
                     }
                     event.message.style
                         .withHoverEvent(
-                            HoverEvent(
-                                HoverEvent.Action.SHOW_TEXT,
-                                LiteralTextContent("§aClick to copy to clipboard.")
+                            HoverEvent.ShowText(
+                                Text.literal("§aClick to copy to clipboard.")
                             )
-                        ).withClickEvent(
-                        ClickEvent(ClickEvent.Action.RUN_COMMAND, "/skytilscopy $unformatted"))
+                        ).withClickEvent(ClickEvent.RunCommand("/skytilscopy $unformatted"))
                 }
             }
             if (Skytils.config.hideF4Spam && unformatted.startsWith("[CROWD]") && thornMissMessages.none {
@@ -409,7 +412,7 @@ object DungeonFeatures : EventSubscriber {
     fun onSendChatMessage(event: ChatMessageSentEvent) {
         if (event.message.startsWith("/skytilscopy") && !event.addToHistory) {
             UChat.chat("$prefix §aCopied to clipboard.")
-            Screen.method_0_2797(event.message.substring("/skytilscopy ".length))
+            UDesktop.setClipboardString(event.message.substring("/skytilscopy ".length))
             event.cancelled = true
         }
     }
@@ -417,21 +420,21 @@ object DungeonFeatures : EventSubscriber {
     fun onCheckRender(event: CheckRenderEntityEvent<*>) {
         if (!Utils.inDungeons) return
         val entity = event.entity
-        if (Skytils.config.hideArcherBonePassive && (entity as? ItemEntity)?.stack?.damage == 15 && entity.stack.item === Items.DYE)
+        if (Skytils.config.hideArcherBonePassive && (entity as? ItemEntity)?.stack?.damage == 15 && entity.stack.item is DyeItem)
             event.cancelled = true
     }
 
-    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*>) {
+    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*, *, *>) {
         if (Utils.inDungeons) {
             val matrixStack = UMatrixStack()
             if (Skytils.config.boxSpiritBow && hasBossSpawned && event.entity.isInvisible && equalsOneOf(
                     dungeonFloor,
                     "F4",
                     "M4"
-                ) && event.entity is ArmorStandEntity && event.entity.method_0_7087()?.item == Items.field_8102
+                ) && event.entity is ArmorStandEntity && event.entity.getEquippedStack(EquipmentSlot.MAINHAND)?.item == Items.BOW
             ) {
-                RenderSystem.disableCull()
-                RenderSystem.disableDepthTest()
+                GlStateManager._disableCull()
+                GlStateManager._disableDepthTest()
                 val (vx, vy, vz) = RenderUtil.getViewerPos(RenderUtil.getPartialTicks())
                 val (x, y, z) = RenderUtil.fixRenderPos(event.x - vx, event.y - vy, event.z - vz)
                 RenderUtil.drawFilledBoundingBox(
@@ -440,33 +443,32 @@ object DungeonFeatures : EventSubscriber {
                     Color(255, 0, 255, 200),
                     1f
                 )
-                RenderSystem.enableDepthTest()
-                RenderSystem.enableCull()
+                GlStateManager._enableDepthTest()
+                GlStateManager._enableCull()
             }
-            if (event.entity is ArmorStandEntity && event.entity.isInvisible && Skytils.config.hideFairies && event.entity.method_0_7087() != null && ItemUtil.getSkullTexture(event.entity.method_0_7087()) == "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9") {
+            if (event.entity is ArmorStandEntity && event.entity.isInvisible && Skytils.config.hideFairies &&
+                event.entity.getEquippedStack(EquipmentSlot.MAINHAND) != null &&
+                ItemUtil.getSkullTexture(event.entity.getEquippedStack(EquipmentSlot.MAINHAND)) == "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9") {
                 event.cancelled = true
             }
             if (event.entity is ArmorStandEntity && event.entity.hasCustomName()) {
+                val name = event.entity.customName?.string?.stripControlCodes() ?: return
                 if (Skytils.config.hideWitherMinerNametags) {
-                    val name = event.entity.customName.stripControlCodes()
                     if (name.contains("Wither Miner") || name.contains("Wither Guard") || name.contains("Apostle")) {
-                        mc.world.method_8463(event.entity)
+                        mc.world?.removeEntity(event.entity.id, Entity.RemovalReason.DISCARDED)
                     }
                 }
                 if (Skytils.config.hideF4Nametags) {
-                    val name = event.entity.customName.stripControlCodes()
                     if (name.contains("Spirit") && !name.contains("Spirit Bear")) {
-                        mc.world.method_8463(event.entity)
+                        mc.world?.removeEntity(event.entity.id, Entity.RemovalReason.DISCARDED)
                     }
                 }
                 if (Skytils.config.hideTerracotaNametags) {
-                    val name = event.entity.customName.stripControlCodes()
-                    if (name.contains("Terracotta ")) mc.world.method_8463(event.entity)
+                    if (name.contains("Terracotta ")) mc.world?.removeEntity(event.entity.id, Entity.RemovalReason.DISCARDED)
                 }
                 if (Skytils.config.hideNonStarredNametags) {
-                    val name = event.entity.customName.stripControlCodes()
                     if (!name.startsWith("✯ ") && name.contains("❤") && dungeonMobSpawns.any { it in name }) {
-                        mc.world.method_8463(event.entity)
+                        mc.world?.removeEntity(event.entity.id, Entity.RemovalReason.DISCARDED)
                     }
                 }
             }
@@ -490,7 +492,7 @@ object DungeonFeatures : EventSubscriber {
                             RenderUtil.getPartialTicks()
                         )
                     } else if (event.entity is AbstractSkeletonEntity && Skytils.config.boxSkeletonMasters && ItemUtil.getSkyBlockItemID(
-                            event.entity.method_0_7157(0)
+                            event.entity.getEquippedStack(EquipmentSlot.FEET)
                         ) == "SKELETON_MASTER_BOOTS"
                     ) {
                         RenderUtil.drawOutlinedBoundingBox(
@@ -499,7 +501,7 @@ object DungeonFeatures : EventSubscriber {
                             3f,
                             RenderUtil.getPartialTicks()
                         )
-                    } else if (hasBossSpawned && Skytils.config.boxSpiritBears && event.entity.name == "Spirit Bear" && event.entity is OtherClientPlayerEntity) {
+                    } else if (hasBossSpawned && Skytils.config.boxSpiritBears && event.entity.name.string == "Spirit Bear" && event.entity is OtherClientPlayerEntity) {
                         val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
                         val aabb = Box(
                             x - 0.5,
@@ -518,7 +520,7 @@ object DungeonFeatures : EventSubscriber {
                     }
                 } else {
                     if (!hasBossSpawned && Skytils.config.boxStarredMobs && event.entity is ArmorStandEntity && event.entity.hasCustomName() && event.entity.isCustomNameVisible) {
-                        val name = event.entity.name
+                        val name = event.entity.name.formattedText
                         if (name.startsWith("§6✯ ") && name.endsWith("§c❤")) {
                             val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
                             val color = Skytils.config.boxStarredMobsColor
@@ -560,8 +562,8 @@ object DungeonFeatures : EventSubscriber {
 
     fun onRenderWorld(event: WorldDrawEvent) {
         val stack = UMatrixStack()
-        RenderSystem.disableCull()
-        RenderSystem.disableDepthTest()
+        GlStateManager._disableCull()
+        GlStateManager._disableDepthTest()
         terracottaSpawns.entries.removeAll {
             val diff = it.value - System.currentTimeMillis()
             RenderUtil.drawLabel(
@@ -573,8 +575,8 @@ object DungeonFeatures : EventSubscriber {
             )
             return@removeAll diff < 0
         }
-        RenderSystem.enableCull()
-        RenderSystem.enableDepthTest()
+        GlStateManager._enableCull()
+        GlStateManager._enableDepthTest()
     }
 
     fun onReceivePacket(event: MainThreadPacketReceiveEvent<*>) {
@@ -582,8 +584,8 @@ object DungeonFeatures : EventSubscriber {
         if (event.packet is TitleS2CPacket) {
             val packet = event.packet
             if (packet.text != null && mc.player != null) {
-                val unformatted = packet.text.method_0_5147().stripControlCodes()
-                if (Skytils.config.hideTerminalCompletionTitles && Utils.inDungeons && !unformatted.contains(mc.player.name) && (unformatted.contains(
+                val unformatted = packet.text.string.stripControlCodes()
+                if (Skytils.config.hideTerminalCompletionTitles && Utils.inDungeons && !unformatted.contains(mc.player!!.name!!.string) && (unformatted.contains(
                         "activated a terminal!"
                     ) || unformatted.contains("completed a device!") || unformatted.contains("activated a lever!"))
                 ) {
@@ -599,14 +601,14 @@ object DungeonFeatures : EventSubscriber {
                 }
             }
         }
-        if (event.packet is PlaySoundIdS2CPacket) {
+        if (event.packet is PlaySoundS2CPacket) {
             val packet = event.packet
             if (Skytils.config.disableTerracottaSounds && isInTerracottaPhase) {
-                val sound = packet.method_11460()
+                val sound = packet.sound
                 val pitch = packet.pitch
                 val volume = packet.volume
-                if (sound == "game.player.hurt" && pitch == 0f && volume == 0f) event.cancelled = true
-                if (sound == "random.eat" && pitch == 0.6984127f && volume == 1f) event.cancelled = true
+                if (sound == SoundEvents.ENTITY_GENERIC_HURT && pitch == 0f && volume == 0f) event.cancelled = true
+                if (sound == SoundEvents.ENTITY_GENERIC_EAT && pitch == 0.6984127f && volume == 1f) event.cancelled = true
             }
         }
     }
@@ -683,6 +685,7 @@ object DungeonFeatures : EventSubscriber {
         intendedItemStack = null
     }
 
+    // TODO: Port when there's a way to have state based on time
     class SpiritBearSpawnTimer : GuiElement("Spirit Bear Spawn Timer", x = 0.05f, y = 0.4f) {
         override fun render() {
             if (toggled && lastLitUpTime != -1L) {
@@ -720,9 +723,9 @@ object DungeonFeatures : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
+            get() = 0
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Spirit Bear: 3.4s")
+            get() = 0
 
         override val toggled: Boolean
             get() = Skytils.config.spiritBearTimer
@@ -732,54 +735,23 @@ object DungeonFeatures : EventSubscriber {
         }
     }
 
-    object DungeonSecretDisplay : GuiElement("Dungeon Secret Display", x = 0.05f, y = 0.4f) {
-        var secrets = -1
-        var maxSecrets = -1
+    object DungeonSecretDisplay : HudElement("Dungeon Secret Display", x = 10f, y = 100f) {
+        val secretsState = mutableStateOf(-1)
+        val maxSecretsState = mutableStateOf(-1)
 
-        override fun render() {
-            if (toggled && Utils.inDungeons && maxSecrets > 0) {
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-                val color = when (secrets / maxSecrets.toDouble()) {
-                    in 0.0..0.5 -> CommonColors.RED
-                    in 0.5..0.75 -> CommonColors.YELLOW
-                    else -> CommonColors.GREEN
+        override fun LayoutScope.render() {
+            text({ "Secrets${secretsState()}/${maxSecretsState()}"}, Modifier.color {
+                val percentage = secretsState()/maxSecretsState()
+                when {
+                    percentage < 0.5 -> Color.RED
+                    percentage < 0.75 -> Color.YELLOW
+                    else -> Color.GREEN
                 }
-
-                ScreenRenderer.fontRenderer.drawString(
-                    "Secrets: ${secrets}/${maxSecrets}",
-                    if (leftAlign) 0f else 0f + width,
-                    0f,
-                    color,
-                    alignment,
-                    textShadow
-                )
-            }
+            })
         }
 
-        override fun demoRender() {
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "Secrets: 0/0",
-                if (leftAlign) 0f else 0f + width,
-                0f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
-        }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Secrets: 0/0")
-
-        override val toggled: Boolean
-            get() = Skytils.config.dungeonSecretDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
+        override fun LayoutScope.demoRender() {
+            text("Secrets: 0/0")
         }
     }
 }
