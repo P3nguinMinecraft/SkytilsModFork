@@ -36,6 +36,7 @@ import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlin.math.floor
@@ -70,7 +71,7 @@ object DungeonTimer : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inDungeons) return
-        val message = event.message.method_10865()
+        val message = event.message.formattedText
         val unformatted = event.message.string.stripControlCodes()
         when {
             scoreShownAt == -1L && message.contains("§r§fTeam Score: §r") -> {
@@ -241,6 +242,7 @@ object DungeonTimer : EventSubscriber {
         scoreShownAt = -1
     }
 
+    // TODO: migrate with time state
     class DungeonTimerElement : GuiElement("Dungeon Timer", x = 200, y = 80) {
         override fun render() {
             if (toggled && Utils.inDungeons && dungeonStartTime != -1L) {
@@ -290,9 +292,9 @@ object DungeonTimer : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * 7
+            get() = 0
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§cWatcher Clear: 0s")
+            get() = 0
 
         override val toggled: Boolean
             get() = Skytils.config.dungeonTimer
@@ -302,6 +304,7 @@ object DungeonTimer : EventSubscriber {
         }
     }
 
+    // TODO: migrate with time state
     class NecronPhaseTimerElement : GuiElement("Necron Phase Timer", x = 200, y = 120) {
         override fun render() {
             if (toggled && Utils.inDungeons && bossEntryTime != -1L && dungeonFloorNumber == 7) {
@@ -337,9 +340,9 @@ object DungeonTimer : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * 6
+            get() = 0
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§7Wither King: 0s")
+            get() = 0
 
         override val toggled: Boolean
             get() = Skytils.config.necronPhaseTimer
@@ -375,10 +378,10 @@ object DungeonTimer : EventSubscriber {
         }
 
         override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * 3
+            get() = 0
 
         override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§dTerracotta: 0s")
+            get() = 0
 
         override val toggled: Boolean
             get() = Skytils.config.sadanPhaseTimer
