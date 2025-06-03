@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -31,7 +32,7 @@ import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.launch
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
 import net.minecraft.entity.mob.SilverfishEntity
 import net.minecraft.block.Blocks
 import net.minecraft.block.entity.ChestBlockEntity
@@ -72,26 +73,28 @@ object IcePathSolver : EventSubscriber {
                     }
                 }
             } else {
-                mc.world.entities.find {
-                    it is SilverfishEntity && !it.isInvisible && mc.player.squaredDistanceTo(it) < 20 * 20
+                val player = mc.player ?: return@tickTimer
+                val world = mc.world ?: return@tickTimer
+                world.entities?.find {
+                    it is SilverfishEntity && !it.isInvisible && player.squaredDistanceTo(it) < 20 * 20
                 }?.let {
                     silverfish = it as SilverfishEntity
                     if (silverfishChestPos == null || roomFacing == null) {
                         Skytils.launch {
-                            val playerX = mc.player.x.toInt()
-                            val playerZ = mc.player.z.toInt()
+                            val playerX = player.x.toInt()
+                            val playerZ = player.z.toInt()
                             val xRange = playerX - 25..playerX + 25
                             val zRange = playerZ - 25..playerZ + 25
-                            findChest@ for (te in mc.world.field_0_262) {
-                                if (te.pos.y == 67 && te is ChestBlockEntity && te.viewerCount == 0 && te.pos.x in xRange && te.pos.z in zRange
+                            findChest@ for (te in (world as AccessorWorld).blockEntityTickers) {
+                                if (te.pos.y == 67 && te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(mc.world, te.pos) == 0 && te.pos.x in xRange && te.pos.z in zRange
                                 ) {
                                     val pos = te.pos
-                                    if (mc.world.getBlockState(pos.method_10074()).block == Blocks.PACKED_ICE && mc.world.getBlockState(
+                                    if (world.getBlockState(pos.down()).block == Blocks.PACKED_ICE && world.getBlockState(
                                             pos.up(2)
-                                        ).block == Blocks.field_0_787
+                                        ).block == Blocks.HOPPER
                                     ) {
                                         for (direction in UDirection.HORIZONTALS) {
-                                            if (mc.world.getBlockState(pos.method_10093(direction)).block == Blocks.STONEBRICK) {
+                                            if (world.getBlockState(pos.offset(direction)).block == Blocks.STONE_BRICKS) {
                                                 silverfishChestPos = pos
                                                 roomFacing = direction
                                                 println(
@@ -127,12 +130,12 @@ object IcePathSolver : EventSubscriber {
     fun onWorldRender(event: WorldDrawEvent) {
         if (!Skytils.config.icePathSolver) return
         if (silverfishChestPos != null && roomFacing != null && grid != null && silverfish?.isAlive == true) {
-            RenderSystem.disableCull()
+            GlStateManager._disableCull()
 
             val points = steps.map { getVec3RelativeToGrid(it.x, it.y)!!.add(0.5, 0.5, 0.5) }
             RenderUtil.draw3DLineStrip(points, 5, Color.RED, event.partialTicks, UMatrixStack.Compat.get())
 
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
     }
 
@@ -159,7 +162,7 @@ object IcePathSolver : EventSubscriber {
     private fun getGridPointFromPos(pos: BlockPos): Point? {
         if (silverfishChestPos == null || roomFacing == null) return null
         val topLeft = silverfishChestPos!!.offset(roomFacing!!.opposite, 4).offset(roomFacing!!.rotateYCounterclockwise(), 8)
-        val diff = pos.method_10059(topLeft)
+        val diff = pos.subtract(topLeft)
 
         return Point(abs(diff.getValueOnAxis(roomFacing!!.rotateYClockwise().axis)), abs(diff.getValueOnAxis(roomFacing!!.opposite.axis)))
     }
@@ -177,14 +180,14 @@ object IcePathSolver : EventSubscriber {
         val grid = Array(17) { IntArray(17) }
         for (row in 0..16) {
             for (column in 0..16) {
-                grid[row][column] = if (mc.world.getBlockState(
-                        BlockPos(
+                grid[row][column] = if (mc.world?.getBlockState(
+                        BlockPos.ofFloored(
                             getVec3RelativeToGrid(
                                 column,
                                 row
                             )
                         )
-                    ).block !== Blocks.AIR
+                    )?.block !== Blocks.AIR
                 ) 1 else 0
             }
             if (row == 16) return grid
