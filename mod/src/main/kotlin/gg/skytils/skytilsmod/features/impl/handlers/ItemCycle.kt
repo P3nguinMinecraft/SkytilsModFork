@@ -39,6 +39,7 @@ import java.io.File
 import java.io.Reader
 import java.io.Writer
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), EventSubscriber {
 
@@ -67,7 +68,8 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
         if (cycles.isEmpty() || !Utils.inSkyblock || mc.player == null) return
 
         itemLocations.clear()
-        for (slot in mc.player.playerScreenHandler.slots) {
+        val player = mc.player ?: return
+        for (slot in player.playerScreenHandler.slots) {
             val item = slot.stack?.getIdentifier() ?: continue
 
             itemLocations[item] = slot.id
@@ -75,7 +77,7 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
     }
 
     fun onSlotClick(event: GuiContainerSlotClickEvent) {
-        if (!Utils.inSkyblock || cycles.isEmpty() || event.clickType == 2 || event.container != mc.player.playerScreenHandler) return
+        if (!Utils.inSkyblock || cycles.isEmpty() || event.clickType == 2 || event.container != mc.player?.playerScreenHandler) return
 
         if (event.slotId !in 36..44) return
 
@@ -87,23 +89,23 @@ object ItemCycle : PersistentSave(File(Skytils.modDir, "itemcycle.json")), Event
 
         val swapTo = itemLocations[cycle.swapTo] ?: return
 
-        mc.interactionManager.clickSlot(event.container.syncId, swapTo, event.slotId - 36, SlotActionType.SWAP, mc.player)
+        mc.interactionManager?.clickSlot(event.container.syncId, swapTo, event.slotId - 36, SlotActionType.SWAP, mc.player)
 
         event.cancelled = true
     }
 
-    fun ItemStack?.getIdentifier() = ItemUtil.getExtraAttributes(this).let {
-        if (it?.contains("uuid") == true) {
-            Cycle.ItemIdentifier(it.getString("uuid"), Cycle.ItemIdentifier.Type.SKYBLOCK_UUID)
+    fun ItemStack?.getIdentifier() = ItemUtil.getExtraAttributes(this)?.let { extraAttributes ->
+        if (extraAttributes.contains("uuid")) {
+            extraAttributes.getString("uuid").getOrNull()?.let { uuid -> Cycle.ItemIdentifier(uuid, Cycle.ItemIdentifier.Type.SKYBLOCK_UUID) }
         } else {
-            val sbId = ItemUtil.getSkyBlockItemID(it)
+            val sbId = ItemUtil.getSkyBlockItemID(extraAttributes)
             when {
                 sbId != null -> {
                     Cycle.ItemIdentifier(sbId, Cycle.ItemIdentifier.Type.SKYBLOCK_ID)
                 }
 
                 this != null -> {
-                    Cycle.ItemIdentifier(this.translationKey, Cycle.ItemIdentifier.Type.VANILLA_ID)
+                    Cycle.ItemIdentifier(this.item.translationKey, Cycle.ItemIdentifier.Type.VANILLA_ID)
                 }
 
                 else -> null
