@@ -29,6 +29,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import net.minecraft.block.Blocks
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.hit.HitResult
@@ -38,12 +39,16 @@ object GardenFeatures : EventSubscriber {
     var isCleaningPlot = false
         private set
     val trashBlocks = setOf(
-        Blocks.field_0_630,
-        Blocks.field_0_637,
-        Blocks.field_0_636,
-        Blocks.field_0_760,
-        Blocks.field_0_814,
-        Blocks.field_0_815
+        Blocks.SHORT_GRASS,
+        Blocks.POPPY,
+        Blocks.DANDELION,
+        Blocks.TALL_GRASS,
+        Blocks.OAK_LEAVES,
+        Blocks.BIRCH_LEAVES,
+        Blocks.ACACIA_LEAVES,
+        Blocks.DARK_OAK_LEAVES,
+        Blocks.JUNGLE_LEAVES,
+        Blocks.SPRUCE_LEAVES
     )
     private val scythes = hashMapOf("SAM_SCYTHE" to 1, "GARDEN_SCYTHE" to 2)
 
@@ -100,9 +105,9 @@ object GardenFeatures : EventSubscriber {
 
         if (target.type != HitResult.Type.BLOCK) return
 
-        val size = scythes[ItemUtil.getSkyBlockItemID(mc.player.method_0_7087())] ?: return
-        val base = target.blockPos
-        val baseState = mc.world.getBlockState(base)
+        val size = scythes[ItemUtil.getSkyBlockItemID(mc.player?.getEquippedStack(EquipmentSlot.MAINHAND))] ?: return
+        val base = BlockPos.ofFloored(target.pos)
+        val baseState = mc.world?.getBlockState(base) ?: return
 
         if (baseState.block !in trashBlocks) return
         RenderUtil.drawSelectionBox(
@@ -112,9 +117,9 @@ object GardenFeatures : EventSubscriber {
             event.partialTicks,
         )
         for (pos in BlockPos.iterate(
-            base.method_10069(-size, -size, -size), base.method_10069(size, size, size)
+            base.add(-size, -size, -size), base.add(size, size, size)
         )) {
-            val state = mc.world.getBlockState(pos)
+            val state = mc.world?.getBlockState(pos) ?: return
             if (state.block in trashBlocks) {
                 RenderUtil.drawSelectionBox(
                     pos,
