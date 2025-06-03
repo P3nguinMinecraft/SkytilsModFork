@@ -16,23 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.mixins.transformers.neu;
+package gg.skytils.skytilsmod.mixins.transformers.sk1eroam;
 
-import gg.skytils.skytilsmod.utils.NEUCompatibility;
-import net.minecraft.client.gui.DrawContext;
-import org.spongepowered.asm.mixin.Dynamic;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
+import gg.skytils.skytilsmod.mixins.hooks.renderer.ItemRendererHookKt;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.EnumAction;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Pseudo
-@Mixin(targets = "io.github.moulberry.notenoughupdates.auction.CustomAH")
-public class MixinCustomAH extends DrawContext {
+@Mixin(targets = "club.sk1er.oldanimations.AnimationHandler", remap = false)
+public abstract class MixinAnimationHandler {
+
+    @Shadow
+    @Final
+    private Minecraft mc;
+
     @Dynamic
-    @Inject(method = "isRenderOverAuctionView", at = @At("RETURN"), remap = false)
-    private void updateCustomAHState(CallbackInfoReturnable<Boolean> cir) {
-        NEUCompatibility.INSTANCE.setCustomAHActive(cir.getReturnValue());
+    @ModifyVariable(method = "renderItemInFirstPerson", at = @At("STORE"))
+    private EnumAction changeEnumAction(EnumAction action) {
+        return mc.thePlayer.getItemInUse() != null ? ItemRendererHookKt.getItemInUseCountForFirstPerson(mc.thePlayer, mc.thePlayer.getItemInUse(), null) == 0 ? EnumAction.NONE : action : action;
     }
 }

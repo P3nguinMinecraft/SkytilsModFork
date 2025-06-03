@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,27 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.mixins.transformers.command;
+package gg.skytils.skytilsmod.mixins.transformers.skyhanni;
 
-import gg.skytils.skytilsmod.features.impl.handlers.CommandAliases;
-import net.minecraft.class_0_1608;
-import net.minecraft.class_0_1660;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.util.math.BlockPos;
+import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SheepifyRebellion;
+import net.minecraft.entity.player.EntityPlayer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
-
-@Mixin(class_0_1608.class)
-public abstract class MixinCommandHandler implements class_0_1660 {
-    @Inject(method = "method_0_6234", at = @At(value = "RETURN", ordinal = 0))
-    private void addTabCompletableCommands(CommandOutput sender, String input, BlockPos pos, CallbackInfoReturnable<List<String>> cir) {
-        List<String> list = cir.getReturnValue();
-        for (String cmd : CommandAliases.INSTANCE.getAliases().keySet()) {
-            if (cmd.startsWith(input)) list.add(cmd);
+@Pseudo
+@Mixin(targets = "at.hannibal2.skyhanni.features.misc.HideArmor", remap = false)
+public abstract class MixinHideArmor {
+    @Inject(method = "shouldHideArmor", at = @At("RETURN"), cancellable = true, require = 0)
+    private void skytils$shouldHideArmor(EntityPlayer entity, CallbackInfoReturnable<Boolean> cir) {
+        if (!cir.getReturnValue()) return;
+        if (SheepifyRebellion.INSTANCE.getDummyModelMap().containsKey(entity)) {
+            cir.setReturnValue(false);
         }
     }
 }

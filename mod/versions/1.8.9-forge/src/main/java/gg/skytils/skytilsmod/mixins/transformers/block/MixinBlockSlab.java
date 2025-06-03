@@ -20,25 +20,24 @@ package gg.skytils.skytilsmod.mixins.transformers.block;
 
 import gg.skytils.skytilsmod.core.Config;
 import net.minecraft.block.Block;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.Material;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldView;
+import net.minecraft.block.BlockSlab;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.world.IBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(SlabBlock.class)
+@Mixin(BlockSlab.class)
 public abstract class MixinBlockSlab extends Block {
-    public MixinBlockSlab(Material materialIn) {
+    public MixinBlockSlab(net.minecraft.block.material.Material materialIn) {
         super(materialIn);
     }
 
-    @Inject(method = "doesSideBlockRendering", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;testProperty(Lnet/minecraft/state/property/Property;)Ljava/lang/Comparable;", ordinal = 0), cancellable = true)
-    private void checkRendering(WorldView world, BlockPos pos, Direction face, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.INSTANCE.getFixFallingSandRendering() && !(world.getBlockState(pos).getBlock() instanceof SlabBlock))
+    @Inject(method = "doesSideBlockRendering", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/state/IBlockState;getValue(Lnet/minecraft/block/properties/IProperty;)Ljava/lang/Comparable;", ordinal = 0), cancellable = true)
+    private void checkRendering(IBlockAccess world, BlockPos pos, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
+        if (Config.INSTANCE.getFixFallingSandRendering() && !(world.getBlockState(pos).getBlock() instanceof BlockSlab))
             cir.setReturnValue(true);
     }
 }

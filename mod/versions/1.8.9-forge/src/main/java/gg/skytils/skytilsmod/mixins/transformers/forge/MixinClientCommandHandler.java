@@ -21,8 +21,8 @@ package gg.skytils.skytilsmod.mixins.transformers.forge;
 import gg.skytils.skytilsmod.features.impl.handlers.NamespacedCommands;
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorCommandHandler;
 import gg.skytils.skytilsmod.utils.ObservableSet;
-import net.minecraft.class_0_1608;
-import net.minecraft.class_0_1630;
+import net.minecraft.command.CommandHandler;
+import net.minecraft.command.ICommand;
 import net.minecraftforge.client.ClientCommandHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,10 +30,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = ClientCommandHandler.class)
-public abstract class MixinClientCommandHandler extends class_0_1608 implements AccessorCommandHandler {
+public abstract class MixinClientCommandHandler extends CommandHandler implements AccessorCommandHandler {
     @Inject(method = "<init>", at = @At("RETURN"), remap = false)
     private void hijackCommandHandler(CallbackInfo ci) {
-        ObservableSet<class_0_1630> hijacked = new ObservableSet<>(this.getCommandSet());
+        ObservableSet<ICommand> hijacked = new ObservableSet<>(this.getCommandSet());
         NamespacedCommands.INSTANCE.setup(hijacked);
         this.setCommandSet(hijacked);
     }

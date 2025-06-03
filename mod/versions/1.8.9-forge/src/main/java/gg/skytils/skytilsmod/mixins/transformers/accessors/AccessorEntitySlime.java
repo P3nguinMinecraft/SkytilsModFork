@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -18,21 +18,13 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-//#if MC==10809
-//$$ import net.minecraft.client.render.entity.EntityRenderDispatcher;
-//$$ import org.spongepowered.asm.mixin.Mixin;
-//$$ import org.spongepowered.asm.mixin.gen.Accessor;
-//$$
-//$$ @Mixin(EntityRenderDispatcher.class)
-//$$ public interface AccessorRenderManager {
-//$$
-//$$     @Accessor("renderPosX")
-//$$     double getRenderX();
-//$$
-//$$     @Accessor("renderPosY")
-//$$     double getRenderY();
-//$$
-//$$     @Accessor("renderPosZ")
-//$$     double getRenderZ();
-//$$ }
-//#endif
+import net.minecraft.entity.monster.EntitySlime;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Invoker;
+
+@Mixin({EntitySlime.class})
+public interface AccessorEntitySlime {
+    @Invoker("setSlimeSize")
+    void invokeSetSlimeSize(int size);
+}

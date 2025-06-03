@@ -16,27 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.mixins.transformers.sba;
+package gg.skytils.skytilsmod.mixins.transformers.neu;
 
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import gg.skytils.skytilsmod.core.Config;
-import gg.skytils.skytilsmod.utils.RenderUtil;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.item.ItemStack;
+import gg.skytils.skytilsmod.utils.NEUCompatibility;
+import net.minecraft.client.gui.Gui;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Pseudo
-@Mixin(targets = "codes.biscuit.skyblockaddons.features.backpacks.ContainerPreviewManager", remap = false)
-public class MixinContainerPreviewManager {
+@Mixin(targets = "io.github.moulberry.notenoughupdates.auction.CustomAH")
+public class MixinCustomAH extends Gui {
     @Dynamic
-    @WrapWithCondition(method = "drawContainerPreviews", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/ItemRenderer;func_180450_b(Lnet/minecraft/item/ItemStack;II)V"))
-    private static boolean drawRarityBackground(ItemRenderer instance, ItemStack itemStack, int x, int y) {
-        if (Config.INSTANCE.getShowItemRarity()) {
-            RenderUtil.renderRarity(itemStack, x, y);
-        }
-        return true;
+    @Inject(method = "isRenderOverAuctionView", at = @At("RETURN"), remap = false)
+    private void updateCustomAHState(CallbackInfoReturnable<Boolean> cir) {
+        NEUCompatibility.INSTANCE.setCustomAHActive(cir.getReturnValue());
     }
 }

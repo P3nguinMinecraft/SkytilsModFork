@@ -18,31 +18,29 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-//#if MC==10809
-//$$ import net.minecraft.class_0_1608;
-//$$ import net.minecraft.class_0_1630;
-//$$ import org.spongepowered.asm.mixin.Mixin;
-//$$ import org.spongepowered.asm.mixin.Mutable;
-//$$ import org.spongepowered.asm.mixin.gen.Accessor;
-//$$
-//$$ import java.util.Map;
-//$$ import java.util.Set;
-//$$
-//$$ @Mixin(class_0_1608.class)
-//$$ public interface AccessorCommandHandler {
-//$$     @Accessor("field_0_6493")
-//$$     Set<class_0_1630> getCommandSet();
-//$$
-//$$     @Mutable
-//$$     @Accessor("field_0_6493")
-//$$     void setCommandSet(Set<class_0_1630> set);
-//$$
-//$$     @Accessor("field_0_6492")
-//$$     Map<String, class_0_1630> getCommandMap();
-//$$
-//$$     @Mutable
-//$$     @Accessor("field_0_6492")
-//$$     void setCommandMap(Map<String, class_0_1630> map);
-//$$
-//$$ }
-//#endif
+import net.minecraft.command.CommandHandler;
+import net.minecraft.command.ICommand;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.gen.Accessor;
+
+import java.util.Map;
+import java.util.Set;
+
+@Mixin(CommandHandler.class)
+public interface AccessorCommandHandler {
+    @Accessor
+    Set<ICommand> getCommandSet();
+
+    @Mutable
+    @Accessor
+    void setCommandSet(Set<ICommand> set);
+
+    @Accessor
+    Map<String, ICommand> getCommandMap();
+
+    @Mutable
+    @Accessor
+    void setCommandMap(Map<String, ICommand> map);
+
+}

@@ -18,18 +18,16 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-//#if MC==10809
-//$$ import net.minecraft.class_501;
-//$$ import org.spongepowered.asm.mixin.Mixin;
-//$$ import org.spongepowered.asm.mixin.gen.Accessor;
-//$$
-//$$ import java.util.concurrent.ThreadPoolExecutor;
-//$$
-//$$ @Mixin(class_501.class)
-//$$ public interface AccessorServerListEntryNormal {
-//$$     @Accessor("field_3069")
-//$$     static ThreadPoolExecutor getPingerPool() {
-//$$         return null;
-//$$     }
-//$$ }
-//#endif
+import net.minecraft.client.gui.ServerListEntryNormal;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
+@Mixin(ServerListEntryNormal.class)
+public interface AccessorServerListEntryNormal {
+    @Accessor("field_148302_b")
+    static ThreadPoolExecutor getPingerPool() {
+        return null;
+    }
+}

@@ -18,15 +18,13 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-//#if MC==10809
-//$$ import net.minecraft.client.gui.screen.Screen;
-//$$ import net.minecraft.class_0_829;
-//$$ import org.spongepowered.asm.mixin.Mixin;
-//$$ import org.spongepowered.asm.mixin.gen.Accessor;
-//$$
-//$$ @Mixin(class_0_829.class)
-//$$ public interface AccessorGuiStreamUnavailable {
-//$$     @Accessor("field_0_3603")
-//$$     Screen getParentScreen();
-//$$ }
-//#endif
+import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.resources.model.IBakedModel;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Invoker;
+
+@Mixin(RenderItem.class)
+public interface AccessorRenderItem {
+    @Invoker
+    void invokeRenderModel(IBakedModel model, int color);
+}

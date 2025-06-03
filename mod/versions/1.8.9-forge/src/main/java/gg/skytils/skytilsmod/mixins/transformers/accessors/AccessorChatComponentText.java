@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,13 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package gg.skytils.skytilsmod.mixins.hooks.util
 
-import gg.essential.universal.wrappers.message.UTextComponent
-import net.minecraft.text.Text
+package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-fun fixUTextComponentSerialize(component: Text): Text {
-    return if (component is UTextComponent) {
-        component.component
-    } else component
+import net.minecraft.util.ChatComponentText;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.gen.Accessor;
+
+@Mixin(ChatComponentText.class)
+public interface AccessorChatComponentText {
+    @Accessor
+    String getText();
+
+    @Mutable
+    @Accessor
+    void setText(String text);
 }

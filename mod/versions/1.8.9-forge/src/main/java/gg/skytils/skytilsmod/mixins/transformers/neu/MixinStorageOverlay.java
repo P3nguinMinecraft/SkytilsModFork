@@ -18,7 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.neu;
 
-import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.shader.Framebuffer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;

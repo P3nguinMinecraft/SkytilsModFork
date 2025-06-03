@@ -16,27 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.mixins.transformers.sk1eroam;
+package gg.skytils.skytilsmod.mixins.transformers.util;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import gg.skytils.skytilsmod.mixins.hooks.renderer.ItemRendererHookKt;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.consume.UseAction;
-import org.spongepowered.asm.mixin.*;
+import gg.essential.universal.wrappers.message.UTextComponent;
+import net.minecraft.util.IChatComponent;
+import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Pseudo
-@Mixin(targets = "club.sk1er.oldanimations.AnimationHandler", remap = false)
-public abstract class MixinAnimationHandler {
-
-    @Shadow
-    @Final
-    private MinecraftClient mc;
-
-    @Dynamic
-    @ModifyVariable(method = "renderItemInFirstPerson", at = @At("STORE"))
-    private UseAction changeEnumAction(UseAction action) {
-        return mc.player.method_0_7989() != null ? ItemRendererHookKt.getItemInUseCountForFirstPerson(mc.player, mc.player.method_0_7989(), null) == 0 ? UseAction.NONE : action : action;
+@Mixin(IChatComponent.Serializer.class)
+public abstract class MixinIChatComponentSerializer {
+    @ModifyVariable(method = "serialize", at = @At("HEAD"), argsOnly = true)
+    private IChatComponent fixUTextComponentSerialize(IChatComponent component) {
+        if (component instanceof UTextComponent) {
+            return ((UTextComponent) component).getComponent();
+        } else return component;
     }
 }

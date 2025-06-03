@@ -20,27 +20,27 @@ package gg.skytils.skytilsmod.mixins.transformers.block;
 
 import gg.skytils.skytilsmod.core.Config;
 import net.minecraft.block.Block;
-import net.minecraft.block.StairsBlock;
-import net.minecraft.block.Material;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldView;
+import net.minecraft.block.BlockStairs;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.world.IBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Mixin(StairsBlock.class)
+@Mixin(BlockStairs.class)
 abstract public class MixinBlockStairs extends Block {
     public MixinBlockStairs(Material materialIn) {
         super(materialIn);
     }
 
-    @Inject(method = "doesSideBlockRendering", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;testProperty(Lnet/minecraft/state/property/Property;)Ljava/lang/Comparable;", ordinal = 0), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void checkRendering(WorldView world, BlockPos pos, Direction face, CallbackInfoReturnable<Boolean> cir, BlockState iblockstate) {
-        if (Config.INSTANCE.getFixFallingSandRendering() && !(iblockstate.getBlock() instanceof StairsBlock))
+    @Inject(method = "doesSideBlockRendering", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/state/IBlockState;getValue(Lnet/minecraft/block/properties/IProperty;)Ljava/lang/Comparable;", ordinal = 0), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void checkRendering(IBlockAccess world, BlockPos pos, EnumFacing face, CallbackInfoReturnable<Boolean> cir, IBlockState iblockstate) {
+        if (Config.INSTANCE.getFixFallingSandRendering() && !(iblockstate.getBlock() instanceof BlockStairs))
             cir.setReturnValue(true);
     }
 }

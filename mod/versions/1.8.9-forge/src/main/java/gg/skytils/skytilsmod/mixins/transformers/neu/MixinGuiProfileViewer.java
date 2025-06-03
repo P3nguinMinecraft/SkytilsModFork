@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.mixins.transformers.neu;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.mixins.hooks.neu.GuiProfileViewerHookKt;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.At;
  */
 @Pseudo
 @Mixin(targets = "io.github.moulberry.notenoughupdates.profileviewer.GuiProfileViewer", remap = false)
-public abstract class MixinGuiProfileViewer extends Screen {
+public abstract class MixinGuiProfileViewer extends GuiScreen {
     @Dynamic
     @WrapWithCondition(method = "drawInvsPage", at = @At(value = "INVOKE", target = "Lio/github/moulberry/notenoughupdates/util/Utils;drawItemStack(Lnet/minecraft/item/ItemStack;II)V"))
     private boolean renderRarityOnInvPage(ItemStack stack, int x, int y) {
