@@ -18,6 +18,7 @@
 package gg.skytils.skytilsmod.features.impl.events
 
 import com.google.common.collect.EvictingQueue
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
@@ -36,7 +37,7 @@ import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows.BurrowEstimatio
 import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows.BurrowEstimation.lastSoundTrail
 import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows.BurrowEstimation.otherGrassData
 import gg.skytils.skytilsmod.utils.*
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.block.Blocks
 import net.minecraft.item.Items
@@ -44,9 +45,14 @@ import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
 import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket
-import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
-import net.minecraft.util.*
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
+import net.minecraft.particle.ParticleTypes
+import net.minecraft.sound.SoundEvents
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.Vec3i
 import java.awt.Color
 import java.time.Duration
 import java.time.Instant
@@ -92,7 +98,7 @@ object GriffinBurrows : EventSubscriber {
 
     fun onTick(event: TickEvent) {
         hasSpadeInHotbar = mc.player != null && Utils.inSkyblock && (0..7).any {
-            mc.player.inventory.getStack(it).isSpade
+            mc.player?.inventory?.getStack(it)?.isSpade == true
         }
         if (!Skytils.config.burrowEstimation) return
         BurrowEstimation.guesses.entries.removeIf { (_, instant) ->
@@ -179,7 +185,7 @@ object GriffinBurrows : EventSubscriber {
                 lastDugParticleBurrow = null
             }
         }
-        if (event.message.method_10865() == "§r§6Poof! §r§eYou have cleared your griffin burrows!§r") {
+        if (event.message.formattedText == "§r§6Poof! §r§eYou have cleared your griffin burrows!§r") {
             particleBurrows.clear()
             recentlyDugParticleBurrows.clear()
             lastDugParticleBurrow = null
@@ -194,9 +200,9 @@ object GriffinBurrows : EventSubscriber {
 
     fun onSendPacket(event: PacketSendEvent<*>) {
         if (!Utils.inSkyblock || !Skytils.config.showGriffinBurrows || mc.player == null || SBInfo.mode != SkyblockIsland.Hub.mode) return
-        if (mc.player.method_0_7087()?.isSpade != true) return
+        if (mc.player?.getEquippedStack(EquipmentSlot.MAINHAND)?.isSpade != true) return
 
-        if (event.packet is PlayerInteractBlockC2SPacket && event.packet.method_12548().y == -1) {
+        if (event.packet is PlayerInteractBlockC2SPacket && event.packet.blockHitResult.blockPos.y == -1) {
             lastSpadeUse = System.currentTimeMillis()
             lastParticleTrail.clear()
             BurrowEstimation.lastTrailCreated = -1
@@ -208,10 +214,10 @@ object GriffinBurrows : EventSubscriber {
                     event.packet is PlayerActionC2SPacket && event.packet.action == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK -> {
                         event.packet.pos
                     }
-                    event.packet is PlayerInteractBlockC2SPacket && event.packet.method_0_5804() != null -> event.packet.method_12548()
+                    event.packet is PlayerInteractBlockC2SPacket && event.packet.hand != null -> event.packet.blockHitResult.blockPos
                     else -> return
                 }
-            if (mc.world.getBlockState(pos).block !== Blocks.field_0_767) return
+            if (mc.world?.getBlockState(pos)?.block !== Blocks.GRASS_BLOCK) return
             particleBurrows[pos]?.blockPos?.let {
                 printDevMessage({ "Clicked on $it" }, "griffin")
                 lastDugParticleBurrow = it
@@ -261,13 +267,13 @@ object GriffinBurrows : EventSubscriber {
                 if (Skytils.config.showGriffinBurrows && hasSpadeInHotbar) {
                     if (SBInfo.mode != SkyblockIsland.Hub.mode) return
                     event.packet.apply {
-                        if (type == ParticleType.DRIP_LAVA && count == 2 && speed == -.5f && offsetX == 0f && offsetY == 0f && offsetZ == 0f && shouldForceSpawn()) {
+                        if (type == ParticleTypes.DRIPPING_LAVA && count == 2 && speed == -.5f && offsetX == 0f && offsetY == 0f && offsetZ == 0f && shouldForceSpawn()) {
                             lastParticleTrail.add(vec3)
                             BurrowEstimation.lastTrailCreated = System.currentTimeMillis()
                             printDevMessage({ "Found trail point $x $y $z" }, "griffinguess")
                         } else {
                             val type = ParticleType.getParticleType(this) ?: return
-                            val pos = BlockPos(x, y, z).method_10074()
+                            val pos = BlockPos.ofFloored(x, y, z).down()
                             if (recentlyDugParticleBurrows.contains(pos)) return
                             BurrowEstimation.guesses.keys.associateWith { guess ->
                                 (pos.x - guess.x) * (pos.x - guess.x) + (pos.z - guess.z) * (pos.z - guess.z)
@@ -300,8 +306,8 @@ object GriffinBurrows : EventSubscriber {
                 if (!Skytils.config.burrowEstimation || SBInfo.mode != SkyblockIsland.Hub.mode || Skytils.config.experimentBurrowEstimation) return
                 val entity = mc.world?.getEntityById(event.packet.entityId)
                 (entity as? ArmorStandEntity)?.let { armorStand ->
-                    if (event.packet.stack?.item != Items.ARROW) return
-                    if (armorStand.method_5831(mc.player?.blockPos) >= 27) return
+                    if (event.packet.equipmentList.getOrNull(0)?.second != Items.ARROW) return
+                    if (armorStand.squaredDistanceTo(mc.player!!.pos) >= 27) return
                     printDevMessage({ "Found armor stand with arrow" }, "griffin", "griffinguess")
                     val yaw = Math.toRadians(armorStand.yaw.toDouble())
                     val lookVec = Vec3d(
@@ -314,9 +320,9 @@ object GriffinBurrows : EventSubscriber {
                     BurrowEstimation.arrows.put(BurrowEstimation.Arrow(lookVec, origin), Instant.now())
                 }
             }
-            is PlaySoundIdS2CPacket -> {
+            is PlaySoundS2CPacket -> {
                 if (!Skytils.config.burrowEstimation || SBInfo.mode != SkyblockIsland.Hub.mode) return
-                if (event.packet.method_11460() != "note.harp" || event.packet.volume != 1f) return
+                if (event.packet.sound.value() != SoundEvents.BLOCK_NOTE_BLOCK_HARP || event.packet.volume != 1f) return
                 printDevMessage({ "Found note harp sound ${event.packet.pitch} ${event.packet.volume} ${event.packet.x} ${event.packet.y} ${event.packet.z}" }, "griffinguess")
                 if (lastSpadeUse != -1L && System.currentTimeMillis() - lastSpadeUse < 1000) {
                     lastSoundTrail.add(Vec3d(event.packet.x, event.packet.y, event.packet.z) to event.packet.pitch.toDouble())
@@ -364,15 +370,15 @@ object GriffinBurrows : EventSubscriber {
             val renderY = this.y - viewerY
             val renderZ = this.z - viewerZ
             val distSq = renderX * renderX + renderY * renderY + renderZ * renderZ
-            RenderSystem.disableDepthTest()
-            RenderSystem.disableCull()
+            // disable depth
+            GlStateManager._disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 Box(renderX, renderY, renderZ, renderX + 1, renderY + 1, renderZ + 1).expandBlock(),
                 this.color,
                 (0.1f + 0.005f * distSq.toFloat()).coerceAtLeast(0.2f)
             )
-            RenderSystem.method_4407()
+            // disable texture 2d
             if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(renderX, renderY + 1, renderZ, this.color.rgb, 1.0f, partialTicks)
             RenderUtil.renderWaypointText(
                 waypointText,
@@ -382,10 +388,10 @@ object GriffinBurrows : EventSubscriber {
                 partialTicks,
                 matrixStack
             )
-            RenderSystem.method_4406()
-            RenderSystem.method_4397()
-            RenderSystem.enableDepthTest()
-            RenderSystem.enableCull()
+            // disable lighting
+            // enable texture 2d
+            // enable depth
+            GlStateManager._enableCull()
         }
     }
 
@@ -444,20 +450,21 @@ object GriffinBurrows : EventSubscriber {
 
     private enum class ParticleType(val check: ParticleS2CPacket.() -> Boolean, val isBurrowType: Boolean = true) {
         EMPTY({
-            type == ParticleType.CRIT_MAGIC && count == 4 && speed == 0.01f && offsetX == 0.5f && offsetY == 0.1f && offsetZ == 0.5f
+            type == ParticleTypes.ENCHANTED_HIT && count == 4 && speed == 0.01f && offsetX == 0.5f && offsetY == 0.1f && offsetZ == 0.5f
         }),
         MOB({
-            type == ParticleType.CRIT && count == 3 && speed == 0.01f && offsetX == 0.5f && offsetY == 0.1f && offsetZ == 0.5f
+            type == ParticleTypes.CRIT && count == 3 && speed == 0.01f && offsetX == 0.5f && offsetY == 0.1f && offsetZ == 0.5f
 
         }),
         TREASURE({
-            type == ParticleType.DRIP_LAVA && count == 2 && speed == 0.01f && offsetX == 0.35f && offsetY == 0.1f && offsetZ == 0.35f
+            type == ParticleTypes.DRIPPING_LAVA && count == 2 && speed == 0.01f && offsetX == 0.35f && offsetY == 0.1f && offsetZ == 0.35f
         }),
+        // FIXME
         FOOTSTEP({
-            type == ParticleType.FOOTSTEP && count == 1 && speed == 0.0f && offsetX == 0.05f && offsetY == 0.0f && offsetZ == 0.05f
+            /*type == ParticleType.FOOTSTEP &&*/ count == 1 && speed == 0.0f && offsetX == 0.05f && offsetY == 0.0f && offsetZ == 0.05f
         }, false),
         ENCHANT({
-            type == ParticleType.ENCHANTMENT_TABLE && count == 5 && speed == 0.05f && offsetX == 0.5f && offsetY == 0.4f && offsetZ == 0.5f
+            type == ParticleTypes.ENCHANT && count == 5 && speed == 0.05f && offsetX == 0.5f && offsetY == 0.4f && offsetZ == 0.5f
         }, false);
 
         companion object {
