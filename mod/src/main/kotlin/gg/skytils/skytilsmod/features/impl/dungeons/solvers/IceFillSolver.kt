@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
@@ -34,9 +35,10 @@ import gg.skytils.skytilsmod.utils.ifNull
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
 import net.minecraft.block.Blocks
 import net.minecraft.block.entity.ChestBlockEntity
+import net.minecraft.client.world.ClientWorld
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Vec3d
@@ -50,20 +52,21 @@ object IceFillSolver : EventSubscriber {
     init {
         tickTimer(20, repeats = true) {
             if (!Utils.inDungeons || !Skytils.config.iceFillSolver || mc.player == null) return@tickTimer
-            val world: World = mc.world
+            val world: ClientWorld = mc.world ?: return@tickTimer
             if (DungeonListener.incompletePuzzles.contains("Ice Fill") && puzzles == null && job?.isActive != true) {
                 job = Skytils.launch {
-                    val playerX = mc.player.x.toInt()
-                    val playerZ = mc.player.z.toInt()
+                    val player = mc.player ?: return@launch
+                    val playerX = player.x.toInt()
+                    val playerZ = player.z.toInt()
                     val xRange = playerX - 30..playerX + 30
                     val zRange = playerZ - 30..playerZ + 30
-                    findChest@ for (te in world.field_0_262) {
-                        if (te.pos.y == 75 && te is ChestBlockEntity && te.viewerCount == 0 && te.pos.x in xRange && te.pos.z in zRange
+                    findChest@ for (te in (world as AccessorWorld).blockEntityTickers) {
+                        if (te.pos.y == 75 && te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(world, te.pos) == 0 && te.pos.x in xRange && te.pos.z in zRange
                         ) {
                             val pos = te.pos
-                            if (world.getBlockState(pos.method_10074()).block == Blocks.STONE) {
+                            if (world.getBlockState(pos.up()).block == Blocks.STONE) {
                                 for (direction in UDirection.HORIZONTALS) {
-                                    if (world.getBlockState(pos.method_10093(direction)).block == Blocks.COBBLESTONE && world.getBlockState(
+                                    if (world.getBlockState(pos.offset(direction)).block == Blocks.COBBLESTONE && world.getBlockState(
                                             pos.offset(direction.opposite, 2)
                                         ).block == Blocks.IRON_BARS) {
 
@@ -82,12 +85,12 @@ object IceFillSolver : EventSubscriber {
                                         }?.opposite ?: continue
 
                                         if (world.getBlockState(
-                                                pos.method_10093(direction.opposite)
-                                                    .method_10093(offsetDir)
+                                                pos.offset(direction.opposite)
+                                                    .offset(offsetDir)
                                                     .down(2)
                                             ).block == Blocks.STONE_BRICK_STAIRS) {
                                             //chestCenter: -11 75 -89; direction: east
-                                            val chestCenter = pos.method_10093(offsetDir)
+                                            val chestCenter = pos.offset(offsetDir)
 
                                             val starts = Triple(
                                                 //three: -33 70 -89
@@ -167,7 +170,7 @@ object IceFillSolver : EventSubscriber {
             val spaces = getSpaces()
 
             val moves = spaces.associate {
-                val neighbors = UDirection.HORIZONTALS.associateBy { direction -> it.method_10093(direction) }
+                val neighbors = UDirection.HORIZONTALS.associateBy { direction -> it.offset(direction) }
                     .filterKeys { spot -> spot in spaces }
                     .mapKeys { (pos, _) -> spaces.indexOf(pos) }
                 Pair(spaces.indexOf(it), neighbors)
@@ -199,9 +202,9 @@ object IceFillSolver : EventSubscriber {
 
         fun draw(matrixStack: UMatrixStack, partialTicks: Float) {
             path?.let {
-                RenderSystem.disableCull()
+                GlStateManager._disableCull()
                 RenderUtil.draw3DLineStrip(it, 5, Color.MAGENTA, partialTicks, matrixStack)
-                RenderSystem.enableCull()
+                GlStateManager._enableCull()
             }
         }
 
@@ -292,10 +295,10 @@ object IceFillSolver : EventSubscriber {
             while (queue.isNotEmpty()) {
                 val current = queue.removeLast()
                 UDirection.HORIZONTALS.forEach { direction ->
-                    val next = current.method_10093(direction)
+                    val next = current.offset(direction)
                     if (next !in spaces && world.getBlockState(next).block === Blocks.AIR && Utils.equalsOneOf(
                             world.getBlockState(
-                                next.method_10074()
+                                next.down()
                             ).block, Blocks.ICE, Blocks.PACKED_ICE
                         )
                     ) {
