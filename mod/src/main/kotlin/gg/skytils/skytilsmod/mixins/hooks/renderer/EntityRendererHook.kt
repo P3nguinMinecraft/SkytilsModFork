@@ -21,7 +21,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-fun onHurtcam(partialTicks: Float, ci: CallbackInfo) {
+fun onHurtcam(ci: CallbackInfo) {
     if (Utils.inSkyblock && Skytils.config.noHurtcam) ci.cancel()
 }
 

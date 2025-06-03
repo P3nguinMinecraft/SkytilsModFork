@@ -20,20 +20,14 @@ package gg.skytils.skytilsmod.mixins.hooks.entity
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.particle.ParticleType
+import net.minecraft.particle.ParticleTypes
 import net.minecraft.world.World
 
 fun removeBlazeSmokeParticle(
     world: World,
-    particleType: ParticleType,
-    xCoord: Double,
-    yCoord: Double,
-    zCoord: Double,
-    xOffset: Double,
-    yOffset: Double,
-    zOffset: Double,
-    p_175688_14_: IntArray
+    particleType: ParticleType<*>
 ): Boolean {
-    return !Utils.inDungeons || particleType != ParticleType.SMOKE_LARGE || !DungeonListener.incompletePuzzles.contains(
+    return !Utils.inDungeons || particleType != ParticleTypes.LARGE_SMOKE || !DungeonListener.incompletePuzzles.contains(
         "Higher Or Lower"
     )
 }

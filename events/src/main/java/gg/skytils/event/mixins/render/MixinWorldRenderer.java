@@ -39,8 +39,8 @@ import org.spongepowered.asm.mixin.injection.At;
 public class MixinWorldRenderer {
     @Shadow @Final private MinecraftClient client;
 
-    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;drawBlockOutline(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/entity/Entity;DDDLnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)V"))
-    public boolean renderSelectionBox(WorldRenderer instance, MatrixStack matrices, VertexConsumer vertexConsumer, Entity entity, double cameraX, double cameraY, double cameraZ, BlockPos pos, BlockState state, @Local(argsOnly = true) float tickDelta) {
+    @WrapWithCondition(method = "renderTargetBlockOutline", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;drawBlockOutline(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/entity/Entity;DDDLnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;I)V"))
+    public boolean renderSelectionBox(WorldRenderer instance, MatrixStack matrices, VertexConsumer vertexConsumer, Entity entity, double cameraX, double cameraY, double cameraZ, BlockPos pos, BlockState state, int color, @Local(argsOnly = true) float tickDelta) {
         SelectionBoxDrawEvent event = new SelectionBoxDrawEvent(this.client.crosshairTarget, tickDelta);
         return !EventsKt.postCancellableSync(event);
     }

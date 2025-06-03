@@ -70,12 +70,6 @@ fun setColorMultiplier(
     }
 }
 
-fun replaceEntityName(entity: LivingEntity, currName: String): String {
-    entity as ExtensionEntityLivingBase
-
-    return entity.skytilsHook.overrideDisplayName ?: currName
-}
-
 fun replaceHurtTime(instance: LivingEntity, original: Operation<Int>): Int {
     instance as ExtensionEntityLivingBase
 

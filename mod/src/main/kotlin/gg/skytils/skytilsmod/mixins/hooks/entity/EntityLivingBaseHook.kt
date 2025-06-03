@@ -26,6 +26,7 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.effect.StatusEffect
 import net.minecraft.particle.ParticleType
+import net.minecraft.potion.Potions
 import net.minecraft.world.World
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import java.awt.Color
@@ -33,18 +34,11 @@ import kotlin.random.Random
 
 class EntityLivingBaseHook(val entity: LivingEntity) {
 
-    var overrideDisplayName: String? = null
     var colorMultiplier: Color? = null
     var masterDragonType: WitherKingDragons? = null
 
-    fun onNewDisplayName(s: String) {
-        if (!Utils.inSkyblock) return
-        if (overrideDisplayName != null)
-            overrideDisplayName = s
-    }
-
     val isBreefing by lazy {
-        entity.name == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(
+        entity.name.string == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(
             100
         ) < 3)
     }
@@ -55,14 +49,14 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
 
     fun modifyPotionActive(potionId: Int, cir: CallbackInfoReturnable<Boolean>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.disableNightVision && potionId == StatusEffect.field_0_7291.field_0_7265 && entity is ClientPlayerEntity) {
+        if (Skytils.config.disableNightVision && potionId == Potions.NIGHT_VISION && entity is ClientPlayerEntity) {
             cir.returnValue = false
         }
     }
 
     fun removeDeathParticle(
         world: World,
-        particleType: ParticleType,
+        particleType: ParticleType<*>,
         xCoord: Double,
         yCoord: Double,
         zCoord: Double,

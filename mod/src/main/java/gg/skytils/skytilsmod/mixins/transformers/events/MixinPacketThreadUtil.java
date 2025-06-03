@@ -29,7 +29,11 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(NetworkThreadUtils.class)
 public class MixinPacketThreadUtil {
-    @ModifyArg(method = "forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/util/thread/ThreadExecutor;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/thread/ThreadExecutor;submit(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
+    //#if MC==10809
+    //$$ @ModifyArg(method = "forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/util/thread/ThreadExecutor;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/thread/ThreadExecutor;submit(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
+    //#else
+    @ModifyArg(method = "forceMainThread(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/util/thread/ThreadExecutor;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/thread/ThreadExecutor;executeSync(Ljava/lang/Runnable;)V"))
+    //#endif
     private static Runnable processPacket(Runnable var1, @Local(argsOnly = true) Packet<?> packet) {
         return () -> {
             if (!EventsKt.postCancellableSync(new MainThreadPacketReceiveEvent(packet))) {

@@ -36,7 +36,11 @@ public abstract class MixinChunk {
     @Inject(method = "setBlockState", at = @At("HEAD"))
     private void onBlockChange(BlockPos pos, BlockState state,
                                //#if MC>12000
-                               boolean moved,
+                               //#if MC<=12104
+                               //$$ boolean moved,
+                               //#else
+                               int flags,
+                               //#endif
                                //#endif
                                CallbackInfoReturnable<BlockState> cir) {
         BlockState old = this.getBlockState(pos);

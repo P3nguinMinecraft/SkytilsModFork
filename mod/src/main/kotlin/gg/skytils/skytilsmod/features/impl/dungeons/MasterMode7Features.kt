@@ -46,6 +46,8 @@ import net.minecraft.block.Blocks
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
 import net.minecraft.network.packet.s2c.play.EntitySpawnGlobalS2CPacket
 import net.minecraft.util.*
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import java.awt.Color
@@ -273,7 +275,8 @@ object MasterMode7Features : EventSubscriber {
         val model =
             renderDragon.method_4038() as AccessorModelDragon
         model.body.noDraw = false
-        model.wing.noDraw = false
+        model.leftWing.noDraw = false
+        model.rightWing.noDraw = false
     }
 
     fun shouldHideDragonDeath() =
@@ -296,7 +299,7 @@ enum class WitherKingDragons(
 
     val itemName = "§cCorrupted $textColor Relic"
     val itemId = "${textColor.uppercase()}_KING_RELIC"
-    val texture = Identifier("skytils", "textures/dungeons/m7/dragon_${name.lowercase()}.png")
+    val texture = Identifier.of("skytils", "textures/dungeons/m7/dragon_${name.lowercase()}.png")
     val bb = blockPos.run {
         Box(x - a, y - 8.0, z - a, x + a, y + a + 2, z + a)
     }

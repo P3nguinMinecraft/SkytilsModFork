@@ -28,7 +28,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EndermanEntity.class)
 public class MixinEnderman {
-    @Inject(method = "method_0_7820", at = @At("HEAD"), cancellable = true)
+    // Not needed on 1.21.5 as Minecraft will only call this method on the server side
+    @Inject(method = "teleportRandomly", at = @At("HEAD"), cancellable = true)
     private void cancelTeleport(CallbackInfoReturnable<Boolean> cir) {
         if (Utils.INSTANCE.getInSkyblock() && Skytils.getConfig().getDisableEndermanTeleport()) {
             cir.setReturnValue(false);

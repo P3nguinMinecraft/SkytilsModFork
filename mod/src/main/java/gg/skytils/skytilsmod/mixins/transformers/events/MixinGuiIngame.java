@@ -35,7 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameHud.class)
 //#endif
 public class MixinGuiIngame {
-    @Inject(method = "renderHotbar", at = @At("TAIL"))
+    @Inject(method = "renderMainHud", at = @At("TAIL"))
     public void render(CallbackInfo ci) {
         GlState.Companion.pushState();
         EventsKt.postSync(new RenderHUDEvent());

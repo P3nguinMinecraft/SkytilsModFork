@@ -20,8 +20,10 @@ package gg.skytils.skytilsmod.mixins.transformers.entity;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.mixins.hooks.entity.EntityBlazeHookKt;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.BlazeEntity;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleType;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,12 +32,17 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(BlazeEntity.class)
 public abstract class MixinEntityBlaze extends HostileEntity {
 
-    public MixinEntityBlaze(World worldIn) {
-        super(worldIn);
+    protected MixinEntityBlaze(EntityType<? extends HostileEntity> entityType, World world) {
+        super(entityType, world);
     }
 
-    @WrapWithCondition(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
-    private boolean spawnParticle(World world, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
-        return EntityBlazeHookKt.removeBlazeSmokeParticle(world, particleType, xCoord, yCoord, zCoord, xOffset, yOffset, zOffset, p_175688_14_);
+    //#if MC==10809
+    //$$ @WrapWithCondition(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
+    //$$ private boolean spawnParticle(World world, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
+    //#else
+    @WrapWithCondition(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticleClient(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
+    private boolean spawnParticle(World world, ParticleEffect particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset) {
+        return EntityBlazeHookKt.removeBlazeSmokeParticle(world, particleType.getType());
     }
+    //#endif
 }

@@ -40,11 +40,6 @@ public abstract class MixinRendererLivingEntity<T extends LivingEntity> extends 
         super(renderManager);
     }
 
-    @ModifyVariable(method = "renderName*", at = @At(value = "STORE", ordinal = 0))
-    private String replaceEntityName(String name, @Local(argsOnly = true) T entity) {
-        return RendererLivingEntityHookKt.replaceEntityName(entity, name);
-    }
-
     @Inject(method = "getOverlayColor", at = @At("HEAD"), cancellable = true)
     private void setColorMultiplier(T entity, float lightBrightness, float partialTickTime, CallbackInfoReturnable<Integer> cir) {
         RendererLivingEntityHookKt.setColorMultiplier(entity, lightBrightness, partialTickTime, cir);

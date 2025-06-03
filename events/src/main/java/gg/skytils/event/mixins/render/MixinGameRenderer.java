@@ -25,6 +25,7 @@ import gg.skytils.event.impl.render.SelectionBoxDrawEvent;
 import gg.skytils.event.impl.render.WorldDrawEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.hit.HitResult;
@@ -54,8 +55,8 @@ public class MixinGameRenderer {
     //$$     EventsKt.postSync(new WorldDrawEvent(partialTicks));
     //$$ }
     //#else
-    public void renderWorld(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo ci) {
-        EventsKt.postSync(new WorldDrawEvent(tickDelta));
+    public void renderWorld(RenderTickCounter renderTickCounter, CallbackInfo ci) {
+        EventsKt.postSync(new WorldDrawEvent(renderTickCounter.getTickProgress(false)));
     }
     //#endif
 

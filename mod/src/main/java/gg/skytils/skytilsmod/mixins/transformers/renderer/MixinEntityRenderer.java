@@ -30,8 +30,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class MixinEntityRenderer implements ResourceReloader {
     @Inject(method = "tiltViewWhenHurt", at = @At("HEAD"), cancellable = true)
-    private void onHurtcam(float partialTicks, CallbackInfo ci) {
-        EntityRendererHookKt.onHurtcam(partialTicks, ci);
+    private void onHurtcam(CallbackInfo ci) {
+        EntityRendererHookKt.onHurtcam(ci);
     }
 
     @ModifyExpressionValue(method = "method_0_3370", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getTicksSinceLightning()I"))
