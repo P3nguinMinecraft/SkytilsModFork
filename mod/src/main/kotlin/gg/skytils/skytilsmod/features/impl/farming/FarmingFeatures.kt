@@ -36,10 +36,12 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket
-import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.Text
 
 object FarmingFeatures : EventSubscriber {
     val hungerHikerItems = LinkedHashMap<String, String>()
@@ -63,14 +65,14 @@ object FarmingFeatures : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (SBInfo.mode != "farming_1") return
 
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
         val unformatted = event.message.string.stripControlCodes()
 
         if (Skytils.config.acceptTrapperTask) {
             if (formatted.contains("§a§l[YES]")) {
                 val listOfSiblings = event.message.siblings
                 acceptTrapperCommand =
-                    listOfSiblings.find { it.string.contains("[YES]") }?.style?.clickEvent?.value ?: ""
+                    (listOfSiblings.find { it.string.contains("[YES]") }?.style?.clickEvent as? ClickEvent.RunCommand)?.command ?: ""
                 UChat.chat("$prefix §bOpen chat then click anywhere on screen to accept the task.")
             }
         }
@@ -89,18 +91,19 @@ object FarmingFeatures : EventSubscriber {
             }
         }
         if (Skytils.config.talbotsTheodoliteHelper) {
+            val player = mc.player ?: return
             if (unformatted.startsWith("[NPC] Trevor The Trapper: You can find your")) {
                 targetMinY = -1
                 targetMaxY = -1
             } else if (unformatted.startsWith("You are at the exact height!")) {
-                targetMinY = mc.player.y.toInt()
-                targetMaxY = mc.player.y.toInt()
+                targetMinY = player.y.toInt()
+                targetMaxY = player.y.toInt()
             } else {
                 val match = targetHeightRegex.find(unformatted)
                 if (match != null) {
                     val blocks = match.groups["blocks"]!!.value.toInt()
                     val below = match.groups["type"]!!.value == "below"
-                    val y = mc.player.y.toInt() + blocks * if (below) -1 else 1
+                    val y = player.y.toInt() + blocks * if (below) -1 else 1
                     val filler = if (blocks == 5) 2 else 0
                     val minY = y - 2 - if (below) 0 else filler
                     val maxY = y + 2 + if (below) filler else 0
@@ -135,13 +138,11 @@ object FarmingFeatures : EventSubscriber {
                 } else {
                     if (unformatted.contains("I asked for") || unformatted.contains("The food I want")) {
                         println("Missing Hiker item: $unformatted")
-                        mc.player.sendMessage(
-                            LiteralTextContent(
-                                String.format(
-                                    "$failPrefix §cSkytils couldn't determine the Hiker item. There were %s solutions loaded.",
-                                    hungerHikerItems.size
-                                )
-                            )
+                        UChat.chat(
+                            Text.literal(String.format(
+                                "$failPrefix §cSkytils couldn't determine the Hiker item. There were %s solutions loaded.",
+                                hungerHikerItems.size
+                            ))
                         )
                     }
                 }
