@@ -36,6 +36,7 @@ import net.minecraft.client.network.ClientCommonNetworkHandler;
 //$$ @Mixin(ClientPlayNetworkHandler.class)
 //#else
 @Mixin(ClientCommonNetworkHandler.class)
+//#endif
 public class MixinNetHandlerPlayClient {
     @Inject(method = "sendPacket", at = @At("HEAD"), cancellable = true)
     public void addToSendQueue(Packet<?> p_147297_1_, CallbackInfo ci) {
