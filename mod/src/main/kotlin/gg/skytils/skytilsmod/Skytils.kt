@@ -523,18 +523,6 @@ object Skytils : CoroutineScope, EventSubscriber {
         }
     }
 
-
-    fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (event.packet is EntityTrackerUpdateS2CPacket && mc.player != null) {
-            val nameObj = event.packet.trackedValues?.find { it.id() == 2 }?.value() ?: return
-            val entity = mc.world?.getEntityById(event.packet.id())
-
-            if (entity is ExtensionEntityLivingBase) {
-                entity.skytilsHook.onNewDisplayName(nameObj as String)
-            }
-        }
-    }
-
     fun onConnect(event: ClientConnectEvent) {
         IO.launch {
             TrophyFish.loadFromApi()
@@ -610,7 +598,6 @@ object Skytils : CoroutineScope, EventSubscriber {
         register(::onTick, gg.skytils.event.EventPriority.Highest)
         register(::onConnect)
         register(::onDisconnect)
-        register(::onPacket)
         register(::onSendPacket)
         register(::onGuiChange)
     }
