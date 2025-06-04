@@ -30,7 +30,7 @@ import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
 import net.minecraft.entity.decoration.ArmorStandEntity
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
 
 object KuudraFeatures : EventSubscriber {
     var kuudraOver = false
@@ -69,8 +69,8 @@ object KuudraFeatures : EventSubscriber {
 
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (SBInfo.mode != SkyblockIsland.KuudraHollow.mode) return
-        if (event.packet is GameMessageS2CPacket) {
-            if (event.packet.message.string.stripControlCodes().trim() == "KUUDRA DOWN!") {
+        if (event.packet is ChatMessageS2CPacket) {
+            if (event.packet.unsignedContent?.string?.stripControlCodes()?.trim() == "KUUDRA DOWN!") {
                 kuudraOver = true
             }
         }
