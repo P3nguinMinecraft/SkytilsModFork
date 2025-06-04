@@ -2243,16 +2243,18 @@ object Config : Vigilant(
     )
     var witherShieldCooldown = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Wither Shield has Wither Impact",
-        description = "Get better tbh imagine only 1 scroll",
-        category = "Miscellaneous", subcategory = "Items",
-        searchTags = ["Wither Impact", "Hyperion", "Wither Shield", "Scylla", "Astraea", "Valkyrie"],
-        i18nName = "skytils.config.miscellaneous.items.wither_shield_has_wither_impact",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.items"
+    val assumeWitherImpactState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Wither Shield has Wither Impact",
+            description = "Get better tbh imagine only 1 scroll",
+            category = "Miscellaneous", subcategory = "Items",
+            searchTags = listOf("Wither Impact", "Hyperion", "Wither Shield", "Scylla", "Astraea", "Valkyrie"),
+            i18nName = "skytils.config.miscellaneous.items.wither_shield_has_wither_impact",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.items"
+        ),
+        true
     )
-    var assumeWitherImpact = true
 
     @Property(
         type = PropertyType.SWITCH, name = "Show Enchanted Book Abbreviation",
