@@ -19,19 +19,20 @@
 package gg.skytils.skytilsmod.gui.profile.components
 
 import gg.essential.elementa.UIComponent
-import gg.essential.elementa.state.BasicState
-import gg.essential.elementa.state.State
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.stateOf
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
+import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.RenderUtil
-import net.minecraft.item.Item
+import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
 
 class ItemComponent(val state: State<ItemStack>) : UIComponent() {
 
-    constructor(stack: ItemStack) : this(BasicState(stack))
-    constructor(item: Item, metadata: Int = 0) : this(ItemStack(item, 1, metadata))
+    constructor(stack: ItemStack) : this(stateOf(stack))
+//    constructor(item: Item, metadata: Int = 0) : this(ItemStack(item, 1, metadata)) FIXME
 
     override fun draw(matrixStack: UMatrixStack) {
         beforeDraw(matrixStack)
@@ -40,17 +41,23 @@ class ItemComponent(val state: State<ItemStack>) : UIComponent() {
         matrixStack.translate(getLeft(), getTop(), 100f)
         //matrixStack.scale(getWidth() / 16f, getHeight() / 16f, 0f)
         UGraphics.color4f(1f, 1f, 1f, 1f)
+        // TODO: ensure this behaves as expected
         matrixStack.runWithGlobalState {
-            val item = state.get()
+            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+            val item = state.getUntracked()
             RenderUtil.renderItem(item, 0, 0)
 //            mc.renderItem.renderItemIntoGUI(item, 0, 0)
-            mc.itemRenderer.method_4022(
-                item.item.getFontRenderer(item) ?: mc.textRenderer,
+            mc.itemRenderer.renderItem(
                 item,
+                ItemDisplayContext.GUI,
+                15728880,
                 0,
-                0,
-                null
+                matrixStack.toMC(),
+                vertexConsumer,
+                null,
+                0
             )
+            vertexConsumer.draw()
         }
         matrixStack.pop()
         UGraphics.disableLighting()
