@@ -25,6 +25,7 @@ import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.core.SoundQueue
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
 
@@ -38,14 +39,14 @@ object LockOrb : EventSubscriber {
     fun onPacket(event: PacketSendEvent<*>) {
         if (!Utils.inSkyblock || !Skytils.config.powerOrbLock) return
         if (event.packet !is PlayerInteractBlockC2SPacket) return
-        val itemId = getSkyBlockItemID(mc.player.method_0_7087()) ?: return
+        val itemId = getSkyBlockItemID(mc.player?.mainHandStack) ?: return
         if (!itemId.endsWith("_POWER_ORB")) return
         val heldOrb = PowerOrbs.getPowerOrbMatchingItemId(itemId) ?: return
-        val orbs = mc.world.entities.filterIsInstance<ArmorStandEntity>().mapNotNull {
-            val name = it.displayName.method_10865()
+        val orbs = mc.world?.entities?.filterIsInstance<ArmorStandEntity>()?.mapNotNull {
+            val name = it.displayName?.formattedText ?: return@mapNotNull null
             val orb = PowerOrbs.getPowerOrbMatchingName(name) ?: return@mapNotNull null
             Triple(it, orb, name)
-        }
+        } ?: return
         for ((orbEntity, orb, name) in orbs) {
             if (orb.ordinal >= heldOrb.ordinal) {
                 val remainingTime = orbTimeRegex.find(name)?.groupValues?.get(1)?.toInt() ?: continue
