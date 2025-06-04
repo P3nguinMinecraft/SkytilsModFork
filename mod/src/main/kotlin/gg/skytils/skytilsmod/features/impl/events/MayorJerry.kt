@@ -17,6 +17,14 @@
  */
 package gg.skytils.skytilsmod.features.impl.events
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.layoutdsl.row
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.combinators.and
+import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.state.v2.stateUsingSystemTime
 import gg.essential.universal.UChat
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -24,28 +32,30 @@ import gg.skytils.event.impl.play.ChatMessageReceivedEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.GuiManager.createTitle
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.features.impl.trackers.impl.MayorJerryTracker
+import gg.skytils.skytilsmod.gui.layout.text
+import gg.skytils.skytilsmod.gui.profile.components.ItemComponent
 import gg.skytils.skytilsmod.utils.NumberUtil
-import gg.skytils.skytilsmod.utils.RenderUtil.renderItem
+import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
-import kotlin.time.Duration.Companion.milliseconds
+import java.awt.Color
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 object MayorJerry : EventSubscriber {
 
     private val jerryType = Regex("(\\w+)(?=\\s+Jerry)")
-    var lastJerry = -1L
+    val lastJerryState = mutableStateOf(Instant.MAX)
 
     init {
-        JerryPerkGuiElement()
-        JerryTimerGuiElement()
+        Skytils.guiManager.registerElement(JerryPerkHud())
+        Skytils.guiManager.registerElement(HiddenJerryTimerHud())
     }
 
     override fun setup() {
@@ -56,21 +66,23 @@ object MayorJerry : EventSubscriber {
         if (!Utils.inSkyblock) return
         if (!Skytils.config.hiddenJerryTimer && !Skytils.config.hiddenJerryAlert && !Skytils.config.trackHiddenJerry) return
         val unformatted = event.message.string.stripControlCodes()
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
         if (formatted.startsWith("§b ☺ §e") && unformatted.contains("Jerry") && !unformatted.contains(
                 "Jerry Box"
             )
         ) {
             val match = jerryType.find(formatted)
             if (match != null) {
-                if (Skytils.config.hiddenJerryTimer && lastJerry != -1L) UChat.chat(
+                val lastJerry = lastJerryState.getUntracked()
+                val now = Instant.now()
+                if (Skytils.config.hiddenJerryTimer && lastJerry.isBefore(now)) UChat.chat(
                     "§bIt has been ${
                         NumberUtil.nf.format(
-                            (System.currentTimeMillis() - lastJerry) / 1000.0
+                            lastJerry.until(now, ChronoUnit.SECONDS)
                         )
                     } seconds since the last Jerry."
                 )
-                lastJerry = System.currentTimeMillis()
+                lastJerryState.set { now }
                 val color = match.groups[1]!!.value
                 MayorJerryTracker.onJerry("§$color Jerry")
                 if (Skytils.config.hiddenJerryAlert) {
@@ -80,99 +92,59 @@ object MayorJerry : EventSubscriber {
         }
     }
 
-    class JerryPerkGuiElement : GuiElement("Mayor Jerry Perk Display", x = 10, y = 10) {
-        override fun render() {
-            if (Utils.inSkyblock && toggled && MayorInfo.currentMayor == "Jerry") {
-                if (MayorInfo.jerryMayor == null || MayorInfo.newJerryPerks <= System.currentTimeMillis()) {
-                    ScreenRenderer.fontRenderer.drawString("Visit Jerry!", 0f, 0f, CommonColors.RED)
-                } else {
-                    val timeUntilNext = (MayorInfo.newJerryPerks - System.currentTimeMillis()).milliseconds
-                    ScreenRenderer.fontRenderer.drawString(
+    class JerryPerkHud : HudElement("Mayor Jerry Perk Display", 10f, 10f) {
+        val diff = stateUsingSystemTime { time -> time.until(MayorInfo.newJerryPerksState()) }
+        override fun LayoutScope.render() {
+            if_(SBInfo.skyblockState and { MayorInfo.currentMayorState() == "Jerry" }) {
+                if_(stateUsingSystemTime{ time -> MayorInfo.jerryMayorState() == null || diff().getValue().isPositive }) {
+                    text("Visit Jerry!", Modifier.color(Color.RED))
+                } `else`  {
+                    val timer = State {
                         "${MayorInfo.jerryMayor!!.name}: ${
-                            timeUntilNext.toComponents { hours, minutes, _, _ ->
-                                "${hours}h${minutes}m"
+                            diff().getValue().run { 
+                                "${toHoursPart()}h${toMinutesPart()}m"
                             }
-                        }",
-                        0f,
-                        0f,
-                        CommonColors.ORANGE,
-                        SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                        textShadow
-                    )
+                        }"
+                    }
+                    text(timer, Modifier.color(Color.ORANGE))
                 }
             }
         }
 
-        override fun demoRender() {
-            ScreenRenderer.fontRenderer.drawString(
-                "Paul (0:30)",
-                0f,
-                0f,
-                CommonColors.ORANGE,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            text("Paul (0:30)", Modifier.color(Color.ORANGE))
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Paul (0:30)")
-
-        override val toggled: Boolean
-            get() = Skytils.config.displayJerryPerks
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
-    class JerryTimerGuiElement : GuiElement("Hidden Jerry Timer", x = 10, y = 10) {
-        private val villagerEgg = ItemStack(Items.SPAWN_EGG, 1, 120)
-
-        override fun render() {
-            if (Utils.inSkyblock && toggled && lastJerry != -1L) {
-                renderItem(villagerEgg, 0, 0)
-                val elapsed = (System.currentTimeMillis() - lastJerry).milliseconds
-                ScreenRenderer.fontRenderer.drawString(
-                    elapsed.toComponents { minutes, seconds, _ ->
+    class HiddenJerryTimerHud : HudElement("Mayor Jerry Timer", 10f, 20f) {
+        private val villagerEgg = ItemStack(Items.VILLAGER_SPAWN_EGG)
+        override fun LayoutScope.render() {
+            val elapsed = stateUsingSystemTime { time -> time.until(lastJerryState()) }
+            if_(SBInfo.skyblockState and { elapsed().isNegative }) {
+                row {
+                    ItemComponent(villagerEgg)()
+                    text({
+                        val since = elapsed().getValue()
+                        val minutes = since.toMinutesPart()
                         "${if (minutes >= 6) "§a" else ""}${minutes}:${
                             "%02d".format(
-                                seconds
+                                since.toSecondsPart()
                             )
                         }"
-                    },
-                    20f,
-                    5f,
-                    CommonColors.ORANGE,
-                    SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                    textShadow
-                )
+                    }, Modifier.color(Color.ORANGE))
+
+                }
             }
         }
 
-        override fun demoRender() {
-            renderItem(villagerEgg, 0, 0)
-            ScreenRenderer.fontRenderer.drawString(
-                "0:30",
-                20f,
-                5f,
-                CommonColors.ORANGE,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            row {
+                ItemComponent(villagerEgg)()
+                text("0:30", Modifier.color(Color.ORANGE))
+            }
         }
 
-        override val height: Int
-            get() = 16
-        override val width: Int
-            get() = 20 + ScreenRenderer.fontRenderer.getWidth("0:30")
-
-        override val toggled: Boolean
-            get() = Skytils.config.hiddenJerryTimer
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
+
 }
