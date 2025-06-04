@@ -562,6 +562,7 @@ object Skytils : CoroutineScope, EventSubscriber {
         //$$        event.screen = old.parentScreen
         //$$    }
         //$$ }
+        //#endif
     }
 
     private fun checkSystemTime() {
