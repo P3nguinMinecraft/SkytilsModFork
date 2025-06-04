@@ -17,7 +17,8 @@
  */
 package gg.skytils.skytilsmod.features.impl.handlers
 
-import com.mojang.authlib.exceptions.AuthenticationException
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -38,30 +39,58 @@ import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.skytilsws.shared.packet.C2SPacketJerryVote
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.minecraft.screen.GenericContainerScreenHandler
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalUnit
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 object MayorInfo : EventSubscriber {
 
+    val FIVE_MINUTES = object : TemporalUnit {
+        val duration = Duration.ofMinutes(5)
+        override fun getDuration(): Duration? = duration
+
+        override fun isDurationEstimated(): Boolean = false
+
+        override fun isDateBased(): Boolean = false
+
+        override fun isTimeBased(): Boolean = true
+
+        override fun <R : Temporal?> addTo(temporal: R?, amount: Long): R? =
+            temporal?.plus(amount, this) as R?
+
+        override fun between(
+            temporal1Inclusive: Temporal,
+            temporal2Exclusive: Temporal?
+        ): Long =
+            temporal1Inclusive.until(temporal2Exclusive, this);
+    }
+
     val mayorData = HashSet<Mayor>()
 
-    var currentMayor: String? = null
+    val currentMayor: String?
+        get() = currentMayorState.getUntracked()
+    val currentMayorState: MutableState<String?> = mutableStateOf(null)
     var mayorPerks = HashSet<String>()
     var currentMinister: String? = null
     var ministerPerk: String? = null
     var allPerks = HashSet<String>()
 
-    var jerryMayor: Mayor? = null
+    val jerryMayor: Mayor?
+        get() = jerryMayorState.getUntracked()
+    val jerryMayorState: MutableState<Mayor?> = mutableStateOf(null)
     var newJerryPerks = 0L
+    val newJerryPerksState = mutableStateOf(Instant.MIN)
     private var lastCheckedElectionOver = 0L
     private var lastFetchedMayorData = 0L
 
@@ -78,7 +107,7 @@ object MayorInfo : EventSubscriber {
                     SoundQueue.addToQueue("random.orb", 0.8f, 1f, 2, true)
                     SoundQueue.addToQueue("random.orb", 0.8f, 1f, 3, true)
                 }
-                jerryMayor = null
+                jerryMayorState.set { null }
                 fetchJerryData()
             }
             if (System.currentTimeMillis() - lastFetchedMayorData > 24 * 60 * 60 * 1000) {
@@ -130,14 +159,14 @@ object MayorInfo : EventSubscriber {
                 val matcher = jerryNextPerkRegex.find(endingIn) ?: return
                 val timeLeft =
                     matcher.groups["h"]!!.value.toInt().hours + matcher.groups["m"]!!.value.toInt().minutes
-                val nextPerksNoRound = System.currentTimeMillis() + timeLeft.inWholeMilliseconds
-                val nextPerks = (nextPerksNoRound / 300000.0).roundToLong() * 300000L
-                if (jerryMayor != mayor || abs(nextPerks - newJerryPerks) > 60000) {
+                val nextPerksNoRound = Instant.now() + timeLeft.toJavaDuration()
+                val nextPerks = nextPerksNoRound.truncatedTo(FIVE_MINUTES)
+                if (jerryMayor != mayor || Instant.now().until(nextPerks, ChronoUnit.SECONDS) > 60) {
                     println("Jerry has ${mayor.name}'s perks ($perks) and is ending in $nextPerks ($${endingIn.stripControlCodes()})")
                     sendJerryData(mayor, nextPerks)
                 }
-                newJerryPerks = nextPerks
-                jerryMayor = mayor
+                newJerryPerksState.set { nextPerks }
+                jerryMayorState.set { mayor }
             }
         }
     }
@@ -148,10 +177,10 @@ object MayorInfo : EventSubscriber {
         val newMayor = json.decodeFromJsonElement<Mayor>(mayorObj)
         val newMinister = mayorObj["minister"]?.let { json.decodeFromJsonElement<Minister>(it) }
         tickTimer(1) {
-            currentMayor = newMayor.name
+            currentMayorState.set { newMayor.name }
             currentMinister = newMinister?.name
             lastFetchedMayorData = System.currentTimeMillis()
-            if (currentMayor != "Jerry") jerryMayor = null
+            if (currentMayor != "Jerry") jerryMayorState.set { null }
             mayorPerks.clear()
             mayorPerks.addAll(newMayor.perks.map { it.name })
             allPerks.clear()
@@ -165,13 +194,13 @@ object MayorInfo : EventSubscriber {
 
     fun fetchJerryData() = {} // no-op
 
-    fun sendJerryData(mayor: Mayor?, nextSwitch: Long) = Skytils.IO.launch {
-        if (mayor == null || nextSwitch <= System.currentTimeMillis()) return@launch
+    fun sendJerryData(mayor: Mayor?, nextSwitch: Instant) = Skytils.IO.launch {
+        if (mayor == null || nextSwitch.isBefore(Instant.now())) return@launch
         if (!Skytils.trustClientTime) {
             println("Client's time isn't trusted, skip sending jerry data.")
             return@launch
         }
-        WSClient.sendPacket(C2SPacketJerryVote(mayor.name, nextSwitch, System.currentTimeMillis()))
+        WSClient.sendPacket(C2SPacketJerryVote(mayor.name, nextSwitch.toEpochMilli(), System.currentTimeMillis()))
     }
 }
 

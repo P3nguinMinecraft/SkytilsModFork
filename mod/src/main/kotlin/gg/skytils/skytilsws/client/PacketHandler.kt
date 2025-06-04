@@ -121,7 +121,7 @@ object PacketHandler : IPacketHandler {
                 }
             }
             is S2CPacketJerryMayor -> {
-                MayorInfo.jerryMayor = MayorInfo.mayorData.find { it.name == packet.mayor }
+                MayorInfo.jerryMayorState.set { MayorInfo.mayorData.find { it.name == packet.mayor } }
                 MayorInfo.newJerryPerks = packet.endTime
                 if (MayorInfo.currentMayor != "Jerry") {
                     MayorInfo.fetchMayorData()
