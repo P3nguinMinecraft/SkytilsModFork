@@ -18,26 +18,31 @@
 
 package gg.skytils.skytilsmod.features.impl.trackers.impl
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
-import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import gg.skytils.skytilsmod.gui.layout.text
+import gg.skytils.skytilsmod.utils.SBInfo
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import java.awt.Color
 import java.io.Reader
 import java.io.Writer
 
 object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
 
     @Suppress("UNUSED")
-    enum class HiddenJerry(val type: String, val colorCode: String, var discoveredTimes: Long = 0L) {
+    enum class HiddenJerry(val type: String, val colorCode: String, val discoveredTimes: MutableState<Int> = mutableStateOf(0)) {
         GREEN("Green Jerry", "a"),
         BLUE("Blue Jerry", "9"),
         PURPLE("Purple Jerry", "5"),
@@ -55,7 +60,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
     }
 
     @Suppress("UNUSED")
-    enum class JerryBoxDrops(val dropName: String, val colorCode: String, var droppedAmount: Long = 0L) {
+    enum class JerryBoxDrops(val dropName: String, val colorCode: String, val droppedAmount: MutableState<Int> = mutableStateOf(0)) {
         COINS("Coins", "6"),
         FARMINGXP("Farming XP", "b"),
         FORAGINGXP("Foraging XP", "b"),
@@ -76,7 +81,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
 
     fun onJerry(type: String) {
         if (!Skytils.config.trackHiddenJerry) return
-        HiddenJerry.getFromString(type)!!.discoveredTimes++
+        HiddenJerry.getFromString(type)!!.discoveredTimes.set { it + 1 }
         markDirty<MayorJerryTracker>()
     }
 
@@ -86,12 +91,12 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Skytils.config.trackHiddenJerry) return
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
         val unformatted = event.message.string.stripControlCodes()
         if (!formatted.startsWith("§r§b ☺ ")) return
         if (formatted.startsWith("§r§b ☺ §r§eYou claimed ") && formatted.endsWith("§efrom the Jerry Box!§r")) {
             if (formatted.contains("coins")) {
-                JerryBoxDrops.COINS.droppedAmount += unformatted.replace(Regex("[^0-9]"), "").toLong()
+                JerryBoxDrops.COINS.droppedAmount.set { it + unformatted.replace(Regex("[^0-9]"), "").toInt() }
                 markDirty<MayorJerryTracker>()
             } else if (formatted.contains("XP")) {
                 val xpType = with(formatted) {
@@ -103,44 +108,44 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
                     }
                 }
                 if (xpType != null) {
-                    xpType.droppedAmount += unformatted.replace(Regex("[^0-9]"), "").toLong()
+                    xpType.droppedAmount.set { it + unformatted.replace(Regex("[^0-9]"), "").toInt() }
                     markDirty<MayorJerryTracker>()
                 }
             } else {
                 (JerryBoxDrops.entries.find {
                     formatted.contains(it.dropName)
-                } ?: return).droppedAmount++
+                } ?: return).droppedAmount.set { it + 1 }
                 markDirty<MayorJerryTracker>()
             }
             return
         }
-        if (formatted.endsWith("§r§ein a Jerry Box!§r") && formatted.contains(mc.player.name)) {
+        if (formatted.endsWith("§r§ein a Jerry Box!§r") && formatted.contains(mc.player!!.name.string)) {
             (JerryBoxDrops.entries.find {
                 formatted.contains(it.dropName)
-            } ?: return).droppedAmount++
+            } ?: return).droppedAmount.set { it + 1 }
             markDirty<MayorJerryTracker>()
         }
     }
 
     override fun resetLoot() {
-        HiddenJerry.entries.onEach { it.discoveredTimes = 0L }
-        JerryBoxDrops.entries.onEach { it.droppedAmount = 0L }
+        HiddenJerry.entries.onEach { it.discoveredTimes.set { 0 } }
+        JerryBoxDrops.entries.onEach { it.droppedAmount.set { 0 } }
     }
 
     // TODO: 5/3/2022  Redo this entire thing
     @Serializable
     private data class TrackerSave(
-        val jerry: Map<HiddenJerry, Long>,
-        val drops: Map<JerryBoxDrops, Long>
+        val jerry: Map<HiddenJerry, Int>,
+        val drops: Map<JerryBoxDrops, Int>
     )
 
     override fun read(reader: Reader) {
         val save = json.decodeFromString<TrackerSave>(reader.readText())
         HiddenJerry.entries.forEach {
-            it.discoveredTimes = save.jerry[it] ?: 0L
+            it.discoveredTimes.set { _ -> save.jerry[it] ?: 0 }
         }
         JerryBoxDrops.entries.forEach {
-            it.droppedAmount = save.drops[it] ?: 0L
+            it.droppedAmount.set { _ -> save.drops[it] ?: 0 }
         }
     }
 
@@ -148,8 +153,8 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
         writer.write(
             json.encodeToString(
                 TrackerSave(
-                    HiddenJerry.entries.associateWith(HiddenJerry::discoveredTimes),
-                    JerryBoxDrops.entries.associateWith(JerryBoxDrops::droppedAmount)
+                    HiddenJerry.entries.associateWith { jerry -> jerry.discoveredTimes.getUntracked() },
+                    JerryBoxDrops.entries.associateWith { drop -> drop.droppedAmount.getUntracked() }
                 )
             )
         )
@@ -160,70 +165,28 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
     }
 
     init {
-        JerryTrackerElement()
+        Skytils.guiManager.registerElement(JerryTrackerHud())
     }
 
-    class JerryTrackerElement : GuiElement("Mayor Jerry Tracker", x = 150, y = 120) {
-        override fun render() {
-            if (toggled && Utils.inSkyblock) {
-
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                val alignment =
-                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-                var drawnLines = 0
-                for (jerry in HiddenJerry.entries) {
-                    if (jerry.discoveredTimes == 0L) continue
-                    ScreenRenderer.fontRenderer.drawString(
-                        "§${jerry.colorCode}${jerry.type}§f: ${jerry.discoveredTimes}",
-                        if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                        CommonColors.WHITE,
-                        alignment,
-                        textShadow
-                    )
-                    drawnLines++
+    class JerryTrackerHud : HudElement("Mayor Jerry Tracker", 150f, 120f) {
+        override fun LayoutScope.render() {
+            if_(SBInfo.skyblockState) {
+                HiddenJerry.entries.forEach { jerry ->
+                    if_({ jerry.discoveredTimes() != 0 }) {
+                        text({ "§${jerry.colorCode}${jerry.type}§f: ${jerry.discoveredTimes()}" })
+                    }
                 }
-                for (drop in JerryBoxDrops.entries) {
-                    if (drop.droppedAmount == 0L) continue
-                    ScreenRenderer.fontRenderer.drawString(
-                        "§${drop.colorCode}${drop.dropName}§f: ${drop.droppedAmount}",
-                        if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                        CommonColors.WHITE,
-                        alignment,
-                        textShadow
-                    )
-                    drawnLines++
+                JerryBoxDrops.entries.forEach { drop ->
+                    if_({ drop.droppedAmount() != 0 }) {
+                        text({ "§${drop.colorCode}${drop.dropName}§f: ${drop.droppedAmount()}" })
+                    }
                 }
             }
         }
 
-        override fun demoRender() {
-
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val alignment =
-                if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "Jerry Tracker",
-                if (leftAlign) 0f else width.toFloat(),
-                0f,
-                CommonColors.YELLOW,
-                alignment,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            text("Jerry Tracker", Modifier.color(Color.YELLOW))
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Jerry Tracker")
-
-        override val toggled: Boolean
-            get() = Skytils.config.trackHiddenJerry
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
-
 }
