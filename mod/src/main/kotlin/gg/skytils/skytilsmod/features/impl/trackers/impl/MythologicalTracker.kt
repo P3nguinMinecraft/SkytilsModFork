@@ -18,32 +18,43 @@
 
 package gg.skytils.skytilsmod.features.impl.trackers.impl
 
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UTextComponent
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.combinators.and
+import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.universal.UChat
+import gg.essential.universal.UDesktop
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.core.SoundQueue
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.events.GriffinBurrows
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.nf
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
 import java.io.Reader
 import java.io.Writer
 import java.util.*
 import kotlin.math.pow
 import kotlinx.serialization.Serializable
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.text.Style
+import net.minecraft.text.Text
+import java.awt.Color
+import kotlin.jvm.optionals.getOrDefault
+import kotlin.jvm.optionals.getOrNull
 
 object MythologicalTracker : EventSubscriber, Tracker("mythological") {
 
@@ -52,10 +63,10 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
 
     private val seenUUIDs = WeakHashMap<String, Boolean>().asSet
 
-    var burrowsDug = 0L
+    val burrowsDugState = mutableStateOf(0L)
 
     init {
-        MythologicalTrackerElement
+        Skytils.guiManager.registerElement(MythologicalTrackerHud)
     }
 
     @Suppress("UNUSED")
@@ -65,7 +76,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
         val rarity: ItemRarity,
         val isChat: Boolean = false,
         val mobDrop: Boolean = false,
-        var droppedTimes: Long = 0L
+        var droppedTimes: MutableState<Long> = mutableStateOf(0L)
     ) {
         REMEDIES("ANTIQUE_REMEDIES", "Antique Remedies", ItemRarity.EPIC),
 
@@ -96,7 +107,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
         val mobName: String,
         val mobId: String,
         val plural: Boolean = false,
-        var dugTimes: Long = 0L,
+        var dugTimes: MutableState<Long> = mutableStateOf(0L)
     ) {
 
         GAIA("Gaia Construct", "GAIA_CONSTRUCT"),
@@ -124,36 +135,36 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (!Utils.inSkyblock || (!Skytils.config.trackMythEvent && !Skytils.config.broadcastMythCreatureDrop)) return
         when (event.packet) {
-            is GameMessageS2CPacket -> {
-                if (event.packet.type == 2.toByte() || !Skytils.config.trackMythEvent) return
-                val unformatted = event.packet.message.string.stripControlCodes()
+            is ChatMessageS2CPacket -> {
+                if (!Skytils.config.trackMythEvent) return
+                val unformatted = event.packet.unsignedContent?.string?.stripControlCodes() ?: return
                 if (unformatted.startsWith("RARE DROP! You dug out a ")) {
                     rareDugDrop.matchEntire(unformatted)?.let {
-                        (BurrowDrop.getFromName(it.groups[1]?.value ?: return) ?: return).droppedTimes++
+                        (BurrowDrop.getFromName(it.groups[1]?.value ?: return) ?: return).droppedTimes.set { it + 1 }
                         markDirty<MythologicalTracker>()
                     }
                 } else if (unformatted.startsWith("Wow! You dug out ") && unformatted.endsWith(
                         " coins!"
                     )
                 ) {
-                    BurrowDrop.COINS.droppedTimes += unformatted.replace(Regex("[^\\d]"), "").toLong()
+                    BurrowDrop.COINS.droppedTimes.set { it + unformatted.replace(Regex("[^\\d]"), "").toLong() }
                 } else if (unformatted.contains("! You dug out ")) {
-                    mythCreatureDug.matchEntire(unformatted)?.let {
-                        val mob = BurrowMob.getFromName(it.groups[1]?.value ?: return) ?: return
-                        mob.dugTimes++
+                    mythCreatureDug.matchEntire(unformatted)?.let { matchResult ->
+                        val mob = BurrowMob.getFromName(matchResult.groups[1]?.value ?: return) ?: return
+                        mob.dugTimes.set { it + 1 }
                         markDirty<MythologicalTracker>()
                     }
                 } else if (unformatted.endsWith("/4)") && (unformatted.startsWith("You dug out a Griffin Burrow! (") || unformatted.startsWith(
                         "You finished the Griffin burrow chain! (4"
                     ))
                 ) {
-                    burrowsDug++
+                    burrowsDugState.set { it + 1 }
                     markDirty<MythologicalTracker>()
                 } else if (unformatted.startsWith("RARE DROP! ")) {
                     for (drop in BurrowDrop.entries) {
                         if (!drop.mobDrop) continue
                         if (unformatted.startsWith("RARE DROP! ${drop.itemName}")) {
-                            drop.droppedTimes++
+                            drop.droppedTimes.set { it + 1 }
                             markDirty<MythologicalTracker>()
                             break
                         }
@@ -163,21 +174,23 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
 
             is ScreenHandlerSlotUpdateS2CPacket -> {
                 val item = event.packet.stack ?: return
-                if (event.packet.syncId != 0 || mc.player == null || mc.player.age <= 1 || mc.player?.currentScreenHandler != mc.player?.playerScreenHandler) return
+                val player = mc.player ?: return
+                if (event.packet.syncId != 0 || player.age <= 1 || mc.player?.currentScreenHandler != mc.player?.playerScreenHandler) return
                 val drop = BurrowDrop.getFromId(AuctionData.getIdentifier(item)) ?: return
                 if (drop.isChat || drop.mobDrop) return
                 val extraAttr = ItemUtil.getExtraAttributes(item) ?: return
                 if (!extraAttr.contains("timestamp")) return
-                if (!seenUUIDs.add(extraAttr.getString("uuid"))) return
-                val time = extraAttr.getLong("timestamp")
+                if (!seenUUIDs.add(extraAttr.getString("uuid").getOrNull())) return
+                val time = extraAttr.getLong("timestamp").getOrDefault(0)
                 if (System.currentTimeMillis() - time > 6000) return
                 if (Skytils.config.broadcastMythCreatureDrop) {
                     val text = "§6§lRARE DROP! ${drop.rarity.baseColor}${drop.itemName} §b(Skytils User Luck!)"
-                    if (Skytils.config.autoCopyRNGDrops) Screen.method_0_2797(text.stripControlCodes())
-                    UTextComponent(text)
-                        .setClick(MCClickEventAction.RUN_COMMAND, "/skytilscopy ${text.stripControlCodes()}")
-                        .setHoverText("§aClick to copy to clipboard.")
-                        .chat()
+                    if (Skytils.config.autoCopyRNGDrops) UDesktop.setClipboardString(text.stripControlCodes())
+                    Text.literal(text)
+                        .setStyle(
+                            Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/skytilscopy ${text.stripControlCodes()}"))
+                                .withHoverEvent(HoverEvent.ShowText(Text.literal("§aClick to copy to clipboard.")))
+                        ).run(UChat::chat)
                     SoundQueue.addToQueue(
                         SoundQueue.QueuedSound(
                             "note.pling",
@@ -211,7 +224,7 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
                     )
                 }
                 if (Skytils.config.trackMythEvent) {
-                    drop.droppedTimes++
+                    drop.droppedTimes.set { it + 1 }
                     markDirty<MythologicalTracker>()
                 }
             }
@@ -219,9 +232,9 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
     }
 
     override fun resetLoot() {
-        burrowsDug = 0L
-        BurrowDrop.entries.forEach { it.droppedTimes = 0L }
-        BurrowMob.entries.forEach { it.dugTimes = 0L }
+        burrowsDugState.set { 0L }
+        BurrowDrop.entries.forEach { it.droppedTimes.set(0L) }
+        BurrowMob.entries.forEach { it.dugTimes.set(0L) }
     }
 
     // TODO: 5/3/2022 fix this
@@ -236,18 +249,18 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
 
     override fun read(reader: Reader) {
         val save = json.decodeFromString<TrackerSave>(reader.readText())
-        burrowsDug = save.burrowsDug
-        BurrowDrop.entries.forEach { it.droppedTimes = save.drops[it.itemId] ?: 0L }
-        BurrowMob.entries.forEach { it.dugTimes = save.mobs[it.mobId] ?: 0L }
+        burrowsDugState.set { save.burrowsDug }
+        BurrowDrop.entries.forEach { it.droppedTimes.set(save.drops[it.itemId] ?: 0L) }
+        BurrowMob.entries.forEach { it.dugTimes.set(save.mobs[it.mobId] ?: 0L) }
     }
 
     override fun write(writer: Writer) {
         writer.write(
             json.encodeToString(
                 TrackerSave(
-                    burrowsDug,
-                    BurrowDrop.entries.associate { it.itemId to it.droppedTimes },
-                    BurrowMob.entries.associate { it.mobId to it.dugTimes }
+                    burrowsDugState.getUntracked(),
+                    BurrowDrop.entries.associate { it.itemId to it.droppedTimes.getUntracked() },
+                    BurrowMob.entries.associate { it.mobId to it.dugTimes.getUntracked() }
                 )
             )
         )
@@ -257,98 +270,37 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
         write(writer)
     }
 
-    object MythologicalTrackerElement : GuiElement("Mythological Tracker", x = 150, y = 120) {
-        override fun render() {
-            if (toggled && Utils.inSkyblock && GriffinBurrows.hasSpadeInHotbar && SBInfo.mode == SkyblockIsland.Hub.mode) {
-
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                val alignment =
-                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-                ScreenRenderer.fontRenderer.drawString(
-                    "Burrows Dug§f: ${nf.format(burrowsDug)}",
-                    if (leftAlign) 0f else width.toFloat(),
-                    0f,
-                    CommonColors.YELLOW,
-                    alignment,
-                    textShadow
-                )
-                var drawnLines = 1
-                for (mob in BurrowMob.entries) {
-                    if (mob.dugTimes == 0L) continue
-                    ScreenRenderer.fontRenderer.drawString(
-                        "${mob.mobName}§f: ${nf.format(mob.dugTimes)}",
-                        if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                        CommonColors.CYAN,
-                        alignment,
-                        textShadow
-                    )
-                    drawnLines++
-                }
-                for (item in BurrowDrop.entries) {
-                    if (item.droppedTimes == 0L) continue
-                    ScreenRenderer.fontRenderer.drawString(
-                        "${item.rarity.baseColor}${item.itemName}§f: §r${nf.format(item.droppedTimes)}",
-                        if (leftAlign) 0f else width.toFloat(),
-                        (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                        CommonColors.CYAN,
-                        alignment,
-                        textShadow
-                    )
-                    drawnLines++
+    object MythologicalTrackerHud : HudElement("Mythological Tracker", 150f, 120f) {
+        override fun LayoutScope.render() {
+            if_(SBInfo.skyblockState and GriffinBurrows.hasSpadeInHotbarState and { SBInfo.modeState() == SkyblockIsland.Hub.mode }) {
+                column {
+                    text({ "Burrows Dug§f: ${nf.format(burrowsDugState())}" }, Modifier.color(Color.YELLOW))
+                    BurrowMob.entries.forEach { mob ->
+                        if_({ mob.dugTimes() == 0L }) {
+                            text({ "${mob.mobName}§f: ${nf.format(mob.dugTimes())}" }, Modifier.color(Color.CYAN))
+                        }
+                    }
+                    BurrowDrop.entries.forEach { item ->
+                        if_({ item.droppedTimes() == 0L }) {
+                            text({ "${item.rarity.baseColor}${item.itemName}§f: §r${nf.format(item.droppedTimes())}" }, Modifier.color(Color.CYAN))
+                        }
+                    }
                 }
             }
         }
 
-        override fun demoRender() {
-
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val alignment =
-                if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "Burrows Dug§f: 1000",
-                if (leftAlign) 0f else width.toFloat(),
-                0f,
-                CommonColors.YELLOW,
-                alignment,
-                textShadow
-            )
-            var drawnLines = 1
-            for (mob in BurrowMob.entries) {
-                ScreenRenderer.fontRenderer.drawString(
-                    "${mob.mobName}§f: 100",
-                    if (leftAlign) 0f else width.toFloat(),
-                    (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                    CommonColors.CYAN,
-                    alignment,
-                    textShadow
-                )
-                drawnLines++
-            }
-            for (item in BurrowDrop.entries) {
-                ScreenRenderer.fontRenderer.drawString(
-                    "${item.rarity.baseColor}${item.itemName}§f: §r100",
-                    if (leftAlign) 0f else width.toFloat(),
-                    (drawnLines * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                    CommonColors.CYAN,
-                    alignment,
-                    textShadow
-                )
-                drawnLines++
+        override fun LayoutScope.demoRender() {
+            column {
+                text("Burrows Dug§f: 1000", Modifier.color(Color.YELLOW))
+                BurrowMob.entries.forEach { mob ->
+                    text("${mob.mobName}§f: 100", Modifier.color(Color.CYAN))
+                }
+                BurrowDrop.entries.forEach { item ->
+                    text("${item.rarity.baseColor}${item.itemName}§f: §r100", Modifier.color(Color.CYAN))
+                }
             }
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * 17
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Crochet Tiger Plushie: 100")
-
-        override val toggled: Boolean
-            get() = Skytils.config.trackMythEvent
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
 }
