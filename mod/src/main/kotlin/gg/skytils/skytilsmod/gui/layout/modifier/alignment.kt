@@ -27,6 +27,10 @@ import gg.essential.elementa.dsl.pixels
 import gg.essential.elementa.layoutdsl.*
 
 class OffsetMouseAlignment(val x: Float = 0f, val y: Float = 0f) : Alignment {
+    override fun align(parentSize: Float, childSize: Float): Float {
+        throw IllegalStateException("Should never be reached")
+    }
+
     override fun applyHorizontal(component: UIComponent): () -> Unit {
         return BasicXModifier { MousePositionConstraint() + x.pixels }.applyToComponent(component)
     }
@@ -36,14 +40,4 @@ class OffsetMouseAlignment(val x: Float = 0f, val y: Float = 0f) : Alignment {
     }
 }
 
-private class BasicAlignment(private val constraintFactory: () -> PositionConstraint) : Alignment {
-    override fun applyHorizontal(component: UIComponent): () -> Unit {
-        return BasicXModifier(constraintFactory).applyToComponent(component)
-    }
-
-    override fun applyVertical(component: UIComponent): () -> Unit {
-        return BasicYModifier(constraintFactory).applyToComponent(component)
-    }
-}
-
-fun Alignment.Companion.Relative(percent: Float): Alignment = BasicAlignment { RelativeConstraint(percent) }
+fun Alignment.Companion.Relative(percent: Float): Alignment = Alignment { parent, _ -> parent * percent}
