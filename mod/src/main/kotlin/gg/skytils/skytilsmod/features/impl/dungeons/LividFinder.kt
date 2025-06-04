@@ -18,6 +18,9 @@
 
 package gg.skytils.skytilsmod.features.impl.dungeons
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
@@ -27,32 +30,26 @@ import gg.skytils.event.impl.world.BlockStateUpdateEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
-import gg.skytils.skytilsmod.core.tickTask
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.printDevMessage
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.sync.Mutex
-import net.minecraft.class_0_308
+import net.minecraft.block.BlockState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.util.DyeColor
-import net.minecraft.entity.effect.StatusEffect
+import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.Formatting
-import net.minecraft.world.World
 import java.awt.Color
 
 object LividFinder : EventSubscriber {
     private var foundLivid = false
     var livid: Entity? = null
-    private var lividTag: Entity? = null
+    private val lividTag: MutableState<Entity?> = mutableStateOf(null)
     private val lividBlock = BlockPos(13, 107, 25)
     private var lock = Mutex()
 
@@ -90,15 +87,15 @@ object LividFinder : EventSubscriber {
 
     fun onTick(event: TickEvent) {
         if (mc.player == null || !Utils.inDungeons || DungeonFeatures.dungeonFloorNumber != 5 || !DungeonFeatures.hasBossSpawned || !Skytils.config.findCorrectLivid) return
-        val blindnessDuration = mc.player.getStatusEffect(StatusEffect.field_0_7290)?.duration
+        val blindnessDuration = mc.player?.getStatusEffect(StatusEffects.BLINDNESS)?.duration
         if ((!foundLivid || DungeonFeatures.dungeonFloor == "M5") && blindnessDuration != null) {
             if (lock.tryLock()) {
                 printDevMessage("Starting livid job", "livid")
                 tickTimer(blindnessDuration) {
                     runCatching {
-                        if (mc.player.age > blindnessDuration) {
-                            val state = mc.world.getBlockState(lividBlock)
-                            val color = state.testProperty(class_0_308.field_0_1192)
+                        if ((mc.player?.age ?: 0) > blindnessDuration) {
+                            val state = mc.world?.getBlockState(lividBlock) ?: return@runCatching
+                            val color = state.dyeColor ?: return@runCatching
                             val mapped = dyeToChar[color]
                             getLivid(color, mapped)
                         } else printDevMessage("Player changed worlds?", "livid")
@@ -108,7 +105,7 @@ object LividFinder : EventSubscriber {
             } else printDevMessage("Livid job already started", "livid")
         }
 
-        if (lividTag?.isRemoved == true || livid?.isRemoved == true) {
+        if (lividTag.getUntracked()?.isRemoved == true || livid?.isRemoved == true) {
             printDevMessage("Livid is dead?", "livid")
         }
     }
@@ -118,10 +115,10 @@ object LividFinder : EventSubscriber {
         if (event.pos == lividBlock) {
             printDevMessage("Livid block changed", "livid")
             printDevMessage("block detection started", "livid")
-            val color = event.update.testProperty(class_0_308.field_0_1192)
+            val color = event.update.dyeColor ?: return
             val mapped = dyeToChar[color]
-            printDevMessage({ "before blind ${color}" }, "livid")
-            val blindnessDuration = mc.player.getStatusEffect(StatusEffect.field_0_7290)?.duration
+            printDevMessage({ "before blind $color" }, "livid")
+            val blindnessDuration = mc.player?.getStatusEffect(StatusEffects.BLINDNESS)?.duration
             tickTimer(blindnessDuration ?: 2) {
                 getLivid(color, mapped)
                 printDevMessage("block detection done", "livid")
@@ -129,8 +126,9 @@ object LividFinder : EventSubscriber {
         }
     }
 
-    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*>) {
+    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*, *, *>) {
         if (!Utils.inDungeons) return
+        val lividTag = lividTag.getUntracked()
         if ((event.entity == lividTag) || (lividTag == null && event.entity == livid)) {
             val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
             val aabb = livid?.boundingBox ?: Box(
@@ -151,7 +149,7 @@ object LividFinder : EventSubscriber {
         }
     }
     fun onWorldChange(event: WorldUnloadEvent) {
-        lividTag = null
+        lividTag.set(null)
         livid = null
         foundLivid = false
     }
@@ -163,11 +161,11 @@ object LividFinder : EventSubscriber {
             return
         }
 
-        for (entity in mc.world.entities) {
-            if (entity !is ArmorStandEntity) continue
-            if (entity.customName.startsWith("$mappedColor﴾ $mappedColor§lLivid")) {
-                lividTag = entity
-                livid = mc.world.players.find { it.name == "$lividType Livid" }
+        mc.world?.entities?.forEach { entity ->
+            if (entity !is ArmorStandEntity) return@forEach
+            if (entity.customName?.formattedText?.startsWith("$mappedColor﴾ $mappedColor§lLivid") == true) {
+                lividTag.set(entity)
+                livid = mc.world?.players?.find { it.name.string == "$lividType Livid" }
                 foundLivid = true
                 return
             }
@@ -175,54 +173,25 @@ object LividFinder : EventSubscriber {
         printDevMessage("No livid found!", "livid")
     }
 
-    internal class LividGuiElement : GuiElement("Livid HP", x = 0.05f, y = 0.4f) {
-        override fun render() {
-            val player = mc.player
-            val world: World? = mc.world
-            if (toggled && Utils.inDungeons && player != null && world != null) {
-                if (lividTag == null) return
+    private val BlockState.dyeColor
+        get() = block.defaultMapColor.let { mapColor -> DyeColor.entries.find { it.mapColor == mapColor } }
 
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                val alignment = if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-                ScreenRenderer.fontRenderer.drawString(
-                    lividTag!!.name.replace("§l", ""),
-                    if (leftAlign) 0f else width.toFloat(),
-                    0f,
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
+    private class LividHud : HudElement("Livid HP", 10f, 160f) {
+        override fun LayoutScope.render() {
+            if_(SBInfo.dungeonsState) {
+                ifNotNull(lividTag) { lividTag ->
+                    text(lividTag.name.formattedText.replace("§l", ""))
+                }
             }
         }
 
-        override fun demoRender() {
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val text = "§r§f﴾ Livid §e6.9M§c❤ §f﴿"
-            val alignment = if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                text,
-                if (leftAlign) 0f else 0f + width,
-                0f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            text("§r§f﴾ Livid §e6.9M§c❤ §f﴿")
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§r§f﴾ Livid §e6.9M§c❤ §f﴿")
-
-        override val toggled: Boolean
-            get() = Skytils.config.findCorrectLivid
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
     init {
-        LividGuiElement()
+        Skytils.guiManager.registerElement(LividHud())
     }
 }
