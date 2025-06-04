@@ -32,8 +32,10 @@ import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.baseMaxHealth
+import gg.skytils.skytilsmod.utils.toVec3
 import net.minecraft.entity.passive.IronGolemEntity
-import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
+import net.minecraft.sound.SoundEvents
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import java.awt.Color
@@ -51,12 +53,12 @@ object MayorDiana : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.trackGaiaHits && event.packet is PlaySoundIdS2CPacket) {
-            if (event.packet.volume == 0.8f && event.packet.method_11460() == "random.anvil_land") {
-                val pos = BlockPos(event.packet.x, event.packet.y, event.packet.z)
-                val golem = (mc.world.entities.filter {
-                    it is IronGolemEntity && it.health > 0 && it.method_5831(pos) <= 25 * 25
-                }.minByOrNull { it.method_5831(pos) } ?: return) as IronGolemEntity
+        if (Skytils.config.trackGaiaHits && event.packet is PlaySoundS2CPacket) {
+            if (event.packet.volume == 0.8f && event.packet.sound.value() == SoundEvents.BLOCK_ANVIL_LAND) {
+                val pos = BlockPos.ofFloored(event.packet.x, event.packet.y, event.packet.z)
+                val golem = (mc.world?.entities?.filter {
+                    it is IronGolemEntity && it.health > 0 && it.squaredDistanceTo(pos.toVec3()) <= 25 * 25
+                }?.minByOrNull { it.squaredDistanceTo(pos.toVec3()) } ?: return) as IronGolemEntity
                 gaiaConstructHits.compute(golem) { _: IronGolemEntity, i: Int? -> (i ?: 0) + 1 }
             }
         }
