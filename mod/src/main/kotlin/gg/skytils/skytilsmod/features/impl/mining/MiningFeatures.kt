@@ -17,12 +17,10 @@
  */
 package gg.skytils.skytilsmod.features.impl.mining
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.entity.BossBarSetEvent
 import gg.skytils.event.impl.play.BlockInteractEvent
@@ -41,15 +39,18 @@ import gg.skytils.skytilsmod.core.GuiManager.createTitle
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.block.Blocks
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.Style
+import net.minecraft.text.Text
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
 import java.awt.Color
 import java.util.regex.Pattern
+import kotlin.jvm.optionals.getOrNull
 
 object MiningFeatures : EventSubscriber {
 
@@ -74,7 +75,7 @@ object MiningFeatures : EventSubscriber {
 
     fun onBossBar(event: BossBarSetEvent) {
         if (!Utils.inSkyblock) return
-        val unformatted = event.data.displayName.string.stripControlCodes()
+        val unformatted = event.data.name.string.stripControlCodes()
         if (Skytils.config.raffleWarning) {
             if (unformatted.contains("EVENT")) {
                 eventPattern.find(unformatted)?.groups?.let {
@@ -96,7 +97,7 @@ object MiningFeatures : EventSubscriber {
 //    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
         val unformatted = event.message.string.stripControlCodes()
         if (Skytils.config.powerGhastPing) {
             if (unformatted.startsWith("Find the Powder Ghast near the")) {
@@ -177,7 +178,7 @@ object MiningFeatures : EventSubscriber {
         }
         if (Skytils.config.highlightCompletedCommissions && SBInfo.lastOpenContainerName.equals("Commissions")) {
             val item = event.slot.stack
-            if (item.name.startsWith("§6Commission #") && item.item == Items.WRITABLE_BOOK) {
+            if (item.name.formattedText.startsWith("§6Commission #") && item.item == Items.WRITABLE_BOOK) {
                 if (ItemUtil.getItemLore(item).any {
                         it == "§eClick to claim rewards!"
                     }) {
@@ -206,22 +207,22 @@ object MiningFeatures : EventSubscriber {
             val x = puzzlerSolution!!.x - viewerX
             val y = puzzlerSolution!!.y - viewerY
             val z = puzzlerSolution!!.z - viewerZ
-            RenderSystem.disableCull()
+            GlStateManager._disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 Box(x, y, z, x + 1, y + 1.01, z + 1),
                 Color(255, 0, 0, 200),
                 1f
             )
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
         if (Skytils.config.raffleWaypoint && inRaffle && raffleBox != null) {
-            RenderSystem.disableDepthTest()
-            RenderSystem.disableCull()
+            GlStateManager._disableDepthTest()
+            GlStateManager._disableCull()
             RenderUtil.renderWaypointText("Raffle Box", raffleBox!!, event.partialTicks, matrixStack)
-            RenderSystem.method_4406()
-            RenderSystem.enableDepthTest()
-            RenderSystem.enableCull()
+            // disable lighting
+            GlStateManager._enableDepthTest()
+            GlStateManager._enableCull()
         }
     }
 
@@ -230,18 +231,18 @@ object MiningFeatures : EventSubscriber {
             !Utils.inSkyblock ||
             event.packet !is TeamS2CPacket
         ) return
-        if (event.packet.mode != 2) return
+        if (event.packet.playerListOperation != null && event.packet.teamOperation != null) return
         if (
-            event.packet.playerList.joinToString(
+            event.packet.playerNames.joinToString(
                 " ",
-                prefix = event.packet.method_0_5600(),
-                postfix = event.packet.method_0_5601()
+                prefix = (event.packet.team.getOrNull()?.prefix?.formattedText ?: ""),
+                postfix = (event.packet.team.getOrNull()?.suffix?.formattedText ?: "")
             ).contains("12:00am") &&
             Skytils.config.skymallReminder && SBInfo.mode == SkyblockIsland.DwarvenMines.mode
         ) {
-            val message = UMessage("§cSkymall reset ")
-            message.append(UTextComponent("§b[HOTM]").setClick(MCClickEventAction.RUN_COMMAND, "/hotm"))
-            message.chat()
+            val message = Text.literal("§cSkymall reset ")
+            message.append(Text.literal("§b[HOTM]").setStyle(Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/hotm"))))
+            UChat.chat(message)
         }
     }
 
