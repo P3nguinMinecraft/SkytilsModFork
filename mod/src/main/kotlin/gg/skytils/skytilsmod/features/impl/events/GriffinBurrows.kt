@@ -19,6 +19,7 @@ package gg.skytils.skytilsmod.features.impl.events
 
 import com.google.common.collect.EvictingQueue
 import com.mojang.blaze3d.opengl.GlStateManager
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
@@ -63,7 +64,9 @@ object GriffinBurrows : EventSubscriber {
     var lastDugParticleBurrow: BlockPos? = null
     val recentlyDugParticleBurrows = EvictingQueue.create<BlockPos>(5)
 
-    var hasSpadeInHotbar = false
+    val hasSpadeInHotbar
+        get() = hasSpadeInHotbarState.getUntracked()
+    val hasSpadeInHotbarState = mutableStateOf(false)
     var lastSpadeUse = -1L
 
     object BurrowEstimation {
@@ -97,8 +100,10 @@ object GriffinBurrows : EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        hasSpadeInHotbar = mc.player != null && Utils.inSkyblock && (0..7).any {
-            mc.player?.inventory?.getStack(it)?.isSpade == true
+        hasSpadeInHotbarState.set {
+            mc.player != null && Utils.inSkyblock && (0..7).any {
+                mc.player?.inventory?.getStack(it)?.isSpade == true
+            }
         }
         if (!Skytils.config.burrowEstimation) return
         BurrowEstimation.guesses.entries.removeIf { (_, instant) ->
