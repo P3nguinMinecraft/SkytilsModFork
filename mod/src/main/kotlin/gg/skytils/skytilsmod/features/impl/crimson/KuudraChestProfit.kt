@@ -17,7 +17,6 @@
  */
 package gg.skytils.skytilsmod.features.impl.crimson
 
-import gg.essential.universal.UResolution
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -27,69 +26,106 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.IO
 import gg.skytils.skytilsmod.core.MC
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.handlers.KuudraPriceData
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.elementa.components.UIContainer
+import gg.essential.elementa.constraints.CopyConstraintFloat
+import gg.essential.elementa.dsl.boundTo
+import gg.essential.elementa.dsl.constrain
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.layout
+import gg.essential.elementa.state.v2.add
+import gg.essential.elementa.state.v2.clear
+import gg.essential.elementa.state.v2.mutableSetState
+import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.state.v2.toList
+import gg.essential.universal.UMatrixStack
+import gg.skytils.event.impl.screen.ScreenOpenEvent
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
-import java.util.TreeSet
+import java.awt.Color
+import kotlin.jvm.optionals.getOrNull
 
 
 /**
  * Modified version of [gg.skytils.skytilsmod.features.impl.dungeons.DungeonChestProfit]
  */
 object KuudraChestProfit : EventSubscriber {
-    private val element = KuudraChestProfitElement()
+    private val element = KuudraChestProfitHud()
+    init {
+        Skytils.guiManager.registerElement(element)
+    }
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
 
     override fun setup() {
         register(::onGUIDrawnEvent)
         register(::onWorldChange)
         register(::onSlotClick, EventPriority.Highest)
+        register(::onGuiOpen)
     }
 
     fun onGUIDrawnEvent(event: GuiContainerForegroundDrawnEvent) {
         if (!Skytils.config.kuudraChestProfit || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
-        val inv = (event.container as? GenericContainerScreenHandler ?: return).inventory
 
         if (event.chestName.endsWith(" Chest")) {
-            val chestType = KuudraChest.getFromName(event.chestName) ?: return
-            val openChest = inv.getStack(31) ?: return
-            if (openChest.name == "§aOpen Reward Chest" && chestType.items.isEmpty()) {
-                runCatching {
-                    val key = getKeyNeeded(ItemUtil.getItemLore(openChest))
-                    chestType.keyNeeded = key
-                    for (i in 9..17) {
-                        val lootSlot = inv.getStack(i) ?: continue
-                        chestType.addItem(lootSlot)
-                    }
-                    if (key != null && Skytils.config.kuudraChestProfitCountsKey) {
-                        val faction = KuudraFeatures.myFaction ?: error("Failed to get Crimson Faction")
-                        val keyCost = key.getPrice(faction)
-                        chestType.items.add(KuudraChestLootItem(1, "${key.rarity.baseColor}${key.displayName} §7(${faction.color}${faction.identifier}§7)", -keyCost))
-                        chestType.value -= keyCost
-                    }
-                }
-            }
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4412(
+            val matrixStack = UMatrixStack.Compat.get()
+            matrixStack.push()
+            matrixStack.translate(
                 (-(event.gui as AccessorGuiContainer).guiLeft).toDouble(),
                 -(event.gui as AccessorGuiContainer).guiTop.toDouble(),
                 299.0
             )
-            drawChestProfit(chestType)
-            RenderSystem.popMatrix()
+            matrixStack.runWithGlobalState {
+                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+                // disable lighting
+                val matrixStack = UMatrixStack.Compat.get()
+                element.inChestComponent.drawCompat(matrixStack)
+            }
+            matrixStack.pop()
+        }
+    }
+
+    // TODO: Ensure this rewrite works as expected
+    fun onGuiOpen(event: ScreenOpenEvent) {
+        if (element.currentlyDisplayingChest.getUntracked() != null && event.screen == null) {
+            element.currentlyDisplayingChest.set(null)
+        } else {
+            if (!Skytils.config.kuudraChestProfit || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
+            (event.screen as? GenericContainerScreen)?.let { container ->
+                val inv = container.screenHandler.inventory
+                val chestName = container.title.string
+                if (chestName.endsWith(" Chest")) {
+                    val chestType = KuudraChest.getFromName(chestName) ?: return
+                    val openChest = inv.getStack(31) ?: return
+                    if (openChest.name.formattedText == "§aOpen Reward Chest" && chestType.items.getUntracked().isEmpty()) {
+                        runCatching {
+                            val key = getKeyNeeded(ItemUtil.getItemLore(openChest))
+                            chestType.keyNeeded = key
+                            for (i in 9..17) {
+                                val lootSlot = inv.getStack(i) ?: continue
+                                chestType.addItem(lootSlot)
+                            }
+                            if (key != null && Skytils.config.kuudraChestProfitCountsKey) {
+                                val faction = KuudraFeatures.myFaction ?: error("Failed to get Crimson Faction")
+                                val keyCost = key.getPrice(faction)
+                                chestType.items.add(KuudraChestLootItem(1, "${key.rarity.baseColor}${key.displayName} §7(${faction.color}${faction.identifier}§7)", -keyCost))
+                                chestType.value.set { it - keyCost }
+                            }
+                        }
+                    }
+                    element.currentlyDisplayingChest.set(chestType)
+                }
+            }
         }
     }
 
@@ -113,40 +149,6 @@ object KuudraChestProfit : EventSubscriber {
         return (AuctionData.lowestBINs["ESSENCE_$type"] ?: 0.0) * count
     }
 
-    private fun drawChestProfit(chest: KuudraChest) {
-        if (chest.items.size > 0) {
-            val leftAlign = element.scaleX < UResolution.scaledWidth / 2f
-            val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-            RenderSystem.method_4406()
-            var drawnLines = 1
-
-            ScreenRenderer.fontRenderer.drawString(
-                chest.displayText + "§f: §" + (if (chest.value > 0) "a" else "c") + NumberUtil.nf.format(
-                    chest.value
-                ),
-                if (leftAlign) element.scaleX else element.scaleX + element.width,
-                element.scaleY,
-                chest.displayColor,
-                alignment,
-                textShadow_
-            )
-
-            for (item in chest.items) {
-                val line = "§8${item.stackSize} §r".toStringIfTrue(item.stackSize > 1) + item.displayText + "§f: §${if (item.value >= 0) 'a' else 'c'}" + NumberUtil.nf.format(item.value)
-                ScreenRenderer.fontRenderer.drawString(
-                    line,
-                    if (leftAlign) element.scaleX else element.scaleX + element.width,
-                    element.scaleY + drawnLines * ScreenRenderer.fontRenderer.field_0_2811,
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow_
-                )
-                drawnLines++
-            }
-        }
-    }
-
     fun onWorldChange(event: WorldUnloadEvent) {
         KuudraChest.entries.forEach(KuudraChest::reset)
     }
@@ -158,17 +160,17 @@ object KuudraChestProfit : EventSubscriber {
         }
     }
 
-    private enum class KuudraChest(var displayText: String, var displayColor: CustomColor) {
-        FREE("Free Chest", CommonColors.RED),
-        PAID("Paid Chest", CommonColors.GREEN);
+    private enum class KuudraChest(var displayText: String, var displayColor: Color) {
+        FREE("Free Chest", Color.RED),
+        PAID("Paid Chest", Color.GREEN);
 
         var keyNeeded: KuudraKey? = null
-        var value = 0.0
-        val items = TreeSet<KuudraChestLootItem>().descendingSet()
+        val value = mutableStateOf(0.0)
+        val items = mutableSetState<KuudraChestLootItem>()
 
         fun reset() {
             keyNeeded = null
-            value = 0.0
+            value.set(0.0)
             items.clear()
         }
 
@@ -176,11 +178,11 @@ object KuudraChestProfit : EventSubscriber {
             IO.launch {
                 val identifier = AuctionData.getIdentifier(item)
                 val extraAttr = ItemUtil.getExtraAttributes(item)
-                var displayName = item.name
+                var displayName = item.name.formattedText
 
                 val itemValue = if (identifier == null) {
-                    getEssenceValue(item.name) ?: return@launch
-                } else if ((extraAttr?.getCompound("attributes")?.keys?.size ?: 0) > 1) {
+                    getEssenceValue(displayName) ?: return@launch
+                } else if ((extraAttr?.getCompound("attributes")?.getOrNull()?.keys?.size ?: 0) > 1) {
                     val priceData = KuudraPriceData.getOrFetchAttributePricedItem(item)
                     if (priceData != null && priceData != KuudraPriceData.AttributePricedItem.EMPTY && priceData != KuudraPriceData.AttributePricedItem.FAILURE) {
                         priceData.price
@@ -198,7 +200,7 @@ object KuudraChestProfit : EventSubscriber {
                 withContext(Dispatchers.MC) {
                     items.add(KuudraChestLootItem(item.count, displayName, itemValue))
 
-                    value += itemValue
+                    value.set { it + itemValue }
                 }
             }
         }
@@ -217,41 +219,32 @@ object KuudraChestProfit : EventSubscriber {
     private data class KuudraChestLootItem(var stackSize: Int, var displayText: String, var value: Double) : Comparable<KuudraChestLootItem> {
         override fun compareTo(other: KuudraChestLootItem): Int = value.compareTo(other.value)
     }
-    class KuudraChestProfitElement : GuiElement("Kuudra Chest Profit", x = 200, y = 120) {
-        override fun render() {
-            if (toggled && SBInfo.mode == SkyblockIsland.KuudraHollow.mode) {
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                textShadow_ = textShadow
-                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-                RenderSystem.method_4406()
-                KuudraChest.entries.filter { it.items.isNotEmpty() }.forEachIndexed { i, chest ->
-                    ScreenRenderer.fontRenderer.drawString(
-                        "${chest.displayText}§f: §${(if (chest.value > 0) "a" else "c")}${NumberUtil.format(chest.value.toLong())}",
-                        if (leftAlign) 0f else width.toFloat(),
-                        (i * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-                        chest.displayColor,
-                        if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT,
-                        textShadow
-                    )
+    private class KuudraChestProfitHud : HudElement("Kuudra Chest Profit", 200f, 120f) {
+        override fun LayoutScope.render() {
+            KuudraChest.entries.forEach { chest ->
+                text({ "${chest.displayText}§f: §${(if (chest.value() > 0) "a" else "c")}${NumberUtil.format(chest.value())}" })
+            }
+        }
+
+        val currentlyDisplayingChest = mutableStateOf<KuudraChest?>(null)
+        val inChestComponent = UIContainer().constrain {
+            x = CopyConstraintFloat() boundTo component
+            y = CopyConstraintFloat() boundTo component
+        }.apply {
+            layout {
+                ifNotNull(currentlyDisplayingChest) { chest ->
+                    text(chest.displayText + "§f: §" + (if (chest.value.getUntracked() > 0) "a" else "c") + NumberUtil.nf.format(chest.value))
+                    forEach(chest.items.toList()) { item ->
+                        text("§8${item.stackSize} §r".toStringIfTrue(item.stackSize > 1) + item.displayText + "§f: §${if (item.value >= 0) 'a' else 'c'}" + NumberUtil.nf.format(item.value))
+                    }
                 }
             }
         }
 
-        override fun demoRender() {
-            RenderUtil.drawAllInList(this, KuudraChest.entries.map { "${it.displayText}: §a+300M" })
+        override fun LayoutScope.demoRender() {
+            KuudraChest.entries.forEach { chest -> text("${chest.displayText}: §a+300M") }
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * KuudraChest.entries.size
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Paid Chest: +300M")
-
-        override val toggled: Boolean
-            get() = Skytils.config.kuudraChestProfit
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
     enum class KuudraKey(val displayName: String, val rarity: ItemRarity, val coinCost: Int, val materialCost: Int) {
