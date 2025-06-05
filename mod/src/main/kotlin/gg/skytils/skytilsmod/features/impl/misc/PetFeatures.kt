@@ -18,7 +18,6 @@
 package gg.skytils.skytilsmod.features.impl.misc
 
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -37,11 +36,14 @@ import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.setHoverText
 import gg.skytils.skytilsmod.utils.stripControlCodes
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UMatrixStack
+import gg.skytils.skytilsmod.utils.formattedText
+import gg.skytils.skytilsmod.utils.setClick
 import net.minecraft.text.ClickEvent
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
+import net.minecraft.text.Text
 
 object PetFeatures : EventSubscriber {
     val petItems = HashMap<String, Boolean>()
@@ -61,7 +63,7 @@ object PetFeatures : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        val message = event.message.method_10865()
+        val message = event.message.formattedText
         if (message.startsWith("§r§aYou despawned your §r§")) {
             lastPet = null
         } else if (message.startsWith("§r§aYou summoned your §r")) {
@@ -81,13 +83,14 @@ object PetFeatures : EventSubscriber {
         if (!Utils.inSkyblock || event.container !is GenericContainerScreenHandler) return
         if (Skytils.config.highlightActivePet && (SBInfo.lastOpenContainerName?.startsWith("Pets") == true) && event.slot.hasStack() && event.slot.id in 10..43) {
             val item = event.slot.stack
-            for (line in getItemLore(item)) {
-                if (line.startsWith("§7§cClick to despawn")) {
-                    RenderSystem.method_4348(0f, 0f, 3f)
+            if (getItemLore(item).any { line -> line.startsWith("§7§cClick to despawn") }) {
+                val matrixStack = UMatrixStack.Compat.get()
+                matrixStack.push()
+                matrixStack.translate(0f, 0f, 3f)
+                matrixStack.runWithGlobalState {
                     event.slot highlight Skytils.config.activePetColor
-                    RenderSystem.method_4348(0f, 0f, -3f)
-                    break
                 }
+                matrixStack.pop()
             }
         }
     }
@@ -95,7 +98,7 @@ object PetFeatures : EventSubscriber {
     fun onSendPacket(event: PacketSendEvent<*>) {
         if (!Utils.inSkyblock) return
         if (Skytils.config.petItemConfirmation && (event.packet is PlayerInteractEntityC2SPacket || event.packet is PlayerInteractBlockC2SPacket)) {
-            val item = mc.player.method_0_7087() ?: return
+            val item = mc.player?.mainHandStack ?: return
             val itemId = getSkyBlockItemID(item) ?: return
             if (itemId !in petItems) {
                 val isPetItem =
@@ -112,9 +115,9 @@ object PetFeatures : EventSubscriber {
                     if (System.currentTimeMillis() - lastPetLockNotif > 10000) {
                         lastPetLockNotif = System.currentTimeMillis()
                         UChat.chat(
-                            UTextComponent("$prefix §cSkytils stopped you from using that pet item! §6Click this message to disable the lock.").setHoverText(
+                            Text.literal("$prefix §cSkytils stopped you from using that pet item! §6Click this message to disable the lock.").setHoverText(
                                 "Click to disable the pet item lock for 5 seconds."
-                            ).setClick(ClickEvent.Action.RUN_COMMAND, "/disableskytilspetitemlock")
+                            ).setClick(ClickEvent.RunCommand("/disableskytilspetitemlock"))
                         )
                     }
                 } else {
