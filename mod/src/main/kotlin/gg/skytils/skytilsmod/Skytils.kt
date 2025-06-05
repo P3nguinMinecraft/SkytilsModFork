@@ -373,7 +373,9 @@ object Skytils : CoroutineScope, EventSubscriber {
             MinionFeatures,
             MiscFeatures,
             MythologicalTracker,
-            NamespacedCommands,
+            //#if MC==10809
+            //$$ NamespacedCommands,
+            //#endif
             QuiverStuff,
             PartyAddons,
             PartyFeatures,

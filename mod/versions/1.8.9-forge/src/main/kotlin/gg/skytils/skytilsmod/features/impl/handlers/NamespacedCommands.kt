@@ -28,7 +28,7 @@ import gg.skytils.skytilsmod.utils.ObservableAddEvent
 import gg.skytils.skytilsmod.utils.ObservableClearEvent
 import gg.skytils.skytilsmod.utils.ObservableRemoveEvent
 import gg.skytils.skytilsmod.utils.ObservableSet
-import net.minecraft.class_0_1630
+import net.minecraft.command.ICommand
 import net.minecraftforge.client.ClientCommandHandler
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.ModContainer
@@ -48,13 +48,13 @@ object NamespacedCommands : EventSubscriber {
         ClientCommandHandler.instance as AccessorCommandHandler
     }
 
-    val aliasMap = mutableMapOf<class_0_1630, String>()
+    val aliasMap = mutableMapOf<ICommand, String>()
 
-    fun setup(listeningSet: ObservableSet<class_0_1630>) {
+    fun setup(listeningSet: ObservableSet<ICommand>) {
         listeningSet.addObserver { _, arg ->
             when (arg) {
                 is ObservableAddEvent<*> -> {
-                    registerCommandHelper(arg.element as class_0_1630)
+                    registerCommandHelper(arg.element as ICommand)
                 }
                 is ObservableRemoveEvent<*> -> {
                     cch.commandMap.remove(aliasMap.remove(arg.element))
@@ -76,17 +76,17 @@ object NamespacedCommands : EventSubscriber {
     /**
      * This method takes a command and registers the command's namespaced version.
      */
-    fun registerCommandHelper(command: class_0_1630) {
+    fun registerCommandHelper(command: ICommand) {
         val owners = getCommandModOwner(command.javaClass)
         if (owners.size != 1) {
-            println("WARNING! Command ${command.method_0_5966()} has ${owners.size}; owners: $owners")
+            println("WARNING! Command ${command.commandName} has ${owners.size}; owners: $owners")
         }
 
         val owner = owners.firstOrNull()
 
         val prefix = owner?.modId ?: owner?.name ?: "unknown"
-        
-        val helper = "${prefix}:${command.method_0_5966()}"
+
+        val helper = "${prefix}:${command.commandName}"
         cch.commandMap[helper] = command
 
         aliasMap[command] = helper
@@ -109,7 +109,7 @@ object NamespacedCommands : EventSubscriber {
         if (event.message.startsWith("/server:")) {
             event.cancelled = true
             UChat.say('/' + event.message.substringAfter("/server:"))
-            mc.inGameHud.chatHud.addToMessageHistory(event.message)
+            mc.ingameGUI.chatGUI.addToSentMessages(event.message)
         }
     }
 
