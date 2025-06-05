@@ -19,8 +19,6 @@
 package gg.skytils.skytilsmod.features.impl.dungeons
 
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -35,9 +33,13 @@ import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.toRoman
 import gg.skytils.skytilsmod.utils.SkillUtils.level
 import kotlinx.coroutines.launch
+import net.minecraft.item.Item
+import net.minecraft.item.tooltip.TooltipType
 import net.minecraft.text.ClickEvent
 import net.minecraft.nbt.NbtCompound
+import net.minecraft.text.Text
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 import kotlin.math.floor
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -57,9 +59,9 @@ object PartyFinderStats : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.isOnHypixel) return
         if (Skytils.config.partyFinderStats) {
-            val match = partyFinderRegex.find(event.message.method_10865().stripControlCodes()) ?: return
+            val match = partyFinderRegex.find(event.message.string.stripControlCodes()) ?: return
             val username = match.groups["name"]?.value ?: return
-            if (username == mc.player.name) return
+            if (username == mc.player?.name?.string) return
             printStats(username, true)
         }
     }
@@ -97,6 +99,7 @@ object PartyFinderStats : EventSubscriber {
     private suspend fun playerStats(username: String, uuid: UUID, profileData: Member, withKick: Boolean) {
         API.getPlayer(uuid)?.let { playerResponse ->
             try {
+                val player = mc.player ?: return
                 profileData.dungeons?.dungeon_types?.get("catacombs")?.also { catacombsObj ->
                     val cataData = catacombsObj.normal
                     val masterCataData = catacombsObj.master
@@ -107,19 +110,18 @@ object PartyFinderStats : EventSubscriber {
                     val name = playerResponse.formattedName
 
                     val secrets = playerResponse.achievements.getOrDefault("skyblock_treasure_hunter", 0)
-                    val component = UMessage("&2&m--------------------------------\n").append(
+                    val component = Text.literal("&2&m--------------------------------\n").append(
                         "$name §8» §dCata §9${
                             NumberUtil.nf.format(cataLevel)
                         } "
                     ).append(
-                        UTextComponent("§7[Stats]\n\n").setHoverText("§7Click to run: /skytilscata $username").setClick(
-                            ClickEvent.Action.RUN_COMMAND, "/skytilscata $username"
-                        )
+                        Text.literal("§7[Stats]\n\n").setHoverText("§7Click to run: /skytilscata $username")
+                            .setClick(ClickEvent.RunCommand("/skytilscata $username"))
                     )
-                    profileData.inventory.armor.toMCItems().filterNotNull().forEach { armorPiece ->
-                        val lore = armorPiece.getTooltip(mc.player, false)
+                    profileData.inventory.armor.toMCItems().forEach { armorPiece ->
+                        val lore = armorPiece.getTooltip(Item.TooltipContext.create(player.registryManager), player,TooltipType.BASIC)
                         component.append(
-                            UTextComponent("${armorPiece.name}\n").setHoverText(
+                            Text.literal("${armorPiece.name}\n").setHoverText(
                                 lore.joinToString("\n")
                             )
                         )
@@ -128,7 +130,7 @@ object PartyFinderStats : EventSubscriber {
                     profileData.pets_data.pets.find { it.active }?.let { activePet ->
                         val rarity = ItemRarity.valueOf(activePet.tier).baseColor
                         component.append(
-                            UTextComponent(
+                            Text.literal(
                                 "§7[Lvl ${activePet.level}] ${rarity}${
                                     activePet.type.splitToWords()
                                 }"
@@ -158,7 +160,7 @@ object PartyFinderStats : EventSubscriber {
                                 //Mage
                                 when {
                                     extraAttribs.any {
-                                        it.getList("ability_scroll", 8 /* TAG_STRING*/ ).size() == 3
+                                        it.getList("ability_scroll").getOrNull()?.size == 3
                                     } -> add("§dWither Impact")
 
                                     itemIds.contains("MIDAS_STAFF") -> add("§6Midas Staff")
@@ -191,7 +193,7 @@ object PartyFinderStats : EventSubscriber {
                                 remove(null)
                             }
                             component.append(
-                                UTextComponent("§dImportant Items: §7(Hover)\n").setHoverText(items.joinToString(
+                                Text.literal("§dImportant Items: §7(Hover)\n").setHoverText(items.joinToString(
                                     "§8, "
                                 ).ifBlank { "§c§lNone" })
                             )
@@ -240,7 +242,7 @@ object PartyFinderStats : EventSubscriber {
                     }
 
                     component.append(
-                        UTextComponent("§5Miscellanous: §7(Hover)\n\n").setHoverText(
+                        Text.literal("§5Miscellanous: §7(Hover)\n\n").setHoverText(
                             """
                                 #§aTotal Secrets Found: §l§e${NumberUtil.nf.format(secrets)}
                                 #§aBlood Mobs Killed: §l§e${NumberUtil.nf.format(bloodMobsKilled)}
@@ -252,7 +254,7 @@ object PartyFinderStats : EventSubscriber {
                     cataData.highest_tier_completed.let { highestFloor ->
                         val completionObj = cataData.tier_completions
                         component.append(
-                            UTextComponent("§aFloor Completions: §7(Hover)\n").setHoverText((0..highestFloor).joinToString(
+                            Text.literal("§aFloor Completions: §7(Hover)\n").setHoverText((0..highestFloor).joinToString(
                                 "\n"
                             ) { floor ->
                                 "§2§l●§a Floor ${if (floor == 0) "Entrance" else floor}: §e${
@@ -271,7 +273,7 @@ object PartyFinderStats : EventSubscriber {
                     masterCataData?.highest_tier_completed?.let { highestFloor ->
                         val masterCompletionObj = masterCataData.tier_completions
                         component.append(
-                            UTextComponent("§l§4MM §cFloor Completions: §7(Hover)\n").setHoverText((1..highestFloor).joinToString(
+                            Text.literal("§l§4MM §cFloor Completions: §7(Hover)\n").setHoverText((1..highestFloor).joinToString(
                                 "\n"
                             ) { floor ->
                                 "§c§l●§4 Floor $floor: §e${
@@ -289,12 +291,12 @@ object PartyFinderStats : EventSubscriber {
 
                     if (withKick) {
                         component.append(
-                            UTextComponent("\n§c§l[KICK]\n").setHoverText("§cClick to kick ${name}§c.")
-                                .setClick(ClickEvent.Action.SUGGEST_COMMAND, "/p kick $username")
+                            Text.literal("\n§c§l[KICK]\n").setHoverText("§cClick to kick ${name}§c.")
+                                .setClick(ClickEvent.SuggestCommand("/p kick $username"))
                         )
                     }
 
-                    component.append("&2&m--------------------------------").chat()
+                    component.append("&2&m--------------------------------").run(UChat::chat)
                 } ?: UChat.chat("$failPrefix §c$username has not entered The Catacombs!")
             } catch (e: Throwable) {
                 UChat.chat("$failPrefix §cCatacombs XP Lookup Failed: ${e.message ?: e::class.simpleName}")
@@ -318,7 +320,7 @@ object PartyFinderStats : EventSubscriber {
     }
 
     private fun checkStonk(items: Set<String?>, tags: Set<NbtCompound?>): String? {
-        val eff = tags.mapNotNull { it?.getCompound("enchantments")?.getInt("efficiency") }.maxOrNull() ?: 0
+        val eff = tags.mapNotNull { it?.getCompound("enchantments")?.getOrNull()?.getInt("efficiency")?.getOrNull() }.maxOrNull() ?: 0
         return when {
             eff >= 7 -> "§6Efficiency ${eff.toRoman()}"
             items.contains("STONK") -> "§6Stonk"
