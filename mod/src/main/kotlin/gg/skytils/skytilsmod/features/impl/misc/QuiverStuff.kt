@@ -18,33 +18,41 @@
 
 package gg.skytils.skytilsmod.features.impl.misc
 
-import gg.essential.universal.UResolution
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.layoutdsl.fillHeight
+import gg.essential.elementa.layoutdsl.height
+import gg.essential.elementa.layoutdsl.row
+import gg.essential.elementa.layoutdsl.widthAspect
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.core.GuiManager
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
+import gg.skytils.skytilsmod.gui.profile.components.ItemComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
-import gg.skytils.skytilsmod.utils.RenderUtil
+import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
+import java.awt.Color
 
 object QuiverStuff : EventSubscriber {
     private val activeArrowRegex = Regex("§7Active Arrow: (?<type>§.[\\w -]+) §7\\(§e(?<amount>\\d+)§7\\)")
 
-    private var selectedType: String = ""
-    private var arrowCount = -1
+    private val selectedTypeState = mutableStateOf("")
+    private val arrowCountState = mutableStateOf(-1)
     private var sentWarning = false
 
     init {
-        QuiverDisplay
-        SelectedArrowDisplay
+        Skytils.guiManager.registerElement(QuiverDisplay)
+        Skytils.guiManager.registerElement(SelectedArrowDisplay)
     }
 
     override fun setup() {
@@ -57,103 +65,62 @@ object QuiverStuff : EventSubscriber {
         if (!Utils.equalsOneOf(stack.item, Items.ARROW, Items.FEATHER)) return
         val line = ItemUtil.getItemLore(stack).getOrNull(4) ?: return
         val match = activeArrowRegex.matchEntire(line) ?: return
-        selectedType = match.groups["type"]?.value ?: ""
-        arrowCount = match.groups["amount"]?.value?.toIntOrNull() ?: -1
+        selectedTypeState.set { match.groups["type"]?.value ?: "" }
+        arrowCountState.set { match.groups["amount"]?.value?.toIntOrNull() ?: -1 }
 
-        if (sentWarning && Skytils.config.restockArrowsWarning != 0 && arrowCount >= Skytils.config.restockArrowsWarning) {
+        if (sentWarning && Skytils.config.restockArrowsWarning != 0 && arrowCountState.getUntracked() >= Skytils.config.restockArrowsWarning) {
             sentWarning = false
         } else if (
-            !sentWarning && arrowCount != -1 &&
-            Skytils.config.restockArrowsWarning != 0 && arrowCount < Skytils.config.restockArrowsWarning
+            !sentWarning && arrowCountState.getUntracked() != -1 &&
+            Skytils.config.restockArrowsWarning != 0 && arrowCountState.getUntracked() < Skytils.config.restockArrowsWarning
         ) {
-            GuiManager.createTitle("§c§lRESTOCK §r${selectedType.ifBlank { "§cUnknown" }}", 60)
+            GuiManager.createTitle("§c§lRESTOCK §r${selectedTypeState.getUntracked().ifBlank { "§cUnknown" }}", 60)
             sentWarning = true
         }
     }
 
-    object QuiverDisplay : GuiElement("Quiver Display", x = 0.05f, y = 0.4f) {
-        private val arrowItem = ItemStack(Items.ARROW, 1, 0)
-
-        override fun render() {
-            if (!toggled || !Utils.inSkyblock) return
-
-            val color = when {
-                arrowCount < 400 -> CommonColors.RED
-                arrowCount < 1200 -> CommonColors.YELLOW
-                else -> CommonColors.GREEN
+    object QuiverDisplay : HudElement("Quiver Display", 10f, 160f) {
+        private val ARROW = ItemStack(Items.ARROW)
+        private val color = State {
+            val count = arrowCountState()
+            when {
+                count < 400 -> Color.RED
+                count < 1200 -> Color.YELLOW
+                else -> Color.GREEN
             }
-
-            RenderUtil.renderItem(arrowItem, 0, 0)
-            ScreenRenderer.fontRenderer.drawString(
-                if (arrowCount == -1) "???" else arrowCount.toString(),
-                20f,
-                5f,
-                color,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
+        }
+        private val text = State {
+            val count = arrowCountState()
+            if (count == -1) "???" else count.toString()
+        }
+        override fun LayoutScope.render() {
+            if_(SBInfo.skyblockState) {
+                row(Modifier.height(16f)) {
+                    ItemComponent(ARROW)(Modifier.fillHeight().widthAspect(1f))
+                    text(text, Modifier.color(color))
+                }
+            }
         }
 
-        override fun demoRender() {
-            RenderUtil.renderItem(arrowItem, 0, 0)
-            ScreenRenderer.fontRenderer.drawString(
-                "2000", 20f, 5f, CommonColors.GREEN, SmartFontRenderer.TextAlignment.LEFT_RIGHT, textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            row(Modifier.height(16f)) {
+                ItemComponent(ARROW)(Modifier.fillHeight().widthAspect(1f))
+                text("2000", Modifier.color(Color.GREEN))
+            }
         }
 
-        override val height: Int
-            get() = 16
-        override val width: Int
-            get() = 20 + ScreenRenderer.fontRenderer.getWidth("2000")
-
-        override val toggled: Boolean
-            get() = Skytils.config.quiverDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
-    object SelectedArrowDisplay : GuiElement("Selected Arrow Display", x = 0.65f, y = 0.85f) {
-        override fun render() {
-            if (!toggled || !Utils.inSkyblock) return
-            val alignment =
-                if (scaleX < UResolution.scaledWidth / 2f) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            val text = "Selected: §r${selectedType.ifBlank { "§cUnknown" }}"
-
-            ScreenRenderer.fontRenderer.drawString(
-                text,
-                if (scaleX < UResolution.scaledWidth / 2f) 0f else width.toFloat(),
-                0f,
-                CommonColors.GREEN,
-                alignment,
-                SmartFontRenderer.TextShadow.NORMAL
-            )
-
+    object SelectedArrowDisplay : HudElement("SelectedArrowDisplay", 130f, 340f) {
+        val text = State { "Selected: §r${selectedTypeState().ifBlank { "§cUnknown" }}" }
+        override fun LayoutScope.render() {
+            if_(SBInfo.skyblockState) {
+                text(text, Modifier.color(Color.GREEN))
+            }
         }
 
-        override fun demoRender() {
-            val alignment =
-                if (scaleX < UResolution.scaledWidth / 2f) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "Selected: Redstone-tipped Arrow",
-                if (scaleX < UResolution.scaledWidth / 2f) 0f else width.toFloat(),
-                0f,
-                CommonColors.GREEN,
-                alignment,
-                SmartFontRenderer.TextShadow.NORMAL
-            )
-        }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("Selected: Redstone-tipped Arrow")
-        override val toggled: Boolean
-            get() = Skytils.config.showSelectedArrowDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
+        override fun LayoutScope.demoRender() {
+            text("Selected: Redstone-tipped Arrow")
         }
     }
 }
