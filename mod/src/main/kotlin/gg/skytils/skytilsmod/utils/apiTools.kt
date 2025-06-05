@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.utils
 
+import gg.essential.universal.wrappers.UPlayer
 import gg.skytils.hypixel.types.player.Player
 import gg.skytils.hypixel.types.skyblock.Profile
 import gg.skytils.hypixel.types.util.Inventory
@@ -29,12 +30,13 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtIo
+import net.minecraft.nbt.NbtSizeTracker
 import net.minecraft.util.math.BlockPos
-import net.minecraftforge.common.util.Constants
 import java.awt.Color
 import java.util.*
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.jvm.optionals.getOrNull
 
 @Serializable
 sealed class HypixelResponse {
@@ -176,9 +178,10 @@ fun Inventory.toMCItems() =
         if (data.isEmpty()) {
             emptyList()
         } else {
-            val list = NbtIo.readCompressed(Base64.decode(data).inputStream()).getList("i", Constants.NBT.TAG_COMPOUND)
-            (0 until list.size()).map { idx ->
-                list.getCompound(idx).takeUnless { it.isEmpty }?.let { ItemStack.fromNbt(it) }
+            val list = NbtIo.readCompressed(Base64.decode(data).inputStream(), NbtSizeTracker.ofUnlimitedBytes()).getList("i").getOrNull() ?: return@let emptyList()
+            val player = UPlayer.getPlayer() ?: return@let emptyList()
+            (0 until list.size).mapNotNull { idx ->
+                list.getCompound(idx).takeUnless { it.isEmpty }?.getOrNull()?.let { ItemStack.fromNbt(player.registryManager, it).getOrNull() }
             }
         }
     }
