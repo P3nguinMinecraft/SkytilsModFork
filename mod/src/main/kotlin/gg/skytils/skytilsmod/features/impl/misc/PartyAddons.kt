@@ -18,9 +18,7 @@
 
 package gg.skytils.skytilsmod.features.impl.misc
 
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
+import gg.essential.universal.UChat
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
 import gg.skytils.event.impl.play.ChatMessageSentEvent
@@ -28,9 +26,13 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.append
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.printDevMessage
-import gg.skytils.skytilsmod.utils.setHoverText
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.text.MutableText
+import net.minecraft.text.Style
+import net.minecraft.text.Text
 
 /**
  * Inspired by https://www.chattriggers.com/modules/v/HypixelUtilities
@@ -58,7 +60,7 @@ object PartyAddons : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.isOnHypixel || !Skytils.config.partyAddons) return
-        val message = event.message.method_10865()
+        val message = event.message.formattedText
 
         if (message == "§f§r" && awaitingDelimiter != 0) {
             event.cancelled = true
@@ -92,9 +94,9 @@ object PartyAddons : EventSubscriber {
             awaitingDelimiter--
             if (awaitingDelimiter == 1 || party.isEmpty()) return
 
-            val component = UMessage("§aParty members (${party.size})\n")
+            val component = Text.literal("§aParty members (${party.size})\n")
 
-            val self = party.first { it.name == mc.player.name }
+            val self = party.first { it.name == mc.player?.name?.string }
 
             if (self.type == PartyMemberType.LEADER) {
                 component.append(
@@ -194,12 +196,15 @@ object PartyAddons : EventSubscriber {
                     )
                 }
             }
-            component.chat()
+            UChat.chat(component)
         }
     }
 
-    private fun createButton(text: String, command: String, hoverText: String): UTextComponent {
-        return UTextComponent(text).setClick(MCClickEventAction.RUN_COMMAND, command).setHoverText(hoverText)
+    private fun createButton(text: String, command: String, hoverText: String): MutableText {
+        return Text.literal(text)
+            .setStyle(
+                Style.EMPTY.withClickEvent(ClickEvent.RunCommand(command)).withHoverEvent(HoverEvent.ShowText(Text.literal(hoverText)))
+            )
     }
 
     private data class PartyMember(
