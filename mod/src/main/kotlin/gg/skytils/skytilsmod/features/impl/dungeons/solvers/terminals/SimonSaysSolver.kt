@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -32,10 +33,9 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.middleVec
 import gg.skytils.skytilsmod.utils.printDevMessage
-import net.minecraft.block.StoneButtonBlock
 import net.minecraft.client.network.OtherClientPlayerEntity
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.block.Blocks
+import net.minecraft.block.ButtonBlock
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
 import net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket
@@ -60,12 +60,12 @@ object SimonSaysSolver : EventSubscriber {
     fun onReceivePacket(event: PacketReceiveEvent<*>) {
         if (Skytils.config.simonSaysSolver && Utils.inDungeons && clickInOrder.isNotEmpty() && clickNeeded < clickInOrder.size) {
             if (Skytils.config.predictSimonClicks && event.packet is EntityAnimationS2CPacket && event.packet.animationId == 0) {
-                val entity = mc.world.getEntityById(event.packet.entityId) as? OtherClientPlayerEntity ?: return
+                val entity = mc.world?.getEntityById(event.packet.entityId) as? OtherClientPlayerEntity ?: return
                 if (entity.x in 105.0..115.0 && entity.y in 115.0..128.0 && entity.z in 87.0..100.0) {
-                    val rayCast = entity.raycast(5.0, RenderUtil.getPartialTicks())
+                    val rayCast = entity.raycast(5.0, RenderUtil.getPartialTicks(), false)
                     if (rayCast.type == HitResult.Type.BLOCK) {
-                        val hitPos = rayCast.blockPos ?: return
-                        if (hitPos.x in 110..111 && hitPos.y in 120..123 && hitPos.z in 92..95) {
+                        val hitPos = rayCast.pos ?: return
+                        if (hitPos.x in 110.0..111.0 && hitPos.y in 120.0..123.0 && hitPos.z in 92.0..95.0) {
                             clickNeeded++
                             printDevMessage("Registered teammate click on Simon Says.", "simon")
                         }
@@ -80,7 +80,7 @@ object SimonSaysSolver : EventSubscriber {
             if (event.packet is PlayerInteractBlockC2SPacket || event.packet is PlayerActionC2SPacket) {
                 val pos = when (event.packet) {
                     is PlayerActionC2SPacket -> event.packet.pos
-                    is PlayerInteractBlockC2SPacket -> event.packet.method_12548()
+                    is PlayerInteractBlockC2SPacket -> event.packet.blockHitResult.blockPos
                     else -> error("can't reach")
                 }.east()
                 if (pos.x == 111 && pos.y in 120..123 && pos.z in 92..95) {
@@ -126,7 +126,7 @@ object SimonSaysSolver : EventSubscriber {
                         }
                     }*/
                 }
-            } else if (pos == startBtn && state.block === Blocks.STONE_BUTTON && state.testProperty(StoneButtonBlock.POWERED)) {
+            } else if (pos == startBtn && state.block === Blocks.STONE_BUTTON && state.get(ButtonBlock.POWERED)) {
                 printDevMessage("Simon says was started", "simon")
                 clickInOrder.clear()
                 clickNeeded = 0
@@ -165,7 +165,7 @@ object SimonSaysSolver : EventSubscriber {
                     0.5f
                 )
             }
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
     }
 
