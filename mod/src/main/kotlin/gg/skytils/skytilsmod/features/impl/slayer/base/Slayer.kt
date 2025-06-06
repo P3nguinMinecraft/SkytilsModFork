@@ -24,12 +24,15 @@ import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.impl.DemonlordSlayer
 import gg.skytils.skytilsmod.utils.baseMaxHealth
+import gg.skytils.skytilsmod.utils.formattedText
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import gg.skytils.skytilsmod.utils.printDevMessage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.item.ItemStack
 
 /**
  * Represents a slayer entity
@@ -66,12 +69,12 @@ open class Slayer<T : LivingEntity>(
             ) { nearbyEntity: Entity? ->
                 if (nearbyEntity is ArmorStandEntity) {
                     if (nearbyEntity.isInvisible && nearbyEntity.hasCustomName()) {
-                        if (nearbyEntity.armorItems.any { it != null }) {
+                        if (EquipmentSlot.entries.any { nearbyEntity.getEquippedStack(it) != ItemStack.EMPTY }) {
                             // armor stand has equipment, abort!
-                            return@getEntitiesInAABBexcluding false
+                            return@getOtherEntities false
                         }
                         // armor stand has a custom name, is invisible and has no equipment -> probably a "name tag"-armor stand
-                        return@getEntitiesInAABBexcluding true
+                        return@getOtherEntities true
                     }
                 }
                 false
@@ -80,8 +83,8 @@ open class Slayer<T : LivingEntity>(
             val potentialNameEntities = arrayListOf<ArmorStandEntity>()
             for (nearby in nearbyArmorStands) {
                 when {
-                    nearby.displayName.method_10865().startsWith("§8[§7Lv") -> continue
-                    nameStart.any { nearby.displayName.method_10865().startsWith(it) } -> {
+                    nearby.displayName?.formattedText?.startsWith("§8[§7Lv") == true -> continue
+                    nameStart.any { nearby.displayName?.formattedText?.startsWith(it) == true } -> {
                         printDevMessage(
                             { "expected tier $currentTier, hp $expectedHealth - spawned hp ${entity.baseMaxHealth.toInt()}" },
                             "slayer"
@@ -92,7 +95,7 @@ open class Slayer<T : LivingEntity>(
                         }
                     }
 
-                    nearby.displayName.method_10865().matches(SlayerFeatures.timerRegex) -> {
+                    nearby.displayName?.formattedText?.matches(SlayerFeatures.timerRegex) == true -> {
                         printDevMessage({ "timer regex matched" }, "slayer")
                         potentialTimerEntities.add(nearby as ArmorStandEntity)
                     }
