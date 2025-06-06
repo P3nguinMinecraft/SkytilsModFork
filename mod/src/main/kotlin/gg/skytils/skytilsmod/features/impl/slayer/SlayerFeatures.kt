@@ -17,11 +17,9 @@
  */
 package gg.skytils.skytilsmod.features.impl.slayer
 
-import gg.essential.elementa.utils.withAlpha
-import gg.essential.universal.UChat
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
-import gg.essential.universal.UResolution
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.entity.EntityAttackEvent
@@ -36,13 +34,10 @@ import gg.skytils.event.impl.world.BlockStateUpdateEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod._event.RenderHUDEvent
 import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.GuiManager.createTitle
-import gg.skytils.skytilsmod.core.structure.GuiElement
-import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.features.impl.handlers.PotionEffectTimers
 import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
@@ -52,44 +47,32 @@ import gg.skytils.skytilsmod.features.impl.slayer.impl.DemonlordSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.RevenantSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.SeraphSlayer
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.NumberUtil.toRoman
 import gg.skytils.skytilsmod.utils.RenderUtil.drawFilledBoundingBox
 import gg.skytils.skytilsmod.utils.RenderUtil.drawOutlinedBoundingBox
 import gg.skytils.skytilsmod.utils.ScoreboardUtil.sidebarLines
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import net.minecraft.block.BeaconBlock
 import net.minecraft.client.network.OtherClientPlayerEntity
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.client.render.Tessellator
-import net.minecraft.client.render.VertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.mob.MobEntity
 import net.minecraft.entity.LivingEntity
-import net.minecraft.class_0_1003
-import net.minecraft.entity.boss.BossEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
-import net.minecraft.entity.monster.*
 import net.minecraft.entity.passive.WolfEntity
 import net.minecraft.block.Blocks
-import net.minecraft.item.Items
-import net.minecraft.item.ItemStack
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.entity.mob.BlazeEntity
+import net.minecraft.entity.mob.EndermanEntity
+import net.minecraft.entity.mob.GuardianEntity
+import net.minecraft.entity.mob.SpiderEntity
+import net.minecraft.entity.mob.ZombieEntity
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
-import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
+import net.minecraft.sound.SoundEvents
 import net.minecraft.util.math.Box
-import net.minecraft.text.LiteralTextContent
-import net.minecraft.text.Text
-import net.minecraft.util.math.MathHelper
-import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.util.concurrent.Executors
 import kotlin.math.floor
@@ -139,7 +122,7 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
                 is EndermanEntity -> SeraphSlayer(entity)
                 is BlazeEntity -> DemonlordSlayer(entity)
                 is OtherClientPlayerEntity -> {
-                    if (entity.name == "Bloodfiend ") {
+                    if (entity.name.string == "Bloodfiend ") {
                         BloodfiendSlayer(entity)
                     } else null
                 }
@@ -157,83 +140,84 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
     }
 
     init {
-        SlayerArmorDisplayElement()
-        SlayerDisplayElement()
-        SeraphDisplayElement()
-        TotemDisplayElement
+//        SlayerArmorDisplayElement()
+//        SlayerDisplayElement()
+//        SeraphDisplayElement()
+//        TotemDisplayElement
     }
 
-    init {
-        tickTimer(4, repeats = true) {
-            if (Utils.inSkyblock && Skytils.config.showRNGMeter) {
-                for ((index, line) in sidebarLines.withIndex()) {
-                    if (line == "Slayer Quest") {
-                        val boss = sidebarLines.elementAtOrNull(index + 1) ?: continue
-                        if (boss.startsWith("Revenant Horror")) {
-                            class_0_1003.method_0_3293(
-                                RNGMeter(
-                                    100f,
-                                    Skytils.config.revRNG,
-                                    LiteralTextContent("§2§lRevenant Horror RNG§r - §d${Skytils.config.revRNG}%")
-                                ), true
-                            )
-                            break
-                        }
-                        if (boss.startsWith("Tarantula Broodfather")) {
-                            class_0_1003.method_0_3293(
-                                RNGMeter(
-                                    100f,
-                                    Skytils.config.taraRNG,
-                                    LiteralTextContent("§8§lTarantula Broodfather RNG§r - §d${Skytils.config.taraRNG}%")
-                                ), true
-                            )
-                            break
-                        }
-                        if (boss.startsWith("Sven Packmaster")) {
-                            class_0_1003.method_0_3293(
-                                RNGMeter(
-                                    100f,
-                                    Skytils.config.svenRNG,
-                                    LiteralTextContent("§7§lSven Packmaster RNG§r - §d${Skytils.config.svenRNG}%")
-                                ), true
-                            )
-                            break
-                        }
-                        if (boss.startsWith("Voidgloom Seraph")) {
-                            class_0_1003.method_0_3293(
-                                RNGMeter(
-                                    100f,
-                                    Skytils.config.voidRNG,
-                                    LiteralTextContent("§5§lVoidgloom Seraph RNG§r - §d${Skytils.config.voidRNG}%")
-                                ), true
-                            )
-                            break
-                        }
-                        if (boss.startsWith("Inferno Demonlord")) {
-                            class_0_1003.method_0_3293(
-                                RNGMeter(
-                                    100f,
-                                    Skytils.config.blazeRNG,
-                                    LiteralTextContent("§c§lInferno Demonlord RNG§r - §d${Skytils.config.blazeRNG}%")
-                                ), true
-                            )
-                            break
-                        }
-                        if (boss.startsWith("Riftstalker Bloodfiend")) {
-                            class_0_1003.method_0_3293(
-                                RNGMeter(
-                                    100f,
-                                    Skytils.config.vampRNG,
-                                    LiteralTextContent("§4§lRiftstalker Bloodfiend RNG§r - §d${Skytils.config.vampRNG}%")
-                                ), true
-                            )
-                            break
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // TODO: Fix later
+//    init {
+//        tickTimer(4, repeats = true) {
+//            if (Utils.inSkyblock && Skytils.config.showRNGMeter) {
+//                for ((index, line) in sidebarLines.withIndex()) {
+//                    if (line == "Slayer Quest") {
+//                        val boss = sidebarLines.elementAtOrNull(index + 1) ?: continue
+//                        if (boss.startsWith("Revenant Horror")) {
+//                            class_0_1003.method_0_3293(
+//                                RNGMeter(
+//                                    100f,
+//                                    Skytils.config.revRNG,
+//                                    LiteralTextContent("§2§lRevenant Horror RNG§r - §d${Skytils.config.revRNG}%")
+//                                ), true
+//                            )
+//                            break
+//                        }
+//                        if (boss.startsWith("Tarantula Broodfather")) {
+//                            class_0_1003.method_0_3293(
+//                                RNGMeter(
+//                                    100f,
+//                                    Skytils.config.taraRNG,
+//                                    LiteralTextContent("§8§lTarantula Broodfather RNG§r - §d${Skytils.config.taraRNG}%")
+//                                ), true
+//                            )
+//                            break
+//                        }
+//                        if (boss.startsWith("Sven Packmaster")) {
+//                            class_0_1003.method_0_3293(
+//                                RNGMeter(
+//                                    100f,
+//                                    Skytils.config.svenRNG,
+//                                    LiteralTextContent("§7§lSven Packmaster RNG§r - §d${Skytils.config.svenRNG}%")
+//                                ), true
+//                            )
+//                            break
+//                        }
+//                        if (boss.startsWith("Voidgloom Seraph")) {
+//                            class_0_1003.method_0_3293(
+//                                RNGMeter(
+//                                    100f,
+//                                    Skytils.config.voidRNG,
+//                                    LiteralTextContent("§5§lVoidgloom Seraph RNG§r - §d${Skytils.config.voidRNG}%")
+//                                ), true
+//                            )
+//                            break
+//                        }
+//                        if (boss.startsWith("Inferno Demonlord")) {
+//                            class_0_1003.method_0_3293(
+//                                RNGMeter(
+//                                    100f,
+//                                    Skytils.config.blazeRNG,
+//                                    LiteralTextContent("§c§lInferno Demonlord RNG§r - §d${Skytils.config.blazeRNG}%")
+//                                ), true
+//                            )
+//                            break
+//                        }
+//                        if (boss.startsWith("Riftstalker Bloodfiend")) {
+//                            class_0_1003.method_0_3293(
+//                                RNGMeter(
+//                                    100f,
+//                                    Skytils.config.vampRNG,
+//                                    LiteralTextContent("§4§lRiftstalker Bloodfiend RNG§r - §d${Skytils.config.vampRNG}%")
+//                                ), true
+//                            )
+//                            break
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     override fun setup() {
         register(::onTick)
@@ -266,12 +250,12 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         slayer?.tick(event)
     }
 
-    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*>) {
+    fun onRenderLivingPre(event: LivingEntityPreRenderEvent<*, *, *>) {
         if (!Utils.inSkyblock) return
         if (event.entity is ArmorStandEntity) {
             val entity = event.entity as ArmorStandEntity
             if (!entity.hasCustomName()) return
-            val name = entity.displayName.string
+            val name = entity.displayName?.string ?: return
             if (Skytils.config.slayerBossHitbox && name.endsWith("§c❤") && !name.endsWith("§e0§c❤") && !mc.entityRenderDispatcher.shouldRenderHitboxes()) {
                 val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
                 if (ZOMBIE_MINIBOSSES.any { name.contains(it) } || BLAZE_MINIBOSSES.any { name.contains(it) }) {
@@ -320,7 +304,7 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         if (packet is EntityTrackerUpdateS2CPacket) {
             (slayer as? SeraphSlayer)?.run {
                 if (packet.id() == entity.id) {
-                    if (entity.carriedBlock?.block == Blocks.field_0_727 && ((packet.trackedValues?.find { it.id() == 16 } ?: return)
+                    if (entity.carriedBlock?.block == Blocks.BEACON  && ((packet.trackedValues?.find { it.id() == 16 } ?: return)
                             .value() as Short).toInt().and(65535)
                             .and(4095) == 0
                     ) {
@@ -370,14 +354,14 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
                 val entity = mc.world?.getEntityById(packet.id())
                 printDevMessage("entity is null?", "slayerspam")
                 if (entity != null && entity is ArmorStandEntity) {
-                    val name = packet.trackedValues?.find { it.id() == 2 }?.value() as? String
+                    val name = packet.trackedValues?.find { it.id() == 2 }?.value() as? String ?: return
                     if (name != null) {
-                        printDevMessage({ "Checking entity nametag $name, was empty ${entity.customName.isEmpty()}" }, "slayerspam")
-                        if (name.startsWith("§eSpawned by: ") && name.endsWith(mc.player.name)) {
+                        printDevMessage({ "Checking entity nametag $name, was empty ${entity.customName?.string?.isEmpty()}" }, "slayerspam")
+                        if (name.startsWith("§eSpawned by: ") && name.endsWith(mc.player!!.name.string)) {
                             printDevMessage("Detected spawned text", "slayerspam", "slayer")
-                            mc.world.method_0_375(entity, entity.boundingBox.expand(0.5, 0.5, 0.5)).filter {
+                            mc.world?.getOtherEntities(entity, entity.boundingBox.expand(0.5, 0.5, 0.5))?.filter {
                                 it is MobEntity && (if (MayorInfo.allPerks.contains("DOUBLE MOBS HP!!!")) 2 else 1) * floor(it.baseMaxHealth).toInt() == expectedMaxHp
-                            }.minByOrNull {
+                            }?.minByOrNull {
                                 it.squaredDistanceTo(entity)
                             }?.let {
                                 printDevMessage("Found entity from nametag", "slayerspam", "slayer")
@@ -389,16 +373,16 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
             }
         }
 
-        if (packet is PlaySoundIdS2CPacket) {
-            if (Skytils.config.slayerMinibossSpawnAlert && slayerEntity == null && packet.method_11460() == "random.explode" && packet.volume == 0.6f && packet.pitch == 9 / 7f && GuiManager.title != "§cMINIBOSS" && sidebarLines.any {
+        if (packet is PlaySoundS2CPacket) {
+            if (Skytils.config.slayerMinibossSpawnAlert && slayerEntity == null && packet.sound.value() == SoundEvents.ENTITY_GENERIC_EXPLODE && packet.volume == 0.6f && packet.pitch == 9 / 7f && GuiManager.title != "§cMINIBOSS" && sidebarLines.any {
                     it.contains("Slayer Quest")
                 }) {
                 createTitle("§cMINIBOSS", 20)
             }
         }
 
-        if (packet is GameMessageS2CPacket && packet.type != 2.toByte()) {
-            val unformatted = packet.message.string.stripControlCodes()
+        if (packet is ChatMessageS2CPacket) {
+            val unformatted = (packet.unsignedContent ?: return).string.stripControlCodes()
             if (unformatted.trim().startsWith("RNGesus Meter")) {
                 val rngMeter =
                     unformatted.filter { it.isDigit() || it == '.' }.toFloat()
@@ -445,7 +429,7 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         (slayer as? SeraphSlayer)?.run {
             if (Skytils.config.highlightYangGlyph) {
                 thrownLocation?.let { yangGlyph ->
-                    RenderSystem.disableCull() // is disabling cull even needed here?
+                    GlStateManager._disableCull() // is disabling cull even needed here?
                     UGraphics.disableDepth()
                     val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
                     val x = yangGlyph.x - viewerX
@@ -458,12 +442,12 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
                         1f
                     )
                     UGraphics.enableDepth()
-                    RenderSystem.enableCull()
+                    GlStateManager._enableCull()
                 }
             }
             if (Skytils.config.highlightNukekebiHeads && nukekebiSkulls.isNotEmpty()) {
                 nukekebiSkulls.also { it.removeAll { it.isRemoved } }.forEach { head ->
-                    RenderSystem.disableCull() // same for this cull call?
+                    GlStateManager._disableCull() // same for this cull call?
                     UGraphics.disableDepth()
                     val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
                     val x = head.x - viewerX
@@ -476,7 +460,7 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
                         1f
                     )
                     UGraphics.enableDepth()
-                    RenderSystem.enableCull()
+                    GlStateManager._enableCull()
                 }
             }
         }
@@ -496,8 +480,8 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
     }
 
     fun onClick(event: MouseInputEvent) {
-        if (!Utils.inSkyblock || mc.targetedEntity == null || Skytils.config.slayerCarryMode == 0 || Mouse.getEventButton() != 2 || !Mouse.getEventButtonState() || mc.currentScreen != null || mc.player == null) return
-        processSlayerEntity(mc.targetedEntity)
+        if (!Utils.inSkyblock || Skytils.config.slayerCarryMode == 0 || event.button != 2|| mc.currentScreen != null || mc.player == null) return
+        mc.targetedEntity?.let(::processSlayerEntity)
     }
 
     fun onAttack(event: EntityAttackEvent) {
@@ -560,383 +544,389 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
     fun onRenderHud(event: RenderHUDEvent) {
         if (!Utils.inSkyblock) return
         if (Skytils.config.pointYangGlyph) {
-            val pos = (slayer as? SeraphSlayer)?.thrownLocation.toVec3()?.add(0.5, 0.5, 0.5)
-                ?: (slayer as? SeraphSlayer)?.thrownEntity?.run { if (this.isAlive) this else null }?.pos
-                ?: return
-            val x = UResolution.scaledWidth / 2.0
-            val y = UResolution.scaledHeight / 2.0
-            val angle: Double = -(MathHelper.atan2(
-                pos.x - mc.player.x,
-                pos.z - mc.player.z
-            ) * 57.29577951308232) - mc.player.yaw
-            RenderSystem.pushMatrix()
-            RenderSystem.method_4412(x, y, 0.0)
-            RenderSystem.method_4445(angle.toFloat(), 0f, 0f, 1f)
-            RenderSystem.method_4412(-x, -y, 0.0)
-            RenderSystem.enableBlend()
-            RenderSystem.method_4407()
-            RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-            val tes = Tessellator.getInstance()
-            val wr = tes.buffer
-            Skytils.config.yangGlyphColor.withAlpha(255).bindColor()
-            GL11.glLineWidth(5f)
-            wr.begin(GL11.GL_LINE_STRIP, VertexFormats.POSITION)
-            wr.vertex(x + 10, y + 45, 0.0).next()
-            wr.vertex(x, y, 0.0).next()
-            wr.vertex(x - 10, y + 45, 0.0).next()
-            tes.draw()
-
-            RenderSystem.method_4397()
-            RenderSystem.disableBlend()
-            RenderSystem.popMatrix()
+            // FIXME
+//            val pos = (slayer as? SeraphSlayer)?.thrownLocation.toVec3()?.add(0.5, 0.5, 0.5)
+//                ?: (slayer as? SeraphSlayer)?.thrownEntity?.run { if (this.isAlive) this else null }?.pos
+//                ?: return
+//            val x = UResolution.scaledWidth / 2.0
+//            val y = UResolution.scaledHeight / 2.0
+//            val player = mc.player ?: return
+//            val angle: Double = -(MathHelper.atan2(
+//                pos.x - player.x,
+//                pos.z - player.z
+//            ) * 57.29577951308232) - player.yaw
+//            val matrixStack = UMatrixStack.Compat.get()
+//            matrixStack.push()
+//            matrixStack.translate(x, y, 0.0)
+//            matrixStack.rotate(angle.toFloat(), 0f, 0f, 1f)
+//            matrixStack.translate(-x, -y, 0.0)
+//            GlStateManager._enableBlend()
+//            // disable texture 2d
+//            GlStateManager._blendFuncSeparate(770, 771, 1, 0)
+//
+//            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+//            val tes = Tessellator.getInstance()
+//            val wr = vertexConsumer.getBuffer(RenderLayer.getSolid())
+//            Skytils.config.yangGlyphColor.withAlpha(255).bindColor()
+//            GL11.glLineWidth(5f)
+//            wr.begin(GL11.GL_LINE_STRIP, VertexFormats.POSITION)
+//            wr.vertex(x + 10, y + 45, 0.0).next()
+//            wr.vertex(x, y, 0.0).next()
+//            wr.vertex(x - 10, y + 45, 0.0).next()
+//            tes.draw()
+//
+//            RenderSystem.method_4397()
+//            RenderSystem.disableBlend()
+//            RenderSystem.popMatrix()
         }
     }
 
-    private class RNGMeter(val max: Float, val current: Float, val name: Text) : BossEntity {
+//    private class RNGMeter(val max: Float, val current: Float, val name: Text) : BossEntity {
+//
+//        override fun getMaxHealth(): Float = max
+//
+//        override fun getHealth(): Float = current
+//
+//        override fun getDisplayName() = name
+//
+//    }
 
-        override fun getMaxHealth(): Float = max
+    // TODO: fix later
+//    class SlayerDisplayElement : GuiElement("Slayer Display", x = 150, y = 20) {
+//        override fun render() {
+//            if (Utils.inSkyblock) {
+//                val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//                val alignment =
+//                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
+//                slayer?.run {
+//                    timerEntity?.run {
+//                        if (isRemoved) {
+//                            printDevMessage("timer died", "slayer", "seraph")
+//                            timerEntity = null
+//                        } else if (toggled) {
+//                            ScreenRenderer.fontRenderer.drawString(
+//                                displayName.method_10865(),
+//                                if (leftAlign) 0f else width,
+//                                0f,
+//                                CommonColors.WHITE,
+//                                alignment,
+//                                textShadow
+//                            )
+//                        }
+//                    }
+//                    nameEntity?.run {
+//                        if (isRemoved) {
+//                            printDevMessage("name died", "slayer", "seraph")
+//                            nameEntity = null
+//                        } else if (toggled) {
+//                            ScreenRenderer.fontRenderer.drawString(
+//                                displayName.method_10865(),
+//                                if (leftAlign) 0f else width,
+//                                10f,
+//                                CommonColors.WHITE,
+//                                alignment,
+//                                textShadow
+//                            )
+//                        }
+//                    }
+//                    if (entity.isRemoved) {
+//                        printDevMessage("slayer died", "slayer", "seraph")
+//                        if (Skytils.config.slayerTimeToKill) {
+//                            UChat.chat("$prefix §bSlayer took §f${slayerEntity!!.age / 20f}§bs to kill")
+//                        }
+//                        slayer = null
+//                    }
+//                }
+//            }
+//        }
+//
+//        override fun demoRender() {
+//            ScreenRenderer.fontRenderer.drawString(
+//                "§c02:59§r",
+//                0f,
+//                0f,
+//                CommonColors.WHITE,
+//                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
+//                textShadow
+//            )
+//            ScreenRenderer.fontRenderer.drawString(
+//                "§c☠ §bRevenant Horror §a500§c❤§r",
+//                0f,
+//                10f,
+//                CommonColors.WHITE,
+//                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
+//                textShadow
+//            )
+//        }
+//
+//        override val height: Int
+//            get() = ScreenRenderer.fontRenderer.field_0_2811 * 2 + 1
+//        override val width: Int
+//            get() = ScreenRenderer.fontRenderer.getWidth("§c☠ §bRevenant Horror §a500§c❤§r")
+//
+//        override val toggled: Boolean
+//            get() = Skytils.config.showSlayerDisplay
+//
+//        init {
+//            Skytils.guiManager.registerElement(this)
+//        }
+//    }
 
-        override fun getHealth(): Float = current
+//    class SeraphDisplayElement : GuiElement("Seraph Display", x = 20, y = 20) {
+//        override fun render() {
+//            if (toggled && Utils.inSkyblock && slayerEntity != null && slayerEntity is EndermanEntity) {
+//                val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//                val alignment =
+//                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
+//                (slayer as? SeraphSlayer)?.run {
+//                    nameEntity?.run {
+//                        ScreenRenderer.fontRenderer.drawString(
+//                            if (hitPhase)
+//                                "§dShield Phase"
+//                            else
+//                                "§6Damage Phase",
+//                            if (leftAlign) 0f else width,
+//                            0f,
+//                            CommonColors.WHITE,
+//                            alignment,
+//                            textShadow
+//                        )
+//                    }
+//                    entity.carriedBlock?.takeIf { it.block is BeaconBlock }?.run {
+//                        ScreenRenderer.fontRenderer.drawString(
+//                            "§cHolding beacon!",
+//                            if (leftAlign) 0f else width.toFloat(),
+//                            10f,
+//                            CommonColors.WHITE,
+//                            alignment,
+//                            textShadow
+//                        )
+//                    } ?: if (lastYangGlyphSwitchTicks != -1) {
+//                        ScreenRenderer.fontRenderer.drawString(
+//                            "§cBeacon thrown! ${(System.currentTimeMillis() - yangGlyphAdrenalineStressCount) / 1000f}s",
+//                            if (leftAlign) 0f else width.toFloat(),
+//                            10f,
+//                            CommonColors.WHITE,
+//                            alignment,
+//                            textShadow
+//                        )
+//                    } else {
+//                        ScreenRenderer.fontRenderer.drawString(
+//                            "§bHolding nothing!",
+//                            if (leftAlign) 0f else width.toFloat(),
+//                            10f,
+//                            CommonColors.WHITE,
+//                            alignment,
+//                            textShadow
+//                        )
+//                    }
+//                    ScreenRenderer.fontRenderer.drawString(
+//                        if (thrownLocation != null)
+//                            "§cYang Glyph placed! ${(System.currentTimeMillis() - yangGlyphAdrenalineStressCount) / 1000f}s"
+//                        else
+//                            "§bNo yang glyph",
+//                        if (leftAlign) 0f else width.toFloat(),
+//                        20f,
+//                        CommonColors.WHITE,
+//                        alignment,
+//                        textShadow
+//                    )
+//                    ScreenRenderer.fontRenderer.drawString(
+//                        if (nukekebiSkulls.size > 0)
+//                            "§dNukekebi Heads: §c${nukekebiSkulls.size}"
+//                        else
+//                            "§bNo Nukekebi Heads",
+//                        if (leftAlign) 0f else width.toFloat(),
+//                        30f,
+//                        CommonColors.WHITE,
+//                        alignment,
+//                        textShadow
+//                    )
+//                }
+//            }
+//        }
+//
+//        override fun demoRender() {
+//            val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//            val alignment =
+//                if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
+//            ScreenRenderer.fontRenderer.drawString(
+//                "§dShield Phase",
+//                if (leftAlign) 0f else width.toFloat(),
+//                0f,
+//                CommonColors.WHITE,
+//                alignment,
+//                textShadow
+//            )
+//            ScreenRenderer.fontRenderer.drawString(
+//                "§bHolding beacon!",
+//                if (leftAlign) 0f else width.toFloat(),
+//                10f,
+//                CommonColors.WHITE,
+//                alignment,
+//                textShadow
+//            )
+//            ScreenRenderer.fontRenderer.drawString(
+//                "§cNo yang glyph",
+//                if (leftAlign) 0f else width.toFloat(),
+//                20f,
+//                CommonColors.WHITE,
+//                alignment,
+//                textShadow
+//            )
+//        }
+//
+//        override val height: Int
+//            get() = ScreenRenderer.fontRenderer.field_0_2811 + 20
+//        override val width: Int
+//            get() = ScreenRenderer.fontRenderer.getWidth("§bHolding beacon!")
+//
+//        override val toggled: Boolean
+//            get() = Skytils.config.showSeraphDisplay
+//
+//        init {
+//            Skytils.guiManager.registerElement(this)
+//        }
+//    }
 
-        override fun getDisplayName() = name
+//    object TotemDisplayElement : GuiElement("Totem Display", x = 20, y = 50) {
+//        override fun render() {
+//            (slayer as? DemonlordSlayer)?.totemEntity?.run {
+//                val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//                val alignment =
+//                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
+//                ScreenRenderer.fontRenderer.drawString(
+//                    displayName.method_10865(),
+//                    if (leftAlign) 0f else width,
+//                    0f,
+//                    CommonColors.WHITE,
+//                    alignment,
+//                    textShadow
+//                )
+//            }
+//        }
+//
+//        override fun demoRender() {
+//            val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//            val alignment =
+//                if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
+//            ScreenRenderer.fontRenderer.drawString(
+//                "§6§l5s §c§l5 hits",
+//                if (leftAlign) 0f else width.toFloat(),
+//                0f,
+//                CommonColors.WHITE,
+//                alignment,
+//                textShadow
+//            )
+//        }
+//
+//        override val height: Int
+//            get() = ScreenRenderer.fontRenderer.field_0_2811
+//        override val width: Int
+//            get() = ScreenRenderer.fontRenderer.getWidth("§6§l5s §c§l5 hits")
+//
+//        override val toggled: Boolean
+//            get() = Skytils.config.showTotemDisplay
+//
+//        init {
+//            Skytils.guiManager.registerElement(this)
+//        }
+//    }
 
-    }
-
-    class SlayerDisplayElement : GuiElement("Slayer Display", x = 150, y = 20) {
-        override fun render() {
-            if (Utils.inSkyblock) {
-                val leftAlign = scaleX < UResolution.scaledWidth / 2f
-                val alignment =
-                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-                slayer?.run {
-                    timerEntity?.run {
-                        if (isRemoved) {
-                            printDevMessage("timer died", "slayer", "seraph")
-                            timerEntity = null
-                        } else if (toggled) {
-                            ScreenRenderer.fontRenderer.drawString(
-                                displayName.method_10865(),
-                                if (leftAlign) 0f else width,
-                                0f,
-                                CommonColors.WHITE,
-                                alignment,
-                                textShadow
-                            )
-                        }
-                    }
-                    nameEntity?.run {
-                        if (isRemoved) {
-                            printDevMessage("name died", "slayer", "seraph")
-                            nameEntity = null
-                        } else if (toggled) {
-                            ScreenRenderer.fontRenderer.drawString(
-                                displayName.method_10865(),
-                                if (leftAlign) 0f else width,
-                                10f,
-                                CommonColors.WHITE,
-                                alignment,
-                                textShadow
-                            )
-                        }
-                    }
-                    if (entity.isRemoved) {
-                        printDevMessage("slayer died", "slayer", "seraph")
-                        if (Skytils.config.slayerTimeToKill) {
-                            UChat.chat("$prefix §bSlayer took §f${slayerEntity!!.age / 20f}§bs to kill")
-                        }
-                        slayer = null
-                    }
-                }
-            }
-        }
-
-        override fun demoRender() {
-            ScreenRenderer.fontRenderer.drawString(
-                "§c02:59§r",
-                0f,
-                0f,
-                CommonColors.WHITE,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
-            ScreenRenderer.fontRenderer.drawString(
-                "§c☠ §bRevenant Horror §a500§c❤§r",
-                0f,
-                10f,
-                CommonColors.WHITE,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
-        }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 * 2 + 1
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§c☠ §bRevenant Horror §a500§c❤§r")
-
-        override val toggled: Boolean
-            get() = Skytils.config.showSlayerDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
-    }
-
-    class SeraphDisplayElement : GuiElement("Seraph Display", x = 20, y = 20) {
-        override fun render() {
-            if (toggled && Utils.inSkyblock && slayerEntity != null && slayerEntity is EndermanEntity) {
-                val leftAlign = scaleX < UResolution.scaledWidth / 2f
-                val alignment =
-                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-                (slayer as? SeraphSlayer)?.run {
-                    nameEntity?.run {
-                        ScreenRenderer.fontRenderer.drawString(
-                            if (hitPhase)
-                                "§dShield Phase"
-                            else
-                                "§6Damage Phase",
-                            if (leftAlign) 0f else width,
-                            0f,
-                            CommonColors.WHITE,
-                            alignment,
-                            textShadow
-                        )
-                    }
-                    entity.carriedBlock?.takeIf { it.block is BeaconBlock }?.run {
-                        ScreenRenderer.fontRenderer.drawString(
-                            "§cHolding beacon!",
-                            if (leftAlign) 0f else width.toFloat(),
-                            10f,
-                            CommonColors.WHITE,
-                            alignment,
-                            textShadow
-                        )
-                    } ?: if (lastYangGlyphSwitchTicks != -1) {
-                        ScreenRenderer.fontRenderer.drawString(
-                            "§cBeacon thrown! ${(System.currentTimeMillis() - yangGlyphAdrenalineStressCount) / 1000f}s",
-                            if (leftAlign) 0f else width.toFloat(),
-                            10f,
-                            CommonColors.WHITE,
-                            alignment,
-                            textShadow
-                        )
-                    } else {
-                        ScreenRenderer.fontRenderer.drawString(
-                            "§bHolding nothing!",
-                            if (leftAlign) 0f else width.toFloat(),
-                            10f,
-                            CommonColors.WHITE,
-                            alignment,
-                            textShadow
-                        )
-                    }
-                    ScreenRenderer.fontRenderer.drawString(
-                        if (thrownLocation != null)
-                            "§cYang Glyph placed! ${(System.currentTimeMillis() - yangGlyphAdrenalineStressCount) / 1000f}s"
-                        else
-                            "§bNo yang glyph",
-                        if (leftAlign) 0f else width.toFloat(),
-                        20f,
-                        CommonColors.WHITE,
-                        alignment,
-                        textShadow
-                    )
-                    ScreenRenderer.fontRenderer.drawString(
-                        if (nukekebiSkulls.size > 0)
-                            "§dNukekebi Heads: §c${nukekebiSkulls.size}"
-                        else
-                            "§bNo Nukekebi Heads",
-                        if (leftAlign) 0f else width.toFloat(),
-                        30f,
-                        CommonColors.WHITE,
-                        alignment,
-                        textShadow
-                    )
-                }
-            }
-        }
-
-        override fun demoRender() {
-            val leftAlign = scaleX < UResolution.scaledWidth / 2f
-            val alignment =
-                if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "§dShield Phase",
-                if (leftAlign) 0f else width.toFloat(),
-                0f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
-            ScreenRenderer.fontRenderer.drawString(
-                "§bHolding beacon!",
-                if (leftAlign) 0f else width.toFloat(),
-                10f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
-            ScreenRenderer.fontRenderer.drawString(
-                "§cNo yang glyph",
-                if (leftAlign) 0f else width.toFloat(),
-                20f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
-        }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 + 20
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§bHolding beacon!")
-
-        override val toggled: Boolean
-            get() = Skytils.config.showSeraphDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
-    }
-
-    object TotemDisplayElement : GuiElement("Totem Display", x = 20, y = 50) {
-        override fun render() {
-            (slayer as? DemonlordSlayer)?.totemEntity?.run {
-                val leftAlign = scaleX < UResolution.scaledWidth / 2f
-                val alignment =
-                    if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-                ScreenRenderer.fontRenderer.drawString(
-                    displayName.method_10865(),
-                    if (leftAlign) 0f else width,
-                    0f,
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
-            }
-        }
-
-        override fun demoRender() {
-            val leftAlign = scaleX < UResolution.scaledWidth / 2f
-            val alignment =
-                if (leftAlign) SmartFontRenderer.TextAlignment.LEFT_RIGHT else SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "§6§l5s §c§l5 hits",
-                if (leftAlign) 0f else width.toFloat(),
-                0f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
-        }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§6§l5s §c§l5 hits")
-
-        override val toggled: Boolean
-            get() = Skytils.config.showTotemDisplay
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
-    }
-
-    class SlayerArmorDisplayElement : GuiElement("Slayer Armor Display", x = 150, y = 20) {
-        private val upgradeBonusRegex =
-            Regex("§7Next Upgrade: §a\\+(?<nextDefense>[\\d,]+?)❈ §8\\(§a(?<kills>[\\d,]+)§7/§c(?<nextKills>[\\d,]+)§8\\)")
-
-        override fun render() {
-            if (Utils.inSkyblock && toggled && mc.player != null) {
-                ScreenRenderer.apply {
-                    val armors = ArrayList<Pair<ItemStack, String>>(4)
-                    (3 downTo 0).map { mc.player.method_0_7157(it) }.forEach { armor ->
-                        if (armor == null) return@forEach
-                        val extraAttr = ItemUtil.getExtraAttributes(armor) ?: return@forEach
-                        val killsKey =
-                            extraAttr.keys.find { it.endsWith("_kills") && extraAttr.getType(it) == ItemUtil.NBT_INTEGER.toByte() }
-                        if (killsKey.isNullOrEmpty()) return@forEach
-                        for (lore in ItemUtil.getItemLore(armor).asReversed()) {
-                            if (lore == "§a§lMAXED OUT! NICE!") {
-                                val kills = extraAttr.getInt(killsKey)
-                                armors.add(armor to "§a§lMAX §b(§f${NumberUtil.nf.format(kills)}§b)")
-                                break
-                            } else if (lore.startsWith("§7Next Upgrade:")) {
-                                val match = upgradeBonusRegex.find(lore) ?: return@forEach
-                                val currentKills =
-                                    match.groups["kills"]!!.value.replace(",", "").toDoubleOrNull() ?: return@forEach
-                                val nextKills = match.groups["nextKills"]!!.value.replace(",", "").toDoubleOrNull()
-                                    ?: return@forEach
-                                val percentToNext = (currentKills / nextKills * 100).roundToPrecision(1)
-                                armors.add(armor to "§e$percentToNext% §b(§f${NumberUtil.nf.format(currentKills)}§b)")
-                            }
-                        }
-                    }
-
-                    if (armors.isNotEmpty()) {
-                        val leftAlign = scaleX < UResolution.scaledWidth / 2f
-                        if (!leftAlign) {
-                            val longest = fontRenderer.getWidth(((armors.maxByOrNull { it.second.length }
-                                ?: (null to ""))).second)
-                            armors.forEachIndexed { index, pair ->
-                                RenderUtil.renderItem(pair.first, longest + 2, index * 16)
-                                fontRenderer.drawString(
-                                    pair.second,
-                                    longest - fontRenderer.getWidth(pair.second).toFloat(),
-                                    index * 16 + 4.5f
-                                )
-                            }
-                        } else {
-                            armors.forEachIndexed { index, pair ->
-                                RenderUtil.renderItem(pair.first, 0, index * 16)
-                                fontRenderer.drawString(
-                                    pair.second,
-                                    18f,
-                                    index * 16 + 4.5f
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        override fun demoRender() {
-            val leftAlign = scaleX < UResolution.scaledWidth / 2f
-            val text = "§e99.9% §b(§f199§b)"
-            if (leftAlign) {
-                RenderUtil.renderItem(ItemStack(Items.field_8577), 0, 0)
-                ScreenRenderer.fontRenderer.drawString(
-                    text,
-                    18f,
-                    4.5f
-                )
-            } else {
-                ScreenRenderer.fontRenderer.drawString(
-                    text,
-                    0f,
-                    4.5f
-                )
-                RenderUtil.renderItem(
-                    ItemStack(Items.field_8577),
-                    ScreenRenderer.fontRenderer.getWidth(text) + 2,
-                    0
-                )
-            }
-        }
-
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811 + 5
-        override val width: Int
-            get() = 18 + ScreenRenderer.fontRenderer.getWidth("§e99.9% §b(§f199§b)")
-
-        override val toggled: Boolean
-            get() = Skytils.config.showSlayerArmorKills
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
-    }
+//    class SlayerArmorDisplayElement : GuiElement("Slayer Armor Display", x = 150, y = 20) {
+//        private val upgradeBonusRegex =
+//            Regex("§7Next Upgrade: §a\\+(?<nextDefense>[\\d,]+?)❈ §8\\(§a(?<kills>[\\d,]+)§7/§c(?<nextKills>[\\d,]+)§8\\)")
+//
+//        override fun render() {
+//            if (Utils.inSkyblock && toggled && mc.player != null) {
+//                ScreenRenderer.apply {
+//                    val armors = ArrayList<Pair<ItemStack, String>>(4)
+//                    (3 downTo 0).map { mc.player.method_0_7157(it) }.forEach { armor ->
+//                        if (armor == null) return@forEach
+//                        val extraAttr = ItemUtil.getExtraAttributes(armor) ?: return@forEach
+//                        val killsKey =
+//                            extraAttr.keys.find { it.endsWith("_kills") && extraAttr.getType(it) == ItemUtil.NBT_INTEGER.toByte() }
+//                        if (killsKey.isNullOrEmpty()) return@forEach
+//                        for (lore in ItemUtil.getItemLore(armor).asReversed()) {
+//                            if (lore == "§a§lMAXED OUT! NICE!") {
+//                                val kills = extraAttr.getInt(killsKey)
+//                                armors.add(armor to "§a§lMAX §b(§f${NumberUtil.nf.format(kills)}§b)")
+//                                break
+//                            } else if (lore.startsWith("§7Next Upgrade:")) {
+//                                val match = upgradeBonusRegex.find(lore) ?: return@forEach
+//                                val currentKills =
+//                                    match.groups["kills"]!!.value.replace(",", "").toDoubleOrNull() ?: return@forEach
+//                                val nextKills = match.groups["nextKills"]!!.value.replace(",", "").toDoubleOrNull()
+//                                    ?: return@forEach
+//                                val percentToNext = (currentKills / nextKills * 100).roundToPrecision(1)
+//                                armors.add(armor to "§e$percentToNext% §b(§f${NumberUtil.nf.format(currentKills)}§b)")
+//                            }
+//                        }
+//                    }
+//
+//                    if (armors.isNotEmpty()) {
+//                        val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//                        if (!leftAlign) {
+//                            val longest = fontRenderer.getWidth(((armors.maxByOrNull { it.second.length }
+//                                ?: (null to ""))).second)
+//                            armors.forEachIndexed { index, pair ->
+//                                RenderUtil.renderItem(pair.first, longest + 2, index * 16)
+//                                fontRenderer.drawString(
+//                                    pair.second,
+//                                    longest - fontRenderer.getWidth(pair.second).toFloat(),
+//                                    index * 16 + 4.5f
+//                                )
+//                            }
+//                        } else {
+//                            armors.forEachIndexed { index, pair ->
+//                                RenderUtil.renderItem(pair.first, 0, index * 16)
+//                                fontRenderer.drawString(
+//                                    pair.second,
+//                                    18f,
+//                                    index * 16 + 4.5f
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        override fun demoRender() {
+//            val leftAlign = scaleX < UResolution.scaledWidth / 2f
+//            val text = "§e99.9% §b(§f199§b)"
+//            if (leftAlign) {
+//                RenderUtil.renderItem(ItemStack(Items.field_8577), 0, 0)
+//                ScreenRenderer.fontRenderer.drawString(
+//                    text,
+//                    18f,
+//                    4.5f
+//                )
+//            } else {
+//                ScreenRenderer.fontRenderer.drawString(
+//                    text,
+//                    0f,
+//                    4.5f
+//                )
+//                RenderUtil.renderItem(
+//                    ItemStack(Items.field_8577),
+//                    ScreenRenderer.fontRenderer.getWidth(text) + 2,
+//                    0
+//                )
+//            }
+//        }
+//
+//        override val height: Int
+//            get() = ScreenRenderer.fontRenderer.field_0_2811 + 5
+//        override val width: Int
+//            get() = 18 + ScreenRenderer.fontRenderer.getWidth("§e99.9% §b(§f199§b)")
+//
+//        override val toggled: Boolean
+//            get() = Skytils.config.showSlayerArmorKills
+//
+//        init {
+//            Skytils.guiManager.registerElement(this)
+//        }
+//    }
 
 }
