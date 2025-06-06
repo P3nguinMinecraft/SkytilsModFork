@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -43,7 +44,9 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 object DungeonTimer : EventSubscriber {
-    var dungeonStartTime = -1L
+    val dungeonStartTime
+        get() = dungeonStartTimeState.getUntracked()
+    val dungeonStartTimeState = mutableStateOf(-1L)
     var bloodOpenTime = -1L
     var bloodClearTime = -1L
     var bossEntryTime = -1L
@@ -226,7 +229,7 @@ object DungeonTimer : EventSubscriber {
     }
 
     fun onWorldChange(event: WorldUnloadEvent) {
-        dungeonStartTime = -1
+        dungeonStartTimeState.set { -1 }
         bloodOpenTime = -1
         bloodClearTime = -1
         bossEntryTime = -1

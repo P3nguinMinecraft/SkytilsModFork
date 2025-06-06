@@ -17,33 +17,41 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.layoutdsl.column
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.state.State
+import gg.essential.elementa.state.v2.clear
+import gg.essential.elementa.state.v2.collections.MutableTrackedList
+import gg.essential.elementa.state.v2.combinators.and
+import gg.essential.elementa.state.v2.mutableListStateOf
+import gg.essential.elementa.state.v2.toV2
+import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
+import gg.skytils.event.impl.play.ChatMessageReceivedEvent
+import gg.skytils.event.impl.play.WorldUnloadEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.DungeonPuzzleResetEvent
+import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod.core.GuiManager
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
-import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloorNumber
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.listeners.DungeonListener
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorChatComponentText
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket
-import net.minecraft.text.LiteralTextContent
-import net.minecraftforge.client.event.ClientChatReceivedEvent
-import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraft.text.Text
+import java.awt.Color
+import kotlin.collections.forEach
+import kotlin.jvm.optionals.getOrNull
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -83,6 +91,7 @@ object ScoreCalculation: EventSubscriber {
         "default" to FloorRequirement()
     )
 
+    // TODO: migrate to StateV2
     // clear stuff
     var completedRooms = BasicState(0)
     var clearedPercentage = BasicState(0)
@@ -261,80 +270,80 @@ object ScoreCalculation: EventSubscriber {
 
     fun updateText(score: Int) {
         Utils.checkThreadAndQueue {
-            ScoreCalculationElement.text.clear()
+            ScoreCalculationHud.text.clear()
+            val newList = mutableListOf<String>()
             if (!Utils.inDungeons) return@checkThreadAndQueue
-            if (Skytils.config.minimizedScoreCalculation) {
+            if (Skytils.config.minimizedScoreCalculationState.getUntracked()) {
                 val color = when {
                     score < 270 -> 'c'
                     score < 300 -> 'e'
                     else -> 'a'
                 }
-                ScoreCalculationElement.text.add("§eScore: §$color$score §7($rank§7)")
+                newList.add("§eScore: §$color$score §7($rank§7)")
             } else {
-                ScoreCalculationElement.text.add("§9Dungeon Status")
-                ScoreCalculationElement.text.add("§f• §eDeaths:§c ${deaths.get()} ${if (firstDeathHadSpirit.get()) "§7(§6Spirit§7)" else ""}")
-                ScoreCalculationElement.text.add("§f• §eMissing Puzzles:§c ${missingPuzzles.get()}")
-                ScoreCalculationElement.text.add("§f• §eFailed Puzzles:§c ${failedPuzzles.get()}")
-                if (foundSecrets.get() > 0) ScoreCalculationElement.text.add(
+                newList.add("§9Dungeon Status")
+                newList.add("§f• §eDeaths:§c ${deaths.get()} ${if (firstDeathHadSpirit.get()) "§7(§6Spirit§7)" else ""}")
+                newList.add("§f• §eMissing Puzzles:§c ${missingPuzzles.get()}")
+                newList.add("§f• §eFailed Puzzles:§c ${failedPuzzles.get()}")
+                if (foundSecrets.get() > 0) newList.add(
                     "§f• §eSecrets: ${if (foundSecrets.get() >= totalSecretsNeeded.get()) "§a" else "§c"}${foundSecrets.get()}§7/§a${totalSecretsNeeded.get()} " +
                             if (floorReq.get().secretPercentage != 1.0) "§7(§6Total: ${totalSecrets.get()}§7)" else ""
                 )
-                ScoreCalculationElement.text.add("§f• §eCrypts:§a ${crypts.get()}")
+                newList.add("§f• §eCrypts:§a ${crypts.get()}")
                 if (dungeonFloorNumber?.let { it >= 6 } == true) {
-                    ScoreCalculationElement.text.add("§f• §eMimic:§l${if (mimicKilled.get()) "§a ✔" else "§c ✘"}")
+                    newList.add("§f• §eMimic:§l${if (mimicKilled.get()) "§a ✔" else "§c ✘"}")
                 }
-                ScoreCalculationElement.text.add("")
-                ScoreCalculationElement.text.add("§6Score")
+                newList.add("")
+                newList.add("§6Score")
                 if (DungeonFeatures.dungeonFloor == "E")
-                    ScoreCalculationElement.text.add("§f• §eSkill Score:§a ${skillScore.get().coerceIn(14, 70)}")
+                    newList.add("§f• §eSkill Score:§a ${skillScore.get().coerceIn(14, 70)}")
                 else
-                    ScoreCalculationElement.text.add("§f• §eSkill Score:§a ${skillScore.get().coerceIn(20, 100)}")
-                ScoreCalculationElement.text.add(
+                    newList.add("§f• §eSkill Score:§a ${skillScore.get().coerceIn(20, 100)}")
+                newList.add(
                     "§f• §eExplore Score:§a ${discoveryScore.get()} §7(§e${
                         roomClearScore.get().toInt()
                     } §7+ §6${secretScore.get().toInt()}§7)"
                 )
-                ScoreCalculationElement.text.add("§f• §eSpeed Score:§a ${speedScore.get()}")
+                newList.add("§f• §eSpeed Score:§a ${speedScore.get()}")
 
                 if (DungeonFeatures.dungeonFloor == "E") {
-                    ScoreCalculationElement.text.add("§f• §eBonus Score:§a ${ceil(bonusScore.get() * 0.7).toInt()}")
-                    ScoreCalculationElement.text.add("§f• §eTotal Score:§a $score" + if (isPaul.get()) " §7(§6+7§7)" else "")
+                    newList.add("§f• §eBonus Score:§a ${ceil(bonusScore.get() * 0.7).toInt()}")
+                    newList.add("§f• §eTotal Score:§a $score" + if (isPaul.get()) " §7(§6+7§7)" else "")
                 } else {
-                    ScoreCalculationElement.text.add("§f• §eBonus Score:§a ${bonusScore.get()}")
-                    ScoreCalculationElement.text.add("§f• §eTotal Score:§a $score" + if (isPaul.get()) " §7(§6+10§7)" else "")
+                    newList.add("§f• §eBonus Score:§a ${bonusScore.get()}")
+                    newList.add("§f• §eTotal Score:§a $score" + if (isPaul.get()) " §7(§6+10§7)" else "")
                 }
-                ScoreCalculationElement.text.add("§f• §eRank: $rank")
-
+                newList.add("§f• §eRank: $rank")
             }
+            ScoreCalculationHud.text.set(MutableTrackedList(newList))
         }
     }
 
 
-    @SubscribeEvent
-    fun onScoreboardChange(event: MainReceivePacketEvent<*, *>) {
+    fun onScoreboardChange(event: MainThreadPacketReceiveEvent<*>) {
         if (
             !Utils.inSkyblock ||
             event.packet !is TeamS2CPacket
         ) return
-        if (event.packet.mode != 2) return
-        val line = event.packet.playerList.joinToString(
+        if (event.packet.teamOperation != null || event.packet.playerListOperation != null) return
+        val line = event.packet.playerNames.joinToString(
             " ",
-            prefix = event.packet.method_0_5600(),
-            postfix = event.packet.method_0_5601()
+            prefix = event.packet.team.getOrNull()?.prefix?.string ?: "",
+            postfix = event.packet.team.getOrNull()?.suffix?.string ?: ""
         ).stripControlCodes()
         printDevMessage(line, "scorecalcscoreboard")
         if (line.startsWith("Cleared: ")) {
             val matcher = dungeonClearedPattern.find(line)
             if (matcher != null) {
                 if (DungeonTimer.dungeonStartTime == -1L)
-                    DungeonTimer.dungeonStartTime = System.currentTimeMillis()
+                    DungeonTimer.dungeonStartTimeState.set { System.currentTimeMillis() }
                 clearedPercentage.set(matcher.groups["percentage"]?.value?.toIntOrNull() ?: 0)
                 return
             }
         }
         if (line.startsWith("Time Elapsed:")) {
             if (DungeonTimer.dungeonStartTime == -1L)
-                DungeonTimer.dungeonStartTime = System.currentTimeMillis()
+                DungeonTimer.dungeonStartTimeState.set { System.currentTimeMillis() }
             val matcher = timeElapsedPattern.find(line)
             if (matcher != null) {
                 val hours = matcher.groups["hrs"]?.value?.toIntOrNull() ?: 0
@@ -346,16 +355,14 @@ object ScoreCalculation: EventSubscriber {
         }
     }
 
-    @SubscribeEvent
-    fun onTabChange(event: MainReceivePacketEvent<*, *>) {
+    fun onTabChange(event: MainThreadPacketReceiveEvent<*>) {
         if (
             !Utils.inDungeons ||
             event.packet !is PlayerListS2CPacket ||
-            (event.packet.action != PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME &&
-                    event.packet.action != PlayerListS2CPacket.Action.ADD_PLAYER)
+            setOf(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, PlayerListS2CPacket.Action.ADD_PLAYER).intersect(event.packet.actions).isNotEmpty()
         ) return
         event.packet.entries.forEach { playerData ->
-            val name = playerData?.displayName?.method_10865() ?: playerData?.profile?.name ?: return@forEach
+            val name = playerData?.displayName?.string ?: playerData?.profile?.name ?: return@forEach
             printDevMessage(name, "scorecalctab")
             when {
                 name.contains("Deaths:") -> {
@@ -414,12 +421,12 @@ object ScoreCalculation: EventSubscriber {
         }
     }
 
-    @SubscribeEvent
-    fun onTitle(event: MainReceivePacketEvent<*, *>) {
-        if (!Utils.inDungeons || event.packet !is TitleS2CPacket || event.packet.action != TitleS2CPacket.Action.TITLE) return
-        if (event.packet.text.method_10865() == "§eYou became a ghost!§r") {
-            if (DungeonListener.hutaoFans.getIfPresent(mc.player.name) == true
-                && DungeonListener.team[mc.player.name]?.deaths == 0
+    fun onTitle(event: MainThreadPacketReceiveEvent<*>) {
+        if (!Utils.inDungeons || event.packet !is TitleS2CPacket) return
+        if (event.packet.text.formattedText == "§eYou became a ghost!§r") {
+            val player = mc.player ?: return
+            if (DungeonListener.hutaoFans.getIfPresent(player.name.string) == true
+                && DungeonListener.team[player.name.string]?.deaths == 0
             ) firstDeathHadSpirit.set(
                 true
             )
@@ -435,10 +442,9 @@ object ScoreCalculation: EventSubscriber {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-    fun onChatReceived(event: ClientChatReceivedEvent) {
-        if (!Utils.inDungeons || mc.player == null || event.type == 2.toByte()) return
-        val unformatted = event.message.method_0_5147().stripControlCodes()
+    fun onChatReceived(event: ChatMessageReceivedEvent) {
+        if (!Utils.inDungeons || mc.player == null) return
+        val unformatted = event.message.string.stripControlCodes()
         if (Skytils.config.scoreCalculationReceiveAssist) {
             if (unformatted.startsWith("Party > ") || (unformatted.contains(":") && !unformatted.contains(">"))) {
                 if (unformatted.contains("\$SKYTILS-DUNGEON-SCORE-MIMIC$") || (Skytils.config.receiveHelpFromOtherModMimicDead && unformatted.containsAny(
@@ -449,7 +455,7 @@ object ScoreCalculation: EventSubscriber {
                     return
                 }
                 if (unformatted.contains("\$SKYTILS-DUNGEON-SCORE-ROOM$")) {
-                    event.isCanceled = true
+                    event.cancelled = true
                     return
                 }
             }
@@ -461,24 +467,25 @@ object ScoreCalculation: EventSubscriber {
         failedPuzzles.set((failedPuzzles.get() - 1).coerceAtLeast(0))
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    fun canYouPleaseStopCryingThanks(event: ClientChatReceivedEvent) {
-        if (!Utils.inDungeons || event.type != 0.toByte()) return
-        val unformatted = event.message.method_0_5147().stripControlCodes()
+    fun canYouPleaseStopCryingThanks(event: ChatMessageReceivedEvent) {
+        if (!Utils.inDungeons) return
+        val unformatted = event.message.string.stripControlCodes()
         if ((unformatted.startsWith("Party > ") || unformatted.startsWith("P > ")) && unformatted.contains(": Skytils-SC > ")) {
-            event.message.siblings.filterIsInstance<LiteralTextContent>().forEach {
-                it as AccessorChatComponentText
-                if (it.text.startsWith("Skytils-SC > ")) {
-                    it.text = it.text.substringAfter("Skytils-SC > ")
-                } else if (it.text.startsWith("\$SKYTILS-DUNGEON-SCORE-MIMIC\$")) {
-                    it.text = it.text.replace("\$SKYTILS-DUNGEON-SCORE-MIMIC\$", "Mimic Killed!")
+            val component = Text.of("")
+            event.message.map {
+                if (string.startsWith("Skytils-SC > ")) {
+                    component.append(Text.literal(string.substringAfter("Skytils-SC > ")))
+                } else if (string.startsWith("\$SKYTILS-DUNGEON-SCORE-MIMIC\$")) {
+                    component.append(Text.literal(string.replace("\$SKYTILS-DUNGEON-SCORE-MIMIC\$", "Mimic Killed!")))
+                } else {
+                    component.append(Text.literal(string))
                 }
             }
+            event.message = component
         }
     }
 
-    @SubscribeEvent
-    fun clearScore(event: WorldEvent.Unload) {
+    fun clearScore(event: WorldUnloadEvent) {
         mimicKilled.set(false)
         firstDeathHadSpirit.set(false)
         floorReq.set(floorRequirements["default"]!!)
@@ -495,97 +502,65 @@ object ScoreCalculation: EventSubscriber {
     }
 
     init {
-        ScoreCalculationElement()
-        HugeCryptsCounter()
+        Skytils.guiManager.registerElement(ScoreCalculationHud)
+        Skytils.guiManager.registerElement(HugeCryptsHud())
     }
 
-    class HugeCryptsCounter : GuiElement("Dungeon Crypts Counter", scale = 2f, x = 200, y = 200) {
-        override fun render() {
-            if (toggled && Utils.inDungeons && DungeonTimer.dungeonStartTime != -1L) {
-
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                ScreenRenderer.fontRenderer.drawString(
-                    "Crypts: ${crypts.get()}",
-                    if (leftAlign) 0f else width.toFloat(),
-                    0f,
-                    alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT,
-                    customColor = if (crypts.get() < 5) CommonColors.RED else CommonColors.LIGHT_GREEN
-                )
+    class HugeCryptsHud : HudElement("Dungeon Crypts Counter", 200f, 200f) {
+        override fun LayoutScope.render() {
+            if_(SBInfo.dungeonsState and { DungeonTimer.dungeonStartTimeState() != -1L }) {
+                text({ "Crypts: ${crypts.toV2()()}" }, Modifier.color { if (crypts.toV2()() < 5) Color.RED else Color(0x49ff59) })
             }
         }
 
-        override fun demoRender() {
-
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            ScreenRenderer.fontRenderer.drawString(
-                "Crypts: 5",
-                if (leftAlign) 0f else width.toFloat(),
-                0f,
-                alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT,
-                customColor = CommonColors.LIGHT_GREEN
-            )
+        override fun LayoutScope.demoRender() {
+            text("Crypts: 5", Modifier.color(Color(0x49ff59)))
         }
 
-        override val toggled: Boolean
-            get() = Skytils.config.bigCryptsCounter
-        override val height: Int
-            get() = fr.field_0_2811
-        override val width: Int
-            get() = fr.getWidth("Crypts: 5")
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
-    class ScoreCalculationElement : GuiElement("Dungeon Score Estimate", x = 200, y = 100) {
-        override fun render() {
-            if (toggled && Utils.inDungeons) {
-                RenderUtil.drawAllInList(this, text)
+    object ScoreCalculationHud : HudElement("Dungeon Score Estimate", 200f, 100f) {
+        val text = mutableListStateOf<String>()
+        override fun LayoutScope.render() {
+            if_(SBInfo.dungeonsState) {
+                column {
+                    forEach(text) { line ->
+                        text(line)
+                    }
+                }
             }
         }
 
-        override fun demoRender() {
-            if (Skytils.config.minimizedScoreCalculation) {
-                RenderUtil.drawAllInList(this, demoMin)
-            } else {
-                RenderUtil.drawAllInList(this, demoText)
+        override fun LayoutScope.demoRender() {
+            if_(Skytils.config.minimizedScoreCalculationState) {
+                text("§eScore: §e300 §7(§6§lS+§7)")
+            } `else` {
+                column {
+                    demoText.forEach { line ->
+                        text(line)
+                    }
+                }
             }
         }
 
-        companion object {
-            private val demoText = listOf(
-                "§9Dungeon Status",
-                "§f• §eDeaths:§c 0",
-                "§f• §eMissing Puzzles:§c 0",
-                "§f• §eFailed Puzzles:§c 0",
-                "§f• §eSecrets: §a50§7/§a50 §7(§6Total: 50§7)",
-                "§f• §eCrypts:§a 5",
-                "§f• §eMimic:§a ✔",
-                "",
-                "§6Score",
-                "§f• §eSkill Score:§a 100",
-                "§f• §eExplore Score:§a 100 §7(§e60 §7+ §640§7)",
-                "§f• §eSpeed Score:§a 100",
-                "§f• §eBonus Score:§a 17",
-                "§f• §eTotal Score:§a 317 §7(§6+10§7)",
-                "§f• §eRank: §6§lS+"
-            )
-            private val demoMin = listOf("§eScore: §e300 §7(§6§lS+§7)")
-            val text = ArrayList<String>()
-        }
+        private val demoText = listOf(
+            "§9Dungeon Status",
+            "§f• §eDeaths:§c 0",
+            "§f• §eMissing Puzzles:§c 0",
+            "§f• §eFailed Puzzles:§c 0",
+            "§f• §eSecrets: §a50§7/§a50 §7(§6Total: 50§7)",
+            "§f• §eCrypts:§a 5",
+            "§f• §eMimic:§a ✔",
+            "",
+            "§6Score",
+            "§f• §eSkill Score:§a 100",
+            "§f• §eExplore Score:§a 100 §7(§e60 §7+ §640§7)",
+            "§f• §eSpeed Score:§a 100",
+            "§f• §eBonus Score:§a 17",
+            "§f• §eTotal Score:§a 317 §7(§6+10§7)",
+            "§f• §eRank: §6§lS+"
+        )
 
-        override val height: Int
-            get() = if (Skytils.config.minimizedScoreCalculation) ScreenRenderer.fontRenderer.field_0_2811 else ScreenRenderer.fontRenderer.field_0_2811 * demoText.size
-        override val width: Int
-            get() = demoText.maxOf { ScreenRenderer.fontRenderer.getWidth(it) }
-
-        override val toggled: Boolean
-            get() = Skytils.config.showScoreCalculation
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
     data class FloorRequirement(val secretPercentage: Double = 1.0, val speed: Int = 10 * 60)
@@ -594,5 +569,11 @@ object ScoreCalculation: EventSubscriber {
 
     override fun setup() {
         register(::onPuzzleReset)
+        register(::onScoreboardChange)
+        register(::onTabChange)
+        register(::onTitle)
+        register(::onChatReceived, EventPriority.Highest)
+        register(::canYouPleaseStopCryingThanks, EventPriority.Lowest)
+        register(::clearScore)
     }
 }
