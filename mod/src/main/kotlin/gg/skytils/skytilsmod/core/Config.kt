@@ -18,9 +18,6 @@
 package gg.skytils.skytilsmod.core
 
 import gg.essential.api.EssentialAPI
-import gg.essential.elementa.state.v2.MutableState
-import gg.essential.elementa.state.v2.ReferenceHolderImpl
-import gg.essential.elementa.state.v2.onChange
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
@@ -462,15 +459,17 @@ object Config : Vigilant(
     )
     var showScoreCalculation = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Minimized Dungeon Score Estimate",
-        description = "Only shows the dungeon score.",
-        category = "Dungeons", subcategory = "Score Calculation",
-        i18nName = "skytils.config.dungeons.score_calculation.minimized_dungeon_score_estimate",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.score_calculation"
+    val minimizedScoreCalculationState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Minimized Dungeon Score Estimate",
+            description = "Only shows the dungeon score.",
+            category = "Dungeons", subcategory = "Score Calculation",
+            i18nName = "skytils.config.dungeons.score_calculation.minimized_dungeon_score_estimate",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.score_calculation"
+        ),
+        false
     )
-    var minimizedScoreCalculation = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Score Calculation Party Assist",
