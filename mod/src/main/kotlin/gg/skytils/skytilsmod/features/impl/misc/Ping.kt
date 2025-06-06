@@ -18,6 +18,11 @@
 
 package gg.skytils.skytilsmod.features.impl.misc
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.register
@@ -25,19 +30,21 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
-import gg.skytils.skytilsmod.core.structure.GuiElement
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorServerListEntryNormal
+import gg.skytils.skytilsmod._event.RenderHUDEvent
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorMultiplayerServerListWidget
 import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
-import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.hasMoved
 import net.minecraft.client.network.ServerInfo
 import net.minecraft.client.network.MultiplayerServerListPinger
+import net.minecraft.network.PacketCallbacks
 import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket
 import net.minecraft.network.packet.s2c.play.StatisticsS2CPacket
+import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 
@@ -45,15 +52,17 @@ object Ping : EventSubscriber {
 
     var lastPingAt = -1L
 
-    var pingCache = -1.0
+    val pingCacheState = mutableStateOf(-1.0)
 
     var invokedCommand = false
 
     val oldServerPinger = MultiplayerServerListPinger()
+    private val dummyServerInfo = ServerInfo("Skytils-Dummy-Hypixel", "mc.hypixel.net", ServerInfo.ServerType.OTHER)
     var lastOldServerPing = 0L
 
     override fun setup() {
         register(::onPacket)
+        register(::onRenderhud)
     }
 
     fun sendPing() {
@@ -61,12 +70,22 @@ object Ping : EventSubscriber {
             if (invokedCommand) UChat.chat("§cAlready pinging!")
             return
         }
-        mc.player.networkHandler.method_2872().send(
+        mc.player?.networkHandler?.connection?.send(
             ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.REQUEST_STATS),
-            {
+            PacketCallbacks.always {
                 lastPingAt = System.nanoTime()
             }
         )
+    }
+
+    fun pingServerList() {
+        if (System.currentTimeMillis() - lastOldServerPing > 5000) {
+            lastOldServerPing = System.currentTimeMillis()
+            AccessorMultiplayerServerListWidget.getThreadPool()
+                .submit {
+                    oldServerPinger.add(dummyServerInfo, {}, { pingCacheState.set { dummyServerInfo.ping.toDouble() } })
+                }
+        }
     }
 
     fun onPacket(event: PacketReceiveEvent<*>) {
@@ -80,7 +99,7 @@ object Ping : EventSubscriber {
                 is StatisticsS2CPacket -> {
                     val diff = (abs(System.nanoTime() - lastPingAt) / 1_000_000.0)
                     lastPingAt *= -1
-                    pingCache = diff
+                    pingCacheState.set { diff }
                     if (invokedCommand) {
                         invokedCommand = false
                         UChat.chat(
@@ -100,77 +119,49 @@ object Ping : EventSubscriber {
         }
     }
 
-    class PingDisplayElement : GuiElement(name = "Ping Display", x = 10, y = 10) {
-        override fun render() {
-            if (Utils.isOnHypixel && toggled && mc.player != null) {
-                when (Skytils.config.pingDisplay) {
-                    1 -> {
-                        if (mc.currentServerEntry == null) {
-                            mc.currentServerEntry = ServerInfo("Skytils-Dummy-Hypixel", "mc.hypixel.net", false)
-                        }
-                        if (System.currentTimeMillis() - lastOldServerPing > 5000) {
-                            lastOldServerPing = System.currentTimeMillis()
-                            AccessorServerListEntryNormal.getPingerPool()
-                                .submit {
-                                    oldServerPinger.add(mc.currentServerEntry)
-                                }
-                        }
-                        if (mc.currentServerEntry.ping != -1L) pingCache =
-                            mc.currentServerEntry.ping.toDouble()
+    fun onRenderhud(event: RenderHUDEvent) {
+        if (SBInfo.skyblockState.getUntracked() && mc.player != null) {
+            when (Skytils.config.pingDisplay) {
+                1 -> pingServerList()
+                2 -> {
+                    if (lastPingAt < 0 && (mc.currentScreen != null || mc.player?.hasMoved == false) && System.nanoTime()
+                        - lastPingAt.absoluteValue > 1_000_000L * 5_000
+                    ) {
+                        sendPing()
                     }
-
-                    2 -> {
-                        if (lastPingAt < 0 && (mc.currentScreen != null || !mc.player.hasMoved) && System.nanoTime()
-                            - lastPingAt.absoluteValue > 1_000_000L * 5_000
-                        ) {
-                            sendPing()
-                        }
-                    }
-                }
-                if (pingCache != -1.0) {
-                    fr.drawString(
-                        "${NumberUtil.nf.format(pingCache.roundToPrecision(2))}ms",
-                        0f,
-                        0f,
-                        when {
-                            pingCache < 50 -> CommonColors.GREEN
-                            pingCache < 100 -> CommonColors.DARK_GREEN
-                            pingCache < 149 -> CommonColors.YELLOW
-                            pingCache < 249 -> CommonColors.ORANGE
-                            else -> CommonColors.RED
-                        },
-                        SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                        textShadow
-                    )
                 }
             }
         }
+    }
 
-        override fun demoRender() {
-            fr.drawString(
-                "69.69ms",
-                0f,
-                0f,
-                CommonColors.DARK_GREEN,
-                SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
+    class PingDisplayHud : HudElement("Ping Display", 10f, 10f) {
+        private val color = State {
+            val ping = pingCacheState()
+            when {
+                ping < 50 -> Color.GREEN
+                ping < 100 -> Color(0x00AA00)
+                ping < 149 -> Color.YELLOW
+                ping < 249 -> Color.ORANGE
+                else -> Color.RED
+            }
+        }
+        private val text = State {
+            val ping = pingCacheState()
+            "${NumberUtil.nf.format(ping.roundToPrecision(2))}ms"
+        }
+        override fun LayoutScope.render() {
+            if_(SBInfo.hypixelState) {
+                text(text, Modifier.color(color))
+            }
         }
 
-        override val toggled: Boolean
-            get() = Skytils.config.pingDisplay != 0
-        override val height: Int
-            get() = fr.field_0_2811
-        override val width: Int
-            get() = fr.getWidth("69.69ms")
-
-        init {
-            Skytils.guiManager.registerElement(this)
+        override fun LayoutScope.demoRender() {
+            text("69.69ms", Modifier.color(Color(0x00AA00)))
         }
 
     }
 
     init {
-        PingDisplayElement()
+        Skytils.guiManager.registerElement(PingDisplayHud())
     }
 }
