@@ -29,11 +29,13 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.utils.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.encodeToString
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
 import java.io.File
 import java.io.Reader
 import java.io.Writer
 import java.util.*
+import kotlin.jvm.optionals.getOrDefault
+import kotlin.jvm.optionals.getOrNull
 
 object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepaid.json")) {
     val prices = mutableMapOf<@Contextual UUID, Double>()
@@ -48,9 +50,9 @@ object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepa
     }
 
     fun onPacket(event: PacketReceiveEvent<*>) {
-        if (!Utils.inSkyblock || lastBought == null || event.packet !is GameMessageS2CPacket || event.packet.type == 2.toByte()) return
-        val formatted = event.packet.message.method_10865()
-        val unformatted = event.packet.message.string.stripControlCodes()
+        if (!Utils.inSkyblock || lastBought == null || event.packet !is ChatMessageS2CPacket) return
+        val formatted = event.packet.unsignedContent?.formattedText ?: return
+        val unformatted = event.packet.unsignedContent?.string?.stripControlCodes() ?: return
 
         if (formatted.startsWith("§r§eYou purchased ") && formatted.endsWith(" coins§r§e!§r")) {
             val (name, uuid, price) = lastBought ?: return
@@ -71,7 +73,7 @@ object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepa
     fun toolTip(event: ItemTooltipEvent) {
         if (!Utils.inSkyblock || !Skytils.config.pricePaid) return
         val extraAttr = ItemUtil.getExtraAttributes(event.stack) ?: return
-        prices[UUID.fromString(extraAttr.getString("uuid").ifEmpty { return })]?.let { price ->
+        prices[UUID.fromString(extraAttr.getString("uuid").getOrDefault("").ifEmpty { return })]?.let { price ->
             event.tooltip.add("§r§7Price Paid: §9\$${NumberUtil.nf.format(price)}")
         } ?: return
     }
@@ -82,8 +84,8 @@ object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepa
         ItemUtil.getItemLore(event.slot!!.stack).firstNotNullOfOrNull {
             coinRegex.find(it)?.groupValues?.get(1)
         }?.let { price ->
-            val stack = event.gui.handler.getSlot(13).stack ?: return
-            val uuid = ItemUtil.getExtraAttributes(stack)?.getString("uuid")
+            val stack = event.gui.screenHandler.getSlot(13).stack ?: return
+            val uuid = ItemUtil.getExtraAttributes(stack)?.getString("uuid")?.getOrNull()
                 ?.ifEmpty { return } ?: return
             lastBought = Triple(
                 ItemUtil.getDisplayName(stack),
