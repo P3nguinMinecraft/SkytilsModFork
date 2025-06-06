@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.spidersden
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.render.WorldDrawEvent
@@ -28,12 +29,11 @@ import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.utils.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
-import net.minecraft.particle.ParticleType
+import net.minecraft.particle.ParticleTypes
 import java.awt.Color
 import java.io.Reader
 import java.io.Writer
@@ -54,8 +54,8 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
         if (event.packet is ParticleS2CPacket) {
             if (Skytils.config.rareRelicFinder) {
                 event.packet.apply {
-                    if (parameters == ParticleType.SPELL_WITCH && count == 2 && shouldForceSpawn() && speed == 0f && offsetX == 0.3f && offsetY == 0.3f && offsetZ == 0.3f) {
-                        rareRelicLocations.add(BlockPos(x, y, z))
+                    if (parameters == ParticleTypes.WITCH && count == 2 && shouldForceSpawn() && speed == 0f && offsetX == 0.3f && offsetY == 0.3f && offsetZ == 0.3f) {
+                        rareRelicLocations.add(BlockPos.ofFloored(x, y, z))
                     }
                 }
             }
@@ -66,10 +66,10 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
         if (!Utils.inSkyblock) return
         if (SBInfo.mode != SkyblockIsland.SpiderDen.mode) return
         if (event.packet is PlayerInteractBlockC2SPacket) {
-            val packet = event.packet as PlayerInteractBlockC2SPacket?
-            if (relicLocations.contains(packet!!.method_12548())) {
-                foundRelics.add(packet.method_12548())
-                rareRelicLocations.remove(packet.method_12548())
+            val pos = event.packet.blockHitResult.blockPos
+            if (relicLocations.contains(pos)) {
+                foundRelics.add(pos)
+                rareRelicLocations.remove(pos)
                 markDirty<RelicWaypoints>()
             }
         }
@@ -88,8 +88,8 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                 val y = relic.y - viewerY
                 val z = relic.z - viewerZ
                 val distSq = x * x + y * y + z * z
-                RenderSystem.disableDepthTest()
-                RenderSystem.disableCull()
+                GlStateManager._disableDepthTest()
+                GlStateManager._disableCull()
                 RenderUtil.drawFilledBoundingBox(
                     matrixStack,
                     Box(x, y, z, x + 1, y + 1, z + 1),
@@ -105,9 +105,9 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                     event.partialTicks
                 )
                 RenderUtil.renderWaypointText("Relic", relic, event.partialTicks, matrixStack)
-                RenderSystem.method_4406()
-                RenderSystem.enableDepthTest()
-                RenderSystem.enableCull()
+                // disable lighting
+                GlStateManager._enableDepthTest()
+                GlStateManager._enableCull()
             }
         }
         if (Skytils.config.rareRelicFinder) {
@@ -116,8 +116,8 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                 val y = relic.y - viewerY
                 val z = relic.z - viewerZ
                 val distSq = x * x + y * y + z * z
-                RenderSystem.disableDepthTest()
-                RenderSystem.disableCull()
+                GlStateManager._disableDepthTest()
+                GlStateManager._disableCull()
                 RenderUtil.drawFilledBoundingBox(
                     matrixStack,
                     Box(x, y, z, x + 1, y + 1, z + 1),
@@ -133,9 +133,9 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                     event.partialTicks
                 )
                 RenderUtil.renderWaypointText("Rare Relic", relic, event.partialTicks, matrixStack)
-                RenderSystem.method_4406()
-                RenderSystem.enableDepthTest()
-                RenderSystem.enableCull()
+                // disable lighting
+                GlStateManager._enableDepthTest()
+                GlStateManager._enableCull()
             }
         }
     }
