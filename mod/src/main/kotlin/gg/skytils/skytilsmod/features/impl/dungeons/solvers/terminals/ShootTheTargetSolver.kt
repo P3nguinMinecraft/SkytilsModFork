@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers.terminals
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -26,11 +27,9 @@ import gg.skytils.event.impl.world.BlockStateUpdateEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.block.WeightedPressurePlateBlock
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.block.Blocks
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
@@ -58,13 +57,11 @@ object ShootTheTargetSolver : EventSubscriber {
         val old = event.old
         val state = event.update
         if (positions.contains(pos)) {
-            if (old.block == Blocks.EMERALD_BLOCK && state.block == Blocks.STAINED_HARDENED_CLAY) {
+            if (old.block == Blocks.EMERALD_BLOCK && state.block == Blocks.BLUE_TERRACOTTA) {
                 shot.add(pos)
             }
         } else if (pos == plate && state.block is WeightedPressurePlateBlock) {
-            if (state.testProperty(WeightedPressurePlateBlock.POWER) == 0 || old !is WeightedPressurePlateBlock || old.testProperty(
-                    WeightedPressurePlateBlock.POWER
-                ) == 0
+            if (state.get(WeightedPressurePlateBlock.POWER) == 0 || old.block !is WeightedPressurePlateBlock || old.get(WeightedPressurePlateBlock.POWER) == 0
             ) {
                 shot.clear()
             }
@@ -80,14 +77,14 @@ object ShootTheTargetSolver : EventSubscriber {
             val x = pos.x - viewerX
             val y = pos.y - viewerY
             val z = pos.z - viewerZ
-            RenderSystem.disableCull()
+            GlStateManager._disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 Box(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Color.RED,
                 0.5f
             )
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
     }
 
