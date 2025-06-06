@@ -19,7 +19,6 @@
 package gg.skytils.skytilsmod.features.impl.misc
 
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UMessage
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
@@ -39,6 +38,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
+import net.minecraft.text.Text
 import java.util.*
 
 object ScamCheck : EventSubscriber {
@@ -126,12 +126,12 @@ data class ScamCheckResponse(
         if (!isScammer) {
             UChat.chat("${Skytils.prefix} §a$username is not a known scammer!")
         } else {
-            UMessage("${Skytils.prefix} §c$username is a known scammer!\n",
-                "§bDatabases:\n",
+            Text.literal("${Skytils.prefix} §c$username is a known scammer!\n" +
+                "§bDatabases:\n" +
                 reasons.entries.joinToString("\n") { (db, reason) ->
                     "§b${db}: $reason"
                 }
-            ).chat()
+            ).run(UChat::chat)
         }
     }
 }
