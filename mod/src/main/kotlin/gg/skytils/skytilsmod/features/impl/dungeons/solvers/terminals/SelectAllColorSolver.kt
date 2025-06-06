@@ -61,13 +61,13 @@ object SelectAllColorSolver : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (event.packet is OpenScreenS2CPacket) {
-            val chestName = event.packet.method_11435().string
+            val chestName = event.packet.name.string
             if (chestName.startsWith("Select all the")) {
                 windowId = event.packet.syncId
 
                 val promptColor = colors.entries.find { (_, name) ->
                     chestName.contains(name)
-                }?.key?.method_0_8196()
+                }?.key?.name
                 if (promptColor != colorNeeded) {
                     colorNeeded = promptColor
                     shouldClick.clear()
@@ -98,7 +98,7 @@ object SelectAllColorSolver : EventSubscriber {
         if (slot in 9..44 && column in 1..7) {
             if (item.hasEnchantments()) {
                 shouldClick.remove(slot)
-            } else if (item.translationKey.contains(colorNeeded!!)) {
+            } else if (item.item.name.string.contains(colorNeeded!!)) {
                 shouldClick.add(slot)
             }
         }
@@ -109,7 +109,7 @@ object SelectAllColorSolver : EventSubscriber {
         if (event.container is GenericContainerScreenHandler) {
             if (event.chestName.startsWith("Select all the")) {
                 val slot = event.slot
-                if (shouldClick.isNotEmpty() && slot.id !in shouldClick && slot.inventory !== mc.player.inventory) {
+                if (shouldClick.isNotEmpty() && slot.id !in shouldClick && slot.inventory !== mc.player?.inventory) {
                     event.cancelled = true
                 }
             }
@@ -125,8 +125,7 @@ object SelectAllColorSolver : EventSubscriber {
 
     fun onTooltip(event: ItemTooltipEvent) {
         if (!Utils.inDungeons || !Skytils.config.selectAllColorTerminalSolver) return
-        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
-        val chestName = chest.inventory.customName.string
+        val chestName = mc.currentScreen?.title?.string ?: return
         if (chestName.startsWith("Select all the")) {
             event.tooltip.clear()
         }
