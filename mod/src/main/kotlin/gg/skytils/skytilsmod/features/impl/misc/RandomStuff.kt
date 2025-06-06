@@ -27,8 +27,12 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.item.BlockItem
+import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 
 object RandomStuff : EventSubscriber {
@@ -40,7 +44,7 @@ object RandomStuff : EventSubscriber {
 
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (!Skytils.config.randomStuff || !Utils.inSkyblock) return
-        if (event.packet is EntitySpawnS2CPacket && event.packet.entityType == 70 && ((DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L) || SBInfo.mode == SkyblockIsland.KuudraHollow.mode)) {
+        if (event.packet is EntitySpawnS2CPacket && event.packet.entityType == EntityType.FALLING_BLOCK && ((DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L) || SBInfo.mode == SkyblockIsland.KuudraHollow.mode)) {
             event.cancelled = true
         }
     }
@@ -49,10 +53,14 @@ object RandomStuff : EventSubscriber {
         if (!Skytils.config.randomStuff || !Utils.inSkyblock) return
         event.apply {
             if (entity.isInvisible && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L && entity is ArmorStandEntity) {
-                val nn = entity.armorItems.filterNotNull()
-                if (nn.size != 1) return
-                if (nn.first().item !is BlockItem) return
-                entity.remove()
+                (entity as? ArmorStandEntity)?.let { armorStandEntity ->
+                    val nn = EquipmentSlot.entries.mapNotNull { slot ->
+                        armorStandEntity.getEquippedStack(slot).takeIf { it != ItemStack.EMPTY }
+                    }
+                    if (nn.size != 1) return
+                    if (nn.first().item !is BlockItem) return
+                    armorStandEntity.remove(Entity.RemovalReason.DISCARDED)
+                }
             }
         }
     }
