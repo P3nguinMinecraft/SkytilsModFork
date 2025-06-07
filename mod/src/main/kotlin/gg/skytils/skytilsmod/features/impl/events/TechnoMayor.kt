@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.events
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.entity.EntityAttackEvent
@@ -28,9 +29,7 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.*
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.entity.Entity
-import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.passive.PigEntity
 import net.minecraft.util.math.Box
@@ -50,19 +49,19 @@ object TechnoMayor : EventSubscriber {
         register(::onWorldChange)
     }
 
-    fun onRenderSpecialLivingPre(event: LivingEntityPreRenderEvent<*>) {
+    fun onRenderSpecialLivingPre(event: LivingEntityPreRenderEvent<*, *, *>) {
         if (!Utils.inSkyblock) return
         val e = event.entity
         if (!e.isValidPigLabel()) return
         val pos = e.blockPos
-        mc.world.method_0_375(
+        mc.world?.getOtherEntities(
             e,
-            Box(pos, BlockPos(pos.x + 1, pos.y + 1, pos.z + 1))
-        ).find {
-            it is ArmorStandEntity && mc.player.name in it.customName
+            Box(pos)
+        )?.find {
+            it is ArmorStandEntity && it.customName?.string?.contains(mc.player?.name?.string ?: "") == true
         }?.let {
-            it.world.method_8463(it)
-            e.world.method_8463(e)
+            it.remove(Entity.RemovalReason.DISCARDED)
+            e.remove(Entity.RemovalReason.DISCARDED)
             shinyPigs.putIfAbsent(Vec3d(pos.x + 0.5, (pos.y - 2).toDouble(), pos.z + 0.5), latestPig)
             latestPig = null
         }
@@ -85,11 +84,11 @@ object TechnoMayor : EventSubscriber {
             val y = orb.y - viewerY
             val z = orb.z - viewerZ
             val distSq = x * x + y * y + z * z
-            RenderSystem.disableCull()
-            RenderSystem.method_4407()
+            GlStateManager._disableCull()
+            // disable texture 2d
 
             if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(x, y, z, Color(114, 245, 82).rgb, 0.75f, event.partialTicks)
-            RenderSystem.disableDepthTest()
+            GlStateManager._disableDepthTest()
             RenderUtil.renderWaypointText(
                 "Orb",
                 orb.x,
@@ -130,13 +129,13 @@ object TechnoMayor : EventSubscriber {
     }
 
     fun checkPig(entity: PigEntity) {
-        if (mc.world.method_0_375(
+        if (mc.world?.getOtherEntities(
             entity,
             Box(
-                BlockPos(entity.x - 1, entity.y, entity.z - 1),
-                BlockPos(entity.x + 1, entity.y + 2, entity.z + 1)
+                BlockPos.ofFloored(entity.x - 1, entity.y, entity.z - 1).toVec3(),
+                BlockPos.ofFloored(entity.x + 1, entity.y + 2, entity.z + 1).toVec3()
             )
-        ).any { it.isValidPigLabel() }) {
+        )?.any { it.isValidPigLabel() } == true) {
             latestPig = entity
         }
     }
@@ -146,5 +145,5 @@ object TechnoMayor : EventSubscriber {
         latestPig = null
     }
 
-    private fun Entity.isValidPigLabel() = this is ArmorStandEntity && !isRemoved && customName == "§6§lSHINY PIG"
+    private fun Entity.isValidPigLabel() = this is ArmorStandEntity && !isRemoved && customName?.formattedText == "§6§lSHINY PIG"
 }
