@@ -32,7 +32,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.*
 import net.minecraft.entity.decoration.ArmorStandEntity
-import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.Text
 import kotlin.math.floor
 
 object TriviaSolver : EventSubscriber {
@@ -56,7 +56,7 @@ object TriviaSolver : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Skytils.config.triviaSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Quiz")) return
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
 
         if (formatted == "§r§4[STATUE] Oruo the Omniscient§r§f: §r§fI am §r§4Oruo the Omniscient§r§f. I have lived many lives. I have learned all there is to know.§r" && triviaSolutions.size == 0) {
             UChat.chat("$failPrefix §cSkytils failed to load solutions for Quiz.")
@@ -90,7 +90,7 @@ object TriviaSolver : EventSubscriber {
                 }
 
                 if (!correctAnswers.any { it == answer }) {
-                    event.message = LiteralTextContent(formatted.replace("§a", "§c"))
+                    event.message = Text.literal(formatted.replace("§a", "§c"))
                 } else correctAnswer = answer
 
                 if (type == "ⓒ") {
@@ -100,11 +100,11 @@ object TriviaSolver : EventSubscriber {
         }
     }
 
-    fun onRenderArmorStandPre(event: LivingEntityPreRenderEvent<*>) {
+    fun onRenderArmorStandPre(event: LivingEntityPreRenderEvent<*, *, *>) {
         val answer = correctAnswer ?: return
         if (!Skytils.config.triviaSolver || !DungeonListener.incompletePuzzles.contains("Quiz") || event.entity !is ArmorStandEntity) return
 
-        val name = event.entity.customName
+        val name = event.entity.customName?.formattedText ?: return
 
         if (name.isNotEmpty() && name.containsAny("ⓐ", "ⓑ", "ⓒ") && !name.contains(answer)) {
             event.cancelled = true
