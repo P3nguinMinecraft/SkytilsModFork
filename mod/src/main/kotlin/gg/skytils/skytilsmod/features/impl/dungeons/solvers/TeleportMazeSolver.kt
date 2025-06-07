@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons.solvers
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
@@ -66,32 +67,36 @@ object TeleportMazeSolver : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Skytils.config.teleportMazeSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Teleport Maze")) return
-        if (mc.player == null || mc.world == null) return
+        val player = mc.player ?: return
+        val world = mc.world ?: return
         event.packet.apply {
             when (this) {
                 is PlayerPositionLookS2CPacket -> {
+                    val x = this.change.position.x
+                    val y = this.change.position.y
+                    val z = this.change.position.z
                     if (y == 69.5 && Utils.equalsOneOf(
-                            mc.player.y,
+                            player.y,
                             69.5,
                             69.8125
                         ) && abs(x % 1) == 0.5 && abs(z % 1) == 0.5
                     ) {
-                        val currPos = mc.player.blockPos
-                        val pos = BlockPos(x, y, z)
+                        val currPos = player.blockPos
+                        val pos = BlockPos.ofFloored(x, y, z)
                         val oldTpPad = findEndPortalFrame(currPos) ?: return
                         val tpPad = findEndPortalFrame(pos) ?: return
                         steppedPads.add(oldTpPad)
                         if (tpPad !in steppedPads) {
                             steppedPads.add(tpPad)
                             val deg2Rad = PI/180
-                            val magicYaw = (-yaw * deg2Rad - PI).toFloat()
+                            val magicYaw = (-this.change.yaw * deg2Rad - PI).toFloat()
                             val yawX = MathHelper.sin(magicYaw)
                             val yawZ = MathHelper.cos(magicYaw)
-                            val pitchVal = -MathHelper.cos(-pitch * deg2Rad.toFloat())
+                            val pitchVal = -MathHelper.cos(-this.change.pitch * deg2Rad.toFloat())
                             val vec = Vec3d((yawX * pitchVal).toDouble(), 69.0, (yawZ * pitchVal).toDouble())
                             valid.clear()
                             for (i in 4..23) {
-                                val bp = BlockPos(
+                                val bp = BlockPos.ofFloored(
                                     x + vec.x * i,
                                     vec.y,
                                     z + vec.z * i
@@ -99,7 +104,7 @@ object TeleportMazeSolver : EventSubscriber {
                                 val allDir = Utils.getBlocksWithinRangeAtSameY(bp, 2, 69)
 
                                 valid.addAll(allDir.filter {
-                                    it !in steppedPads && mc.world.getBlockState(
+                                    it !in steppedPads && world.getBlockState(
                                         it
                                     ).block === Blocks.END_PORTAL_FRAME
                                 })
@@ -111,8 +116,8 @@ object TeleportMazeSolver : EventSubscriber {
                             }
                         }
                         if (DevTools.getToggle("tpmaze")) UChat.chat(
-                            "current: ${mc.player.pos}, ${mc.player.pitch} ${mc.player.yaw} new: ${this.x} ${this.y} ${this.z} - ${this.pitch} ${this.yaw} - ${
-                                this.flags.joinToString { it.name }
+                            "current: ${player.pos}, ${player.pitch} ${player.yaw} new: ${x} ${y} ${z} - ${this.change.pitch} ${this.change.yaw} - ${
+                                this.relatives.joinToString { it.name }
                             }"
                         )
                     }
@@ -123,7 +128,7 @@ object TeleportMazeSolver : EventSubscriber {
 
     private fun findEndPortalFrame(pos: BlockPos): BlockPos? {
         return Utils.getBlocksWithinRangeAtSameY(pos, 1, 69).find {
-            mc.world.getBlockState(it).block === Blocks.END_PORTAL_FRAME
+            mc.world?.getBlockState(it)?.block === Blocks.END_PORTAL_FRAME
         }
     }
 
@@ -136,27 +141,27 @@ object TeleportMazeSolver : EventSubscriber {
             val x = pos.x - viewerX
             val y = pos.y - viewerY
             val z = pos.z - viewerZ
-            RenderSystem.disableCull()
+            GlStateManager._disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 Box(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Skytils.config.teleportMazeSolverColor
             )
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
 
         for (pos in poss) {
             val x = pos.x - viewerX
             val y = pos.y - viewerY
             val z = pos.z - viewerZ
-            RenderSystem.disableCull()
+            GlStateManager._disableCull()
             RenderUtil.drawFilledBoundingBox(
                 matrixStack,
                 Box(x, y, z, x + 1, y + 1, z + 1).expand(0.01, 0.01, 0.01),
                 Color.GREEN.withAlpha(69),
                 1f
             )
-            RenderSystem.enableCull()
+            GlStateManager._enableCull()
         }
     }
 
