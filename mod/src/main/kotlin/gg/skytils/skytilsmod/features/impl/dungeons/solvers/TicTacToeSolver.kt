@@ -35,6 +35,7 @@ import gg.skytils.skytilsmod.utils.tictactoe.AlphaBetaAdvanced
 import gg.skytils.skytilsmod.utils.tictactoe.Board
 import net.minecraft.entity.decoration.ItemFrameEntity
 import net.minecraft.block.Blocks
+import net.minecraft.item.FilledMapItem
 import net.minecraft.item.Items
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
@@ -127,7 +128,7 @@ object TicTacToeSolver : EventSubscriber {
         if (!Utils.inDungeons || !Skytils.config.ticTacToeSolver) return
         if (bestMove != null) {
             RenderUtil.drawOutlinedBoundingBox(
-                Box(bestMove, bestMove!!.method_10069(1, 1, 1)),
+                Box(bestMove),
                 Skytils.config.ticTacToeSolverColor,
                 3f,
                 event.partialTicks
@@ -136,19 +137,19 @@ object TicTacToeSolver : EventSubscriber {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun getBoardFrames(): List<ItemFrameEntity> = mc.world.entities.filter {
+    private fun getBoardFrames(): List<ItemFrameEntity> = mc.world?.entities?.filter {
         it is ItemFrameEntity &&
                 it.rotation == 0 &&
-                it.blockPos.method_10074().let { realPos -> realPos.y in 70..72 } &&
+                it.blockPos.down().let { realPos -> realPos.y in 70..72 } &&
                 it.heldItemStack?.let { item ->
                     item.item == Items.FILLED_MAP &&
-                            Items.FILLED_MAP.getMapState(item, mc.world)?.let { mapData ->
+                            FilledMapItem.getMapState(item, mc.world)?.let { mapData ->
                                 mapData[MAP_COLOR_INDEX].let { colorInt ->
                                     colorInt == COLOR_INT_X || colorInt == COLOR_INT_O
                                 }
                             } ?: false
                 } ?: false &&
-                mc.world.getBlockState(it.blockPos.method_10074().offset(it.facing.opposite, 1)).block == Blocks.IRON_BLOCK
+                mc.world?.getBlockState(it.blockPos.down().offset(it.facing.opposite, 1))?.block == Blocks.IRON_BLOCK
     } as List<ItemFrameEntity>
 
     private fun parseInitialState(frames: List<ItemFrameEntity>) {
@@ -171,16 +172,16 @@ object TicTacToeSolver : EventSubscriber {
         return (this.colors[index] and 255.toByte()).toInt()
     }
 
-    private fun getMapData(entity: ItemFrameEntity) = Items.FILLED_MAP.getMapState(entity.heldItemStack, mc.world)
+    private fun getMapData(entity: ItemFrameEntity) = FilledMapItem.getMapState(entity.heldItemStack, mc.world)
 
     private fun getBoardPosition(frame: ItemFrameEntity): Pair<Int, Int> {
-        val realPos = frame.blockPos.method_10074()
-        val blockBehind = realPos.method_10093(frame.facing.opposite)
+        val realPos = frame.blockPos.down()
+        val blockBehind = realPos.offset(frame.facing.opposite)
 
         val row = 72 - realPos.y
         val column = when {
-            mc.world.getBlockState(blockBehind.method_10093(frame.facing.rotateYCounterclockwise())).block != Blocks.IRON_BLOCK -> 2
-            mc.world.getBlockState(blockBehind.method_10093(frame.facing.rotateYClockwise())).block != Blocks.IRON_BLOCK -> 0
+            mc.world?.getBlockState(blockBehind.offset(frame.facing.rotateYCounterclockwise()))?.block != Blocks.IRON_BLOCK -> 2
+            mc.world?.getBlockState(blockBehind.offset(frame.facing.rotateYClockwise()))?.block != Blocks.IRON_BLOCK -> 0
             else -> 1
         }
 
