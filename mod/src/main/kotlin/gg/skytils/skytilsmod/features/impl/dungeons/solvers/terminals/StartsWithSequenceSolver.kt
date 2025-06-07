@@ -27,8 +27,8 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
-import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket
@@ -59,7 +59,7 @@ object StartsWithSequenceSolver : EventSubscriber {
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (event.packet is OpenScreenS2CPacket) {
-            val chestName = event.packet.method_11435().string
+            val chestName = event.packet.name.string
             if (chestName.startsWith("What starts with:")) {
                 windowId = event.packet.syncId
 
@@ -94,7 +94,7 @@ object StartsWithSequenceSolver : EventSubscriber {
         if (slot in 9..44 && column in 1..7) {
             if (item.hasEnchantments()) {
                 shouldClick.remove(slot)
-            } else if (item.name.stripControlCodes().startsWith(sequenceNeeded!!)) {
+            } else if (item.name.string.stripControlCodes().startsWith(sequenceNeeded!!)) {
                 shouldClick.add(slot)
             }
         }
@@ -104,7 +104,7 @@ object StartsWithSequenceSolver : EventSubscriber {
         if (!TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
         if (event.container is GenericContainerScreenHandler && event.chestName.startsWith("What starts with:")) {
             val slot = event.slot
-            if (shouldClick.size > 0 && !shouldClick.contains(slot.id) && slot.inventory !== mc.player.inventory) {
+            if (shouldClick.size > 0 && !shouldClick.contains(slot.id) && slot.inventory !== mc.player?.inventory) {
                 event.cancelled = true
             }
         }
@@ -119,9 +119,9 @@ object StartsWithSequenceSolver : EventSubscriber {
 
     fun onTooltip(event: ItemTooltipEvent) {
         if (!TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
-        val container = mc.player?.currentScreenHandler
-        if (container is GenericContainerScreenHandler) {
-            val chestName = container.inventory.customName.string
+        val container = mc.currentScreen
+        if (container is GenericContainerScreen) {
+            val chestName = container.title.string
             if (chestName.startsWith("What starts with:")) {
                 event.tooltip.clear()
             }
