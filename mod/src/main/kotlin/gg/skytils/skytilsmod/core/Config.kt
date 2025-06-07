@@ -3326,15 +3326,17 @@ object Config : Vigilant(
     )
     var showTrophyFishTotals = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Show Total Trophy Fish",
-        description = "Shows the total of all trophy fish caught.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.show_total_trophy_fish",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val showTotalTrophyFishState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Show Total Trophy Fish",
+            description = "Shows the total of all trophy fish caught.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.show_total_trophy_fish",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ),
+        false
     )
-    var showTotalTrophyFish = false
 
     @Property(
         type = PropertyType.SELECTOR, name = "Autopet Message Hider",
