@@ -17,10 +17,15 @@
  */
 package gg.skytils.skytilsmod.features.impl.handlers
 
+import gg.essential.elementa.UIComponent
+import gg.essential.elementa.components.UIText
+import gg.essential.elementa.constraints.animation.Animations
+import gg.essential.elementa.dsl.animate
+import gg.essential.elementa.dsl.constrain
+import gg.essential.elementa.dsl.pixels
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.column
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UTextComponent
-import gg.essential.vigilance.data.PropertyItem
-import gg.essential.vigilance.data.PropertyType
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
@@ -31,32 +36,26 @@ import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.PersistentSave
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiNewChat
 import gg.skytils.skytilsmod.utils.RegexAsString
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import gg.skytils.skytilsmod.utils.toast.*
 import kotlinx.serialization.*
 import net.minecraft.client.network.OtherClientPlayerEntity
-import net.minecraft.block.Blocks
-import net.minecraft.item.Item
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.item.Items
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket
+import net.minecraft.text.Text
 import java.io.File
 import java.io.Reader
 import java.io.Writer
-import java.util.*
-import kotlin.math.sin
 
 object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhider.json")) {
-
-    val spamMessages = ArrayList<SpamMessage>()
-
 
     val filters = hashSetOf<Filter>()
     val repoFilters = hashSetOf<Filter>()
@@ -155,7 +154,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
     private var lastSpooked = 0L
 
     private val deadBush by lazy {
-        Item.fromBlock(Blocks.field_0_631)
+        Items.DEAD_BUSH
     }
 
     private val powderQueue = hashMapOf<String, Int>()
@@ -175,7 +174,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
             val manaUsage = manaUsageMatcher.groups[1]?.value ?: return
             val spaced = " ".repeat(manaUsage.length)
 
-            event.message = UTextComponent(message.replace(manaUsage, spaced)).component
+            event.message = Text.literal(message.replace(manaUsage, spaced))
             if (Skytils.config.manaUseHider == 2) {
                 if (lastAbilityUsed != manaUsage || abilityUses % 3 == 0) {
                     lastAbilityUsed = manaUsage
@@ -206,13 +205,12 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
         if (Utils.inSkyblock && packet is EntityAnimationS2CPacket && packet.animationId == 0) {
             val entity = mc.world?.getEntityById(packet.entityId) ?: return
             if (entity !is OtherClientPlayerEntity) return
-            if (entity.method_0_7087()?.item != deadBush || entity.squaredDistanceTo(mc.player) > 4 * 4) return
+            if (entity.mainHandStack?.item != deadBush || entity.squaredDistanceTo(mc.player) > 4 * 4) return
             lastSpooked = System.currentTimeMillis()
         }
-        if (packet !is GameMessageS2CPacket) return
-        if (packet.type == 2.toByte()) return
-        val unformatted = packet.message.string.stripControlCodes()
-        val formatted = packet.message.method_10865()
+        if (packet !is ChatMessageS2CPacket) return
+        val unformatted = packet.unsignedContent?.string?.stripControlCodes() ?: return
+        val formatted = packet.unsignedContent?.formattedText ?: return
 
         // Profile
         if (formatted.startsWith("§aYou are playing on profile:")) {
@@ -431,7 +429,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
                         1, 2 -> cancelChatPacket(event, Skytils.config.superboomHider == 2)
                         3 -> {
                             cancelChatPacket(event, false)
-                            val username = mc.player.name
+                            val username = mc.player?.name?.string ?: return
                             if (formatted.contains(username)) {
                                 GuiManager.addToast(SuperboomToast())
                             }
@@ -445,7 +443,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
                         1, 2 -> cancelChatPacket(event, Skytils.config.reviveStoneHider == 2)
                         3 -> {
                             cancelChatPacket(event, false)
-                            val username = mc.player.name
+                            val username = mc.player?.name?.string ?: return
                             if (formatted.contains(username)) {
                                 GuiManager.addToast(ReviveStoneToast())
                             }
@@ -596,7 +594,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
                         var i = 0
                         while (i < 100 && i < lines.size) {
                             val line = lines[i]
-                            if (line.text.method_10865().replace(
+                            if (line.content.formattedText.replace(
                                     "\\d".toRegex(),
                                     ""
                                 ) == formatted.replace("\\d".toRegex(), "")
@@ -730,112 +728,68 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
         return false
     }
 
-    data class SpamMessage(var message: String, var time: Long, var height: Double)
-    class SpamGuiElement : GuiElement("Spam Gui", scale = 1.0f, x = 0.65f, y = 0.925f) {
-        /**
-         * Based off of Soopyboo32's SoopyApis module
-         * https://github.com/Soopyboo32
-         *
-         * @author Soopyboo32
-         */
-        override fun render() {
-            val now = System.currentTimeMillis()
-            val timePassed = now - lastTimeRender
+    object SpamHudElement : HudElement("Spam Hider", 130f, 370f) {
+        private var container: UIComponent? = null
 
-            val animDiv = timePassed.toDouble() / 1000.0
-            lastTimeRender = now
-            var i = 0
-            val reversed = spamMessages.asReversed()
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            while (i in spamMessages.indices) {
-                val message = reversed[i]
-                val messageWidth = ScreenRenderer.fontRenderer.getWidth(
-                    message?.message?.stripControlCodes()
+        fun queueSpam(spam: String) {
+            val component = UIText(spam).constrain {
+                x = 0.pixels(alignOpposite = true, alignOutside = true)
+            }
+
+            fun animateOut() {
+                component.animate {
+                    setXAnimation(
+                        Animations.IN_EXP,
+                        0.6f,
+                        0.pixels(alignOpposite = true, alignOutside = true),
+                        3f
+                    )
+                    onComplete {
+                        component.hide()
+                    }
+                }
+            }
+            container?.addChild(component)
+            component.animate {
+                setXAnimation(
+                    Animations.OUT_EXP,
+                    0.6f,
+                    0.pixels(alignOpposite = true)
                 )
-                if (scaleY > sr.scaledHeight / 2f) {
-                    message.height += (i * 10 - message.height) * (animDiv * 5)
-                } else if (scaleY < sr.scaledHeight / 2f) {
-                    message.height += (i * -10 - message.height) * (animDiv * 5)
+                onComplete {
+                    animateOut()
                 }
-                var animOnOff = 0.0
-                if (message.time < 500) {
-                    animOnOff = 1 - message.time / 500.0
-                }
-                if (message.time > 3500) {
-                    animOnOff = (message.time - 3500) / 500.0
-                }
-                animOnOff *= 90.0
-                animOnOff += 90.0
-                animOnOff *= Math.PI / 180
-                animOnOff = sin(animOnOff)
-                animOnOff *= -1.0
-                animOnOff += 1.0
-                val x = animOnOff * (messageWidth + 30) * if (leftAlign) -1 else 1
-                val y = -1 * message.height
-                val alignment =
-                    if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-                ScreenRenderer.fontRenderer.drawString(
-                    message.message,
-                    (if (leftAlign) x else x + width).toFloat(),
-                    y.toFloat(),
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
-                if (message.time > 4000) {
-                    spamMessages.remove(message)
-                    i--
-                }
-                message.time += timePassed
-                i++
             }
         }
 
-        override fun demoRender() {
-            val messageWidth =
-                ScreenRenderer.fontRenderer.getWidth("§r§7Your Implosion hit §r§c3 §r§7enemies for §r§c1,000,000.0 §r§7damage.§r".stripControlCodes())
-            val x = (sin(90 * Math.PI / 180) * -1 + 1) * (messageWidth + 30)
-            val y = 0.0
-            ScreenRenderer.fontRenderer.drawString(
-                "§r§7Your Implosion hit §r§c3 §r§7enemies for §r§c1,000,000.0 §r§7damage.§r",
-                x.toFloat(),
-                y.toFloat(),
-                CommonColors.WHITE,
-                TextAlignment.LEFT_RIGHT,
-                textShadow
-            )
+        override fun LayoutScope.render() {
+            container = column {
+                // content added via `queueSpam`
+            }
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§r§7Your Implosion hit §r§c3 §r§7enemies for §r§c1,000,000.0 §r§7damage.§r")
-        override val toggled: Boolean
-            get() = Skytils.config.getCategoryFromSearch("Hider").items.filterIsInstance<PropertyItem>()
-                .filter { it.data.attributesExt.type == PropertyType.SELECTOR && it.data.attributesExt.options.size >= 3 && it.data.attributesExt.name != "Text Shadow" }
-                .any { it.data.getValue() as Int == 2 }
-
-        companion object {
-            var lastTimeRender = Date().time
+        override fun LayoutScope.demoRender() {
+            text("§r§7Your Implosion hit §r§c3 §r§7enemies for §r§c1,000,000.0 §r§7damage.§r")
         }
 
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
+        // old toggle logic
+//        Skytils.config.getCategoryFromSearch("Hider").items.filterIsInstance<PropertyItem>()
+//        .filter { it.data.attributesExt.type == PropertyType.SELECTOR && it.data.attributesExt.options.size >= 3 && it.data.attributesExt.name != "Text Shadow" }
+//        .any { it.data.getValue() as Int == 2 }
     }
 
     private fun cancelChatPacket(event: PacketReceiveEvent<*>, addToSpam: Boolean) {
-        if (event.packet !is GameMessageS2CPacket) return
+        if (event.packet !is ChatMessageS2CPacket) return
         Utils.cancelChatPacket(event)
-        if (addToSpam) newMessage(event.packet.message.method_10865())
+        if (addToSpam) newMessage(event.packet.unsignedContent?.formattedText)
     }
 
     private fun newMessage(message: String?) {
-        spamMessages.add(SpamMessage(message ?: return, 0, 0.0))
+        SpamHudElement.queueSpam(message ?: return)
     }
 
     init {
-        SpamGuiElement()
+        Skytils.guiManager.registerElement(SpamHudElement)
     }
 }
 
