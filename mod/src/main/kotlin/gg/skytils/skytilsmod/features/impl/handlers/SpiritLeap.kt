@@ -24,18 +24,10 @@ import gg.skytils.event.impl.screen.GuiContainerForegroundDrawnEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.PersistentSave
-import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.DungeonClass
-import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import net.minecraft.client.gui.DrawContext
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import java.io.File
 import java.io.Reader
@@ -60,68 +52,68 @@ object SpiritLeap : PersistentSave(File(Skytils.modDir, "spiritleap.json")), Eve
     fun onGuiDrawPost(event: GuiContainerForegroundDrawnEvent) {
         if (!Utils.inDungeons) return
         if (event.container is GenericContainerScreenHandler) {
-            if ((Skytils.config.spiritLeapNames && event.chestName == "Spirit Leap") || (Skytils.config.reviveStoneNames && event.chestName == "Revive A Teammate") || (Skytils.config.ghostTeleportMenuNames && event.chestName == "Teleport to Player")) {
-                val fr = ScreenRenderer.fontRenderer
-                var people = 0
-                RenderSystem.method_4406()
-                RenderSystem.enableBlend()
-                for (slot in event.container.slots) {
-                    if (slot.inventory == mc.player.inventory) continue
-                    if (!slot.hasStack() || slot.stack.item != Items.PLAYER_HEAD) continue
-                    val item = slot.stack
-                    people++
-
-                    val x = slot.x.toFloat()
-                    val y = slot.y + if (people % 2 != 0) -15f else 20f
-                    val name = nameSlotCache[slot.id]
-                    if (name == null || name == "Unknown") {
-                        nameSlotCache[slot.id] =
-                            playerPattern.find(item.name.stripControlCodes())?.groups?.get("name")?.value
-                                ?: continue
-                        continue
-                    }
-                    val teammate = DungeonListener.team[name] ?: continue
-                    val dungeonClass = teammate.dungeonClass
-                    val text = shortenedNameCache.getOrPut(name) {
-                        fr.method_0_2384(item.name.substring(0, 2) + name, 32)
-                    }
-                    val scale = 0.9f
-                    val scaleReset = 1 / scale
-                    RenderSystem.pushMatrix()
-                    if (Skytils.config.highlightDoorOpener && name == doorOpener) {
-                        slot highlight 1174394112
-                    } else if (names.getOrDefault(name, false)) {
-                        slot highlight 1174339584
-                    } else if (classes.getOrDefault(dungeonClass, false)) {
-                        slot highlight 1157693184
-                    }
-                    RenderSystem.method_4348(0f, 0f, 299f)
-                    DrawContext.fill(
-                        (x - 2 - fr.getWidth(text) / 2).toInt(),
-                        (y - 2).toInt(),
-                        (x + fr.getWidth(text) / 2 + 2).toInt(),
-                        (y + fr.field_0_2811 + 2).toInt(),
-                        -13686744
-                    )
-                    fr.drawString(
-                        text,
-                        x,
-                        y,
-                        alignment = SmartFontRenderer.TextAlignment.MIDDLE,
-                        shadow = SmartFontRenderer.TextShadow.OUTLINE
-                    )
-                    RenderSystem.method_4384(scale, scale, 1f)
-                    fr.method_0_2383(
-                        dungeonClass.className.first().uppercase(),
-                        scaleReset * x,
-                        scaleReset * slot.y,
-                        -256,
-                        true
-                    )
-                    RenderSystem.popMatrix()
-                }
-                RenderSystem.disableBlend()
-            }
+            // TODO: fix later (needs drawcontext)
+//            if ((Skytils.config.spiritLeapNames && event.chestName == "Spirit Leap") || (Skytils.config.reviveStoneNames && event.chestName == "Revive A Teammate") || (Skytils.config.ghostTeleportMenuNames && event.chestName == "Teleport to Player")) {
+//                var people = 0
+//                // disable lighting
+//                GlStateManager._enableBlend()
+//                for (slot in event.container.slots) {
+//                    if (slot.inventory == mc.player?.inventory) continue
+//                    if (!slot.hasStack() || slot.stack.item != Items.PLAYER_HEAD) continue
+//                    val item = slot.stack
+//                    people++
+//
+//                    val x = slot.x.toFloat()
+//                    val y = slot.y + if (people % 2 != 0) -15f else 20f
+//                    val name = nameSlotCache[slot.id]
+//                    if (name == null || name == "Unknown") {
+//                        nameSlotCache[slot.id] =
+//                            playerPattern.find(item.name.string.stripControlCodes())?.groups?.get("name")?.value
+//                                ?: continue
+//                        continue
+//                    }
+//                    val teammate = DungeonListener.team[name] ?: continue
+//                    val dungeonClass = teammate.dungeonClass
+//                    val text = shortenedNameCache.getOrPut(name) {
+//                        fr.method_0_2384(item.name.substring(0, 2) + name, 32)
+//                    }
+//                    val scale = 0.9f
+//                    val scaleReset = 1 / scale
+//                    RenderSystem.pushMatrix()
+//                    if (Skytils.config.highlightDoorOpener && name == doorOpener) {
+//                        slot highlight 1174394112
+//                    } else if (names.getOrDefault(name, false)) {
+//                        slot highlight 1174339584
+//                    } else if (classes.getOrDefault(dungeonClass, false)) {
+//                        slot highlight 1157693184
+//                    }
+//                    RenderSystem.method_4348(0f, 0f, 299f)
+//                    DrawContext.fill(
+//                        (x - 2 - fr.getWidth(text) / 2).toInt(),
+//                        (y - 2).toInt(),
+//                        (x + fr.getWidth(text) / 2 + 2).toInt(),
+//                        (y + fr.field_0_2811 + 2).toInt(),
+//                        -13686744
+//                    )
+//                    fr.drawString(
+//                        text,
+//                        x,
+//                        y,
+//                        alignment = SmartFontRenderer.TextAlignment.MIDDLE,
+//                        shadow = SmartFontRenderer.TextShadow.OUTLINE
+//                    )
+//                    RenderSystem.method_4384(scale, scale, 1f)
+//                    fr.method_0_2383(
+//                        dungeonClass.className.first().uppercase(),
+//                        scaleReset * x,
+//                        scaleReset * slot.y,
+//                        -256,
+//                        true
+//                    )
+//                    RenderSystem.popMatrix()
+//                }
+//                RenderSystem.disableBlend()
+//            }
         }
     }
 
