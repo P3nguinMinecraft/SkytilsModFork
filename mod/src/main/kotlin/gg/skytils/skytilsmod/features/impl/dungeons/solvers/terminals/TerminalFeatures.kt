@@ -38,7 +38,7 @@ object TerminalFeatures : EventSubscriber {
     fun isInPhase3(): Boolean {
         return ((SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != -1L) &&
                         DungeonTimer.terminalClearTime == -1L && dungeonFloorNumber == 7)
-                || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.player?.method_0_7087()) == "PUZZLE_CUBE")
+                || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.player?.mainHandStack) == "PUZZLE_CUBE")
     }
 
     override fun setup() {
@@ -50,7 +50,7 @@ object TerminalFeatures : EventSubscriber {
     fun onSlotClickHigh(event: GuiContainerSlotClickEvent) {
         if (!isInPhase3() || !Skytils.config.blockIncorrectTerminalClicks || event.container !is GenericContainerScreenHandler) return
         if (event.chestName == "Correct all the panes!") {
-            if (event.slot?.stack?.name?.stripControlCodes()?.startsWith("On") == true) {
+            if (event.slot?.stack?.name?.string?.stripControlCodes()?.startsWith("On") == true) {
                 event.cancelled = true
             }
         }
@@ -77,17 +77,19 @@ object TerminalFeatures : EventSubscriber {
                 ))
             ) {
                 event.cancelled = true
-                mc.interactionManager.clickSlot(event.container.syncId, event.slotId, 0, SlotActionType.THROW, mc.player)
+                mc.interactionManager?.clickSlot(event.container.syncId, event.slotId, 0, SlotActionType.THROW, mc.player)
             }
         }
     }
 
     fun onTooltip(event: gg.skytils.event.impl.item.ItemTooltipEvent) {
         if (!isInPhase3()) return
-        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
-
-        val inv = chest.inventory
-        val chestName = inv.customName.string
+//        val chest = mc.player?.currentScreenHandler as? GenericContainerScreenHandler ?: return
+//
+//        val inv = chest.inventory
+//        val chestName = inv.customName.string
+        val currentScreen = mc.currentScreen ?: return
+        val chestName = currentScreen.title.string
         if (chestName == "Click the button on time!" || chestName == "Correct all the panes!") {
         }
     }
