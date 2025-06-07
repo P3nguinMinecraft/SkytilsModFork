@@ -17,8 +17,8 @@
  */
 package gg.skytils.skytilsmod.features.impl.spidersden
 
+import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UMatrixStack
-import gg.essential.universal.UResolution
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -27,21 +27,21 @@ import gg.skytils.event.impl.render.WorldDrawEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.mutableStateOf
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.util.math.BlockPos
 
 object SpidersDenFeatures : EventSubscriber {
     private var shouldShowArachneSpawn = false
-    private var arachneName: String? = null
+    private var arachneName: MutableState<String?> = mutableStateOf(null)
 
     init {
-        ArachneHPElement()
+        Skytils.guiManager.registerElement(ArachneHPHud())
     }
 
     override fun setup() {
@@ -52,11 +52,12 @@ object SpidersDenFeatures : EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        arachneName =
+        arachneName.set(
             if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.SpiderDen.mode || !Skytils.config.showArachneHP) null else mc.world?.entities?.find {
-                val name = it.displayName.method_10865()
+                val name = it.displayName?.formattedText ?: return@find false
                 it is ArmorStandEntity && name.endsWith("§c❤") && (name.contains("§cArachne §") || name.contains("§5Runic Arachne §"))
-            }?.displayName?.method_10865()
+            }?.displayName?.formattedText
+        )
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
@@ -77,62 +78,30 @@ object SpidersDenFeatures : EventSubscriber {
         if (shouldShowArachneSpawn && Skytils.config.showArachneSpawn) {
             val spawnPos = BlockPos(-282, 49, -178)
             val matrixStack = UMatrixStack()
-            RenderSystem.disableDepthTest()
-            RenderSystem.disableCull()
+            GlStateManager._disableDepthTest()
+            GlStateManager._disableCull()
             RenderUtil.renderWaypointText("Arachne Spawn", spawnPos, event.partialTicks, matrixStack)
-            RenderSystem.method_4406()
-            RenderSystem.enableDepthTest()
-            RenderSystem.enableCull()
+            // disable lighting
+            GlStateManager._enableDepthTest()
+            GlStateManager._enableCull()
         }
     }
 
     fun onWorldChange(event: WorldUnloadEvent) {
         shouldShowArachneSpawn = false
-        arachneName = null
+        arachneName.set { null }
     }
 
-    class ArachneHPElement : GuiElement("Show Arachne HP", x = 200, y = 30) {
-        override fun render() {
-            if (arachneName != null) {
-                val leftAlign = scaleX < UResolution.scaledWidth / 2f
-                val alignment =
-                    if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-                val xPos = if (leftAlign) 0f else scaleWidth
-                ScreenRenderer.fontRenderer.drawString(
-                    arachneName,
-                    xPos,
-                    0f,
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
+    class ArachneHPHud : HudElement("Show Arachne HP", 200f, 30f) {
+        override fun LayoutScope.render() {
+            ifNotNull(arachneName) { name ->
+                text(name)
             }
         }
 
-        override fun demoRender() {
-
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val text = "§8[§7Lv500§8] §cArachne §a17.6M§f/§a20M§c❤§r"
-            val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                text,
-                if (leftAlign) 0f else 0 + scaleWidth,
-                0f,
-                CommonColors.WHITE,
-                alignment,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            text("§8[§7Lv500§8] §cArachne §a17.6M§f/§a20M§c❤§r")
         }
 
-        override val height: Int
-            get() = ScreenRenderer.fontRenderer.field_0_2811
-        override val width: Int
-            get() = ScreenRenderer.fontRenderer.getWidth("§8[§7Lv500§8] §cArachne §a17.6M§f/§a20M§c❤§r")
-        override val toggled: Boolean
-            get() = Skytils.config.showArachneHP
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 }
