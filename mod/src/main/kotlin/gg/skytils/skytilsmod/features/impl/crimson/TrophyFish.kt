@@ -18,8 +18,12 @@
 
 package gg.skytils.skytilsmod.features.impl.crimson
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.state.v2.combinators.and
+import gg.essential.elementa.state.v2.mutableListStateOf
+import gg.essential.elementa.state.v2.setAll
 import gg.essential.universal.ChatColor
-import gg.essential.universal.UGraphics
 import gg.essential.universal.wrappers.UPlayer
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -28,10 +32,9 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.core.Config
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import java.util.*
 
 object TrophyFish : EventSubscriber {
@@ -40,7 +43,7 @@ object TrophyFish : EventSubscriber {
 
 
     init {
-        Skytils.guiManager.registerElement(TrophyFishDisplay())
+        Skytils.guiManager.registerElement(TrophyFishDisplay)
     }
 
     override fun setup() {
@@ -50,6 +53,7 @@ object TrophyFish : EventSubscriber {
     suspend fun loadFromApi() {
         trophyFish.clear()
         trophyFish.putAll(getTrophyFishData(UPlayer.getUUID()) ?: return)
+        TrophyFishDisplay.update()
     }
 
     suspend fun getTrophyFishData(uuid: UUID): Map<String, Fish>? {
@@ -61,8 +65,8 @@ object TrophyFish : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.CrimsonIsle.mode || !Config.trophyFishTracker) return
-        printDevMessage({ event.message.method_10865() }, "trophyspam")
-        trophyFishRegex.matchEntire(event.message.method_10865().stripControlCodes())?.destructured?.let { (type, tier) ->
+        printDevMessage({ event.message.string }, "trophyspam")
+        trophyFishRegex.matchEntire(event.message.string.stripControlCodes())?.destructured?.let { (type, tier) ->
             printDevMessage({ "Found trophy fish of $type of tier $tier" }, "trophy")
             val fish = TrophyFish.entries.find { it.actualName.lowercase() == type.lowercase() } ?: return@let
             printDevMessage({ "Trophy fish type: ${fish.name}" }, "trophy")
@@ -76,6 +80,7 @@ object TrophyFish : EventSubscriber {
             trophyFish[fish.name]?.let { data ->
                 printDevMessage({ "Updating ${fish.actualName} $tier to ${field.get(data) + 1}" }, "trophy")
                 field.set(data, field.get(data) + 1)
+                TrophyFishDisplay.update()
             }
         }
     }
@@ -98,7 +103,9 @@ object TrophyFish : EventSubscriber {
                         "${ChatColor.GRAY}${data.silver}${ChatColor.DARK_AQUA}-" +
                         "${ChatColor.GOLD}${data.gold}${ChatColor.DARK_AQUA}-" +
                         "${ChatColor.AQUA}${data.diamond}"
-        }
+        } + if (total) {
+            listOf(generateTotalTrophyFish(data))
+        } else emptyList()
 
     fun generateLocalTotalTrophyFish() =
         generateTotalTrophyFish(trophyFish)
@@ -137,66 +144,33 @@ object TrophyFish : EventSubscriber {
             get() = "$color$actualName"
     }
 
-    class TrophyFishDisplay : GuiElement("Trophy Fish Display", 1f, 0, 0) {
-        val alignment = if (scaleX > sr.scaledWidth / 2f) SmartFontRenderer.TextAlignment.RIGHT_LEFT else SmartFontRenderer.TextAlignment.LEFT_RIGHT
-        override fun render() {
-            if (!toggled || !Utils.inSkyblock || SBInfo.mode != SkyblockIsland.CrimsonIsle.mode) return
-            generateLocalTrophyFishList(Config.showTrophyFishTotals).forEachIndexed { idx, str ->
-                fr.drawString(
-                    str,
-                    0f,
-                    (idx * fr.field_0_2811).toFloat(),
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
-            }
-            if (Config.showTotalTrophyFish) {
-                fr.drawString(
-                    generateLocalTotalTrophyFish(),
-                    0f,
-                    (trophyFish.size * fr.field_0_2811).toFloat(),
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
+    object TrophyFishDisplay : HudElement("Trophy Fish Display", 0f, 0f) {
+        private val text = mutableListStateOf<String>()
+
+        fun update() =
+            text.setAll(generateLocalTrophyFishList(Config.showTrophyFishTotals))
+
+        override fun LayoutScope.render() {
+            if_(SBInfo.skyblockState and { SBInfo.modeState() == SkyblockIsland.CrimsonIsle.mode}) {
+                column {
+                    forEach(text) { line ->
+                        text(line)
+                    }
+                }
             }
         }
 
-        override fun demoRender() {
+        override fun LayoutScope.demoRender() {
             TrophyFish.entries.forEachIndexed { idx, fish ->
-                fr.drawString(
-                    "${fish.formattedName} ${ChatColor.DARK_AQUA}» "+
-                            "${ChatColor.DARK_GRAY}999${ChatColor.DARK_AQUA}-" +
-                            "${ChatColor.GRAY}99${ChatColor.DARK_AQUA}-" +
-                            "${ChatColor.GOLD}9${ChatColor.DARK_AQUA}-" +
-                            "${ChatColor.AQUA}0",
-                    0f,
-                    (idx * fr.field_0_2811).toFloat(),
-                    CommonColors.WHITE,
-                    SmartFontRenderer.TextAlignment.LEFT_RIGHT,
-                    SmartFontRenderer.TextShadow.NORMAL
-                )
+                text("${fish.formattedName} ${ChatColor.DARK_AQUA}» "+
+                        "${ChatColor.DARK_GRAY}999${ChatColor.DARK_AQUA}-" +
+                        "${ChatColor.GRAY}99${ChatColor.DARK_AQUA}-" +
+                        "${ChatColor.GOLD}9${ChatColor.DARK_AQUA}-" +
+                        "${ChatColor.AQUA}0")
             }
-            if (Config.showTotalTrophyFish) {
-                fr.drawString(
-                    "${ChatColor.LIGHT_PURPLE}Total ${ChatColor.DARK_AQUA}» 9999",
-                    0f,
-                    (trophyFish.size * fr.field_0_2811).toFloat(),
-                    CommonColors.WHITE,
-                    alignment,
-                    textShadow
-                )
+            if_(Config.showTotalTrophyFishState) {
+                text("${ChatColor.LIGHT_PURPLE}Total ${ChatColor.DARK_AQUA}» 9999")
             }
         }
-
-        override val toggled: Boolean
-            get() = Config.trophyFishTracker
-
-        override val height: Int // This converts the boolean to an int (1 for true, 0 for false)
-            get() = (TrophyFish.entries.size + Config.showTotalTrophyFish.compareTo(false)) * UGraphics.getFontHeight()
-        override val width: Int
-            get() = UGraphics.getStringWidth("Steaming-Hot Flounder » 999-99-99-9")
-
     }
 }

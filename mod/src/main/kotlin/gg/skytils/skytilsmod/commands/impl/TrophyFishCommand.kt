@@ -75,10 +75,7 @@ object TrophyFishCommand {
                     if (trophyFishData == null) {
                         message.edit("${Skytils.failPrefix} §cFailed to retrieve trophy fish data for ${username}.")
                     } else message.edit("${Skytils.prefix} §bTrophy Fish for $username\n" +
-                            TrophyFish.generateTrophyFishList(trophyFishData, total).joinToString("\n") +
-                            if (total) {
-                                "\n" + TrophyFish.generateTotalTrophyFish(trophyFishData)
-                            } else ""
+                            TrophyFish.generateTrophyFishList(trophyFishData, total).joinToString("\n")
                     )
                 }
             }
