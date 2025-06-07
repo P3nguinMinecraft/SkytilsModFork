@@ -48,7 +48,7 @@ object TreasureHunterSolver : EventSubscriber {
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
 
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
 
         if (formatted == "§r§aYou found a treasure chest!§r") {
             treasureLocation = null
@@ -81,18 +81,19 @@ object TreasureHunterSolver : EventSubscriber {
         val y = pos.y - viewerY
         val z = pos.z - viewerZ
         val distSq = x * x + y * y + z * z
-        RenderSystem.disableDepthTest()
-        RenderSystem.disableCull()
-        RenderUtil.drawFilledBoundingBox(
-            matrixStack,
-            Box(x, y, z, x + 1, y + 1, z + 1),
-            Color(2, 250, 39),
-            1f
-        )
-        if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(x, y + 1, z, Color(2, 250, 39).rgb, 1.0f, event.partialTicks)
-        RenderUtil.renderWaypointText("§6Treasure", pos.up(2), event.partialTicks, matrixStack)
-        RenderSystem.method_4406()
-        RenderSystem.enableDepthTest()
-        RenderSystem.enableCull()
+        // TODO: fix later
+//        RenderSystem.disableDepthTest()
+//        RenderSystem.disableCull()
+//        RenderUtil.drawFilledBoundingBox(
+//            matrixStack,
+//            Box(x, y, z, x + 1, y + 1, z + 1),
+//            Color(2, 250, 39),
+//            1f
+//        )
+//        if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(x, y + 1, z, Color(2, 250, 39).rgb, 1.0f, event.partialTicks)
+//        RenderUtil.renderWaypointText("§6Treasure", pos.up(2), event.partialTicks, matrixStack)
+//        RenderSystem.method_4406()
+//        RenderSystem.enableDepthTest()
+//        RenderSystem.enableCull()
     }
 }
