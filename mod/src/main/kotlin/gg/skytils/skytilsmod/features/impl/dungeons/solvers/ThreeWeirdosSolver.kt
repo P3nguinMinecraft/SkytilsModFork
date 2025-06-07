@@ -30,6 +30,7 @@ import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod.core.DataFetcher
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.entity.decoration.ArmorStandEntity
@@ -50,7 +51,7 @@ object ThreeWeirdosSolver : EventSubscriber {
     }
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Skytils.config.threeWeirdosSolver || !Utils.inDungeons || !DungeonListener.incompletePuzzles.contains("Three Weirdos")) return
-        val formatted = event.message.method_10865()
+        val formatted = event.message.formattedText
         if (formatted.startsWith("§a§lPUZZLE SOLVED!") && "wasn't fooled by " in formatted) {
             riddleNPC = null
             riddleChest = null
@@ -69,10 +70,10 @@ object ThreeWeirdosSolver : EventSubscriber {
                 UChat.chat("$prefix §a§l${npcName.stripControlCodes()} §2has the blessing.")
 
                 mc.world?.entities?.find {
-                    it is ArmorStandEntity && riddleNPC!! in it.customName
+                    it is ArmorStandEntity && it.customName?.string?.contains(riddleNPC!!) == true
                 }?.let {
-                    riddleChest = UDirection.HORIZONTALS.map { dir -> it.blockPos.method_10093(dir)  }.find {
-                        mc.world?.getBlockState(it)?.block == Blocks.field_0_680
+                    riddleChest = UDirection.HORIZONTALS.map { dir -> it.blockPos.offset(dir)  }.find {
+                        mc.world?.getBlockState(it)?.block == Blocks.CHEST
                     }
                     println("Riddle NPC ${it.customName} @ ${it.blockPos} w/ chest @ $riddleChest")
                 }
