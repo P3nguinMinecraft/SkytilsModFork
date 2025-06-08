@@ -19,9 +19,6 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
-import gg.essential.universal.utils.MCHoverEventAction
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.hypixel.types.skyblock.Member
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
@@ -29,6 +26,7 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.*
 import kotlinx.coroutines.launch
+import net.minecraft.text.Text
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
@@ -135,45 +133,39 @@ object CataCommand {
                     50.0
                 ) + tankLevel.coerceAtMost(50.0)) / 5.0
 
-            val component = UMessage("§a➜ Catacombs Statistics Viewer\n")
+            val component = Text.literal("§a➜ Catacombs Statistics Viewer\n")
                 .append(
                     "§2§l ❣ §7§oYou are looking at data for ${playerResponse?.formattedName}§7§o.\n\n"
                 )
                 .append("§a§l➜ Catacombs Levels:\n")
                 .append(
-                    UTextComponent("§d ☠ Cata Level: §l➡ §e${NumberUtil.nf.format(cataLevel)}\n").setHover(
-                        MCHoverEventAction.SHOW_TEXT,
+                    Text.literal("§d ☠ Cata Level: §l➡ §e${NumberUtil.nf.format(cataLevel)}\n").setHoverText(
                         "§e${NumberUtil.nf.format(catacombsObj.experience)} XP"
                     )
                 )
                 .append("§9 ☠ Class Avg: §l➡ §e${NumberUtil.nf.format(classAvgCapped)} §7(${NumberUtil.nf.format(classAvgOverflow)})\n\n")
                 .append(
-                    UTextComponent("§6 ☣ Archer Level: §l➡ §e${NumberUtil.nf.format(archLevel)}\n").setHover(
-                        MCHoverEventAction.SHOW_TEXT,
+                    Text.literal("§6 ☣ Archer Level: §l➡ §e${NumberUtil.nf.format(archLevel)}\n").setHoverText(
                         "§e${NumberUtil.nf.format(archXP)} XP"
                     )
                 )
                 .append(
-                    UTextComponent("§c ⚔ Berserk Level: §l➡ §e${NumberUtil.nf.format(bersLevel)}\n").setHover(
-                        MCHoverEventAction.SHOW_TEXT,
+                    Text.literal("§c ⚔ Berserk Level: §l➡ §e${NumberUtil.nf.format(bersLevel)}\n").setHoverText(
                         "§e${NumberUtil.nf.format(bersXP)} XP"
                     )
                 )
                 .append(
-                    UTextComponent("§a ❤ Healer Level: §l➡ §e${NumberUtil.nf.format(healerLevel)}\n").setHover(
-                        MCHoverEventAction.SHOW_TEXT,
+                    Text.literal("§a ❤ Healer Level: §l➡ §e${NumberUtil.nf.format(healerLevel)}\n").setHoverText(
                         "§e${NumberUtil.nf.format(healerXP)} XP"
                     )
                 )
                 .append(
-                    UTextComponent("§b ✎ Mage Level: §l➡ §e${NumberUtil.nf.format(mageLevel)}\n").setHover(
-                        MCHoverEventAction.SHOW_TEXT,
+                    Text.literal("§b ✎ Mage Level: §l➡ §e${NumberUtil.nf.format(mageLevel)}\n").setHoverText(
                         "§e${NumberUtil.nf.format(mageXP)} XP"
                     )
                 )
                 .append(
-                    UTextComponent("§7 ❈ Tank Level: §l➡ §e${NumberUtil.nf.format(tankLevel)}\n\n").setHover(
-                        MCHoverEventAction.SHOW_TEXT,
+                    Text.literal("§7 ❈ Tank Level: §l➡ §e${NumberUtil.nf.format(tankLevel)}\n\n").setHoverText(
                         "§e${NumberUtil.nf.format(tankXP)} XP"
                     )
                 )
@@ -275,8 +267,7 @@ object CataCommand {
                                     (profileData.player_stats.kills["master_watcher_summon_undead"]?.toInt() ?: 0)
                         )
                     }\n"
-                )
-                .chat()
+                ).let(UChat::chat)
         } catch (e: Throwable) {
             UChat.chat("$failPrefix §cCatacombs XP Lookup Failed: ${e.message ?: e::class.simpleName}")
             e.printStackTrace()
@@ -287,8 +278,8 @@ object CataCommand {
         text: String, highestFloor: Int,
         hoverContent: Map<String, Double>,
         transform: (Double?) -> Any
-    ): UTextComponent =
-        UTextComponent(text).run {
+    ) =
+        Text.literal(text).run {
             val hoverText = (0..highestFloor).associateWith { floor ->
                 transform(hoverContent["$floor"])
             }.map { (floor, value) ->
@@ -302,8 +293,8 @@ object CataCommand {
         hoverContent: Map<String, Double>,
         emptyHoverText: String = "",
         transform: (Double?) -> Any
-    ): UTextComponent =
-        UTextComponent(text).run {
+    ) =
+        Text.literal(text).run {
             if (hoverContent.isEmpty()) {
                 setHoverText(emptyHoverText)
             } else {
