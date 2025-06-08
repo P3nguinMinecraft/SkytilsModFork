@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.utils.multiplatform
 
+import gg.essential.universal.UMinecraft
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.MutableText
@@ -38,6 +39,9 @@ fun MCTextComponent.map(action: Text.() -> Unit) {
     action(this)
     siblings.forEach { it.map(action) }
 }
+
+fun MCTextComponent.chat() =
+    UMinecraft.getMinecraft().inGameHud.chatHud.addMessage(this)
 
 fun MutableMCTextComponent.setHoverText(text: String) = apply {
     setStyle(style.withHoverEvent(HoverEvent.ShowText(Text.literal(text))))
