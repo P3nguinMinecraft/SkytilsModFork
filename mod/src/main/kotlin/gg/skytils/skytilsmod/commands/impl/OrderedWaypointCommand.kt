@@ -19,9 +19,6 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.handlers.Waypoint
 import gg.skytils.skytilsmod.features.impl.handlers.WaypointCategory
@@ -29,6 +26,8 @@ import gg.skytils.skytilsmod.features.impl.handlers.Waypoints
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.current
+import gg.skytils.skytilsmod.utils.multiplatform.chat
+import gg.skytils.skytilsmod.utils.multiplatform.setClickRun
 import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import org.incendo.cloud.annotations.Argument
@@ -40,7 +39,6 @@ import kotlin.random.Random
 
 @Commands
 object OrderedWaypointCommand {
-    private val lineId = Random.nextInt()
     private var categoryCache = emptyList<WaypointCategory>()
     var trackedIsland: SkyblockIsland? = null
     var trackedSet: MutableList<Waypoint>? = null
@@ -77,39 +75,38 @@ object OrderedWaypointCommand {
         val currentPage = (safeStartIndex / ITEMS_PER_PAGE) + 1
 
         textComponent("${Skytils.prefix} §bSelect a Waypoint Category! §7(Page $currentPage/$totalPages)").apply {
-            chatLineId = lineId
             listPage.withIndex().forEach { (i, category) ->
                 val absoluteIndex = safeStartIndex + i
                 append(
                     textComponent("\n§a${category.name} §7(${category.waypoints.size})")
                         .setHoverText("§eClick to select category: ${category.name}")
-                        .setClick(MCClickEventAction.RUN_COMMAND, "/skytilsorderedwaypoint select $absoluteIndex")
+                        .setClickRun("/skytilsorderedwaypoint select $absoluteIndex")
                 )
             }
 
             val prevIndex = (safeStartIndex - ITEMS_PER_PAGE).coerceAtLeast(0)
             val nextIndex = toIndex
 
-            val paginationLine = UTextComponent("\n")
+            val paginationLine = textComponent("\n")
             var hasPrevious = false
             if (safeStartIndex >= ITEMS_PER_PAGE) {
-                paginationLine.appendSibling(
-                    UTextComponent("§7[§a<< Previous§7]")
+                paginationLine.append(
+                    textComponent("§7[§a<< Previous§7]")
                         .setHoverText("§eGo to previous page")
-                        .setClick(MCClickEventAction.RUN_COMMAND, "/skytilsorderedwaypoint selectmenu $prevIndex")
+                        .setClickRun("/skytilsorderedwaypoint selectmenu $prevIndex")
                 )
                 hasPrevious = true
             }
             if (nextIndex < categoryCache.size) {
-                if (hasPrevious) paginationLine.appendSibling(UTextComponent(" §7| "))
-                paginationLine.appendSibling(
-                    UTextComponent("§7[§aNext >>§7]")
+                if (hasPrevious) paginationLine.append(textComponent(" §7| "))
+                paginationLine.append(
+                    textComponent("§7[§aNext >>§7]")
                         .setHoverText("§eGo to next page")
-                        .setClick(MCClickEventAction.RUN_COMMAND, "/skytilsorderedwaypoint selectmenu $nextIndex")
+                        .setClickRun("/skytilsorderedwaypoint selectmenu $nextIndex")
                 )
             }
             if (hasPrevious || nextIndex < categoryCache.size) {
-                addTextComponent(paginationLine)
+                append(paginationLine)
             }
 
         }.chat()
@@ -139,13 +136,11 @@ object OrderedWaypointCommand {
         val category = categoryCache.getOrNull(index)
             ?: throw IllegalArgumentException("§cInvalid category index '$index'. Please open the menu again with /skytilsorderedwaypoint")
 
-        UMessage(
+        textComponent(
             "${Skytils.successPrefix} §aSelected category §b${category.name}§a! (${category.waypoints.size} waypoints)\n" +
                     "§eTracking waypoints in order. Reach them to proceed.\n" +
                     "§eUse §b/skytilsorderedwaypoint stop§e to cancel."
-        ).apply {
-            chatLineId = lineId
-        }.chat()
+        ).chat()
 
         trackedSet = category.waypoints.sortedBy { it.name }.toMutableList()
         trackedIsland = category.island
