@@ -29,4 +29,7 @@ import java.util.List;
 public interface AccessorChatState {
     @Accessor
     List<ChatHudLine> getMessages();
+
+    @Accessor
+    void setMessages(List<ChatHudLine> messages);
 }
