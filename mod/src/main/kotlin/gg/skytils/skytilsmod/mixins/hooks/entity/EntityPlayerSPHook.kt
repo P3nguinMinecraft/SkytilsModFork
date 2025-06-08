@@ -55,7 +55,7 @@ object EntityPlayerSPHook : EventSubscriber {
 }
 
 fun onDropItem(dropAll: Boolean, cir: CallbackInfoReturnable<ItemEntity?>) {
-    val stack = mc.player.inventory.main[currentItem ?: mc.player.inventory.selectedSlot]
+    val stack = mc.player?.inventory?.selectedStack
     if (stack != null && postCancellableSync(ItemTossEvent(stack))) cir.returnValue = null
 }
 
