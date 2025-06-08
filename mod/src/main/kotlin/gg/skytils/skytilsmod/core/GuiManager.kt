@@ -33,7 +33,6 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod._event.RenderHUDEvent
 import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
-import gg.skytils.skytilsmod.gui.editing.VanillaEditingGui
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.toast.Toast
@@ -114,7 +113,6 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
 
     fun onRenderHUD(event: RenderHUDEvent) {
         if (
-            MinecraftClient.getInstance().currentScreen is VanillaEditingGui ||
             MinecraftClient.getInstance().currentScreen == demoHud
             ) return
         //#if MC>=12000
