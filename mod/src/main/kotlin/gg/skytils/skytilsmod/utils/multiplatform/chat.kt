@@ -50,3 +50,7 @@ fun MutableMCTextComponent.setClick(event: ClickEvent) = apply {
 fun MutableMCTextComponent.setClickSuggest(string: String) = apply {
     setStyle(style.withClickEvent(ClickEvent.SuggestCommand(string)))
 }
+
+fun MutableMCTextComponent.setClickRun(command: String) = apply {
+    setStyle(style.withClickEvent(ClickEvent.RunCommand(command)))
+}
