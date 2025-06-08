@@ -19,9 +19,6 @@ package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.mc
@@ -58,8 +55,11 @@ import gg.skytils.skytilsmod.listeners.ServerPayloadInterceptor.getResponse
 import gg.skytils.skytilsmod.localapi.LocalAPI
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorHypixelPacketRegistry
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.multiplatform.setClick
+import gg.skytils.skytilsmod.utils.multiplatform.append
+import gg.skytils.skytilsmod.utils.multiplatform.chat
+import gg.skytils.skytilsmod.utils.multiplatform.setClickRun
 import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import net.hypixel.modapi.HypixelModAPI
@@ -299,19 +299,18 @@ object SkytilsCommand {
                 if (UpdateChecker.updateGetter.updateObj == null) {
                     UChat.chat("$prefix §cNo new update found.")
                 } else {
-                    val message = UMessage(
+                    val message = textComponent(
                         "$prefix §7Update for version ${
                             UpdateChecker.updateGetter.updateObj!!.tagName
-                        } is available! ",
-                        UTextComponent("§a[Update Now] ").setClick(
-                            MCClickEventAction.RUN_COMMAND,
-                            "/skytils updateNow"
-                        ).setHoverText("§eUpdates and restarts your game"),
-                        UTextComponent("§b[Update Later] ").setClick(
-                            MCClickEventAction.RUN_COMMAND,
-                            "/skytils updateLater"
-                        ).setHoverText("§eUpdates after you close your game")
-                    )
+                        } is available! ").append(
+                            textComponent("§a[Update Now] ")
+                                .setClickRun("/skytils updateNow")
+                                .setHoverText("§eUpdates and restarts your game")
+                        ).append(
+                            textComponent("§b[Update Later] ")
+                                .setClickRun("/skytils updateLater")
+                                .setHoverText("§eUpdates after you close your game")
+                        )
                     message.chat()
                 }
             }
