@@ -19,11 +19,13 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UMessage
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.MC
 import gg.skytils.skytilsmod.features.impl.crimson.TrophyFish
 import gg.skytils.skytilsmod.utils.MojangUtil
+import gg.skytils.skytilsmod.utils.multiplatform.chat
+import gg.skytils.skytilsmod.utils.multiplatform.edit
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,12 +37,12 @@ object TrophyFishCommand {
 
     @Command("trophyfish|tf|trophy reload")
     suspend fun reloadData() {
-        val text = UMessage("${Skytils.prefix} §9Loading data...").mutable()
+        val text = textComponent("${Skytils.prefix} §9Loading data...")
         text.chat()
         Skytils.IO.launch {
             TrophyFish.loadFromApi()
             withContext(Dispatchers.MC) {
-                text.edit("${Skytils.successPrefix} §aLoaded!")
+                text.edit(textComponent("${Skytils.successPrefix} §aLoaded!"))
             }
         }
     }
@@ -64,18 +66,18 @@ object TrophyFishCommand {
                 )
             }
         } else {
-            val message = UMessage("${Skytils.prefix} §9Loading trophy fish data for ${username}.").mutable()
+            val message = textComponent("${Skytils.prefix} §9Loading trophy fish data for ${username}.")
             Skytils.IO.launch {
                 val uuid = MojangUtil.getUUIDFromUsername(username) ?: run {
-                    message.edit("${Skytils.failPrefix} §cFailed to find minecraft player \"$username\".")
+                    message.edit(textComponent("${Skytils.failPrefix} §cFailed to find minecraft player \"$username\"."))
                     return@launch
                 }
                 val trophyFishData = TrophyFish.getTrophyFishData(uuid)
                 withContext(Dispatchers.MC) {
                     if (trophyFishData == null) {
-                        message.edit("${Skytils.failPrefix} §cFailed to retrieve trophy fish data for ${username}.")
-                    } else message.edit("${Skytils.prefix} §bTrophy Fish for $username\n" +
-                            TrophyFish.generateTrophyFishList(trophyFishData, total).joinToString("\n")
+                        message.edit(textComponent("${Skytils.failPrefix} §cFailed to retrieve trophy fish data for ${username}."))
+                    } else message.edit(textComponent("${Skytils.prefix} §bTrophy Fish for $username\n" +
+                            TrophyFish.generateTrophyFishList(trophyFishData, total).joinToString("\n"))
                     )
                 }
             }
