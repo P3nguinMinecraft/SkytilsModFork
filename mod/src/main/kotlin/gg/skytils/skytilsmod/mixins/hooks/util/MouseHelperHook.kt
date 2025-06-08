@@ -38,7 +38,7 @@ object MouseHelperHook : EventSubscriber {
 
     fun onGuiOpen(e: ScreenOpenEvent) {
         val oldGui = mc.currentScreen
-        if (e.screen is GenericContainerScreen && (oldGui is HandledScreen || oldGui == null)) {
+        if (e.screen is GenericContainerScreen && (oldGui is HandledScreen<*> || oldGui == null)) {
             lastOpen = System.currentTimeMillis()
         }
     }
