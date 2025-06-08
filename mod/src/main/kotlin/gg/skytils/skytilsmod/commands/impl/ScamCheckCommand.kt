@@ -20,10 +20,11 @@ package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
 import gg.skytils.skytilsmod.Skytils
-import gg.skytils.skytilsmod.Skytils.Companion.failPrefix
-import gg.skytils.skytilsmod.Skytils.Companion.mc
+import gg.skytils.skytilsmod.Skytils.failPrefix
+import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.misc.ScamCheck
 import gg.skytils.skytilsmod.utils.MojangUtil
+import gg.skytils.skytilsmod.utils.formattedText
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.incendo.cloud.annotations.Argument
@@ -38,7 +39,7 @@ object ScamCheckCommand {
         @Argument("name") name: String? = null
     ) = Skytils.IO.launch {
         val uuid = try {
-            if (name == null) mc.thePlayer!!.uniqueID else withContext(Skytils.IO.coroutineContext) { MojangUtil.getUUIDFromUsername(name) }
+            if (name == null) mc.player?.uuid ?: return@launch else withContext(Skytils.IO.coroutineContext) { MojangUtil.getUUIDFromUsername(name) }
         } catch (e: MojangUtil.MojangException) {
             UChat.chat("$failPrefix §cFailed to get UUID, reason: ${e.message}")
             null
@@ -48,7 +49,7 @@ object ScamCheckCommand {
         if (uuid != null) {
             ScamCheck
                 .checkScammer(uuid, "command")
-                .printResult(name ?: mc.thePlayer!!.name)
+                .printResult(name ?: mc.player?.name?.formattedText ?: return@launch)
         }
     }
 }
