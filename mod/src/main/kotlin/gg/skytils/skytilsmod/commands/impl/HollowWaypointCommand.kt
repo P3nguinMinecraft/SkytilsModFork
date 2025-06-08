@@ -19,15 +19,13 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod.Skytils.successPrefix
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
-import gg.skytils.skytilsmod.utils.append
+import gg.skytils.skytilsmod.utils.setClick
 import gg.skytils.skytilsmod.utils.setHoverText
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.Text
@@ -63,7 +61,7 @@ object HollowWaypointCommand {
     @Command("skytilshollowwaypoint|sthw")
     fun showSummary() {
         checkEnabled()
-        val message = UMessage("$prefix §eWaypoints:\n")
+        val message = Text.literal("$prefix §eWaypoints:\n")
         for (loc in CHWaypoints.CrystalHollowsMap.Locations.entries) {
             if (!loc.loc.exists()) continue
             message.append("${loc.displayName} ")
@@ -76,7 +74,7 @@ object HollowWaypointCommand {
             message.append(removeMessage(key))
         }
         message.append("§eFor more info do /sthw help")
-        message.chat()
+        UChat.chat(message)
     }
 
     @Command("skytilshollowwaypoint|sthw set|add <name>")
@@ -149,18 +147,16 @@ object HollowWaypointCommand {
     }
 
     private fun copyMessage(text: String): Text {
-        return UTextComponent("§9[Copy] ").apply {
+        return Text.literal("§9[Copy] ").apply {
             setHoverText("§9Copy the coordinates in chat box.")
-            clickAction = ClickEvent.Action.SUGGEST_COMMAND
-            clickValue = text
+            setClick(ClickEvent.SuggestCommand(text))
         }
     }
 
     private fun removeMessage(id: String): Text {
-        return UTextComponent("§c[Remove]\n").apply {
+        return Text.literal("§c[Remove]\n").apply {
             setHoverText("§cRemove the waypoint.")
-            clickAction = ClickEvent.Action.RUN_COMMAND
-            clickValue = "/sthw remove $id"
+            setClick(ClickEvent.SuggestCommand("/sthw remove $id"))
         }
     }
 }
