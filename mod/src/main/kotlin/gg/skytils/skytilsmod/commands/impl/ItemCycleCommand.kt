@@ -27,8 +27,8 @@ import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle.getIdentifier
 import gg.skytils.skytilsmod.gui.itemcycle.ItemCycleGui
 import gg.skytils.skytilsmod.utils.SkyblockIsland
-import gg.skytils.skytilsmod.utils.setClickSuggest
-import gg.skytils.skytilsmod.utils.setHoverText
+import gg.skytils.skytilsmod.utils.multiplatform.setClickSuggest
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
 import org.incendo.cloud.annotations.Argument

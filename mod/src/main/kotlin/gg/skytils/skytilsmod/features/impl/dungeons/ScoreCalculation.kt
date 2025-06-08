@@ -45,6 +45,8 @@ import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.multiplatform.append
+import gg.skytils.skytilsmod.utils.multiplatform.map
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket

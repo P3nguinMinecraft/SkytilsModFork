@@ -25,6 +25,7 @@ import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import kotlinx.coroutines.launch
 import net.minecraft.text.Text
 import org.incendo.cloud.annotations.Argument

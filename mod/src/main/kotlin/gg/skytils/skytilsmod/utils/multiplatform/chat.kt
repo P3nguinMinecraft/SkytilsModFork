@@ -1,0 +1,52 @@
+/*
+ * Skytils - Hypixel Skyblock Quality of Life Mod
+ * Copyright (C) 2020-2025 Skytils
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package gg.skytils.skytilsmod.utils.multiplatform
+
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.text.MutableText
+import net.minecraft.text.Text
+
+typealias MCTextComponent =
+    Text
+
+typealias MutableMCTextComponent =
+    MutableText
+
+fun textComponent(content: String) =
+    Text.literal(content)
+
+fun MCTextComponent.append(item: Text) = this.siblings.add(item)
+
+fun MCTextComponent.map(action: Text.() -> Unit) {
+    action(this)
+    siblings.forEach { it.map(action) }
+}
+
+fun MutableMCTextComponent.setHoverText(text: String) = apply {
+    setStyle(style.withHoverEvent(HoverEvent.ShowText(Text.literal(text))))
+}
+
+fun MutableMCTextComponent.setClick(event: ClickEvent) = apply {
+    setStyle(style.withClickEvent(event))
+}
+
+fun MutableMCTextComponent.setClickSuggest(string: String) = apply {
+    setStyle(style.withClickEvent(ClickEvent.SuggestCommand(string)))
+}

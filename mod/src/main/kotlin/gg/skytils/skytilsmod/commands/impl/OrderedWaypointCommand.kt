@@ -29,7 +29,8 @@ import gg.skytils.skytilsmod.features.impl.handlers.Waypoints
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.current
-import gg.skytils.skytilsmod.utils.setHoverText
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
@@ -75,12 +76,12 @@ object OrderedWaypointCommand {
         val totalPages = ceil(categoryCache.size.toDouble() / ITEMS_PER_PAGE).toInt()
         val currentPage = (safeStartIndex / ITEMS_PER_PAGE) + 1
 
-        UMessage("${Skytils.prefix} §bSelect a Waypoint Category! §7(Page $currentPage/$totalPages)").apply {
+        textComponent("${Skytils.prefix} §bSelect a Waypoint Category! §7(Page $currentPage/$totalPages)").apply {
             chatLineId = lineId
             listPage.withIndex().forEach { (i, category) ->
                 val absoluteIndex = safeStartIndex + i
-                addTextComponent(
-                    UTextComponent("\n§a${category.name} §7(${category.waypoints.size})")
+                append(
+                    textComponent("\n§a${category.name} §7(${category.waypoints.size})")
                         .setHoverText("§eClick to select category: ${category.name}")
                         .setClick(MCClickEventAction.RUN_COMMAND, "/skytilsorderedwaypoint select $absoluteIndex")
                 )

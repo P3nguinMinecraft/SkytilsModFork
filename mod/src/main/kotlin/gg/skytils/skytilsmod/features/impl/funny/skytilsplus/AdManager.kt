@@ -37,7 +37,7 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import gg.skytils.skytilsmod.utils.setHoverText
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import net.minecraft.util.Identifier
 import kotlin.random.Random
 

@@ -25,8 +25,8 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod.Skytils.successPrefix
 import gg.skytils.skytilsmod.features.impl.mining.CHWaypoints
-import gg.skytils.skytilsmod.utils.setClick
-import gg.skytils.skytilsmod.utils.setHoverText
+import gg.skytils.skytilsmod.utils.multiplatform.setClick
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos

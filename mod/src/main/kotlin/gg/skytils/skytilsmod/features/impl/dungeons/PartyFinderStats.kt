@@ -32,6 +32,8 @@ import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.NumberUtil.toRoman
 import gg.skytils.skytilsmod.utils.SkillUtils.level
+import gg.skytils.skytilsmod.utils.multiplatform.setClick
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import kotlinx.coroutines.launch
 import net.minecraft.item.Item
 import net.minecraft.item.tooltip.TooltipType

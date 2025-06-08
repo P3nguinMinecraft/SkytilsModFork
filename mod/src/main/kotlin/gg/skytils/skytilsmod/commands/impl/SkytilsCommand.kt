@@ -58,6 +58,8 @@ import gg.skytils.skytilsmod.listeners.ServerPayloadInterceptor.getResponse
 import gg.skytils.skytilsmod.localapi.LocalAPI
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorHypixelPacketRegistry
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.multiplatform.setClick
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import net.hypixel.modapi.HypixelModAPI

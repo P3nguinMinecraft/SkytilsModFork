@@ -33,7 +33,7 @@ import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.multiplatform.SlotActionType
-import gg.skytils.skytilsmod.utils.setClick
+import gg.skytils.skytilsmod.utils.multiplatform.setClick
 import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.serialization.Serializable

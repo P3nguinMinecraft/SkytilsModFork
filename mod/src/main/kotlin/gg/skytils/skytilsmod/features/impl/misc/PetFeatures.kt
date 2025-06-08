@@ -34,11 +34,11 @@ import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.setHoverText
+import gg.skytils.skytilsmod.utils.multiplatform.setHoverText
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import gg.essential.universal.UMatrixStack
 import gg.skytils.skytilsmod.utils.formattedText
-import gg.skytils.skytilsmod.utils.setClick
+import gg.skytils.skytilsmod.utils.multiplatform.setClick
 import net.minecraft.text.ClickEvent
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket
