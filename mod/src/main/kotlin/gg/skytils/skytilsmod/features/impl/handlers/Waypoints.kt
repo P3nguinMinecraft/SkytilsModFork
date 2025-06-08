@@ -160,7 +160,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
 
                     val pos = obj["pos"].let {
                         if (it == null) BlockPos(obj["x"]!!.jsonPrimitive.int, obj["y"]!!.jsonPrimitive.int, obj["z"]!!.jsonPrimitive.int)
-                        else if (it is JsonPrimitive) BlockPos.method_0_4851(it.long)
+                        else if (it is JsonPrimitive) BlockPos.fromLong(it.long)
                         else BlockPos(it.jsonObject["x"]!!.jsonPrimitive.int, it.jsonObject["y"]!!.jsonPrimitive.int, it.jsonObject["z"]!!.jsonPrimitive.int)
                     }
 
@@ -300,7 +300,7 @@ object Waypoints : PersistentSave(File(Skytils.modDir, "waypoints.json")), Event
             val tracked = OrderedWaypointCommand.trackedSet?.firstOrNull()
             if (tracked == null) {
                 OrderedWaypointCommand.doneTracking()
-            } else if (tracked.pos.getSquaredDistance(mc.player.blockPos) < 2 * 2) {
+            } else if ((mc.player?.blockPos?.getSquaredDistance(tracked.pos) ?: 5.0) < 2 * 2) {
                 OrderedWaypointCommand.trackedSet?.removeFirstOrNull()
             }
         }
