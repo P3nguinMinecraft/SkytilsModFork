@@ -6,6 +6,7 @@
   "refmap": "mixins.skytils.refmap.json",
   "mixins": [
     "MixinMinecraft",
+    "accessors.AccessorChatState",
     "accessors.AccessorEntity",
     "accessors.AccessorEntityArmorStand",
     "accessors.AccessorEnumChatFormatting",
@@ -66,34 +67,6 @@
     "util.MixinChatStyle",
     "util.MixinUtil",
     "world.MixinWorld"
-    //#if MC==10809
-    //$$ ,
-    //$$ "accessors.AccessorC0EPacketClickWindow",
-    //$$ "accessors.AccessorChatComponentText",
-    //$$ "accessors.AccessorCommandHandler",
-    //$$ "accessors.AccessorEntitySlime",
-    //$$ "accessors.AccessorEnumDyeColor",
-    //$$ "accessors.AccessorGuiEditSign",
-    //$$ "accessors.AccessorGuiStreamUnavailable",
-    //$$ "accessors.AccessorRenderItem",
-    //$$ "accessors.AccessorRenderManager",
-    //$$ "accessors.AccessorServerListEntryNormal",
-    //$$ "block.MixinBlockSlab",
-    //$$ "block.MixinBlockStairs",
-    //$$ "command.MixinCommandHandler"
-    //$$ "forge.MixinClientCommandHandler",
-    //$$ "forge.MixinSplashProgressThread",
-    //$$ "neu.MixinCustomAH",
-    //$$ "neu.MixinGuiProfileViewer",
-    //$$ "neu.MixinStorageManager",
-    //$$ "neu.MixinStorageOverlay",
-    //$$ "neu.MixinTradeWindow",
-    //$$ "sba.MixinContainerPreviewManager",
-    //$$ "sk1eroam.MixinAnimationHandler",
-    //$$ "skyclientupdater.MixinUpdateChecker",
-    //$$ "skyhanni.MixinHideArmor",
-    //$$ "MixinIChatComponentSerializer"
-    //#endif
   ],
   "verbose": true,
   "client": [
