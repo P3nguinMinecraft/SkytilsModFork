@@ -26,16 +26,17 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorld
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.UDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.minecraft.block.Block
-import net.minecraft.block.LeverBlock
 import net.minecraft.block.Blocks
 import net.minecraft.util.DyeColor
 import net.minecraft.block.entity.ChestBlockEntity
+import net.minecraft.registry.tag.BlockTags
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Vec3d
@@ -72,26 +73,26 @@ object WaterBoardSolver : EventSubscriber {
                     prevInWaterRoom = inWaterRoom
                     inWaterRoom = false
                     if (Utils.getBlocksWithinRangeAtSameY(player.blockPos, 13, 54).any {
-                            world.getBlockState(it).block == Blocks.field_0_628
+                            world.getBlockState(it).block == Blocks.STICKY_PISTON
                         }) {
                         if (chestPos == null || roomFacing == null) {
-                            val playerX = mc.player.x.toInt()
-                            val playerZ = mc.player.z.toInt()
+                            val playerX = player.x.toInt()
+                            val playerZ = player.z.toInt()
                             val xRange = playerX - 25..playerX + 25
                             val zRange = playerZ - 25..playerZ + 25
                             findChest@
-                            for (te in world.field_0_262) {
-                                if (te.pos.y == 56 && te is ChestBlockEntity && te.viewerCount == 0 && te.pos.x in xRange && te.pos.z in zRange
+                            for (te in (world as AccessorWorld).blockEntityTickers) {
+                                if (te.pos.y == 56 && te is ChestBlockEntity && ChestBlockEntity.getPlayersLookingInChestCount(world, te.pos) == 0 && te.pos.x in xRange && te.pos.z in zRange
                                 ) {
                                     val potentialChestPos = te.pos
-                                    if (world.getBlockState(potentialChestPos.method_10074()).block === Blocks.STONE && world.getBlockState(
+                                    if (world.getBlockState(potentialChestPos.down()).block === Blocks.STONE && world.getBlockState(
                                             potentialChestPos.up(2)
-                                        ).block === Blocks.field_0_761
+                                        ).block === Blocks.LIGHT_GRAY_STAINED_GLASS
                                     ) {
                                         for (direction in UDirection.HORIZONTALS) {
                                             if (world.getBlockState(
                                                     potentialChestPos.offset(direction.opposite, 3).down(2)
-                                                ).block === Blocks.field_0_628 && world.getBlockState(
+                                                ).block === Blocks.STICKY_PISTON && world.getBlockState(
                                                     potentialChestPos.offset(direction, 2)
                                                 ).block === Blocks.STONE
                                             ) {
@@ -108,7 +109,7 @@ object WaterBoardSolver : EventSubscriber {
                         }
                         if (chestPos == null) return@launch
                         for (blockPos in Utils.getBlocksWithinRangeAtSameY(player.blockPos, 25, 82)) {
-                            if (world.getBlockState(blockPos).block === Blocks.field_0_633) {
+                            if (world.getBlockState(blockPos).block === Blocks.PISTON_HEAD) {
                                 inWaterRoom = true
                                 if (!prevInWaterRoom) {
                                     var foundGold = false
@@ -126,7 +127,7 @@ object WaterBoardSolver : EventSubscriber {
                                     )) {
                                         when (world.getBlockState(puzzleBlockPos).block) {
                                             Blocks.GOLD_BLOCK -> foundGold = true
-                                            Blocks.HARDENED_CLAY -> foundClay = true
+                                            Blocks.TERRACOTTA -> foundClay = true
                                             Blocks.EMERALD_BLOCK -> foundEmerald = true
                                             Blocks.QUARTZ_BLOCK -> foundQuartz = true
                                             Blocks.DIAMOND_BLOCK -> foundDiamond = true
@@ -242,7 +243,7 @@ object WaterBoardSolver : EventSubscriber {
         var matching = 0
         val matrixStack = UMatrixStack()
         for (color in WoolColor.entries) {
-            val renderColor = Color(color.dyeColor.method_7788().color).brighter()
+            val renderColor = Color(color.dyeColor.mapColor.color).brighter()
             if (color.isExtended) {
                 val solution = solutions[color] ?: continue
                 for ((lever, switched) in leverStates) {
@@ -287,8 +288,8 @@ object WaterBoardSolver : EventSubscriber {
     }
 
     private fun getLeverToggleState(pos: BlockPos?): Boolean {
-        val block = mc.world.getBlockState(pos)
-        return if (block.block !== Blocks.LEVER) false else block.testProperty(LeverBlock.POWERED)
+        val block = mc.world?.getBlockState(pos)
+        return if (block?.block !== Blocks.LEVER) false else block.get(net.minecraft.block.LeverBlock.POWERED)
     }
 
     enum class WoolColor(var dyeColor: DyeColor) {
@@ -299,11 +300,11 @@ object WaterBoardSolver : EventSubscriber {
         RED(DyeColor.RED);
 
         val isExtended: Boolean
-            get() = if (chestPos == null || roomFacing == null) false else mc.world.getBlockState(
+            get() = if (chestPos == null || roomFacing == null) false else mc.world?.getBlockState(
                 chestPos!!.offset(
                     roomFacing!!.opposite, 3 + ordinal
                 )
-            ).block == Blocks.WOOL
+            )?.isIn(BlockTags.WOOL) ?: false
     }
 
     enum class LeverBlock(var block: Block) {
@@ -312,7 +313,7 @@ object WaterBoardSolver : EventSubscriber {
         COAL(Blocks.COAL_BLOCK),
         DIAMOND(Blocks.DIAMOND_BLOCK),
         EMERALD(Blocks.EMERALD_BLOCK),
-        CLAY(Blocks.HARDENED_CLAY);
+        CLAY(Blocks.TERRACOTTA);
 
         val leverPos: BlockPos?
             get() {
@@ -321,7 +322,7 @@ object WaterBoardSolver : EventSubscriber {
                 val leverSide = if (ordinal < 3) roomFacing!!.rotateYClockwise() else roomFacing!!.rotateYCounterclockwise()
                 return chestPos!!.up(5).offset(leverSide.opposite, 6).offset(
                     roomFacing!!.opposite, 2 + shiftBy
-                ).method_10093(leverSide)
+                ).offset(leverSide)
             }
     }
 }
