@@ -19,7 +19,6 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
-import gg.essential.universal.wrappers.message.UMessage
 import gg.skytils.hypixel.types.skyblock.Member
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
@@ -27,6 +26,8 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod.core.API
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.multiplatform.chat
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import kotlinx.coroutines.launch
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
@@ -74,7 +75,7 @@ object SlayerCommand {
                 slayersObject?.get(it)?.xp ?: 0
             }.getOrDefault(0)
         }
-        UMessage("§a➜ Slayer Statistics Viewer\n")
+        textComponent("§a➜ Slayer Statistics Viewer\n")
             .append("§2§l ❣ §7§oYou are looking at data for ${username}\n\n")
             .append("§a§l➜ Slayer Levels:\n")
             .append(
