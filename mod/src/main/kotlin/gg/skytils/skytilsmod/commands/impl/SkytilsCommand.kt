@@ -46,7 +46,6 @@ import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.gui.OptionsGui
 import gg.skytils.skytilsmod.gui.editing.ElementaEditingGui
-import gg.skytils.skytilsmod.gui.editing.VanillaEditingGui
 import gg.skytils.skytilsmod.gui.features.*
 import gg.skytils.skytilsmod.gui.profile.ProfileGui
 import gg.skytils.skytilsmod.gui.updater.UpdateGui
@@ -238,11 +237,6 @@ object SkytilsCommand {
     @Command("skytils|st editlocations|editloc|locations|loc|gui")
     fun openLocations() {
         Skytils.displayScreen = ElementaEditingGui()
-    }
-
-    @Command("skytils|st oldgui")
-    fun openOldGui() {
-        Skytils.displayScreen = VanillaEditingGui()
     }
 
     @Command("skytils|st keyshortcuts|shortcuts")
