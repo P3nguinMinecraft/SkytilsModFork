@@ -18,8 +18,6 @@
 package gg.skytils.skytilsmod.commands.impl
 
 import gg.essential.universal.UChat
-import gg.essential.universal.utils.MCClickEventAction
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.mc
@@ -29,8 +27,10 @@ import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle.getIdentifier
 import gg.skytils.skytilsmod.gui.itemcycle.ItemCycleGui
 import gg.skytils.skytilsmod.utils.SkyblockIsland
+import gg.skytils.skytilsmod.utils.setClickSuggest
 import gg.skytils.skytilsmod.utils.setHoverText
 import net.minecraft.item.ItemStack
+import net.minecraft.text.Text
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
@@ -70,11 +70,11 @@ object ItemCycleCommand {
         PersistentSave.markDirty<ItemCycle>()
 
         UChat.chat(
-            UTextComponent("$successPrefix §fCreated new cycle '$cycleName' (§e${cycleId}§f).")
-                .appendSibling(
-                    UTextComponent(" §7§o[Click to Add Condition]")
+            Text.literal("$successPrefix §fCreated new cycle '$cycleName' (§e${cycleId}§f).")
+                .append(
+                    Text.literal(" §7§o[Click to Add Condition]")
                         .setHoverText("§eOpens command suggestion")
-                        .setClick(MCClickEventAction.SUGGEST_COMMAND, "/stic condition $cycleId add ")
+                        .setClickSuggest("/stic condition $cycleId add ")
                 )
         )
     }
@@ -90,11 +90,11 @@ object ItemCycleCommand {
         PersistentSave.markDirty<ItemCycle>()
 
         UChat.chat(
-            UTextComponent("$successPrefix §fSet target item for cycle '${cycle.name}' (§e${id}§f).")
-                .appendSibling(
-                    UTextComponent(" §7§o[Click to Edit Conditions]")
+            Text.literal("$successPrefix §fSet target item for cycle '${cycle.name}' (§e${id}§f).")
+                .append(
+                    Text.literal(" §7§o[Click to Edit Conditions]")
                         .setHoverText("§eOpens command suggestion")
-                        .setClick(MCClickEventAction.SUGGEST_COMMAND, "/stic condition $id ")
+                        .setClickSuggest("/stic condition $id ")
                 )
         )
     }
@@ -167,11 +167,11 @@ object ItemCycleCommand {
         PersistentSave.markDirty<ItemCycle>()
 
         val negationText = if (negated) " (Not Active)" else ""
-        UChat.chat(UTextComponent("$successPrefix §fAdded Island condition${negationText} for islands [${islands.joinToString { it.name }}] to cycle '${cycle.name}'.")
-            .appendSibling(
-                UTextComponent(" §7§o[Click to Remove]")
+        UChat.chat(Text.literal("$successPrefix §fAdded Island condition${negationText} for islands [${islands.joinToString { it.name }}] to cycle '${cycle.name}'.")
+            .append(
+                Text.literal(" §7§o[Click to Remove]")
                     .setHoverText("§cUUID: ${condition.uuid}")
-                    .setClick(MCClickEventAction.SUGGEST_COMMAND, "/stic condition $id remove ${condition.uuid}")
+                    .setClickSuggest("/stic condition $id remove ${condition.uuid}")
             ))
     }
 
@@ -190,11 +190,11 @@ object ItemCycleCommand {
         val negationText = if (negated) " (Not Active)" else ""
         val typeDesc = when(type) { 0 -> "Press"; 1 -> "Release"; 2 -> "Held"; else -> "Unknown Type"}
         UChat.chat(
-            UTextComponent("$successPrefix §fAdded Click condition${negationText} (Button $button, Type $typeDesc) to cycle '${cycle.name}'.")
-            .appendSibling(
-                UTextComponent(" §7§o[Click to Remove]")
+            Text.literal("$successPrefix §fAdded Click condition${negationText} (Button $button, Type $typeDesc) to cycle '${cycle.name}'.")
+            .append(
+                Text.literal(" §7§o[Click to Remove]")
                     .setHoverText("§cUUID: ${condition.uuid}")
-                    .setClick(MCClickEventAction.SUGGEST_COMMAND, "/stic condition $id remove ${condition.uuid}")
+                    .setClickSuggest("/stic condition $id remove ${condition.uuid}")
             )
         )
     }
@@ -213,11 +213,11 @@ object ItemCycleCommand {
 
         val negationText = if (negated) " (Not Held)" else " (Held)"
         UChat.chat(
-            UTextComponent("$successPrefix §fAdded Item condition${negationText} for item '${itemIdentifier.id}' to cycle '${cycle.name}'.")
-                .appendSibling(
-                    UTextComponent(" §7§o[Click to Remove]")
+            Text.literal("$successPrefix §fAdded Item condition${negationText} for item '${itemIdentifier.id}' to cycle '${cycle.name}'.")
+                .append(
+                    Text.literal(" §7§o[Click to Remove]")
                         .setHoverText("§cUUID: ${condition.uuid}")
-                        .setClick(MCClickEventAction.SUGGEST_COMMAND, "/stic condition $id remove ${condition.uuid}")
+                        .setClickSuggest("/stic condition $id remove ${condition.uuid}")
                 )
         )
     }
