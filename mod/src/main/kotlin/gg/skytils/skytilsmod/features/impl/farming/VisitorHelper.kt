@@ -18,25 +18,23 @@
 
 package gg.skytils.skytilsmod.features.impl.farming
 
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.column
 import gg.essential.universal.UMatrixStack
-import gg.essential.universal.UResolution
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.screen.GuiContainerBackgroundDrawnEvent
 import gg.skytils.event.impl.screen.GuiContainerCloseWindowEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.misc.ContainerSellValue
 import gg.skytils.skytilsmod.features.impl.misc.ItemFeatures
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack
 
 object VisitorHelper : EventSubscriber {
@@ -68,11 +66,12 @@ object VisitorHelper : EventSubscriber {
 
             if (!inGarden) return@tickTimer
 
-            val container = (mc.currentScreen as? GenericContainerScreen)?.handler as? GenericContainerScreenHandler ?: return@tickTimer
-            val chestName = container.inventory.name
+            val currentScreen = mc.currentScreen ?: return@tickTimer
+            val container = currentScreen as? GenericContainerScreen ?: return@tickTimer
+            val chestName = currentScreen.title.formattedText
             val npcSummary: ItemStack? = container.getSlot(13).stack
             val acceptOffer: ItemStack? = container.getSlot(29).stack
-            if (npcSummary?.name.stripControlCodes() == chestName.stripControlCodes() && acceptOffer?.name == "§aAccept Offer") {
+            if (npcSummary?.name?.string?.stripControlCodes() == chestName.stripControlCodes() && acceptOffer?.name?.formattedText == "§aAccept Offer") {
                 val lore = ItemUtil.getItemLore(acceptOffer)
                 var copper = 0
 
@@ -121,8 +120,8 @@ object VisitorHelper : EventSubscriber {
         if (textLines.isEmpty() || event.gui !is GenericContainerScreen) return
         val stack = UMatrixStack()
         stack.push()
-        stack.translate(VisitorHelperDisplay.scaleX, VisitorHelperDisplay.scaleY, 0f)
-        stack.scale(VisitorHelperDisplay.scale, VisitorHelperDisplay.scale, 0f)
+        stack.translate(VisitorHelperDisplay.component.getLeft(), VisitorHelperDisplay.component.getTop(), 0f)
+//        stack.scale(VisitorHelperDisplay.scale, VisitorHelperDisplay.scale, 0f)
 
         stack.runWithGlobalState {
             textLines.forEachIndexed { i, str -> drawLine(i, str) }
@@ -138,56 +137,35 @@ object VisitorHelper : EventSubscriber {
      * of this class so that the user can move the element around normally.
      * @see ContainerSellValue
      */
-    object VisitorHelperDisplay : GuiElement("Visitor Offer Helper", x = 0.258f, y = 0.283f) {
-        internal val rightAlign: Boolean
-            get() = scaleX > (UResolution.scaledWidth * 0.75f) ||
-                    (scaleX < UResolution.scaledWidth / 2f && scaleX > UResolution.scaledWidth / 4f)
-        internal val textPosX: Float
-            get() = if (rightAlign) width.toFloat() else 0f
-        internal val alignment: SmartFontRenderer.TextAlignment
-            get() = if (rightAlign) SmartFontRenderer.TextAlignment.RIGHT_LEFT
-            else SmartFontRenderer.TextAlignment.LEFT_RIGHT
-
-        override fun render() {
+    object VisitorHelperDisplay : HudElement("Visitor Offer Helper", 51.6f, 113.2f) {
+        override fun LayoutScope.render() {
             // Rendering is handled in the BackgroundDrawnEvent to give the text proper lighting
-            textShadow_ = textShadow
+
         }
 
-        override fun demoRender() {
-            listOf(
-                "§aEnchanted Cocoa Bean §8x69 - §a900M",
-                "§aEnchanted Potato §8x69 - §a1K",
-                "§eTotal Value: §a900M"
-            ).forEachIndexed { i, str ->
-                fr.drawString(
-                    str, textPosX, (i * fr.field_0_2811).toFloat(),
-                    CommonColors.WHITE, alignment, textShadow
-                )
+        override fun LayoutScope.demoRender() {
+            column {
+                listOf(
+                    "§aEnchanted Cocoa Bean §8x69 - §a900M",
+                    "§aEnchanted Potato §8x69 - §a1K",
+                    "§eTotal Value: §a900M"
+                ).forEach { line ->
+                    text(line)
+                }
             }
         }
 
-        override val toggled: Boolean
-            get() = Skytils.config.visitorOfferHelper
-        override val height: Int
-            get() = fr.field_0_2811 * 3
-        override val width: Int
-            get() = fr.getWidth("§aEnchanted Cocoa Bean §8x69 - §a900M")
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
-
-    private var textShadow_ = SmartFontRenderer.TextShadow.NORMAL
     private fun drawLine(index: Int, str: String) {
-        ScreenRenderer.fontRenderer.drawString(
-            str,
-            VisitorHelperDisplay.textPosX,
-            (index * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
-            CommonColors.WHITE,
-            VisitorHelperDisplay.alignment,
-            textShadow_
-        )
+        // TODO: fix later
+//        ScreenRenderer.fontRenderer.drawString(
+//            str,
+//            VisitorHelperDisplay.textPosX,
+//            (index * ScreenRenderer.fontRenderer.field_0_2811).toFloat(),
+//            CommonColors.WHITE,
+//            VisitorHelperDisplay.alignment,
+//            textShadow_
+//        )
     }
 
     init {
