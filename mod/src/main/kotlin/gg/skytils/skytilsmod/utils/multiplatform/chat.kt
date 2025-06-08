@@ -19,6 +19,8 @@
 package gg.skytils.skytilsmod.utils.multiplatform
 
 import gg.essential.universal.UMinecraft
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorChatState
+import net.minecraft.client.gui.hud.ChatHudLine
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.MutableText
@@ -42,6 +44,25 @@ fun MCTextComponent.map(action: Text.() -> Unit) {
 
 fun MCTextComponent.chat() =
     UMinecraft.getMinecraft().inGameHud.chatHud.addMessage(this)
+
+fun MCTextComponent.edit(newComponent: MCTextComponent) {
+    val oldState = UMinecraft.getMinecraft().inGameHud.chatHud.toChatState()
+    val accessor = (oldState as AccessorChatState)
+    val messages = accessor.messages
+    val oldLine = messages.find { message ->
+        this == message.content
+    } ?: return
+    messages.remove(oldLine)
+    messages.add(ChatHudLine(
+        UMinecraft.getMinecraft().inGameHud.ticks,
+        newComponent,
+        oldLine.signature,
+        oldLine.indicator
+    ))
+    UMinecraft.getMinecraft().inGameHud.chatHud.restoreChatState(
+        oldState
+    )
+}
 
 fun MutableMCTextComponent.setHoverText(text: String) = apply {
     setStyle(style.withHoverEvent(HoverEvent.ShowText(Text.literal(text))))
