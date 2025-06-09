@@ -33,13 +33,16 @@ import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonMimic
 import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.block.Blocks
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
 import net.minecraft.util.math.BlockPos
+import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
 object MimicDetector : EventSubscriber {
     var mimicOpenTime = 0L
     var mimicPos: BlockPos? = null
+    val mimicSkullUUID: UUID = UUID.fromString("ae55953f-605e-3c71-a813-310c028de150")
 
     override fun setup() {
         register(::onBlockChange)
@@ -80,10 +83,10 @@ object MimicDetector : EventSubscriber {
                     entity is ZombieEntity && entity.isBaby && entity.getEquippedStack(EquipmentSlot.HEAD)
                         //#if MC==10809
                         //$$ ?.getOrCreateSubNbt("SkullOwner", false)
+                        //$$ ?.getString("Id")?.getOrNull() == "ae55953f-605e-3c71-a813-310c028de150"
                         //#else
-                        ?.toNbt(mc.player!!.registryManager)?.asCompound()?.getOrNull()
+                        .get(DataComponentTypes.PROFILE)?.id?.getOrNull() == mimicSkullUUID
                         //#endif
-                        ?.getString("Id")?.getOrNull() == "ae55953f-605e-3c71-a813-310c028de150"
                 }) {
                 ScoreCalculation.mimicKilled.set(true)
                 if (Skytils.config.scoreCalculationAssist) {

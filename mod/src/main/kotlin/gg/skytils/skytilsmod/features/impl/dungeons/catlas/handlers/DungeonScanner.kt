@@ -24,6 +24,7 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures.dungeonFloorNumber
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner.scan
+import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.HeightProvider
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.ScanUtils
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.SBInfo
@@ -87,7 +88,7 @@ object DungeonScanner {
                 //#if MC==10809
                 //$$ if (!world.method_0_271(xPos shr 4, zPos shr 4).method_12229()) {
                 //#else
-                if (world.chunkManager.getChunk(xPos shr 4, zPos shr 4, ChunkStatus.FULL, false) != null) {
+                if (!world.chunkManager.isChunkLoaded(xPos shr 4, zPos shr 4) || HeightProvider.getHeight(x, z) == null) {
                 //#endif
                     // The room being scanned has not been loaded in.
                     allChunksLoaded = false
@@ -126,18 +127,8 @@ object DungeonScanner {
     }
 
     private fun scanRoom(world: World, x: Int, z: Int, row: Int, column: Int): Tile? {
-        //#if MC==10809
-        //$$ val chunk = mc.world!!.method_0_271(x shr 4, z shr 4)
-        //#else
-        val chunk = mc.world!!.getChunk(x shr 4, z shr 4)
-        //#endif
-        val height =
-            //#if MC==10809
-            //$$ chunk.method_0_1367(x and 15, z and 15)
-            //#else
-            chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
-            //#endif
-        if (height == 0) return null
+        val height = (HeightProvider.getHeight(x, z) ?: Integer.MIN_VALUE) + 1
+        if (height <= 0) return null
 
         val rowEven = row and 1 == 0
         val columnEven = column and 1 == 0

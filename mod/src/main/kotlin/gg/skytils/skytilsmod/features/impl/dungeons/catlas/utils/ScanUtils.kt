@@ -24,6 +24,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.Room
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.RoomData
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
+import gg.skytils.skytilsmod.utils.DevTools
 import gg.skytils.skytilsmod.utils.Utils
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
@@ -44,7 +45,7 @@ object ScanUtils {
         //#else
         mc.resourceManager.getResourceOrThrow(
         //#endif
-            Identifier("catlas:rooms.json")
+            Identifier.of("catlas:rooms.json")
         ).inputStream.use(json::decodeFromStream)
     }
 
@@ -80,7 +81,7 @@ object ScanUtils {
             //#if MC==10809
             //$$ chunk.method_0_1367(x and 15, z and 15)
             //#else
-            chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE).get(x and 15, z and 15)
+            HeightProvider.getHeight(x, z)?.coerceIn(11..140) ?: 140
             //#endif
                 .coerceIn(11..140)
         sb.append(CharArray(140 - height) { '0' })
@@ -89,8 +90,8 @@ object ScanUtils {
             //#if MC==10809
             //$$ val id = Block.method_0_670(chunk.getBlock(BlockPos(x, y, z)))
             //#else
-            // TODO: Check if this is the same value post-flattening (it likely isn't)
-            val id = Block.getRawIdFromState(chunk.getBlockState(BlockPos(x, y, z)))
+            val blockState = chunk.getBlockState(BlockPos(x, y, z))
+            val id = if (blockState.isAir) 0 else LegacyIdProvider.getLegacyId(blockState)
             //#endif
             if (id == 0 && bedrock >= 2 && y < 69) {
                 sb.append(CharArray(y - 11) { '0' })
