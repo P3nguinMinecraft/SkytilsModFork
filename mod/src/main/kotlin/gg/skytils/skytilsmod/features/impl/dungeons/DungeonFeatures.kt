@@ -48,7 +48,6 @@ import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.listeners.DungeonListener
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorC0EPacketClickWindow
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.Utils.equalsOneOf
 import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
@@ -64,6 +63,7 @@ import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.ItemEntity
 import net.minecraft.entity.mob.BlazeEntity
@@ -85,6 +85,7 @@ import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket
+import net.minecraft.screen.sync.ItemStackHash
 import net.minecraft.sound.SoundEvents
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
@@ -277,7 +278,7 @@ object DungeonFeatures : EventSubscriber {
         if (fakeDungeonMap != null && event.packet is ClickSlotC2SPacket && UMinecraft.getMinecraft().player?.inventory?.getStack(
                 event.packet.slot.toInt()
             ) == fakeDungeonMap) {
-            (event.packet as AccessorC0EPacketClickWindow).setClickedItem(intendedItemStack) //FIXME
+            event.packet.modifiedStacks[event.packet.slot.toInt()] = ItemStackHash.fromItemStack(intendedItemStack, mc.networkHandler?.method_68823())
         }
     }
 
@@ -289,10 +290,12 @@ object DungeonFeatures : EventSubscriber {
             if (equalsOneOf(unformatted, "Maxor", "Storm", "Goldor", "Necron")) {
                 when (Skytils.config.necronHealth) {
                     2 -> {
-                        displayData.name = displayData.name + "§r§8 - §r§d" + String.format(
-                            "%.1f",
-                            displayData.percent * 100
-                        ) + "%"
+                        displayData.name = textComponent(
+                            displayData.name.formattedText + "§r§8 - §r§d" + String.format(
+                                "%.1f",
+                                displayData.percent * 100
+                            ) + "%"
+                        )
                     }
 
                     1 -> {
@@ -304,9 +307,11 @@ object DungeonFeatures : EventSubscriber {
                             "Necron" -> if (isMaster) 1_400_000_000 else 1_000_000_000
                             else -> 69
                         }
-                        displayData.name = displayData.name + "§r§8 - §r§a" + NumberUtil.format(
-                            (displayData.percent * health).toLong()
-                        ) + "§r§8/§r§a${NumberUtil.format(health)}§r§c❤"
+                        displayData.name = textComponent(
+                            displayData.name.string + "§r§8 - §r§a" + NumberUtil.format(
+                                (displayData.percent * health).toLong()
+                            ) + "§r§8/§r§a${NumberUtil.format(health)}§r§c❤"
+                        )
                     }
 
                     0 -> {
