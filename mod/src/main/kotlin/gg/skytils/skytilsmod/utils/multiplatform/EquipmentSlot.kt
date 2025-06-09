@@ -18,6 +18,8 @@
 
 package gg.skytils.skytilsmod.utils.multiplatform
 
+import net.minecraft.entity.LivingEntity
+
 //#if MC<12000
 //$$ object EquipmentSlot {
 //$$     val MAINHAND = 0
@@ -29,3 +31,14 @@ package gg.skytils.skytilsmod.utils.multiplatform
 //#else
 typealias EquipmentSlot = net.minecraft.entity.EquipmentSlot
 //#endif
+
+val armorSlots =
+    listOf(
+        EquipmentSlot.HEAD,
+        EquipmentSlot.CHEST,
+        EquipmentSlot.LEGS,
+        EquipmentSlot.FEET
+    )
+
+val LivingEntity.armorItems
+    get() = armorSlots.map(::getEquippedStack)
