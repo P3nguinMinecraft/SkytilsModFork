@@ -28,12 +28,14 @@ import gg.skytils.skytilsmod.features.impl.dungeons.ScoreCalculation
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
+import gg.skytils.skytilsmod.utils.multiplatform.armorItems
 import gg.skytils.skytilsws.client.WSClient
-import gg.skytils.skytilsws.shared.SkytilsWS
 import gg.skytils.skytilsws.shared.packet.C2SPacketDungeonMimic
 import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.block.Blocks
+import net.minecraft.item.ItemStack
 import net.minecraft.util.math.BlockPos
+import kotlin.jvm.optionals.getOrNull
 
 object MimicDetector : EventSubscriber {
     var mimicOpenTime = 0L
@@ -74,14 +76,14 @@ object MimicDetector : EventSubscriber {
         if (mimicOpenTime == 0L) return
         if (System.currentTimeMillis() - mimicOpenTime < 750) return
         if (mc.player!!.blockPos.getSquaredDistance(mimicPos) < 400) {
-            if (mc.world!!.entities.none {
-                    it is ZombieEntity && it.isBaby && it.getEquippedStack(EquipmentSlot.HEAD)
+            if (mc.world!!.entities.none { entity ->
+                    entity is ZombieEntity && entity.isBaby && entity.getEquippedStack(EquipmentSlot.HEAD)
                         //#if MC==10809
                         //$$ ?.getOrCreateSubNbt("SkullOwner", false)
                         //#else
-                        ?.getSubNbt("SkullOwner")
+                        ?.toNbt(mc.player!!.registryManager)?.asCompound()?.getOrNull()
                         //#endif
-                        ?.getString("Id") == "ae55953f-605e-3c71-a813-310c028de150"
+                        ?.getString("Id")?.getOrNull() == "ae55953f-605e-3c71-a813-310c028de150"
                 }) {
                 ScoreCalculation.mimicKilled.set(true)
                 if (Skytils.config.scoreCalculationAssist) {
