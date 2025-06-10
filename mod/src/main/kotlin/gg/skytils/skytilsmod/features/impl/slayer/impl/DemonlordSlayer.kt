@@ -30,18 +30,24 @@ import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.base.ThrowingSlayer
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
+import gg.skytils.skytilsmod.utils.multiplatform.armorItems
+import gg.skytils.skytilsmod.utils.multiplatform.blockPos
 import gg.skytils.skytilsmod.utils.printDevMessage
 import gg.skytils.skytilsmod.utils.stripControlCodes
+import gg.skytils.skytilsmod.utils.toVec3
 import net.minecraft.block.AirBlock
-import net.minecraft.class_0_177
 import net.minecraft.entity.Entity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.mob.BlazeEntity
 import net.minecraft.entity.mob.ZombifiedPiglinEntity
 import net.minecraft.entity.mob.AbstractSkeletonEntity
 import net.minecraft.block.Blocks
+import net.minecraft.entity.EntityType
+import net.minecraft.entity.LivingEntity
 import net.minecraft.util.DyeColor
 import net.minecraft.item.PlayerHeadItem
+import net.minecraft.registry.tag.BlockTags
 import net.minecraft.util.math.BlockPos
 import java.awt.Color
 
@@ -56,7 +62,7 @@ class DemonlordSlayer(entity: BlazeEntity) :
             return if (entity.isInvisible) {
                 if (quazii == null || typhoeus == null) {
                     null
-                } else if (typhoeusTimer?.displayName?.method_10865()?.contains("IMMUNE") == true
+                } else if (typhoeusTimer?.displayName?.string?.contains("IMMUNE") == true
                     || (typhoeus?.health ?: 0f) <= 0f
                 ) {
                     quazii
@@ -72,7 +78,7 @@ class DemonlordSlayer(entity: BlazeEntity) :
             val relevantTimer = if (entity.isInvisible) {
                 if (quazii == null || typhoeus == null) {
                     null
-                } else if (typhoeusTimer?.displayName?.method_10865()?.contains("IMMUNE") == true
+                } else if (typhoeusTimer?.displayName?.string?.contains("IMMUNE") == true
                     || (typhoeus?.health ?: 0f) <= 0f
                 ) {
                     quaziiTimer
@@ -82,7 +88,7 @@ class DemonlordSlayer(entity: BlazeEntity) :
             } else {
                 timerEntity
             } ?: return null
-            val attunement = relevantTimer.displayName.string.substringBefore(" ").stripControlCodes()
+            val attunement = relevantTimer.displayName?.string?.substringBefore(" ")?.stripControlCodes()
             return attunementColors[attunement]
         }
 
@@ -114,11 +120,12 @@ class DemonlordSlayer(entity: BlazeEntity) :
             tickTimer(4, repeats = true, register = false) {
                 if (Utils.inSkyblock && Config.blazeFireWarning && Skytils.mc.player != null) {
                     (SlayerFeatures.slayer as? DemonlordSlayer)?.let {
-                        if (!Skytils.mc.player.onGround) return@tickTimer
-                        val under = BlockPos(
-                            Skytils.mc.player.x,
-                            Skytils.mc.player.y - 0.5,
-                            Skytils.mc.player.z
+                        val player = Skytils.mc.player ?: return@tickTimer
+                        if (!player.isOnGround) return@tickTimer
+                        val under = blockPos(
+                            player.x,
+                            player.y - 0.5,
+                            player.z
                         )
                         if (under in it.activeFire) {
                             // The reason this is a title and not just sound is because there is much less time
@@ -149,9 +156,9 @@ class DemonlordSlayer(entity: BlazeEntity) :
             tickTimer(10) {
                 val demons = entity.world.getOtherEntities(
                     entity, prevBB
-                ) { it is ZombifiedPiglinEntity || (it is AbstractSkeletonEntity && it.method_0_7864() == 1) }
+                ) { it.type == EntityType.ZOMBIFIED_PIGLIN || (it.type == EntityType.WITHER_SKELETON) }
                 for (demon in demons) {
-                    val helmet = ItemUtil.getSkullTexture(demon.armorItems.getOrNull(4) ?: continue)
+                    val helmet = ItemUtil.getSkullTexture((demon as LivingEntity).armorItems.getOrNull(4) ?: continue)
                     val helmetTexture = if (demon is AbstractSkeletonEntity) {
                         quaziiTexture
                     } else {
@@ -162,7 +169,7 @@ class DemonlordSlayer(entity: BlazeEntity) :
                             demon, demon.boundingBox.expand(0.2, 3.0, 0.2)
                         ) {
                             it is ArmorStandEntity && it.isInvisible && it.hasCustomName()
-                                    && it.displayName.method_10865().matches(SlayerFeatures.timerRegex)
+                                    && it.displayName?.formattedText?.matches(SlayerFeatures.timerRegex) == true
                         }.firstOrNull()?.let {
                             if (demon is AbstractSkeletonEntity) {
                                 quazii = demon
@@ -193,7 +200,7 @@ class DemonlordSlayer(entity: BlazeEntity) :
                     )
                     thrownEntity = e
                     return@tickTimer
-                } else if (e.name.matches(SlayerFeatures.totemRegex) && e.method_5831(totemPos) < 9) {
+                } else if (e.name.formattedText.matches(SlayerFeatures.totemRegex) && e.squaredDistanceTo(totemPos.toVec3()) < 9) {
                     totemEntity = e
                 }
             }
@@ -201,12 +208,12 @@ class DemonlordSlayer(entity: BlazeEntity) :
     }
 
     override fun blockChange(event: BlockStateUpdateEvent) {
-        if (totemEntity != null && event.old.block == Blocks.STAINED_HARDENED_CLAY && event.update.block is AirBlock) {
+        if (totemEntity != null && event.old.isIn(BlockTags.TERRACOTTA) && event.update.block is AirBlock) {
             totemEntity = null
             printDevMessage({ "removed totem entity" }, "totem")
             return
         } else if ((thrownEntity?.blockPos?.getSquaredDistance(event.pos) ?: 0.0) < 9.0
-            && event.old.block is AirBlock && event.update.block == Blocks.STAINED_HARDENED_CLAY
+            && event.old.block is AirBlock && event.update.isIn(BlockTags.TERRACOTTA)
         ) {
             thrownEntity = null
             totemPos = event.pos
@@ -214,12 +221,12 @@ class DemonlordSlayer(entity: BlazeEntity) :
 
         // This also triggers on the totem, could check for yellow clay replacing red clay,
         // but might be better to not delay anything
-        if (event.update.block == Blocks.STAINED_HARDENED_CLAY
-            && event.update.testProperty(class_0_177.field_0_833) == DyeColor.RED
+        if (event.update.isIn(BlockTags.TERRACOTTA)
+            && event.update.block.defaultMapColor == DyeColor.RED.mapColor
         ) {
             activeFire.add(event.pos)
-        } else if (event.old.block == Blocks.field_0_677 && event.update.block == Blocks.AIR) {
-            activeFire.remove(event.pos.method_10074())
+        } else if (event.old.block == Blocks.FIRE && event.update.block == Blocks.AIR) {
+            activeFire.remove(event.pos.down())
         }
     }
 }
