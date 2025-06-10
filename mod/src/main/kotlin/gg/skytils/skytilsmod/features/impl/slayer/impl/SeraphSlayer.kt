@@ -28,7 +28,9 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.base.ThrowingSlayer
 import gg.skytils.skytilsmod.utils.ItemUtil
+import gg.skytils.skytilsmod.utils.multiplatform.armorItems
 import gg.skytils.skytilsmod.utils.printDevMessage
+import gg.skytils.skytilsmod.utils.toVec3
 import net.minecraft.block.BeaconBlock
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.mob.EndermanEntity
@@ -46,20 +48,20 @@ class SeraphSlayer(entity: EndermanEntity) :
     var lastYangGlyphSwitchTicks = -1
     var thrownBoundingBox: Box? = null
     val hitPhase: Boolean
-        get() = nameEntity?.customName?.dropLastWhile { it == 's' }?.endsWith(" Hit") ?: false
+        get() = nameEntity?.customName?.string?.dropLastWhile { it == 's' }?.endsWith(" Hit") ?: false
 
     override fun tick(event: TickEvent) {
         if (lastYangGlyphSwitchTicks >= 0) lastYangGlyphSwitchTicks++
         if (lastYangGlyphSwitchTicks > 120) lastYangGlyphSwitchTicks = -1
         if (Config.experimentalYangGlyphDetection && lastYangGlyphSwitchTicks >= 0 && thrownEntity == null && thrownLocation == null) {
-            Skytils.mc.world.getEntitiesByClass(
+            Skytils.mc.world?.getEntitiesByClass(
                 ArmorStandEntity::class.java,
                 entity.boundingBox.expand(20.69, 20.69, 20.69)
             ) { e ->
                 e as ArmorStandEntity
                 e.age <= 300 && lastYangGlyphSwitchTicks + 5 > e.age &&
-                        e.armorItems[4]?.item == Item.fromBlock(Blocks.field_0_727)
-            }.minByOrNull {
+                        e.armorItems[4]?.item == Item.fromBlock(Blocks.BEACON)
+            }?.minByOrNull {
                 (abs(lastYangGlyphSwitchTicks - it.age) * 10) + SlayerFeatures.slayerEntity!!.squaredDistanceTo(
                     it
                 )
@@ -81,7 +83,7 @@ class SeraphSlayer(entity: EndermanEntity) :
     override fun entityJoinWorld(event: EntityJoinWorldEvent) {
         tickTimer(1) {
             (event.entity as? ArmorStandEntity)?.let { e ->
-                if (e.armorItems[4]?.item == Item.fromBlock(Blocks.field_0_727)) {
+                if (e.armorItems[4]?.item == Item.fromBlock(Blocks.BEACON)) {
                     val time = System.currentTimeMillis() - 50
                     printDevMessage(
                         { "Found beacon armor stand, time diff ${time - lastYangGlyphSwitch}" },
@@ -144,7 +146,7 @@ class SeraphSlayer(entity: EndermanEntity) :
             }
         }
         if (Config.experimentalYangGlyphDetection && thrownLocation == null) {
-            if (lastYangGlyphSwitchTicks in 0..5 && entity.method_5831(event.pos) <= 5 * 5) {
+            if (lastYangGlyphSwitchTicks in 0..5 && entity.squaredDistanceTo(event.pos.toVec3()) <= 5 * 5) {
                 if (Config.yangGlyphPing && Config.yangGlyphPingOnLand) GuiManager.createTitle(
                     "§cYang Glyph!",
                     30
