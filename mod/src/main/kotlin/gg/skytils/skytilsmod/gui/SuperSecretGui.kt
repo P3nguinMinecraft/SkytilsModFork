@@ -31,25 +31,32 @@ import gg.essential.elementa.constraints.SiblingConstraint
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.OutlineEffect
 import gg.essential.universal.UMinecraft
-import gg.essential.universal.wrappers.UPlayer
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.gui.components.HelpComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils.checkThreadAndQueue
 import net.minecraft.client.sound.PositionedSoundInstance
+import net.minecraft.sound.SoundEvent
 import net.minecraft.util.Identifier
 import java.awt.Color
 
 class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), ReopenableGUI {
 
     private val scrollComponent: ScrollComponent
-    val catSound: PositionedSoundInstance = PositionedSoundInstance.record(
-        Identifier("records.cat"),
-        UPlayer.getPosX().toFloat(),
-        UPlayer.getPosY().toFloat(),
-        UPlayer.getPosZ().toFloat()
+    //#if MC>12000
+    val catSound = PositionedSoundInstance.master(
+        SoundEvent.of(Identifier.of("records.cat")),
+        1f
     )
+    //#else
+    //$$ val catSound: PositionedSoundInstance = PositionedSoundInstance.record(
+    //$$     Identifier("records.cat"),
+    //$$     UPlayer.getPosX().toFloat(),
+    //$$     UPlayer.getPosY().toFloat(),
+    //$$     UPlayer.getPosZ().toFloat()
+    //$$ )
+    //#endif
 
     init {
         SuperSecretSettings.add("chamberofsecrets")
@@ -83,7 +90,7 @@ class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopen
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            client.setScreen(null)
+            UMinecraft.getMinecraft().setScreen(null)
         }
 
         SimpleButton("Add Secret").childOf(bottomButtons).constrain {
@@ -141,6 +148,6 @@ class SuperSecretGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopen
         }
 
         SuperSecretSettings.save()
-        client.soundManager.stop(catSound)
+        client?.soundManager?.stop(catSound)
     }
 }
