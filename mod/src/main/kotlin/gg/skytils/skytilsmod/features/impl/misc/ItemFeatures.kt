@@ -92,6 +92,7 @@ import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.world.BlockStateRaycastContext
 import java.awt.Color
 import java.time.Instant
+import java.util.Optional
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.pow
@@ -518,6 +519,9 @@ object ItemFeatures : EventSubscriber {
                 ?.getList("ability_scroll")
                 ?.getOrNull() // String
                 ?.asStringSet()
+                //#if MC>12000
+                ?.mapNotNull(Optional<String>::getOrNull)
+                //#endif
                 ?.contains("WITHER_SHIELD_SCROLL") == true
         ) {
             lastShieldClick = System.currentTimeMillis()
