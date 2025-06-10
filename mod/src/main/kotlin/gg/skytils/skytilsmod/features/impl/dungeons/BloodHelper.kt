@@ -18,8 +18,10 @@
 
 package gg.skytils.skytilsmod.features.impl.dungeons
 
+import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
+import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.entity.EntityJoinWorldEvent
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -33,6 +35,8 @@ import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import gg.skytils.skytilsmod.utils.printDevMessage
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
+import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.item.Items
@@ -91,23 +95,22 @@ object BloodHelper : EventSubscriber {
     }
 
     fun render(event: WorldDrawEvent) {
-        if (!Utils.inDungeons || DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || !Skytils.config.bloodHelper) return
-        val matrixStack = UMatrixStack()
-        neededRender.forEach { (num, box, pos) ->
-            RenderUtil.drawOutlinedBoundingBox(
-                box,
-                Skytils.config.bloodHelperColor,
-                1f,
-                event.partialTicks
-            )
-            RenderUtil.renderWaypointText(
-                num,
-                pos.x,
-                pos.y + 2,
-                pos.z,
-                event.partialTicks,
-                matrixStack
-            )
+        if (!Utils.inDungeons || DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || !Skytils.config.bloodHelper || neededRender.isEmpty()) return
+        val matrixStack = UMatrixStack.Compat.get()
+        matrixStack.runWithGlobalState {
+            val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            neededRender.forEach { (num, box, pos) ->
+                DrawHelper.writeOutlineCube(buffer, matrixStack, box, Skytils.config.bloodHelperColor)
+                RenderUtil.renderWaypointText(
+                    num,
+                    pos.x,
+                    pos.y + 2,
+                    pos.z,
+                    event.partialTicks,
+                    matrixStack
+                )
+            }
+            buffer.build()?.drawAndClose(SRenderPipelines.linesPipeline)
         }
     }
 

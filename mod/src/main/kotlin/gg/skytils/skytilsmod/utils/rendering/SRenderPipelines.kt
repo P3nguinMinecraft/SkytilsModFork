@@ -23,6 +23,13 @@ import gg.essential.universal.render.URenderPipeline
 import gg.essential.universal.shader.BlendState
 
 object SRenderPipelines {
+    val linesPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/lines",
+        UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR
+    ).apply {
+        blendState = BlendState.NORMAL
+        culling = false
+    }.build()
+
     val noDepthLinesPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/no_depth_lines",
         UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
