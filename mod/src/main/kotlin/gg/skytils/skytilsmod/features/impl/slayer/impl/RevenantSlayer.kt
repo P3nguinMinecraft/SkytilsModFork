@@ -25,12 +25,11 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.class_0_229
-import net.minecraft.class_0_231
-import net.minecraft.class_0_267
-import net.minecraft.class_0_322
+import gg.skytils.skytilsmod.utils.multiplatform.blockPos
 import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.block.Blocks
+import net.minecraft.block.TerracottaBlock
+import net.minecraft.registry.tag.BlockTags
 import net.minecraft.util.math.BlockPos
 
 class RevenantSlayer(entity: ZombieEntity) :
@@ -48,32 +47,33 @@ class RevenantSlayer(entity: ZombieEntity) :
     companion object {
         private fun createrev5PingTask() =
             tickTimer(4, repeats = true, register = false) {
-                if (Utils.inSkyblock && Config.rev5TNTPing && Skytils.mc.player != null) {
+                val player = Skytils.mc.player ?: return@tickTimer
+                if (Utils.inSkyblock && Config.rev5TNTPing && player != null) {
                     if (SlayerFeatures.hasSlayerText) {
                         var under: BlockPos? = null
-                        if (Skytils.mc.player.onGround) {
-                            under = BlockPos(
-                                Skytils.mc.player.x,
-                                Skytils.mc.player.y - 0.5,
-                                Skytils.mc.player.z
+                        if (player.isOnGround) {
+                            under = blockPos(
+                                player.x,
+                                player.y - 0.5,
+                                player.z
                             )
                         } else {
-                            for (i in (Skytils.mc.player.y - 0.5f).toInt() downTo 0 step 1) {
-                                val test = BlockPos(Skytils.mc.player.x, i.toDouble(), Skytils.mc.player.z)
-                                if (Skytils.mc.world.getBlockState(test).block !== Blocks.AIR) {
+                            for (i in (player.y - 0.5f).toInt() downTo 0 step 1) {
+                                val test = blockPos(player.x, i.toDouble(), player.z)
+                                if (Skytils.mc.world?.getBlockState(test)?.block !== Blocks.AIR) {
                                     under = test
                                     break
                                 }
                             }
                         }
                         if (under != null) {
-                            val blockUnder = Skytils.mc.world.getBlockState(under)
+                            val blockUnder = Skytils.mc.world?.getBlockState(under) ?: return@tickTimer
                             val isDanger = when {
-                                blockUnder.block === Blocks.field_0_643 && blockUnder.testProperty(class_0_229.field_0_1245) == class_0_322.class_0_323.QUARTZ -> true
+                                blockUnder.block === Blocks.QUARTZ_SLAB -> true
                                 blockUnder.block === Blocks.QUARTZ_STAIRS || blockUnder.block === Blocks.ACACIA_STAIRS -> true
-                                blockUnder.block === Blocks.field_0_715 && blockUnder.testProperty(class_0_231.field_0_1323) == class_0_267.class_0_268.ACACIA -> true
-                                blockUnder.block === Blocks.STAINED_HARDENED_CLAY -> {
-                                    val color = Blocks.STAINED_HARDENED_CLAY.method_9593(blockUnder)
+                                blockUnder.block == Blocks.ACACIA_SLAB -> true
+                                blockUnder.isIn(BlockTags.TERRACOTTA) -> {
+                                    val color = (blockUnder.block as TerracottaBlock).defaultMapColor.id
                                     color == 0 || color == 8 || color == 14
                                 }
 
