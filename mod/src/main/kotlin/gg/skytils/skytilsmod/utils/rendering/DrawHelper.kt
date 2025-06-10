@@ -20,10 +20,19 @@ package gg.skytils.skytilsmod.utils.rendering
 
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
+import gg.skytils.skytilsmod.Skytils.mc
 import net.minecraft.util.math.Box
 import java.awt.Color
 
 object DrawHelper {
+    /**
+     * Applies the camera offset to the given matrices.
+     * This is useful for rendering things in world space, as it will negate the camera position.
+     */
+    fun cameraOffset(matrices: UMatrixStack) {
+        matrices.translate(mc.gameRenderer.camera.pos.negate())
+    }
+
     /**
     * Writes a cube outline to the given buffer. Draw must still be called manually.
     * Buffer must be created with [gg.essential.universal.UGraphics.DrawMode.LINES]
