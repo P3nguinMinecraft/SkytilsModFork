@@ -103,7 +103,7 @@ fun GenericContainerScreen.getSlot(id: Int) =
 val ItemStack.displayNameStr: String
     inline get() = this.name
         //#if MC>=11600
-        .string
+        .formattedText
         //#endif
 
 //#if MC>=12000
