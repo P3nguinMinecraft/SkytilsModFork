@@ -21,6 +21,7 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
+import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -40,21 +41,20 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MapUpdater
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.MimicDetector
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.ScanUtils
-import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.listeners.DungeonListener.outboundRoomQueue
-import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.printDevMessage
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
+import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
+import gg.skytils.skytilsmod.utils.rendering.translate
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import net.minecraft.network.packet.s2c.play.MapUpdateS2CPacket
 import net.minecraft.util.math.Box
-import net.minecraft.item.map.MapState
 
 //#if MC>=11600
 import net.minecraft.item.FilledMapItem
 import net.minecraft.item.map.MapDecorationTypes
-
 //#endif
 
 object Catlas : EventSubscriber {
@@ -124,33 +124,39 @@ object Catlas : EventSubscriber {
         reset()
     }
 
+    private val doorShape = Box(-1.0, 69.0, -1.0, 2.0, 73.0, 2.0)
     fun onWorldRender(event: WorldDrawEvent) {
         if (!Utils.inDungeons || DungeonTimer.bossEntryTime != -1L || !CatlasConfig.boxWitherDoors) return
 
-        DungeonInfo.dungeonList.filter {
+        val doors = DungeonInfo.dungeonList.filter {
             it is Door && it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened
-        }.forEach {
-            val matrixStack = UMatrixStack()
-            val aabb = Box(it.x - 1.0, 69.0, it.z - 1.0, it.x + 2.0, 73.0, it.z + 2.0)
-            val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
+        }
 
-            val color =
-                if (DungeonInfo.keys > 0) CatlasConfig.witherDoorKeyColor else CatlasConfig.witherDoorNoKeyColor
+        if (doors.isEmpty()) return
+        val color = if (DungeonInfo.keys > 0) CatlasConfig.witherDoorKeyColor else CatlasConfig.witherDoorNoKeyColor
 
-            UGraphics.disableDepth()
-            RenderUtil.drawOutlinedBoundingBox(
-                aabb,
-                color.withAlpha(CatlasConfig.witherDoorOutline),
-                CatlasConfig.witherDoorOutlineWidth,
-                event.partialTicks
-            )
-            RenderUtil.drawFilledBoundingBox(
-                matrixStack,
-                aabb.offset(-viewerX, -viewerY, -viewerZ),
-                color,
-                CatlasConfig.witherDoorFill
-            )
-            UGraphics.enableDepth()
+        val matrices = UMatrixStack.Compat.get()
+
+        matrices.runWithGlobalState {
+            matrices.push()
+            matrices.translate(mc.gameRenderer.camera.pos.negate())
+            val linesBuffer = UBufferBuilder.create(UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            val trianglesBuffer =  UBufferBuilder.create(UGraphics.DrawMode.TRIANGLES, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            doors.forEach {
+                matrices.push()
+                matrices.translate(it.x.toDouble(), 0.0, it.z.toDouble())
+                DrawHelper.writeOutlineCube(
+                    linesBuffer,
+                    matrices,
+                    doorShape,
+                    color
+                )
+                DrawHelper.writeFilledCube(trianglesBuffer, matrices, doorShape, color.withAlpha(CatlasConfig.witherDoorFill))
+                matrices.pop()
+            }
+            linesBuffer.build()?.drawAndClose(SRenderPipelines.noDepthLinesPipeline)
+            trianglesBuffer.build()?.drawAndClose(SRenderPipelines.noDepthBoxPipeline)
+            matrices.pop()
         }
     }
 
