@@ -35,6 +35,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.minecraft.item.ItemStack
+import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
@@ -50,6 +51,9 @@ object KuudraPriceData {
     fun getAttributePricedItemId(item: ItemStack): String? {
         val extraAttr = ItemUtil.getExtraAttributes(item) ?: return null
         val attributes = extraAttr.getCompound("attributes")
+            //#if MC>12000
+            .getOrNull() ?: return null
+            //#endif
         if (attributes.keys.size < 2) return null
         val itemId = ItemUtil.getSkyBlockItemID(extraAttr) ?: return null
         return "$itemId ${attributes.keys.joinToString(" ") { "${it}_${attributes.getInt(it)}" }}".intern()
