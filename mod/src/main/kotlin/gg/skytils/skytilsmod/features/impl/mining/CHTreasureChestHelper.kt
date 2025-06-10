@@ -136,6 +136,7 @@ object CHTreasureChestHelper : EventSubscriber {
                                 probable.particle!!.y + 0.1,
                                 probable.particle!!.z + 0.1
                             )
+                            val type = parameters.type
                             printDevMessage(
                                 { "$count ${if (shouldForceSpawn()) "long-distance" else ""} ${type.javaClass.simpleName} particles with $speed speed at $x, $y, $z, offset by $offsetX, $offsetY, $offsetZ" },
                                 "chtreasure"
