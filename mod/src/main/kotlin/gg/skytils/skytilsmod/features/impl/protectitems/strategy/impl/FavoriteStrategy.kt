@@ -43,7 +43,7 @@ object FavoriteStrategy : ItemProtectStrategy() {
 
     override fun worthProtecting(item: ItemStack, extraAttr: NbtCompound?, type: ProtectType): Boolean {
         if (type == ProtectType.HOTBARDROPKEY && DungeonFeatures.hasClearedText) return false
-        return favoriteUUIDs.contains(extraAttr?.getString("uuid")) || favoriteItemIds.contains(
+        return favoriteUUIDs.contains(extraAttr?.getString("uuid")?.getOrNull()) || favoriteItemIds.contains(
             ItemUtil.getSkyBlockItemID(
                 extraAttr
             )

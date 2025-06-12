@@ -44,6 +44,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.screen.slot.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.util.*
+import net.minecraft.util.math.Box
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.util.concurrent.locks.ReentrantLock

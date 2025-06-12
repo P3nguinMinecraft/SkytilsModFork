@@ -281,12 +281,12 @@ fun Entity.getXZDistSq(pos: BlockPos): Double {
 val Entity.hasMoved
     get() = this.x != this.lastX || this.y != this.lastY || this.z != this.lastZ
 
-fun Entity.getRotationFor(pos: BlockPos): Pair<Float, Float> {
+fun Entity.getRotationFor(pos: BlockPos): kotlin.Pair<Float, Float> {
     val deltaX = pos.x - x
     val deltaZ = pos.z - z
     val deltaY = pos.y - (y + standingEyeHeight)
 
-    val dist = MathHelper.sqrt(deltaX * deltaX + deltaZ * deltaZ).toDouble()
+    val dist = MathHelper.sqrt((deltaX * deltaX + deltaZ * deltaZ).toFloat()).toDouble()
     val yaw = (MathHelper.atan2(deltaZ, deltaX) * 180.0 / Math.PI).toFloat() - 90.0f
     val pitch = (-(MathHelper.atan2(deltaY, dist) * 180.0 / Math.PI)).toFloat()
     return yaw to pitch
