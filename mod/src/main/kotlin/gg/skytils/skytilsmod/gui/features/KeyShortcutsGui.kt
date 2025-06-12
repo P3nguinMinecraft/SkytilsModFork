@@ -38,7 +38,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.KeyShortcuts
 import gg.skytils.skytilsmod.gui.ReopenableGUI
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.SharedConstants
+import gg.skytils.skytilsmod.utils.multiplatform.isValidChar
 import java.awt.Color
 
 class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), ReopenableGUI {
@@ -75,7 +75,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            client.setScreen(null)
+            displayScreen(null)
         }
 
         SimpleButton("Add Shortcut").childOf(bottomButtons).constrain {
@@ -113,7 +113,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
         } as UITextInput).also {
             it.setText(command)
             it.onKeyType { _, _ ->
-                it.setText(it.getText().filter(SharedConstants::isValidChar).take(256))
+                it.setText(it.getText().filter(::isValidChar).take(256))
             }
         }
 
@@ -197,7 +197,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             button.text.setText(entry.getDisplayString())
             val pressed = clickedButton === entry
             val reused =
-                keyCode != 0 && (client.options.allKeys.any { it.method_1421() == keyCode } || components.any { it.value.keyCode != 0 && it.value !== entry && it.value.keyCode == keyCode })
+                keyCode != 0 && (client?.options?.allKeys?.any { it.matchesKey(keyCode, keyCode) } == true || components.any { it.value.keyCode != 0 && it.value !== entry && it.value.keyCode == keyCode })
             if (pressed) {
                 button.text.setText("§f> §e${button.text.getText()}§f <")
             } else if (reused) {
