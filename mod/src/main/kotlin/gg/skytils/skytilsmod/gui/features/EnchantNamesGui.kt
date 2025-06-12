@@ -37,7 +37,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.EnchantNames
 import gg.skytils.skytilsmod.gui.ReopenableGUI
 import gg.skytils.skytilsmod.gui.components.HelpComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import net.minecraft.SharedConstants
+import gg.skytils.skytilsmod.utils.multiplatform.isValidChar
 import java.awt.Color
 
 class EnchantNamesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), ReopenableGUI {
@@ -71,7 +71,7 @@ class EnchantNamesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            client.setScreen(null)
+            displayScreen(null)
         }
 
         SimpleButton("Add Enchant").childOf(bottomButtons).constrain {
@@ -122,13 +122,13 @@ class EnchantNamesGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
         enchantName.apply {
             onKeyType { _, keyCode ->
                 if (keyCode == UKeyboard.KEY_TAB) replacement.grabWindowFocus()
-                setText(getText().filter(SharedConstants::isValidChar).take(255))
+                setText(getText().filter(::isValidChar).take(255))
             }
         }
         replacement.apply {
             onKeyType { _, keyCode ->
                 if (keyCode == UKeyboard.KEY_TAB) enchantName.grabWindowFocus()
-                setText(getText().filter(SharedConstants::isValidChar).take(255))
+                setText(getText().filter(::isValidChar).take(255))
             }
         }
 
