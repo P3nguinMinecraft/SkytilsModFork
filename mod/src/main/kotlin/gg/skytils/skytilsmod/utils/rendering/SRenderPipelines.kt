@@ -23,6 +23,22 @@ import gg.essential.universal.render.URenderPipeline
 import gg.essential.universal.shader.BlendState
 
 object SRenderPipelines {
+    private val translucentBlendState = BlendState(BlendState.Equation.ADD, BlendState.Param.SRC_ALPHA, BlendState.Param.ONE_MINUS_SRC_ALPHA, BlendState.Param.ONE)
+
+    val guiPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/gui",
+        UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR
+    ).apply {
+        blendState = translucentBlendState
+        depthTest = URenderPipeline.DepthTest.LessOrEqual
+    }.build()
+
+    val guiTexturePiepline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/gui_texture",
+        UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR
+    ).apply {
+        blendState = translucentBlendState
+        depthTest = URenderPipeline.DepthTest.LessOrEqual
+    }.build()
+
     val linesPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/lines",
         UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
