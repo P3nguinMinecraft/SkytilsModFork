@@ -69,6 +69,7 @@ import gg.essential.elementa.layoutdsl.height
 import gg.essential.elementa.layoutdsl.row
 import gg.essential.elementa.layoutdsl.widthAspect
 import gg.essential.elementa.state.v2.combinators.and
+import gg.essential.elementa.state.v2.combinators.map
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.elementa.state.v2.stateUsingSystemTime
 import gg.essential.universal.UDesktop
@@ -524,11 +525,13 @@ object MiscFeatures : EventSubscriber {
 
     class PlayersInRangeHud : HudElement("Players In Range Display", 50f, 50f) {
         private val ENCHANTED_BOOK = ItemStack(Items.ENCHANTED_BOOK)
+        private val stringState = playerInRangeCountState.map { it.toString() }
+
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {
                 row {
                     ItemComponent(ENCHANTED_BOOK)()
-                    text(playerInRangeCountState, Modifier.color(Color.ORANGE))
+                    text(stringState, Modifier.color(Color.ORANGE))
                 }
             }
         }
