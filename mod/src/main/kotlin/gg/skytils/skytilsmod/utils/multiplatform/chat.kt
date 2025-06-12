@@ -79,3 +79,6 @@ fun MutableMCTextComponent.setClickSuggest(string: String) = apply {
 fun MutableMCTextComponent.setClickRun(command: String) = apply {
     setStyle(style.withClickEvent(ClickEvent.RunCommand(command)))
 }
+
+fun isValidChar(c: Char) =
+    c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9' || c == ' '
