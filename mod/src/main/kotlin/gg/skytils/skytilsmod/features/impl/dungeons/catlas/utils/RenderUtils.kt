@@ -18,155 +18,123 @@
 
 package gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils
 
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMatrixStack
+import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasElement
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.DungeonMapPlayer
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
-import gg.skytils.skytilsmod.utils.*
-import net.minecraft.client.gui.DrawContext
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.client.render.Tessellator
-import net.minecraft.client.render.BufferBuilder
-import net.minecraft.client.render.VertexFormats
+import gg.skytils.skytilsmod.utils.DungeonClass
+import gg.skytils.skytilsmod.utils.ItemUtil
+import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.ifNull
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
+import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
 import net.minecraft.util.Identifier
-import org.lwjgl.opengl.GL11.GL_QUADS
+import net.minecraft.util.math.RotationAxis
 import java.awt.Color
 
 object RenderUtils {
+    private val mapIcons = Identifier.of("catlas:textures/marker.png")
 
-    private val tessellator: Tessellator = Tessellator.getInstance()
-    private val worldRenderer: BufferBuilder = tessellator.buffer
-    private val mapIcons = Identifier("catlas:marker.png")
-
-    private fun preDraw() {
-        RenderSystem.method_4456()
-        RenderSystem.enableBlend()
-        RenderSystem.disableDepthTest()
-        RenderSystem.method_4406()
-        RenderSystem.method_4407()
-        RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-    }
-
-    private fun postDraw() {
-        RenderSystem.disableBlend()
-        RenderSystem.enableDepthTest()
-        RenderSystem.method_4397()
-    }
-
-    private fun addQuadVertices(x: Double, y: Double, w: Double, h: Double) {
-        worldRenderer.vertex(x, y + h, 0.0).next()
-        worldRenderer.vertex(x + w, y + h, 0.0).next()
-        worldRenderer.vertex(x + w, y, 0.0).next()
-        worldRenderer.vertex(x, y, 0.0).next()
-    }
-
-    fun drawTexturedQuad(x: Double, y: Double, width: Double, height: Double) {
-        worldRenderer.begin(GL_QUADS, VertexFormats.POSITION_TEXTURE)
-        worldRenderer.vertex(x, y + height, 0.0).texture(0.0, 1.0).next()
-        worldRenderer.vertex(x + width, y + height, 0.0).texture(1.0, 1.0).next()
-        worldRenderer.vertex(x + width, y, 0.0).texture(1.0, 0.0).next()
-        worldRenderer.vertex(x, y, 0.0).texture(0.0, 0.0).next()
-        tessellator.draw()
+    private fun addQuadVertices(bufferBuilder: UBufferBuilder, matrices: UMatrixStack, x: Double, y: Double, w: Double, h: Double, color: Color) {
+        bufferBuilder.pos(matrices, x, y + h, 0.0).color(color).endVertex()
+        bufferBuilder.pos(matrices, x + w, y + h, 0.0).color(color).endVertex()
+        bufferBuilder.pos(matrices, x + w, y, 0.0).color(color).endVertex()
+        bufferBuilder.pos(matrices, x, y, 0.0).color(color).endVertex()
     }
 
     fun renderRect(x: Double, y: Double, w: Double, h: Double, color: Color) {
         if (color.alpha == 0) return
-        preDraw()
-        color.bindColor()
 
-        worldRenderer.begin(GL_QUADS, VertexFormats.POSITION)
-        addQuadVertices(x, y, w, h)
-        tessellator.draw()
-
-        postDraw()
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
+        val matrices = UMatrixStack.Compat.get()
+        addQuadVertices(buffer, matrices, x, y, w, h, color)
+        buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
     fun renderRectBorder(x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
         if (color.alpha == 0) return
-        preDraw()
-        color.bindColor()
-
-        worldRenderer.begin(GL_QUADS, VertexFormats.POSITION)
-        addQuadVertices(x - thickness, y, thickness, h)
-        addQuadVertices(x - thickness, y - thickness, w + thickness * 2, thickness)
-        addQuadVertices(x + w, y, thickness, h)
-        addQuadVertices(x - thickness, y + h, w + thickness * 2, thickness)
-        tessellator.draw()
-
-        postDraw()
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
+        val matrices = UMatrixStack.Compat.get()
+        addQuadVertices(buffer, matrices, x - thickness, y, thickness, h, color)
+        addQuadVertices(buffer, matrices, x - thickness, y - thickness, w + thickness * 2, thickness, color)
+        addQuadVertices(buffer, matrices, x + w, y, thickness, h, color)
+        addQuadVertices(buffer, matrices, x - thickness, y + h, w + thickness * 2, thickness, color)
+        buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
     fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int) {
         if (text.isEmpty()) return
-        RenderSystem.pushMatrix()
-        RenderSystem.method_4348(x.toFloat(), y.toFloat(), 0f)
-        RenderSystem.method_4384(CatlasConfig.textScale, CatlasConfig.textScale, 1f)
+        val matrices = UMatrixStack.Compat.get()
+        matrices.push()
+        matrices.translate(x.toFloat(), y.toFloat(), 0f)
+        matrices.scale(CatlasConfig.textScale, CatlasConfig.textScale, 1f)
 
         if (CatlasConfig.mapRotate) {
-            RenderSystem.method_4445(mc.player.yaw + 180f, 0f, 0f, 1f)
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(mc.player!!.yaw + 180f))
         } else if (CatlasConfig.mapDynamicRotate) {
-            RenderSystem.method_4445(-CatlasElement.dynamicRotation, 0f, 0f, 1f)
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-CatlasElement.dynamicRotation))
         }
 
-        val fontHeight = mc.textRenderer.field_0_2811 + 1
-        val yTextOffset = text.size * fontHeight / -2f
+        val fontHeight = mc.textRenderer.fontHeight + 1
+        val yTextOffset = text.size * fontHeight / -2
 
         text.withIndex().forEach { (index, text) ->
-            mc.textRenderer.method_0_2383(
-                text,
-                mc.textRenderer.getWidth(text) / -2f,
-                yTextOffset + index * fontHeight,
-                color,
-                true
-            )
+            UGraphics.drawString(matrices, text, 0f, (yTextOffset + index * fontHeight).toFloat(), color, true)
         }
 
         if (CatlasConfig.mapDynamicRotate) {
-            RenderSystem.method_4445(CatlasElement.dynamicRotation, 0f, 0f, 1f)
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(CatlasElement.dynamicRotation))
         }
 
-        RenderSystem.popMatrix()
+        matrices.pop()
     }
 
     fun drawPlayerHead(name: String, player: DungeonMapPlayer) {
-        RenderSystem.pushMatrix()
+        val matrices = UMatrixStack.Compat.get()
         try {
+            matrices.push()
+
+            val localName = mc.gameProfile.name
             // Translates to the player's location which is updated every tick.
-            if (player.isOurMarker || name == mc.player.name) {
-                RenderSystem.method_4412(
-                    (mc.player.x - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
-                    (mc.player.z - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
+            if (player.isOurMarker || name == localName) {
+                matrices.translate(
+                    (mc.player!!.x - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
+                    (mc.player!!.z - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
                     0.0
                 )
             } else {
                 player.teammate.player?.also { entityPlayer ->
                     // If the player is loaded in our view, use that location instead (more precise)
-                    RenderSystem.method_4412(
+                    matrices.translate(
                         (entityPlayer.x - DungeonScanner.startX + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.first,
                         (entityPlayer.z - DungeonScanner.startZ + 15) * MapUtils.coordMultiplier + MapUtils.startCorner.second,
                         0.0
                     )
                 }.ifNull {
-                    RenderSystem.method_4348(player.mapX.toFloat(), player.mapZ.toFloat(), 0f)
+                    matrices.translate(player.mapX.toFloat(), player.mapZ.toFloat(), 0f)
                 }
             }
 
             // Apply head rotation and scaling
-            RenderSystem.method_4445(player.yaw + 180f, 0f, 0f, 1f)
-            RenderSystem.method_4384(CatlasConfig.playerHeadScale, CatlasConfig.playerHeadScale, 1f)
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(player.yaw + 180f))
+            matrices.scale(CatlasConfig.playerHeadScale, CatlasConfig.playerHeadScale, 1f)
 
-            if (CatlasConfig.mapVanillaMarker && (player.isOurMarker || name == mc.player.name)) {
-                RenderSystem.method_4445(180f, 0f, 0f, 1f)
-                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-                mc.textureManager.bindTextureInner(mapIcons)
-                worldRenderer.begin(7, VertexFormats.POSITION_TEXTURE)
-                worldRenderer.vertex(-6.0, 6.0, 0.0).texture(0.0, 0.0).next()
-                worldRenderer.vertex(6.0, 6.0, 0.0).texture(1.0, 0.0).next()
-                worldRenderer.vertex(6.0, -6.0, 0.0).texture(1.0, 1.0).next()
-                worldRenderer.vertex(-6.0, -6.0, 0.0).texture(0.0, 1.0).next()
-                tessellator.draw()
-                RenderSystem.method_4445(-180f, 0f, 0f, 1f)
+
+            if (CatlasConfig.mapVanillaMarker && (player.isOurMarker || name == localName)) {
+                matrices.push()
+                val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
+                DrawHelper.drawTexture(matrices, buffer, mapIcons,
+                    -6.0, -6.0,
+                    0.0, 0.0,
+                    12.0, 12.0,
+                    12.0, 12.0
+                )
+                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePiepline)
+                matrices.pop()
             } else {
                 // Render box behind the player head
                 val borderColor = when (player.teammate.dungeonClass) {
@@ -179,45 +147,41 @@ object RenderUtils {
                 }
 
                 renderRect(-6.0, -6.0, 12.0, 12.0, borderColor)
-                RenderSystem.method_4348(0f, 0f, 0.1f)
+                matrices.translate(0f, 0f, 0.1f)
 
-                preDraw()
-                RenderSystem.method_4397()
-                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-
-                mc.textureManager.bindTextureInner(player.skin)
-
-                RenderSystem.pushMatrix()
+                matrices.push()
                 val scale = 1f - CatlasConfig.playerBorderPercentage
-                RenderSystem.method_4384(scale, scale, scale)
-                DrawContext.method_1786(-6, -6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
-                if (player.renderHat) {
-                    DrawContext.method_1786(-6, -6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
-                }
-                RenderSystem.popMatrix()
+                matrices.scale(scale, scale, scale)
 
-                postDraw()
+                val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
+
+                DrawHelper.drawTexture(matrices, buffer, player.skin, -6.0, -6.0, 8.0, 8.0, 12.0, 12.0, 64.0, 64.0)
+                if (player.renderHat) {
+                    DrawHelper.drawTexture(matrices, buffer, player.skin, -6.0, -6.0, 40.0, 8.0, 12.0, 12.0, 64.0, 64.0)
+                }
+                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePiepline)
+                matrices.pop()
             }
 
             // Handle player names
             if (CatlasConfig.playerHeads == 2 || CatlasConfig.playerHeads == 1 && Utils.equalsOneOf(
-                    ItemUtil.getSkyBlockItemID(mc.player.method_0_7087()),
+                    ItemUtil.getSkyBlockItemID(mc.player!!.mainHandStack),
                     "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
                 )
             ) {
                 if (!CatlasConfig.mapRotate) {
-                    RenderSystem.method_4445(-player.yaw + 180f, 0f, 0f, 1f)
+                    matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-player.yaw + 180f))
                 }
-                RenderSystem.method_4348(0f, 10f, 0f)
-                RenderSystem.method_4384(CatlasConfig.playerNameScale, CatlasConfig.playerNameScale, 1f)
-                mc.textRenderer.method_0_2383(
-                    name, -mc.textRenderer.getWidth(name) / 2f, 0f, 0xffffff, true
-                )
+                matrices.translate(0f, 10f, 0f)
+                matrices.scale(CatlasConfig.playerNameScale, CatlasConfig.playerNameScale, 1f)
+                UGraphics.drawString(matrices, name, -mc.textRenderer.getWidth(name) / 2f, 0f, 0xffffff, true)
+                matrices.pop()
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            matrices.pop()
         }
-        RenderSystem.popMatrix()
     }
 }
