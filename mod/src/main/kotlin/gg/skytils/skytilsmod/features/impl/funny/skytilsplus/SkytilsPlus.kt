@@ -24,7 +24,6 @@ import gg.skytils.event.impl.play.ChatMessageSentEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.gui.GachaGui
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 
@@ -34,7 +33,6 @@ object SkytilsPlus : EventSubscriber {
 
     init {
         redeemed = SuperSecretSettings.settings.contains("skytilsplus")
-        listOf(AdManager, SheepifyRebellion).forEach(EventSubscriber::setup)
     }
 
     fun onSendChat(event: ChatMessageSentEvent) {
@@ -47,16 +45,9 @@ object SkytilsPlus : EventSubscriber {
                         UChat.chat("${Skytils.failPrefix} §cYou have already redeemed a code.")
                         return
                     }
-                    Skytils.displayScreen = GachaGui()
-                }
-                "IHATEGACHA" -> {
-                    if (redeemed) {
-                        UChat.chat("${Skytils.failPrefix} §cYou have already redeemed a code.")
-                        return
-                    }
 
                     UChat.chat("${Skytils.successPrefix} §aYour §lWISH§r §a for a §f§lLIFETIME §aof BSMod+ has been granted!")
-                    redeemed = true
+                    markRedeemed()
                 }
                 null -> {
                     UChat.chat("${Skytils.failPrefix} §cYou need to provide a code.")
