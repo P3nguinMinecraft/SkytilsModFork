@@ -19,9 +19,12 @@
 package gg.skytils.skytilsmod.utils.rendering
 
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils.mc
+import net.minecraft.client.font.TextRenderer
+import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Box
 import java.awt.Color
@@ -173,5 +176,29 @@ object DrawHelper {
         buffer.pos(matrices, x, y2, 0.0).tex(u1, v2).color(color).endVertex()
         buffer.pos(matrices, x2, y2, 0.0).tex(u2, v2).color(color).endVertex()
         buffer.pos(matrices, x2, y, 0.0).tex(u2, v1).color(color).endVertex()
+    }
+
+    fun drawNametag(matrices: UMatrixStack, text: String, x: Double, y: Double, z: Double, shadow: Boolean = true, scale: Float = 1f, background: Boolean = true, throughWalls: Boolean = false) {
+        matrices.push()
+        matrices.translate(x, y + 0.5, z)
+        matrices.multiply(mc.entityRenderDispatcher.rotation)
+        matrices.scale(0.025f, -0.025f, 0.025f)
+
+        matrices.scale(scale, scale, scale)
+        val centerPos = UGraphics.getStringWidth(text) / -2f
+        val backgroundColor = if (!background) 0 else (mc.options.getTextBackgroundOpacity(0.25f) * 255).toInt() shl 24
+        mc.textRenderer.draw(
+            text,
+            centerPos,
+            0f,
+            Colors.WHITE,
+            shadow,
+            matrices.peek().model,
+            mc.bufferBuilders.entityVertexConsumers,
+            if (throughWalls) TextRenderer.TextLayerType.SEE_THROUGH else TextRenderer.TextLayerType.NORMAL,
+            backgroundColor,
+            15728880
+        )
+        matrices.pop()
     }
 }
