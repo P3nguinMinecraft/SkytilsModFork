@@ -322,6 +322,7 @@ object Skytils : CoroutineScope, EventSubscriber {
             MayorInfo,
             guiManager,
             LocalAPI,
+            MojangUtil,
             SBInfo,
             SoundQueue,
             UpdateChecker,

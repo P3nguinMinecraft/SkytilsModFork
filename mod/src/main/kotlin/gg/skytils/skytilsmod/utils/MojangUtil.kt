@@ -20,6 +20,10 @@ package gg.skytils.skytilsmod.utils
 
 import gg.essential.lib.caffeine.cache.Cache
 import gg.essential.lib.caffeine.cache.Caffeine
+import gg.skytils.event.EventPriority
+import gg.skytils.event.EventSubscriber
+import gg.skytils.event.impl.entity.EntityJoinWorldEvent
+import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils.client
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -27,17 +31,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import net.minecraft.client.network.OtherClientPlayerEntity
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.entity.EntityJoinWorldEvent
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.fixedRateTimer
 
 
-object MojangUtil {
+object MojangUtil : EventSubscriber {
     private val uuidToUsername: Cache<UUID, String>
     private val usernameToUuid: Cache<String, UUID>
     private val requestCount = AtomicInteger()
@@ -52,14 +52,12 @@ object MojangUtil {
                 uuidToUsername = build()
                 usernameToUuid = build()
             }
-        MinecraftForge.EVENT_BUS.register(this)
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     fun onEntityJoinWorld(event: EntityJoinWorldEvent) {
         val uuid = event.entity.uuid
         if (event.entity is OtherClientPlayerEntity && uuid.version() == 4) {
-            val name = event.entity.name.lowercase()
+            val name = (event.entity as OtherClientPlayerEntity).gameProfile.name.lowercase()
             uuidToUsername[uuid] = name
             usernameToUuid[name] = uuid
         }
@@ -118,6 +116,10 @@ object MojangUtil {
             requestCount.getAndIncrement()
         }
         return client.get(url)
+    }
+
+    override fun setup() {
+        register(::onEntityJoinWorld, EventPriority.Highest)
     }
 
     @Serializable
