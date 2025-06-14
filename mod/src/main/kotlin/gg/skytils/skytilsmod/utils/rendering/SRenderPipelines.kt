@@ -42,7 +42,7 @@ object SRenderPipelines {
     val linesPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/lines",
         UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
-        blendState = BlendState.NORMAL
+        blendState = BlendState.ALPHA
         culling = false
     }.build()
 
@@ -50,7 +50,7 @@ object SRenderPipelines {
         UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
         depthTest = URenderPipeline.DepthTest.Always
-        blendState = BlendState.NORMAL
+        blendState = BlendState.ALPHA
         culling = false
     }.build()
 
@@ -58,7 +58,7 @@ object SRenderPipelines {
         UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
         depthTest = URenderPipeline.DepthTest.Always
-        blendState = BlendState.NORMAL
+        blendState = BlendState.ALPHA
         culling = false
     }.build()
 }
