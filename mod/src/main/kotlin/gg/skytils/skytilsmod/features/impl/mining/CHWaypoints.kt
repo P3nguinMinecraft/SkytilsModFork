@@ -77,7 +77,7 @@ object CHWaypoints : EventSubscriber {
     val chWaypointsList = hashMapOf<String, CHInstance>()
     class CHInstance {
         val createTime = System.currentTimeMillis()
-        val waypoints = hashMapOf<CHWaypointType, Vec3d>()
+        val waypoints = hashMapOf<CHWaypointType, BlockPos>()
     }
 
     init {
@@ -284,7 +284,7 @@ object CHWaypoints : EventSubscriber {
         val instance = chWaypointsList.getOrPut(SBInfo.server ?: "") { CHInstance() }
         CrystalHollowsMap.Locations.entries.forEach {
             if (it.loc.exists()) {
-                instance.waypoints[it.packetType] = Vec3d(it.loc.locX!!, it.loc.locY!!, it.loc.locZ!!)
+                instance.waypoints[it.packetType] = BlockPos(it.loc.locX!!, it.loc.locY!!, it.loc.locZ!!)
             }
             it.loc.reset()
         }

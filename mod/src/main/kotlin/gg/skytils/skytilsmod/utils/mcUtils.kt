@@ -88,8 +88,8 @@ operator fun ClientPlayerEntity.component1() = this.x
 operator fun ClientPlayerEntity.component2() = this.y
 operator fun ClientPlayerEntity.component3() = this.z
 
-inline fun BlockPos(vec: Vec3d): BlockPos = BlockPos(MathHelper.floor(vec.x), MathHelper.floor(vec.y), MathHelper.floor(vec.z))
-
+inline fun BlockPos(vec: Vec3d): BlockPos = BlockPos(vec.x, vec.y, vec.z)
+inline fun BlockPos(x: Double, y: Double, z: Double): BlockPos = BlockPos(MathHelper.floor(x), MathHelper.floor(y), MathHelper.floor(z))
 
 inline fun Vec3d(pos: Vec3i): Vec3d = Vec3d(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
 

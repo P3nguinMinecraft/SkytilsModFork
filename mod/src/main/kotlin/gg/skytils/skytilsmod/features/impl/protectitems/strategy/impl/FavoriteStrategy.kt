@@ -35,6 +35,7 @@ import net.minecraft.nbt.NbtCompound
 import java.io.File
 import java.io.Reader
 import java.io.Writer
+import kotlin.jvm.optionals.getOrNull
 
 object FavoriteStrategy : ItemProtectStrategy() {
     val favoriteUUIDs = hashSetOf<String>()
