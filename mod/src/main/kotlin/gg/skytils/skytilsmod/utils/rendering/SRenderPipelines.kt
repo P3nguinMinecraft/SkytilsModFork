@@ -66,4 +66,12 @@ object SRenderPipelines {
         blendState = BlendState.ALPHA
         culling = false
     }.build()
+
+    val vignettePipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/vignette",
+        UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR
+    ).apply {
+        blendState = BlendState(BlendState.Equation.ADD, BlendState.Param.ZERO, BlendState.Param.ONE_MINUS_SRC_COLOR)
+        depthTest = URenderPipeline.DepthTest.Always
+        depthMask = false
+    }.build()
 }
