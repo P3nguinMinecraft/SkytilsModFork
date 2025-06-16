@@ -24,13 +24,13 @@ import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils.mc
 import net.minecraft.client.font.TextRenderer
-import net.minecraft.client.render.DiffuseLighting
 import net.minecraft.client.render.OverlayTexture
 import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Box
+import net.minecraft.util.math.MathHelper
 import java.awt.Color
 
 object DrawHelper {
@@ -206,15 +206,100 @@ object DrawHelper {
         matrices.pop()
     }
 
-    fun drawItemOnGUI(matrices: UMatrixStack, stack: ItemStack, x: Double, y: Double, z: Double = 0.0) {
+    /**
+     * Writes a rectangle to the buffer. Draw must still be called manually.
+     * Buffer must be created with [gg.essential.universal.UGraphics.DrawMode.QUADS]
+    */
+    fun writeRect(matrices: UMatrixStack, buffer: UBufferBuilder, x: Double, y: Double, width: Double, height: Double, color: Color) {
+        writeRectCoords(matrices, buffer, x, y, x + width, y + height, color)
+    }
+
+    fun writeRectCoords(
+        matrices: UMatrixStack,
+        buffer: UBufferBuilder,
+        x1: Double,
+        y1: Double,
+        x2: Double,
+        y2: Double,
+        color: Color
+    ) {
+        buffer.pos(matrices, x1, y1, 0.0).color(color).endVertex()
+        buffer.pos(matrices, x1, y2, 0.0).color(color).endVertex()
+        buffer.pos(matrices, x2, y2, 0.0).color(color).endVertex()
+        buffer.pos(matrices, x2, y1, 0.0).color(color).endVertex()
+    }
+
+    fun drawItemOnGUI(matrices: UMatrixStack, stack: ItemStack, x: Double, y: Double, z: Double = 100.0, dynamicDisplay: Boolean = true) {
         if (stack.isEmpty) return
         matrices.push()
         matrices.translate(x + 8, y + 8, (150 + z))
 
         matrices.scale(16.0f, -16.0f, 16.0f)
 
-        mc.itemRenderer.renderItem(stack, ItemDisplayContext.GUI, 15728880, OverlayTexture.DEFAULT_UV, matrices.toMC(), mc.bufferBuilders.entityVertexConsumers, mc.world, 0)
+        mc.itemRenderer.renderItem(if (dynamicDisplay) mc.player else null, stack, ItemDisplayContext.GUI, matrices.toMC(), mc.bufferBuilders.entityVertexConsumers, mc.world, 15728880, OverlayTexture.DEFAULT_UV, 0)
 
         matrices.pop()
+    }
+
+    fun drawStackOverlay(matrices: UMatrixStack, stack: ItemStack, x: Double, y: Double, stackCountText: String? = null) {
+        if (stack.isEmpty) return
+        matrices.push()
+        drawItemBar(matrices, stack, x, y)
+        drawStackCount(matrices, stack, x, y, stackCountText)
+        drawCooldownProgress(matrices, stack, x, y)
+        matrices.pop()
+    }
+
+    fun drawItemBar(matrices: UMatrixStack, stack: ItemStack, x: Double, y: Double) {
+        if (stack.isItemBarVisible) {
+            val i = x + 2
+            val j = y + 13
+            val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            writeRectCoords(matrices, buffer, i, j, i + 13, j + 2, Color.BLACK)
+            matrices.translate(0f, 0f, 200f)
+            writeRectCoords(
+                matrices,
+                buffer,
+                i,
+                j,
+                i + stack.itemBarStep,
+                j + 1,
+                Color(stack.itemBarColor)
+            )
+            matrices.translate(0f, 0f, -200f)
+            buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
+        }
+    }
+
+    fun drawStackCount(matrices: UMatrixStack, stack: ItemStack, x: Double, y: Double, stackCountText: String?) {
+        if (stack.count != 1 || stackCountText != null) {
+            val string = stackCountText ?: stack.count.toString()
+            matrices.push()
+            matrices.translate(0.0f, 0.0f, 200.0f)
+            UGraphics.drawString(
+                matrices,
+                string,
+                (x + 19 - 2 - UGraphics.getStringWidth(string)).toFloat(),
+                (y + 6 + 3).toFloat(),
+                Colors.WHITE,
+                true
+            )
+            matrices.pop()
+        }
+    }
+
+    fun drawCooldownProgress(matrices: UMatrixStack, stack: ItemStack?, x: Double, y: Double) {
+        val clientPlayerEntity = mc.player
+        val f = clientPlayerEntity?.itemCooldownManager
+            ?.getCooldownProgress(stack, mc.renderTickCounter.getTickProgress(true)) ?: 0f
+        if (f > 0.0f) {
+            val i = y + MathHelper.floor(16.0f * (1.0f - f))
+            val j = i + MathHelper.ceil(16.0f * f)
+            val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            matrices.translate(0f, 0f, 200f)
+            writeRectCoords(matrices, buffer, x, i, x + 16, j, Color(Int.MAX_VALUE, true))
+            matrices.translate(0f, 0f, -200f)
+            buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
+        }
     }
 }
