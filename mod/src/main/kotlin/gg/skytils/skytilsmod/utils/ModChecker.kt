@@ -23,9 +23,6 @@ import gg.essential.universal.UDesktop
 import gg.skytils.skytilsmod.Skytils
 import kotlinx.coroutines.launch
 import net.minecraft.client.ClientBrandRetriever
-import net.minecraftforge.common.ForgeVersion
-import net.minecraftforge.fml.common.FMLCommonHandler
-import net.minecraftforge.fml.common.Loader
 import java.awt.Image
 import java.awt.Toolkit
 import java.awt.event.MouseAdapter
@@ -33,14 +30,24 @@ import java.awt.event.MouseEvent
 import java.net.URI
 import javax.swing.*
 
+//Wif FORGE
+//$$ import net.minecraftforge.common.ForgeVersion
+//$$ import net.minecraftforge.fml.common.FMLCommonHandler
+//$$ import net.minecraftforge.fml.common.Loader
+//#endif
+
 
 object ModChecker {
     val isModded by lazy {
-        ClientBrandRetriever.getClientModName()?.startsWith("fml,forge") != true ||
-                ClientBrandRetriever.getClientModName() != FMLCommonHandler.instance().modName ||
-                Loader.isModLoaded("feather") ||
-                Loader.isModLoaded("labymod") ||
-                ForgeVersion.getStatus().ordinal > 3
+        //#if FORGE
+        //$$ ClientBrandRetriever.getClientModName()?.startsWith("fml,forge") != true ||
+        //$$        ClientBrandRetriever.getClientModName() != FMLCommonHandler.instance().modName ||
+        //$$        Loader.isModLoaded("feather") ||
+        //$$        Loader.isModLoaded("labymod") ||
+        //$$        ForgeVersion.getStatus().ordinal > 3
+        //#else
+        false
+        //#endif
     }
 
     val canShowNotifications by lazy {
