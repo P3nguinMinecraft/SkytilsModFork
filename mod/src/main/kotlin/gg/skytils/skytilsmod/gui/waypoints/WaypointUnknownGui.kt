@@ -95,7 +95,7 @@ class WaypointUnknownGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            client.setScreen(null)
+            client?.setScreen(null)
         }
 
         SimpleButton("Move to Selected Island").childOf(bottomButtons).constrain {

@@ -30,6 +30,7 @@ import gg.essential.elementa.constraints.animation.Animations
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.ScissorEffect
 import gg.essential.universal.UChat
+import gg.essential.universal.UDesktop
 import gg.essential.vigilance.data.PropertyItem
 import gg.essential.vigilance.data.PropertyType
 import gg.essential.vigilance.gui.settings.DropDown
@@ -326,7 +327,7 @@ class SpamHiderGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 y = SiblingConstraint()
             } childOf customHiders
         copy.onMouseClick {
-            method_0_2797("¶")
+            UDesktop.setClipboardString("¶")
             copy.text.setText("Copied!")
         }.onMouseLeave {
             copy.text.setText("Click here to copy!")

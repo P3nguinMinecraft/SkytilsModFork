@@ -238,7 +238,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            client.setScreen(null)
+            client?.setScreen(null)
         }
 
         SimpleButton("New Category").childOf(bottomButtons).constrain {
@@ -259,7 +259,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             x = SiblingConstraint(5f)
             y = 5.pixels(alignOpposite = true)
         }.onLeftClick {
-            client.setScreen(null)
+            client?.setScreen(null)
             tickTimer(2) {
                 Skytils.displayScreen = WaypointShareGui()
             }
@@ -271,7 +271,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
             EssentialAPI.getNotifications()
                 .push("Unknown Island Detected", "You have waypoints on an unknown island. Would you like to transfer them to a different island?", 5f) {
                     onAction = {
-                        client.setScreen(null)
+                        client?.setScreen(null)
                         tickTimer(2) {
                             Skytils.displayScreen = WaypointUnknownGui()
                         }

@@ -28,6 +28,7 @@ import gg.essential.elementa.components.Window
 import gg.essential.elementa.constraints.*
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.OutlineEffect
+import gg.essential.universal.UDesktop
 import gg.essential.vigilance.gui.settings.DropDown
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
@@ -109,7 +110,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             x = 0.pixels()
             y = 0.pixels()
         }.onLeftClick {
-            client.setScreen(null)
+            client?.setScreen(null)
         }
 
         SimpleButton("Import from Clipboard").childOf(bottomButtons).constrain {
@@ -236,7 +237,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
 
     private fun importFromClipboard() {
         runCatching {
-            val clipboard = method_0_2804()
+            val clipboard = UDesktop.getClipboardString()
             val categories = Waypoints.getWaypointsFromString(clipboard)
             Waypoints.categories.addAll(categories)
             EssentialAPI.getNotifications().push(
@@ -271,7 +272,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 )
             }.toSet()
 
-            method_0_2797(Waypoints.getStringFromWaypoints(categories, versionDropdown.getValue() + 1))
+            UDesktop.setClipboardString(Waypoints.getStringFromWaypoints(categories, versionDropdown.getValue() + 1))
 
             val count = categories.sumOf { it.waypoints.size }
             EssentialAPI.getNotifications()

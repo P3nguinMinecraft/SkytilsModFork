@@ -67,7 +67,7 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
             x = 0.pixels
             y = 0.pixels
         }.onLeftClick {
-            client.setScreen(ItemCycleGui())
+            client?.setScreen(ItemCycleGui())
         }
 
         DropDown(0, listOf("Add New Condition", "Click", "Island", "Item", "Slot")).childOf(bottomButtons).constrain {
@@ -75,10 +75,10 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
             y = 0.pixels
         }.onValueChange {
             when (it) {
-                1 -> client.setScreen(ClickConditionGui(cycle))
-                2 -> client.setScreen(IslandConditionGui(cycle))
-                3 -> client.setScreen(ItemConditionGui(cycle))
-                4 -> client.setScreen(SlotConditionGui(cycle))
+                1 -> client?.setScreen(ClickConditionGui(cycle))
+                2 -> client?.setScreen(IslandConditionGui(cycle))
+                3 -> client?.setScreen(ItemConditionGui(cycle))
+                4 -> client?.setScreen(SlotConditionGui(cycle))
             }
         }
 
@@ -112,7 +112,7 @@ class ItemCycleConditionGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersi
             y = CenterConstraint()
             height = 75.percent
         }.onLeftClick {
-            client.setScreen(getConditionGui(cycle, condition))
+            client?.setScreen(getConditionGui(cycle, condition))
         }
 
         SimpleButton("Remove").childOf(container).constrain {
