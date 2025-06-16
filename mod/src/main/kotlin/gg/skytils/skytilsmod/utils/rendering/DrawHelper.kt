@@ -24,6 +24,10 @@ import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils.mc
 import net.minecraft.client.font.TextRenderer
+import net.minecraft.client.render.DiffuseLighting
+import net.minecraft.client.render.OverlayTexture
+import net.minecraft.item.ItemDisplayContext
+import net.minecraft.item.ItemStack
 import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Box
@@ -199,6 +203,18 @@ object DrawHelper {
             backgroundColor,
             15728880
         )
+        matrices.pop()
+    }
+
+    fun drawItemOnGUI(matrices: UMatrixStack, stack: ItemStack, x: Double, y: Double, z: Double = 0.0) {
+        if (stack.isEmpty) return
+        matrices.push()
+        matrices.translate(x + 8, y + 8, (150 + z))
+
+        matrices.scale(16.0f, -16.0f, 16.0f)
+
+        mc.itemRenderer.renderItem(stack, ItemDisplayContext.GUI, 15728880, OverlayTexture.DEFAULT_UV, matrices.toMC(), mc.bufferBuilders.entityVertexConsumers, mc.world, 0)
+
         matrices.pop()
     }
 }
