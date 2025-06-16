@@ -20,8 +20,7 @@ package gg.skytils.skytilsmod.mixins.transformers.events;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.skytilsmod._event.RenderHUDEvent;
-import gg.skytils.skytilsmod.utils.GlState;
-import net.minecraft.client.gui.hud.InGameHud;
+=import net.minecraft.client.gui.hud.InGameHud;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -37,8 +36,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinGuiIngame {
     @Inject(method = "renderMainHud", at = @At("TAIL"))
     public void render(CallbackInfo ci) {
-        GlState.Companion.pushState();
         EventsKt.postSync(new RenderHUDEvent());
-        GlState.Companion.popState();
     }
 }

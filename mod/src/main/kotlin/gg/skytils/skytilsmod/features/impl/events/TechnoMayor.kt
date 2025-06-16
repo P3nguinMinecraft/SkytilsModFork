@@ -76,7 +76,6 @@ object TechnoMayor : EventSubscriber {
 
         val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
         val matrixStack = UMatrixStack()
-        GlState.pushState()
         for (entry in shinyPigs) {
             val orb = entry.key
             val pig = entry.value
@@ -115,7 +114,6 @@ object TechnoMayor : EventSubscriber {
                 }
             }
         }
-        GlState.popState()
     }
 
     fun onEntityInteract(event: EntityInteractEvent) {
