@@ -48,6 +48,9 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.network.OtherClientPlayerEntity
 import com.mojang.blaze3d.systems.RenderSystem
 import gg.essential.universal.UMinecraft
+import gg.essential.universal.vertex.UBufferBuilder
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper.writeRectCoords
+import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket
@@ -58,6 +61,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Vec3d
+import java.awt.Color
 import kotlin.jvm.optionals.getOrNull
 
 object CHWaypoints : EventSubscriber {
@@ -292,15 +296,15 @@ object CHWaypoints : EventSubscriber {
     class CrystalHollowsMap : GuiElement(name = "Crystal Hollows Map", x = 0, y = 0) {
         val mapLocation = Identifier.of("skytils", "crystalhollowsmap.png")
 
-        enum class Locations(val displayName: String, val id: String, val color: Int, val packetType: CHWaypointType, val size: Int = 50) {
-            LostPrecursorCity("§fLost Precursor City", "internal_city", ColorFactory.WHITE.rgb, CHWaypointType.LostPrecursorCity),
-            JungleTemple("§aJungle Temple", "internal_temple", ColorFactory.GREEN.rgb, CHWaypointType.JungleTemple),
-            GoblinQueensDen("§eGoblin Queen's Den", "internal_den", ColorFactory.YELLOW.rgb, CHWaypointType.GoblinQueensDen),
-            MinesOfDivan("§9Mines of Divan", "internal_mines", ColorFactory.BLUE.rgb, CHWaypointType.MinesOfDivan),
-            KingYolkar("§6King Yolkar", "internal_king", ColorFactory.ORANGE.rgb, CHWaypointType.KingYolkar,25),
-            KhazadDum("§cKhazad-dûm", "internal_bal", ColorFactory.RED.rgb, CHWaypointType.KhazadDum),
-            FairyGrotto("§dFairy Grotto", "internal_fairy", ColorFactory.PINK.rgb, CHWaypointType.FairyGrotto, 26),
-            Corleone("§bCorleone", "internal_corleone", ColorFactory.AQUA.rgb, CHWaypointType.Corleone, 26);
+        enum class Locations(val displayName: String, val id: String, val color: Color, val packetType: CHWaypointType, val size: Int = 50) {
+            LostPrecursorCity("§fLost Precursor City", "internal_city", ColorFactory.WHITE, CHWaypointType.LostPrecursorCity),
+            JungleTemple("§aJungle Temple", "internal_temple", ColorFactory.GREEN, CHWaypointType.JungleTemple),
+            GoblinQueensDen("§eGoblin Queen's Den", "internal_den", ColorFactory.YELLOW, CHWaypointType.GoblinQueensDen),
+            MinesOfDivan("§9Mines of Divan", "internal_mines", ColorFactory.BLUE, CHWaypointType.MinesOfDivan),
+            KingYolkar("§6King Yolkar", "internal_king", ColorFactory.ORANGE, CHWaypointType.KingYolkar,25),
+            KhazadDum("§cKhazad-dûm", "internal_bal", ColorFactory.RED, CHWaypointType.KhazadDum),
+            FairyGrotto("§dFairy Grotto", "internal_fairy", ColorFactory.PINK, CHWaypointType.FairyGrotto, 26),
+            Corleone("§bCorleone", "internal_corleone", ColorFactory.AQUA, CHWaypointType.Corleone, 26);
 
             val loc = LocationObject()
             val cleanName = displayName.stripControlCodes()
@@ -328,7 +332,7 @@ object CHWaypoints : EventSubscriber {
                 stack.scale(0.1, 0.1, 1.0)
                 UGraphics.disableLighting()
                 stack.runWithGlobalState {
-                    RenderUtil.renderTexture(mapLocation, 0, 0, 624, 624, false)
+                    RenderUtil.renderTexture(mapLocation, 0, 0, 624, 624)
                     if (Skytils.config.crystalHollowMapPlaces) {
                         Locations.entries.forEach {
                             it.loc.drawOnMap(it.size, it.color)
@@ -367,7 +371,7 @@ object CHWaypoints : EventSubscriber {
 
         override fun demoRender() {
             UGraphics.disableLighting()
-            RenderUtil.renderTexture(mapLocation, 0, 0, 62, 62, false)
+            RenderUtil.renderTexture(mapLocation, 0, 0, 62, 62)
         }
 
         override val toggled: Boolean
@@ -445,9 +449,21 @@ object CHWaypoints : EventSubscriber {
                 RenderUtil.renderWaypointText(text, locX!! + 200, locY!!, locZ!! + 200, partialTicks, matrixStack)
         }
 
-        fun drawOnMap(size: Int, color: Int) {
-            if (exists())
-                RenderUtil.drawRect(locX!! - size, locZ!! - size, locX!! + size, locZ!! + size, color)
+        fun drawOnMap(size: Int, color: Color) {
+            if (exists()) {
+                val renderer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
+                val matrices = UMatrixStack.Compat.get()
+                writeRectCoords(
+                    matrices,
+                    renderer,
+                    locX!! - size,
+                    locZ!! - size,
+                    locX!! + size,
+                    locZ!! + size,
+                    color
+                )
+                renderer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
+            }
         }
 
         override fun toString(): String {

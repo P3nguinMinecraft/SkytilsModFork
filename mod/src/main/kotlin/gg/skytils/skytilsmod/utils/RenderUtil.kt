@@ -471,49 +471,6 @@ object RenderUtil {
 
     /**
      * Taken from SkyblockAddons under MIT License
-     * Modified
-     * https://github.com/BiscuitDevelopment/SkyblockAddons/blob/master/LICENSE
-     * @author BiscuitDevelopment
-     *
-     * Draws a solid color rectangle with the specified coordinates and color (ARGB format). Args: x1, y1, x2, y2, color
-     */
-    fun drawRect(left: Double, top: Double, right: Double, bottom: Double, color: Int) {
-        var leftModifiable = left
-        var topModifiable = top
-        var rightModifiable = right
-        var bottomModifiable = bottom
-        if (leftModifiable < rightModifiable) {
-            val i = leftModifiable
-            leftModifiable = rightModifiable
-            rightModifiable = i
-        }
-        if (topModifiable < bottomModifiable) {
-            val j = topModifiable
-            topModifiable = bottomModifiable
-            bottomModifiable = j
-        }
-        val f3 = (color shr 24 and 255).toFloat() / 255.0f
-        val f = (color shr 16 and 255).toFloat() / 255.0f
-        val f1 = (color shr 8 and 255).toFloat() / 255.0f
-        val f2 = (color and 255).toFloat() / 255.0f
-        RenderSystem.setShaderColor(f, f1, f2, f3)
-        val tessellator = Tessellator.getInstance()
-        val worldRenderer = tessellator.buffer
-        RenderSystem.enableBlend()
-        RenderSystem.method_4407()
-        RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-        worldRenderer.begin(7, VertexFormats.POSITION)
-        worldRenderer.vertex(leftModifiable, bottomModifiable, 0.0).next()
-        worldRenderer.vertex(rightModifiable, bottomModifiable, 0.0).next()
-        worldRenderer.vertex(rightModifiable, topModifiable, 0.0).next()
-        worldRenderer.vertex(leftModifiable, topModifiable, 0.0).next()
-        tessellator.draw()
-        RenderSystem.method_4397()
-        RenderSystem.disableBlend()
-    }
-
-    /**
-     * Taken from SkyblockAddons under MIT License
      * https://github.com/BiscuitDevelopment/SkyblockAddons/blob/master/LICENSE
      * @author BiscuitDevelopment
      *
@@ -636,17 +593,6 @@ object RenderUtil {
         )
         matrices.translate(0f, 0f, -200f)
         buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
-    }
-
-    fun drawRect(x: Number, y: Number, width: Number, height: Number, red: Int, green: Int, blue: Int, alpha: Int) {
-        val renderer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
-        val matrices = UMatrixStack.Compat.get()
-        renderer.pos(matrices, x.toDouble(), y.toDouble(), 0.0).color(red, green, blue, alpha).endVertex()
-        renderer.pos(matrices, x.toDouble(), y.toDouble() + height.toDouble(), 0.0).color(red, green, blue, alpha).endVertex()
-        renderer.pos(matrices, x.toDouble() + width.toDouble(), y.toDouble() + height.toDouble(), 0.0)
-            .color(red, green, blue, alpha).endVertex()
-        renderer.pos(matrices, x.toDouble() + width.toDouble(), y.toDouble(), 0.0).color(red, green, blue, alpha).endVertex()
-        renderer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
     // see GuiIngame
