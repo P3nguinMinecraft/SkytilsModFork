@@ -31,6 +31,7 @@ import kotlinx.serialization.encoding.*
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtSizeTracker
+import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.util.math.BlockPos
 import java.awt.Color
 import java.util.*
@@ -179,9 +180,9 @@ fun Inventory.toMCItems() =
             emptyList()
         } else {
             val list = NbtIo.readCompressed(Base64.decode(data).inputStream(), NbtSizeTracker.ofUnlimitedBytes()).getList("i").getOrNull() ?: return@let emptyList()
-            val player = UPlayer.getPlayer() ?: return@let emptyList()
+            val registry = UPlayer.getPlayer()?.registryManager ?: BuiltinRegistries.createWrapperLookup() ?: return@let emptyList()
             (0 until list.size).mapNotNull { idx ->
-                list.getCompound(idx).takeUnless { it.isEmpty }?.getOrNull()?.let { ItemStack.fromNbt(player.registryManager, it).getOrNull() }
+                list.getCompound(idx).takeUnless { it.isEmpty }?.getOrNull()?.let { ItemStack.fromNbt(registry, it).getOrNull() }
             }
         }
     }
