@@ -17,13 +17,13 @@
  */
 package gg.skytils.skytilsmod.mixins.hooks.gui
 
+import gg.essential.universal.UKeyboard
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 fun onComponentClick(component: Text, cir: CallbackInfoReturnable<Boolean>) {
-    if (Utils.isOnHypixel && Skytils.config.copyChat && Screen.method_2238()) cir.returnValue =
+    if (Utils.isOnHypixel && Skytils.config.copyChat && UKeyboard.isCtrlKeyDown()) cir.returnValue =
         false
 }

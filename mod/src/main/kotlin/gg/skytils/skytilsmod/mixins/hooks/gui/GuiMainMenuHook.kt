@@ -24,30 +24,35 @@ import gg.skytils.skytilsmod.features.impl.funny.skytilsplus.SkytilsPlus
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiMainMenu
 import gg.skytils.skytilsmod.utils.NumberUtil.addSuffix
 import gg.skytils.skytilsmod.utils.Utils
+import net.minecraft.client.gui.screen.SplashTextRenderer
 import net.minecraft.client.gui.screen.TitleScreen
 import java.util.*
+
+private fun splashTextSetter(gui: AccessorGuiMainMenu, str: String) {
+    gui.splashText = SplashTextRenderer(str)
+}
 
 fun setSplashText(gui: TitleScreen, cal: Calendar) {
     gui as AccessorGuiMainMenu
     if (cal.get(Calendar.MONTH) + 1 == 2 && cal.get(Calendar.DATE) == 6) {
         val numBirthday = cal.get(Calendar.YEAR) - 2021
         if (!Skytils.usingSBA)
-            gui.splashText = addColor("Happy ${numBirthday.addSuffix()} Birthday Skytils!", 0)
+            splashTextSetter(gui, addColor("Happy ${numBirthday.addSuffix()} Birthday Skytils!", 0))
         else
-            gui.splashText = "§zHappy ${numBirthday.addSuffix()} Birthday Skytils!"
+            splashTextSetter(gui, "§zHappy ${numBirthday.addSuffix()} Birthday Skytils!")
     } else if (Utils.isBSMod) {
         if (SkytilsPlus.redeemed) {
             val text = setOf("Powered by BSMod+!", "Thanks for supporting BSMod!").random()
 
             if (!Skytils.usingSBA)
-                gui.splashText = addColor(text, 0)
+                splashTextSetter(gui, addColor(text, 0))
             else
-                gui.splashText = text
+                splashTextSetter(gui, text)
         } else {
             if (!Skytils.usingSBA)
-                gui.splashText = addColor("/bsmod+ redeem FREETRIAL", 0)
+                splashTextSetter(gui, addColor("/bsmod+ redeem FREETRIAL", 0))
             else
-                gui.splashText = "/bsmod+ redeem FREETRIAL"
+                splashTextSetter(gui, "/bsmod+ redeem FREETRIAL")
         }
     }
 }

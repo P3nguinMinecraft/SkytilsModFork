@@ -62,7 +62,7 @@ class SpamHiderGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
 
     init {
         saveButton.onLeftClick {
-            client.setScreen(null)
+            client?.setScreen(null)
         }
     }
 
