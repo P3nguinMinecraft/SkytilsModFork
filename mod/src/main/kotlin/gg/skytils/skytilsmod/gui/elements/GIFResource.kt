@@ -21,7 +21,6 @@ package gg.skytils.skytilsmod.gui.elements
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.RenderUtil
-import gg.skytils.skytilsmod.utils.graphics.DynamicResource
 import gg.skytils.skytilsmod.utils.nextOrNull
 import kotlinx.coroutines.launch
 import net.minecraft.util.Identifier
