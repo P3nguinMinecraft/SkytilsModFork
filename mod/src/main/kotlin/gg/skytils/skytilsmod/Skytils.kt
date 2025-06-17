@@ -57,7 +57,6 @@ import gg.skytils.skytilsmod.features.impl.misc.*
 import gg.skytils.skytilsmod.features.impl.overlays.AuctionPriceOverlay
 import gg.skytils.skytilsmod.features.impl.protectitems.ProtectItems
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
-import gg.skytils.skytilsmod.features.impl.spidersden.RainTimer
 import gg.skytils.skytilsmod.features.impl.spidersden.RelicWaypoints
 import gg.skytils.skytilsmod.features.impl.spidersden.SpidersDenFeatures
 import gg.skytils.skytilsmod.features.impl.trackers.impl.MayorJerryTracker
@@ -388,7 +387,6 @@ object Skytils : CoroutineScope, EventSubscriber {
             ProtectItems,
             // QuadLinkLegacySolver,
             QuiverStuff,
-            RainTimer,
             RandomStuff,
             RelicWaypoints,
             ScamCheck,
