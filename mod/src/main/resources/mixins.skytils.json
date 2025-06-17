@@ -25,7 +25,6 @@
     "accessors.AccessorWorldInfo",
     "audio.MixinSoundManager",
     "crash.MixinCrashReport",
-    "entity.MixinAbstractClientPlayer",
     "entity.MixinEnderman",
     "entity.MixinEntityBlaze",
     "entity.MixinEntityDragon",

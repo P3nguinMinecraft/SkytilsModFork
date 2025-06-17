@@ -34,7 +34,6 @@ import gg.skytils.skytilsmod.features.impl.handlers.SpamHider
 import gg.skytils.skytilsmod.features.impl.mining.MiningFeatures
 import gg.skytils.skytilsmod.features.impl.misc.ItemFeatures
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
-import gg.skytils.skytilsmod.features.impl.misc.SummonSkins
 import gg.skytils.skytilsmod.features.impl.spidersden.RelicWaypoints
 import gg.skytils.skytilsmod.utils.*
 import io.ktor.client.call.*
@@ -164,13 +163,6 @@ object DataFetcher {
                     Utils.checkThreadAndQueue {
                         SpamHider.repoFilters.clear()
                         SpamHider.repoFilters.addAll(this)
-                    }
-                }
-                get<Map<String, String>>("${dataUrl}constants/summons.json") {
-                    Utils.checkThreadAndQueue {
-                        SummonSkins.skinMap.clear()
-                        SummonSkins.skinMap.putAll(this)
-                        SummonSkins.loadSkins()
                     }
                 }
             } catch (e: Throwable) {
