@@ -27,47 +27,50 @@ import kotlinx.coroutines.launch
 import net.minecraft.util.Identifier
 import javax.imageio.ImageIO
 
+// TODO: fix later
 data class GIFResource(
     val loc: Identifier,
     val name: String = loc.path.substringAfterLast("/").substringBeforeLast("."),
     val frameDelay: Int = 1
 ) {
-    init {
-        Skytils.IO.launch {
-            frames
-        }
-    }
-
-    private val frames: List<DynamicResource> by lazy {
-        return@lazy ImageIO.createImageInputStream(
-            mc.resourceManager.method_14486(loc).inputStream
-        ).use { stream ->
-            ImageIO.getImageReaders(stream).nextOrNull()?.run {
-                input = stream
-                (0..<getNumImages(true)).map {
-                    DynamicResource("skytils_${name}_frame", read(it))
-                }
-            }
-        } ?: emptyList()
-    }
-    private lateinit var currentFrame: DynamicResource
-    private var frameCounter = 0
-    private val maxCounter by lazy {
-        frames.size * frameDelay
-    }
-
-    fun draw() {
-        if (frames.isEmpty()) return
-        if (frameCounter++ % frameDelay == 0) {
-            if (frameCounter >= maxCounter) frameCounter = 0
-            currentFrame = frames[frameCounter / frameDelay]
-        }
-        RenderUtil.renderTexture(
-            currentFrame.resource,
-            0,
-            0,
-            currentFrame.image.width,
-            currentFrame.image.height
-        )
-    }
+//    init {
+//        Skytils.IO.launch {
+//            frames
+//        }
+//    }
+//
+//    private val frames: List<ReleasedDynamicTexture> by lazy {
+//        return@lazy ImageIO.createImageInputStream(
+//            mc.resourceManager.getResource(loc).get().inputStream
+//        ).use { stream ->
+//            ImageIO.getImageReaders(stream).nextOrNull()?.run {
+//                input = stream
+//                (0..<getNumImages(true)).map {
+//                    //#if MC>12000
+//                    ReleasedDynamicTexture(NativeImage.read(read(it).data))
+//                    ReleasedDynamicTexture(read(it))
+//                }
+//            }
+//        } ?: emptyList()
+//    }
+//    private lateinit var currentFrame: DynamicResource
+//    private var frameCounter = 0
+//    private val maxCounter by lazy {
+//        frames.size * frameDelay
+//    }
+//
+//    fun draw() {
+//        if (frames.isEmpty()) return
+//        if (frameCounter++ % frameDelay == 0) {
+//            if (frameCounter >= maxCounter) frameCounter = 0
+//            currentFrame = frames[frameCounter / frameDelay]
+//        }
+//        RenderUtil.renderTexture(
+//            currentFrame.resource,
+//            0,
+//            0,
+//            currentFrame.image.width,
+//            currentFrame.image.height
+//        )
+//    }
 }
