@@ -26,13 +26,14 @@ import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.RenderUtil
+import net.minecraft.item.Item
 import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
 
 class ItemComponent(val state: State<ItemStack>) : UIComponent() {
 
     constructor(stack: ItemStack) : this(stateOf(stack))
-//    constructor(item: Item, metadata: Int = 0) : this(ItemStack(item, 1, metadata)) FIXME
+    constructor(item: Item) : this(ItemStack(item, 1))
 
     override fun draw(matrixStack: UMatrixStack) {
         beforeDraw(matrixStack)

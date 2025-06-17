@@ -45,6 +45,7 @@ import gg.skytils.skytilsmod.utils.MojangUtil
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.nonDashedString
 import gg.skytils.skytilsmod.utils.toMCItems
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import net.minecraft.block.Blocks
 import net.minecraft.item.Items
@@ -178,7 +179,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf contentContainer
 
     private val taming by SkillComponent(
-        ItemComponent(Items.SPAWN_EGG),
+        ItemComponent(Items.POLAR_BEAR_SPAWN_EGG),
         Color(65, 102, 245).toConstraint(),
         "SKILL_TAMING",
         profileState
@@ -230,7 +231,7 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
         } childOf skillContainer
 
     private val foraging by SkillComponent(
-        ItemComponent(Item.fromBlock(Blocks.SAPLING), 3),
+        ItemComponent(Items.JUNGLE_SAPLING),
         Color(65, 102, 245).toConstraint(),
         "SKILL_FORAGING",
         profileState
@@ -365,8 +366,9 @@ class ProfileGui(uuid: UUID, name: String) : WindowScreen(ElementaVersion.V4, dr
                 }
             }
             launch {
-                UMinecraft.getMinecraft().sessionService.fillProfileProperties(profile, true)
-            }.invokeOnCompletion {
+                val profile = async {
+                    UMinecraft.getMinecraft().sessionService.fetchProfile(uuid, false)
+                }.await()?.profile ?: return@launch
                 gameProfileState.set(profile)
             }
         }
