@@ -23,18 +23,16 @@ import gg.skytils.skytilsmod.features.impl.misc.ItemFeatures
 import gg.skytils.skytilsmod.utils.RenderUtil.renderRarity
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.ItemStack
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun renderRarityOnHotbar(
-    index: Int,
+    stack: ItemStack,
     xPos: Int,
     yPos: Int,
-    partialTicks: Float,
-    player: PlayerEntity,
-    ci: CallbackInfo
 ) {
     if (Utils.inSkyblock && Skytils.config.showItemRarity) {
-        ItemFeatures.hotbarRarityCache[index]?.let { renderRarity(xPos, yPos, it) }
+        ItemFeatures.hotbarRarityCache[stack]?.let { renderRarity(xPos, yPos, it) }
     }
 }
 

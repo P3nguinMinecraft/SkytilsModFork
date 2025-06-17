@@ -77,6 +77,7 @@ import net.minecraft.entity.projectile.FishingBobberEntity
 import net.minecraft.block.Blocks
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.entity.Entity
+import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.nbt.NbtElement
@@ -107,7 +108,7 @@ object ItemFeatures : EventSubscriber {
     val sellPrices = HashMap<String, Double>()
     val bitCosts = HashMap<String, Int>()
     val copperCosts = HashMap<String, Int>()
-    val hotbarRarityCache = arrayOfNulls<ItemRarity>(9)
+    val hotbarRarityCache = hashMapOf<ItemStack, ItemRarity>()
     val soulflowState = mutableStateOf("")
     val stackingEnchantTextState = mutableStateOf("")
     var lowSoulFlowPinged = false
@@ -126,9 +127,17 @@ object ItemFeatures : EventSubscriber {
             if (player != null && Utils.inSkyblock) {
                 val held = player.inventory.selectedStack
                 if (Skytils.config.showItemRarity) {
-                    for (i in 0..8) {
-                        hotbarRarityCache[i] = ItemUtil.getRarity(player.inventory.mainStacks[i])
+                    hotbarRarityCache.clear()
+
+                    fun addToCache(stack: ItemStack?) {
+                        if (stack?.isEmpty != false) return
+                        hotbarRarityCache[stack] = ItemUtil.getRarity(stack)
                     }
+
+                    (0..8).map { player.inventory.mainStacks[it] }.forEach(::addToCache)
+                    //#if MC>=12000
+                    addToCache(player.offHandStack)
+                    //#endif
                 }
                 if (Skytils.config.stackingEnchantProgressDisplay) {
                     apply {

@@ -20,19 +20,16 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UMatrixStack
 import net.minecraft.entity.ItemEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun scaleItemDrop(
-    entity: ItemEntity,
-    x: Double,
-    y: Double,
-    z: Double,
-    entityYaw: Float,
-    partialTicks: Float,
     ci: CallbackInfo
 ) {
     if (!Utils.inSkyblock) return
     val scale = Skytils.config.itemDropScale
-    RenderSystem.method_4384(scale, scale, scale)
+    val matrixStack = UMatrixStack()
+    matrixStack.scale(scale, scale, scale)
+    matrixStack.applyToGlobalState()
 }

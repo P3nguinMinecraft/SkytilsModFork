@@ -24,16 +24,16 @@ import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiEditSignHookKt;
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiEditSign;
 import gg.skytils.skytilsmod.utils.Utils;
-import net.minecraft.client.gui.screen.ingame.SignEditScreen;
+import net.minecraft.client.gui.screen.ingame.AbstractSignEditScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(SignEditScreen.class)
+@Mixin(AbstractSignEditScreen.class)
 public class MixinGuiEditSign {
-    @Inject(method = "method_0_2773", at = @At("TAIL"))
-    public void skytils$enterToConfirmSign(char typedChar, int keyCode, CallbackInfo ci) {
+    @Inject(method = "keyPressed", at = @At("TAIL"))
+    public void skytils$enterToConfirmSign(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
         if (!Skytils.getConfig().getPressEnterToConfirmSignQuestion()) return;
         if (!Utils.INSTANCE.getInSkyblock()) return;
         if (keyCode != UKeyboard.KEY_ENTER) return;

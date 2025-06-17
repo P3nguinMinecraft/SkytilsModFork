@@ -53,7 +53,7 @@ fun renderLivingLabel(
         (str.contains("Enderman") || str.contains("Zealot") ||
                 str.contains("Voidling") || str.contains("Voidgloom"))
     ) {
-        val player = mc.player
+        val player = mc.player!!
         val vec3 = Vec3d(entityIn.x - player.x, 0.0, entityIn.z - player.z).normalize()
         matrixStack.translate(-vec3.x, -1.5, -vec3.z)
     }

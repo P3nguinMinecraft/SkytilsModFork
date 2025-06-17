@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.mixins.transformers.events;
 
 import gg.skytils.event.EventsKt;
 import gg.skytils.skytilsmod._event.RenderHUDEvent;
-=import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.gui.hud.InGameHud;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
