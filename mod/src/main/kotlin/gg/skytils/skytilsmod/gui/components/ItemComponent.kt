@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.gui.profile.components
+package gg.skytils.skytilsmod.gui.components
 
 import gg.essential.elementa.UIComponent
 import gg.essential.elementa.state.v2.State

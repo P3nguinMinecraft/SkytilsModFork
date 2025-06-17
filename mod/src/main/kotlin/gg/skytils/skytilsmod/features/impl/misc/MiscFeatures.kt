@@ -74,7 +74,7 @@ import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.elementa.state.v2.stateUsingSystemTime
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UKeyboard
-import gg.skytils.skytilsmod.gui.profile.components.ItemComponent
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.entity.LivingEntity

@@ -27,6 +27,7 @@ import gg.essential.elementa.dsl.*
 import gg.essential.elementa.state.State
 import gg.essential.universal.UMinecraft
 import gg.skytils.hypixel.types.skyblock.SlayerBossData
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.SkillUtils
 import gg.skytils.skytilsmod.utils.toTitleCase

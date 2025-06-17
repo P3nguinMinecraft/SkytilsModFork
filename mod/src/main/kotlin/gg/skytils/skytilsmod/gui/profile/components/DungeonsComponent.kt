@@ -27,6 +27,7 @@ import gg.essential.elementa.dsl.*
 import gg.essential.elementa.state.State
 import gg.skytils.hypixel.types.player.Player
 import gg.skytils.hypixel.types.skyblock.Member
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.gui.constraints.FixedChildBasedRangeConstraint
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.NumberUtil

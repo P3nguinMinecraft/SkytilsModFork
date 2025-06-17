@@ -30,6 +30,7 @@ import gg.essential.elementa.dsl.*
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.state.State
 import gg.essential.elementa.utils.withAlpha
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.NumberUtil
 import java.awt.Color
 

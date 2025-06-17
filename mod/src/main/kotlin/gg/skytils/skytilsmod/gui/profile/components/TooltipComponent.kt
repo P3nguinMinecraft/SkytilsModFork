@@ -30,6 +30,7 @@ import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.wrappers.UPlayer
 import gg.essential.vigilance.gui.VigilancePalette
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.item.ItemStack

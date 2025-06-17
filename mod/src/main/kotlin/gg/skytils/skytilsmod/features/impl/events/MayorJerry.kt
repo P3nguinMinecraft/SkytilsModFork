@@ -36,7 +36,7 @@ import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.features.impl.trackers.impl.MayorJerryTracker
 import gg.skytils.skytilsmod.gui.layout.text
-import gg.skytils.skytilsmod.gui.profile.components.ItemComponent
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.Utils

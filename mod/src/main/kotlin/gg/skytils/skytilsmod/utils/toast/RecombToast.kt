@@ -18,7 +18,7 @@
 
 package gg.skytils.skytilsmod.utils.toast
 
-import gg.skytils.skytilsmod.gui.profile.components.ItemComponent
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
 import net.minecraft.item.Items
 import net.minecraft.item.ItemStack

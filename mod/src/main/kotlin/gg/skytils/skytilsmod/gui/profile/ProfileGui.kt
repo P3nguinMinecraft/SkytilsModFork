@@ -37,6 +37,7 @@ import gg.skytils.hypixel.types.skyblock.Member
 import gg.skytils.hypixel.types.skyblock.Profile
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.API
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.gui.constraints.FixedChildBasedRangeConstraint
 import gg.skytils.skytilsmod.gui.profile.components.*
 import gg.skytils.skytilsmod.gui.profile.states.alwaysMap

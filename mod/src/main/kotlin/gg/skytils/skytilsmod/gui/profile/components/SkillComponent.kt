@@ -21,6 +21,7 @@ package gg.skytils.skytilsmod.gui.profile.components
 import gg.essential.elementa.constraints.ColorConstraint
 import gg.essential.elementa.state.State
 import gg.skytils.hypixel.types.skyblock.Member
+import gg.skytils.skytilsmod.gui.components.ItemComponent
 import gg.skytils.skytilsmod.utils.SkillUtils
 import gg.skytils.skytilsmod.utils.toTitleCase
 import kotlinx.serialization.json.intOrNull
