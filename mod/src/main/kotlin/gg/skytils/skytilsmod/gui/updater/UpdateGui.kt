@@ -17,11 +17,22 @@
  */
 package gg.skytils.skytilsmod.gui.updater
 
+import gg.essential.elementa.ElementaVersion
+import gg.essential.elementa.WindowScreen
+import gg.essential.elementa.components.UIBlock
+import gg.essential.elementa.components.UIText
+import gg.essential.elementa.components.Window
+import gg.essential.elementa.constraints.CenterConstraint
+import gg.essential.elementa.constraints.RelativeConstraint
+import gg.essential.elementa.constraints.SiblingConstraint
+import gg.essential.elementa.constraints.SubtractiveConstraint
+import gg.essential.elementa.dsl.*
+import gg.essential.elementa.state.BasicState
+import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.IO
-import gg.skytils.skytilsmod.Skytils.client
 import gg.skytils.skytilsmod.core.UpdateChecker
-import gg.skytils.skytilsmod.utils.MathUtil
+import gg.skytils.skytilsmod.gui.components.SimpleButton
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -30,8 +41,6 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.launch
-import net.minecraft.client.gui.widget.ClickableWidget
-import net.minecraft.client.gui.screen.Screen
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSignatureList
@@ -39,32 +48,87 @@ import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
+import java.awt.Color
 import java.io.File
 import java.security.Security
-import kotlin.math.floor
 
-/**
- * Taken from Wynntils under GNU Affero General Public License v3.0
- * Modified
- * https://github.com/Wynntils/Wynntils/blob/development/LICENSE
- * @author Wynntils
- */
-class UpdateGui(restartNow: Boolean) : Screen() {
+class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
     companion object {
-        private val DOTS = arrayOf(".", "..", "...", "...", "...")
-        private const val DOT_TIME = 200 // ms between "." -> ".." -> "..."
-        var complete = false
+        var complete = BasicState(false)
     }
 
-    private var backButton: ClickableWidget? = null
-    private var progress = 0.0
-    private var stage = "Downloading"
-    var failed = false
+    private var progress = BasicState(0f)
+    private var stage = BasicState("Downloading")
+    private var failed = BasicState(false)
 
-    override fun init() {
-        widgetList.add(ClickableWidget(0, width / 2 - 100, height / 3 * 2, 200, 20, "").also { backButton = it })
-        updateText()
-    }
+    private val backBtn = SimpleButton("", h = true, w = true).apply {
+        constrain {
+            x = CenterConstraint()
+            y = RelativeConstraint(2/3f)
+            width = 200.pixels
+            height = 20.pixels
+        }
+        onLeftClick {
+            client?.setScreen(null)
+        }
+        text.bindText(failed.zip(complete).map { (f, c) ->
+            if (f || c) "Back" else "Cancel"
+        })
+    } childOf window
+
+    private val statusText = UIText(failed.zip(complete).map { (f, c) ->
+        if (f) "§cUpdate download failed"
+        else if (c) "§aUpdate download complete"
+        else ""
+    }).apply {
+        constrain {
+            x = CenterConstraint()
+            y = CenterConstraint()
+        }
+    } childOf window
+
+    private val progressBar = UIBlock(Color(-0x3f3f40)).apply {
+        constrain {
+            x = CenterConstraint()
+            y = CenterConstraint()
+            width = 202.pixels
+            height = basicHeightConstraint {  getFontProvider().getBaseLineHeight() + 4 + 2 }
+        }
+
+        val progressFill = UIBlock(Color(-0x34c2cb)).apply {
+            constrain {
+                x = 1.pixels
+                y = RelativeConstraint()
+                width = RelativeConstraint(progress)
+                height = basicHeightConstraint { parent.getHeight() - 2 }
+            }
+        } childOf this
+
+
+        val progressRemaining = UIBlock(Color.WHITE).apply {
+            constrain {
+                x = SiblingConstraint()
+                y = RelativeConstraint()
+                width = SubtractiveConstraint(RelativeConstraint(progress.map { 1 - it }), 1.pixels)
+                height = basicHeightConstraint { parent.getHeight() - 2 }
+            }
+        } childOf this
+
+        val progressLabel = UIText("%d%%".format(progress.map { (it * 100).toInt().coerceIn(0, 100) })).apply {
+            constrain {
+                x = CenterConstraint()
+                y = 3.pixels
+                color = Color.BLACK.toConstraint()
+            }
+        } childOf this
+    } childOf window
+
+    private val statusLabel = UIText(stage.map { "${it}..." }).apply {
+        constrain {
+            x = CenterConstraint()
+            y = SiblingConstraint(2f + getFontProvider().getBaseLineHeight(), true)
+        }
+    } childOf window
 
     private fun doUpdate(restartNow: Boolean) {
         try {
@@ -74,9 +138,9 @@ class UpdateGui(restartNow: Boolean) : Screen() {
             IO.launch(CoroutineName("Skytils-update-downloader-thread")) {
                 val updateFile = downloadUpdate(url, directory)
                 val signFile = downloadUpdate("$url.asc", directory)
-                if (!failed) {
+                if (!failed.get()) {
                     if (updateFile != null && signFile != null) {
-                        stage = "Verifying signature"
+                        stage.set("Verifying signature")
                         val finger = JcaKeyFingerprintCalculator()
 
                         fun getKeyRingCollection(fileName: String): PGPPublicKeyRingCollection =
@@ -98,21 +162,20 @@ class UpdateGui(restartNow: Boolean) : Screen() {
                                 signFile.deleteOnExit()
                                 UpdateChecker.scheduleCopyUpdateAtShutdown(jarName)
                                 if (restartNow) {
-                                    client.scheduleStop()
+                                    client?.scheduleStop()
                                 }
-                                complete = true
-                                updateText()
+                                complete.set(true)
                             } else {
-                                failed = true
+                                failed.set(true)
                                 println("Signature verification failed")
                             }
                         } else {
                             println("Key not found")
-                            failed = true
+                            failed.set(true)
                         }
                     } else {
                         println("Files are missing")
-                        failed = true
+                        failed.set(true)
                     }
                 }
             }
@@ -121,19 +184,15 @@ class UpdateGui(restartNow: Boolean) : Screen() {
         }
     }
 
-    private fun updateText() {
-        backButton!!.message = if (failed || complete) "Back" else "Cancel"
-    }
-
     private suspend fun downloadUpdate(urlString: String, directory: File): File? {
         try {
             val url = Url(urlString)
 
-            val st = client.get(url) {
+            val st = Skytils.client.get(url) {
                 expectSuccess = false
                 onDownload { bytesSentTotal, contentLength ->
                     if (contentLength != 0L)
-                        progress = bytesSentTotal / contentLength.toDouble()
+                        progress.set(bytesSentTotal / contentLength.toFloat())
                 }
                 timeout {
                     connectTimeoutMillis = null
@@ -142,81 +201,40 @@ class UpdateGui(restartNow: Boolean) : Screen() {
                 }
             }
             if (st.status != HttpStatusCode.OK) {
-                failed = true
-                updateText()
+                failed.set(true)
                 println("$url returned status code ${st.status}")
                 return null
             }
             if (!directory.exists() && !directory.mkdirs()) {
-                failed = true
-                updateText()
+                failed.set(true)
                 println("Couldn't create update file directory")
                 return null
             }
             val fileSaved = File(directory, url.pathSegments.last().decodeURLPart())
             val writeChannel = fileSaved.writeChannel()
-            if (client.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyAndClose(writeChannel) == 0L) {
-                failed = true
+            if (client?.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyAndClose(writeChannel) == 0L) {
+                failed.set(true)
                 return null
             }
             println("Downloaded update to $fileSaved")
             return fileSaved
         } catch (ex: Exception) {
             ex.printStackTrace()
-            failed = true
-            updateText()
+            failed.set(true)
         }
         return null
     }
 
-    public override fun method_0_2778(button: ClickableWidget) {
-        if (button.field_2077 == 0) {
-            client.setScreen(null)
-        }
-    }
-
-    override fun render(mouseX: Int, mouseY: Int, partialTicks: Float) {
-        method_2240()
-        when {
-            failed -> method_1789(
-                client.textRenderer,
-                "§cUpdate download failed",
-                width / 2,
-                height / 2,
-                -0x1
-            )
-            complete -> method_1789(
-                client.textRenderer,
-                "§aUpdate download complete",
-                width / 2,
-                height / 2,
-                0xFFFFFF
-            )
-            else -> {
-                val left = (width / 2 - 100).coerceAtLeast(10)
-                val right = (width / 2 + 100).coerceAtMost(width - 10)
-                val top = height / 2 - 2 - MathUtil.ceil(client.textRenderer.field_0_2811 / 2f)
-                val bottom = height / 2 + 2 + MathUtil.floor(client.textRenderer.field_0_2811 / 2f)
-                fill(left - 1, top - 1, right + 1, bottom + 1, -0x3f3f40)
-                val progressPoint = floor(progress * (right - left) + left).toInt().coerceIn(left, right)
-                fill(left, top, progressPoint, bottom, -0x34c2cb)
-                fill(progressPoint, top, right, bottom, -0x1)
-                val label = String.format("%d%%", floor(progress * 100).toInt().coerceIn(0, 100))
-                client.textRenderer.method_0_2385(
-                    label,
-                    (width - client.textRenderer.getWidth(label)) / 2,
-                    top + 3,
-                    -0x1000000
-                )
-                val x = (width - client.textRenderer.getWidth("$stage ${DOTS[DOTS.size - 1]}")) / 2
-                val title = "$stage ${DOTS[(System.currentTimeMillis() % (DOT_TIME * DOTS.size)).toInt() / DOT_TIME]}"
-                drawText(client.textRenderer, title, x, top - client.textRenderer.field_0_2811 - 2, -0x1)
-            }
-        }
-        super.render(mouseX, mouseY, partialTicks)
-    }
-
     init {
         doUpdate(restartNow)
+
+        failed.zip(complete).onSetValue { (f, c) ->
+            Window.enqueueRenderOperation {
+                if (f || c) {
+                    progressBar.hide(instantly = true)
+                    statusLabel.hide(instantly = true)
+                }
+            }
+        }
     }
 }

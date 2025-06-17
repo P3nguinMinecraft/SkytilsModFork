@@ -195,7 +195,7 @@ object UpdateChecker : EventSubscriber {
     fun onGuiOpen(e: ScreenOpenEvent) {
         if (e.screen !is TitleScreen) return
         if (updateGetter.updateObj == null) return
-        if (UpdateGui.complete) return
+        if (UpdateGui.complete.get()) return
         Skytils.displayScreen = RequestUpdateGui()
     }
 
