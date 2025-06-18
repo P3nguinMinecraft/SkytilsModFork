@@ -47,7 +47,6 @@ import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.gui.OptionsGui
 import gg.skytils.skytilsmod.gui.editing.ElementaEditingGui
 import gg.skytils.skytilsmod.gui.features.*
-import gg.skytils.skytilsmod.gui.profile.ProfileGui
 import gg.skytils.skytilsmod.gui.updater.UpdateGui
 import gg.skytils.skytilsmod.gui.waypoints.WaypointsGui
 import gg.skytils.skytilsmod.listeners.ServerPayloadInterceptor.getResponse
@@ -342,21 +341,22 @@ object SkytilsCommand {
         @Argument("name", description = "The name of the player to view")
         name: String?
     ) {
-        if (name == null) {
-            Skytils.displayScreen = ProfileGui(mc.player!!.uuid, mc.player!!.gameProfile.name)
-        } else {
-            // TODO Add some kind of message indicating progress
-            Skytils.IO.launch {
-                runCatching {
-                    MojangUtil.getUUIDFromUsername(name)
-                }.onFailure {
-                    UChat.chat("$failPrefix §cError finding player!")
-                    it.printStackTrace()
-                }.getOrNull()?.let { uuid ->
-                    Skytils.displayScreen = ProfileGui(uuid, name)
-                }
-            }
-        }
+        UChat.chat("Will fix later")
+//        if (name == null) {
+//            Skytils.displayScreen = ProfileGui(mc.player!!.uuid, mc.player!!.gameProfile.name)
+//        } else {
+//            // TODO Add some kind of message indicating progress
+//            Skytils.IO.launch {
+//                runCatching {
+//                    MojangUtil.getUUIDFromUsername(name)
+//                }.onFailure {
+//                    UChat.chat("$failPrefix §cError finding player!")
+//                    it.printStackTrace()
+//                }.getOrNull()?.let { uuid ->
+//                    Skytils.displayScreen = ProfileGui(uuid, name)
+//                }
+//            }
+//        }
     }
 
     @Command("skytils|st pricepaid <amount>")
