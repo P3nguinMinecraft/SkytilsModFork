@@ -107,16 +107,11 @@ class CrashReportHook(private val crash: CrashReport) {
                     .also { it.isAccessible = true }
                     .get(null) as String
             }.getOrDefault("NONE")
-            return@addCrashSectionCallable Objects
-                .toStringHelper("")
-                .add("HasBetterFPS", hasBetterFPS != "NONE")
-                .add("BetterFPS Version", hasBetterFPS)
-                .add(
-                    "Disabled Start Checks", System.getProperty(
-                        "skytils.skipStartChecks"
-                    ) != null
-                )
-                .toString()
+            return@add listOf(
+                "HasBetterFPS: ${hasBetterFPS != "NONE"}",
+                "BetterFPS Version: $hasBetterFPS",
+                "Disabled Start Checks: ${System.getProperty("skytils.skipStartChecks") != null}"
+            ).joinToString("\n")
         }
     }
 }
