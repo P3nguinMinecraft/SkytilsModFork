@@ -35,7 +35,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle.getIdentifier
 import gg.skytils.skytilsmod.gui.ReopenableGUI
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import gg.skytils.skytilsmod.gui.profile.components.SlotComponent
+import gg.skytils.skytilsmod.gui.components.SlotComponent
 import net.minecraft.item.ItemStack
 import java.util.*
 

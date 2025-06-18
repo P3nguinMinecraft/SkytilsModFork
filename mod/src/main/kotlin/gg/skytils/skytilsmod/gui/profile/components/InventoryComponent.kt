@@ -26,6 +26,7 @@ import gg.essential.elementa.constraints.CenterConstraint
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.state.State
 import gg.essential.vigilance.gui.VigilancePalette
+import gg.skytils.skytilsmod.gui.components.SlotComponent
 import net.minecraft.item.ItemStack
 
 class InventoryComponent(val inv: State<List<ItemStack?>?>) : UIContainer() {

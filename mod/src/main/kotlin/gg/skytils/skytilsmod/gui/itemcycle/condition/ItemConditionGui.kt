@@ -35,7 +35,7 @@ import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle.getIdentifier
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.gui.itemcycle.ItemCycleConditionGui
-import gg.skytils.skytilsmod.gui.profile.components.SlotComponent
+import gg.skytils.skytilsmod.gui.components.SlotComponent
 
 class ItemConditionGui(val cycle: ItemCycle.Cycle, val condition: ItemCycle.Cycle.Condition.ItemCondition? = null) :
     WindowScreen(

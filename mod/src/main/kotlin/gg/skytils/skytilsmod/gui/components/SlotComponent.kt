@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,13 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.gui.profile.components
+package gg.skytils.skytilsmod.gui.components
 
 import gg.essential.elementa.components.UIRoundedRectangle
 import gg.essential.elementa.dsl.constrain
 import gg.essential.elementa.dsl.pixels
 import gg.essential.elementa.dsl.toConstraint
-import gg.skytils.skytilsmod.gui.components.ItemComponent
+import gg.skytils.skytilsmod.gui.profile.components.TooltipComponent
 import gg.skytils.skytilsmod.utils.addTooltip
 import net.minecraft.item.ItemStack
 import java.awt.Color

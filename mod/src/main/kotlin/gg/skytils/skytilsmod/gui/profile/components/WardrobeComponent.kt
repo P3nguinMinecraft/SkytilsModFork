@@ -27,6 +27,7 @@ import gg.essential.elementa.dsl.*
 import gg.essential.elementa.state.State
 import gg.essential.vigilance.gui.VigilancePalette
 import gg.skytils.hypixel.types.skyblock.Member
+import gg.skytils.skytilsmod.gui.components.SlotComponent
 import gg.skytils.skytilsmod.gui.constraints.FixedChildBasedRangeConstraint
 import gg.skytils.skytilsmod.gui.profile.states.alwaysMap
 import gg.skytils.skytilsmod.utils.toMCItems

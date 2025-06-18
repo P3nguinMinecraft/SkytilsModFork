@@ -32,7 +32,7 @@ import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle
 import gg.skytils.skytilsmod.features.impl.handlers.ItemCycle.getIdentifier
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import gg.skytils.skytilsmod.gui.profile.components.SlotComponent
+import gg.skytils.skytilsmod.gui.components.SlotComponent
 
 class RebindItemCycleGui(cycle: ItemCycle.Cycle) : WindowScreen(ElementaVersion.V5, newGuiScale = 2) {
     init {

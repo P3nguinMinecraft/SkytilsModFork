@@ -33,7 +33,7 @@ import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.ItemProtectStrategy
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
-import gg.skytils.skytilsmod.gui.profile.components.SlotComponent
+import gg.skytils.skytilsmod.gui.components.SlotComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
 import gg.skytils.skytilsmod.utils.multiplatform.armorItems
 import java.awt.Color
