@@ -33,29 +33,53 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//#if MC>12000
+import net.minecraft.entity.EntityType;
+import net.minecraft.registry.entry.RegistryEntry;
+//#endif
+
 @Mixin(LivingEntity.class)
 public abstract class MixinEntityLivingBase extends Entity implements ExtensionEntityLivingBase {
 
     @Unique
     private final EntityLivingBaseHook hook = new EntityLivingBaseHook((LivingEntity) (Object) this);
 
-    public MixinEntityLivingBase(World worldIn) {
-        super(worldIn);
+    //#if MC>12000
+    public MixinEntityLivingBase(EntityType<?> type, World world) {
+        super(type, world);
     }
+    //#else
+    //$$ public MixinEntityLivingBase(World worldIn) {
+    //$$     super(worldIn);
+    //$$ }
+    //#endif
 
-    @Inject(method = "hasStatusEffect(Lnet/minecraft/entity/effect/StatusEffect;)Z", at = @At("HEAD"), cancellable = true)
-    private void modifyPotionActive(StatusEffect potion, CallbackInfoReturnable<Boolean> cir) {
-        hook.modifyPotionActive(potion.field_0_7265, cir);
+    //#if MC>12000
+    @Inject(method = "hasStatusEffect", at = @At("HEAD"), cancellable = true)
+    private void modifyPotionActive(RegistryEntry<StatusEffect> effect, CallbackInfoReturnable<Boolean> cir) {
+        hook.modifyPotionActive(effect.value(), cir);
     }
+    //#else
+    //$$ @Inject(method = "hasStatusEffect(Lnet/minecraft/entity/effect/StatusEffect;)Z", at = @At("HEAD"), cancellable = true)
+    //$$ private void modifyPotionActive(StatusEffect potion, CallbackInfoReturnable<Boolean> cir) {
+    //$$     hook.modifyPotionActive(potion.field_0_7265, cir);
+    //$$ }
+    //$$
+    //$$ @Inject(method = "hasStatusEffect", at = @At("HEAD"), cancellable = true)
+    //$$ private void modifyPotionActive(RegistryEntry<StatusEffect> effect, CallbackInfoReturnable<Boolean> cir) {
+    //$$     hook.modifyPotionActive(potionId, cir);
+    //$$ }
+    //#endif
 
-    @Inject(method = "hasStatusEffect(I)Z", at = @At("HEAD"), cancellable = true)
-    private void modifyPotionActive(int potionId, CallbackInfoReturnable<Boolean> cir) {
-        hook.modifyPotionActive(potionId, cir);
-    }
-
-    @WrapWithCondition(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
-    private boolean spawnParticle(World world, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
-        return hook.removeDeathParticle(world, particleType, xCoord, yCoord, zCoord, xOffset, yOffset, zOffset, p_175688_14_);
+    //#if MC>12000
+    @WrapWithCondition(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;sendEntityStatus(Lnet/minecraft/entity/Entity;B)V"))
+    private boolean spawnParticle(World instance, Entity entity, byte b) {
+        return hook.shouldRemove();
+    //#else
+    //$$ @WrapWithCondition(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleType;DDDDDD[I)V"))
+    //$$ private boolean spawnParticle(World world, ParticleType particleType, double xCoord, double yCoord, double zCoord, double xOffset, double yOffset, double zOffset, int[] p_175688_14_) {
+    //$$     return hook.removeDeathParticle(particleType);
+    //#endif
     }
 
     @Inject(method = "isBaby", at = @At("HEAD"), cancellable = true)

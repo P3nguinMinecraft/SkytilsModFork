@@ -32,6 +32,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import java.awt.Color
 import kotlin.random.Random
 
+//#if MC>12000
+import net.minecraft.entity.effect.StatusEffects
+import net.minecraft.particle.ParticleTypes
+
+//#endif
+
 class EntityLivingBaseHook(val entity: LivingEntity) {
 
     var colorMultiplier: Color? = null
@@ -47,26 +53,31 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
         Utils.inSkyblock && entity is PlayerEntity && (SuperSecretSettings.smolPeople || isBreefing)
     }
 
-    fun modifyPotionActive(potionId: Int, cir: CallbackInfoReturnable<Boolean>) {
+    //#if MC>12000
+    fun modifyPotionActive(statusEffect: StatusEffect, cir: CallbackInfoReturnable<Boolean>) {
         if (!Utils.inSkyblock) return
-        if (Skytils.config.disableNightVision && potionId == Potions.NIGHT_VISION && entity is ClientPlayerEntity) {
+        if (Skytils.config.disableNightVision && statusEffect == StatusEffects.NIGHT_VISION && entity is ClientPlayerEntity) {
             cir.returnValue = false
         }
     }
+    //#else
+    //$$ fun modifyPotionActive(potionId: Int, cir: CallbackInfoReturnable<Boolean>) {
+    //$$     if (!Utils.inSkyblock) return
+    //$$     if (Skytils.config.disableNightVision && potionId == Potions.NIGHT_VISION && entity is ClientPlayerEntity) {
+    //$$         cir.returnValue = false
+    //$$     }
+    //$$ }
+    //#endif
 
-    fun removeDeathParticle(
-        world: World,
-        particleType: ParticleType<*>,
-        xCoord: Double,
-        yCoord: Double,
-        zCoord: Double,
-        xOffset: Double,
-        yOffset: Double,
-        zOffset: Double,
-        p_175688_14_: IntArray
-    ): Boolean {
-        return !Skytils.config.hideDeathParticles || !Utils.inSkyblock || particleType != ParticleType.EXPLOSION_NORMAL
-    }
+    //#if MC>12000
+    fun shouldRemove() = !Skytils.config.hideDeathParticles || !Utils.inSkyblock
+    //#else
+    //$$ fun removeDeathParticle(
+    //$$     particleType: ParticleType<*>,
+    //$$ ): Boolean {
+    //$$     return !Skytils.config.hideDeathParticles || !Utils.inSkyblock || particleType != ParticleTypes.EXPLOSION
+    //$$ }
+    //#endif
 
     fun isChild(cir: CallbackInfoReturnable<Boolean>) {
         cir.returnValue = isSmol
