@@ -21,13 +21,12 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.SBInfo.mode
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.util.Identifier
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
-val VISIBLE_CREEPER_ARMOR = Identifier("skytils", "creeper_armor.png")
+val VISIBLE_CREEPER_ARMOR = Identifier.of("skytils", "creeper_armor.png")
 
-fun modifyChargedCreeperLayer(res: Identifier): Identifier {
-    var res = res
+fun modifyChargedCreeperLayer(cir: CallbackInfoReturnable<Identifier>) {
     if (Utils.inSkyblock && Skytils.config.moreVisibleGhosts && mode == "mining_3") {
-        res = VISIBLE_CREEPER_ARMOR
+        cir.returnValue = VISIBLE_CREEPER_ARMOR
     }
-    return res
 }

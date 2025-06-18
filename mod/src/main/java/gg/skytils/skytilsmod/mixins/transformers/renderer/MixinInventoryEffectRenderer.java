@@ -19,21 +19,16 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.InventoryEffectRendererHookKt;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.StatusEffectsDisplay;
-import net.minecraft.screen.ScreenHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(StatusEffectsDisplay.class)
-public abstract class MixinInventoryEffectRenderer extends HandledScreen {
-    public MixinInventoryEffectRenderer(ScreenHandler inventorySlotsIn) {
-        super(inventorySlotsIn);
-    }
-
-    @ModifyVariable(method = "applyStatusEffectOffset", at = @At("STORE"), ordinal = 0)
-    private boolean noDisplayPotionEffects(boolean bool) {
-        return InventoryEffectRendererHookKt.noDisplayPotionEffects(bool);
+public abstract class MixinInventoryEffectRenderer {
+    @Inject(method = "shouldHideStatusEffectHud", at = @At("HEAD"), cancellable = true)
+    private void shouldHideStatusEffectHud(CallbackInfoReturnable<Boolean> cir) {
+        InventoryEffectRendererHookKt.noDisplayPotionEffects(cir);
     }
 }

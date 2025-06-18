@@ -20,18 +20,17 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerCreeperChargeHookKt;
 import net.minecraft.client.render.entity.feature.CreeperChargeFeatureRenderer;
-import net.minecraft.class_995;
-import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CreeperChargeFeatureRenderer.class)
-public abstract class MixinLayerCreeperCharge implements class_995<CreeperEntity> {
+public abstract class MixinLayerCreeperCharge {
 
-    @ModifyArg(method = "method_4199", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/CreeperEntityRenderer;bindTexture(Lnet/minecraft/util/Identifier;)V"))
-    private Identifier modifyChargedCreeperLayer(Identifier res) {
-        return LayerCreeperChargeHookKt.modifyChargedCreeperLayer(res);
+    @Inject(method = "getEnergySwirlTexture", at = @At(value = "HEAD"), cancellable = true)
+    private void modifyChargedCreeperLayer(CallbackInfoReturnable<Identifier> cir) {
+        LayerCreeperChargeHookKt.modifyChargedCreeperLayer(cir);
     }
 }

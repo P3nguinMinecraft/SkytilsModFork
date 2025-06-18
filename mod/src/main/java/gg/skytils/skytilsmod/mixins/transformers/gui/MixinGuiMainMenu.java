@@ -19,21 +19,23 @@
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiMainMenuHookKt;
-import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.class_411;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.text.Text;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-
-import java.util.Calendar;
 
 @Mixin(TitleScreen.class)
-public class MixinGuiMainMenu extends Screen implements class_411 {
-    @Inject(method = "init", at = @At(value = "INVOKE", target = "Ljava/util/Calendar;setTime(Ljava/util/Date;)V", shift = At.Shift.AFTER, remap = false), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void setSplashText(CallbackInfo ci, Calendar calendar) {
-        GuiMainMenuHookKt.setSplashText((TitleScreen) (Object) this, calendar);
+public class MixinGuiMainMenu extends Screen {
+    protected MixinGuiMainMenu(Text title) {
+        super(title);
+    }
+
+    @Inject(method = "init", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/TitleScreen;splashText:Lnet/minecraft/client/gui/screen/SplashTextRenderer;", shift = At.Shift.AFTER, opcode = Opcodes.PUTFIELD))
+    private void setSplashText(CallbackInfo ci) {
+        GuiMainMenuHookKt.setSplashText((TitleScreen) (Object) this);
     }
 }

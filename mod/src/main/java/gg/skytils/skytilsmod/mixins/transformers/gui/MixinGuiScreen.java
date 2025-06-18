@@ -20,10 +20,8 @@ package gg.skytils.skytilsmod.mixins.transformers.gui;
 
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiScreenHookKt;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.class_411;
-import net.minecraft.text.Text;
+import net.minecraft.text.Style;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Screen.class)
-public abstract class MixinGuiScreen extends DrawContext implements class_411 {
+public abstract class MixinGuiScreen {
 
     @Shadow public MinecraftClient client;
 
@@ -41,9 +39,9 @@ public abstract class MixinGuiScreen extends DrawContext implements class_411 {
         this.client = MinecraftClient.getInstance();
     }
 
-    @Inject(method = "method_2216", at = @At(value = "INVOKE", target = "Lnet/minecraft/text/ClickEvent;getAction()Lnet/minecraft/text/ClickEvent$Action;"), cancellable = true)
-    private void blockComponentClick(Text s, CallbackInfoReturnable<Boolean> cir) {
-        GuiScreenHookKt.onComponentClick(s, cir);
+    @Inject(method = "handleTextClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/text/Style;getClickEvent()Lnet/minecraft/text/ClickEvent;"), cancellable = true)
+    private void blockComponentClick(Style style, CallbackInfoReturnable<Boolean> cir) {
+        GuiScreenHookKt.onComponentClick(cir);
     }
 
 }

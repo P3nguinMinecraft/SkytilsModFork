@@ -30,15 +30,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ToggleHudParts_MixinGuiIngame {
     //TODO update when remapping between versions
     @Unique
-    private static final boolean skytils$remap = false;
+    private static final boolean skytils$remap =
+            //#if MC==10809
+            //$$false;
+            //#else
+            true;
+            //#endif
 
-    @Inject(method = "renderAir", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
+    @Inject(method = "renderAirBubbles", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
     private void renderAir(CallbackInfo ci) {
         if (Skytils.getConfig().getHideAirDisplay()) ci.cancel();
     }
 
     @Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
-    private void renderArmor(CallbackInfo ci) {
+    private static void renderArmor(CallbackInfo ci) {
         if (Skytils.getConfig().getHideArmorDisplay()) ci.cancel();
     }
 
@@ -47,12 +52,12 @@ public class ToggleHudParts_MixinGuiIngame {
         if (Skytils.getConfig().getHideHungerDisplay()) ci.cancel();
     }
 
-    @Inject(method = "renderHealth", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
+    @Inject(method = "renderHealthBar", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
     private void renderHealth(CallbackInfo ci) {
         if (Skytils.getConfig().getHideHealthDisplay()) ci.cancel();
     }
 
-    @Inject(method = "renderHealthMount", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
+    @Inject(method = "renderMountHealth", at = @At("HEAD"), cancellable = true, remap = skytils$remap)
     private void renderHealthMount(CallbackInfo ci) {
         if (Skytils.getConfig().getHidePetHealth()) ci.cancel();
     }

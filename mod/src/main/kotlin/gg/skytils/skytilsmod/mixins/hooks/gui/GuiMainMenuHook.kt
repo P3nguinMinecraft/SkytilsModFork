@@ -32,8 +32,10 @@ private fun splashTextSetter(gui: AccessorGuiMainMenu, str: String) {
     gui.splashText = SplashTextRenderer(str)
 }
 
-fun setSplashText(gui: TitleScreen, cal: Calendar) {
+fun setSplashText(gui: TitleScreen) {
     gui as AccessorGuiMainMenu
+    val cal = Calendar.getInstance()
+    cal.timeInMillis = System.currentTimeMillis()
     if (cal.get(Calendar.MONTH) + 1 == 2 && cal.get(Calendar.DATE) == 6) {
         val numBirthday = cal.get(Calendar.YEAR) - 2021
         if (!Skytils.usingSBA)

@@ -31,24 +31,30 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
 @Mixin(MinecraftClient.class)
-public abstract class MixinMinecraft implements Executor {
+public abstract class MixinMinecraft
+        //#if MC==10809
+        //$$ implements Executor
+        //#endif
+{
     @Shadow
     public ClientPlayerEntity player;
 
-    @Shadow
-    public abstract ListenableFuture<Object> submit(Runnable runnableToSchedule);
+    //#if MC==10809
+    //$$ @Shadow
+    //$$ public abstract ListenableFuture<Object> submit(Runnable runnableToSchedule);
+    //#endif
 
-    @Inject(method = "doAttack()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;swingHand()V", shift = At.Shift.AFTER))
-    private void clickMouse(CallbackInfo info) {
+    @Inject(method = "doAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;swingHand(Lnet/minecraft/util/Hand;)V", shift = At.Shift.AFTER))
+    private void clickMouse(CallbackInfoReturnable<Boolean> cir) {
         if (!Utils.INSTANCE.getInSkyblock()) return;
 
-        ItemStack item = this.player.method_0_7087();
+        ItemStack item = this.player.getMainHandStack();
         if (item != null) {
             NbtCompound extraAttr = ItemUtil.getExtraAttributes(item);
             String itemId = ItemUtil.getSkyBlockItemID(extraAttr);
@@ -59,8 +65,10 @@ public abstract class MixinMinecraft implements Executor {
         }
     }
 
-    @Override
-    public void execute(@NotNull Runnable command) {
-        this.submit(command);
-    }
+    //#if MC==10809
+    //$$ @Override
+    //$$ public void execute(@NotNull Runnable command) {
+    //$$    this.submit(command);
+    //$$ }
+    //#endif
 }

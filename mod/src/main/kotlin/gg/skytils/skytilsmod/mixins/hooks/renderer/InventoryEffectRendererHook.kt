@@ -19,7 +19,8 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
-fun noDisplayPotionEffects(bool: Boolean): Boolean {
-    return if (Skytils.config.hidePotionEffects && Utils.inSkyblock) false else bool
+fun noDisplayPotionEffects(cir: CallbackInfoReturnable<Boolean>) {
+    if (Skytils.config.hidePotionEffects && Utils.inSkyblock) cir.returnValue = true
 }

@@ -20,14 +20,20 @@ package gg.skytils.skytilsmod.mixins.transformers.util;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import gg.skytils.skytilsmod.mixins.hooks.util.MouseHelperHook;
-import net.minecraft.class_0_672;
+import net.minecraft.client.Mouse;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(class_0_672.class)
+@Mixin(Mouse.class)
 public abstract class MixinMouseHelper {
-    @WrapWithCondition(method = "method_0_2328", at = @At(value = "INVOKE", target = "Lorg/lwjgl/input/Mouse;setCursorPosition(II)V", remap = false))
-    private boolean shouldSetCursorPos(int newX, int newY) {
+    @WrapWithCondition(method = "unlockCursor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;x:D", opcode = Opcodes.PUTFIELD))
+    private boolean shouldSetCursorX(Mouse instance, double value) {
+        return MouseHelperHook.INSTANCE.shouldResetMouseToCenter();
+    }
+
+    @WrapWithCondition(method = "unlockCursor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;y:D", opcode = Opcodes.PUTFIELD))
+    private boolean shouldSetCursorY(Mouse instance, double value) {
         return MouseHelperHook.INSTANCE.shouldResetMouseToCenter();
     }
 }

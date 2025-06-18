@@ -21,40 +21,37 @@ import gg.essential.universal.UMatrixStack
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
+import net.minecraft.client.render.entity.state.EntityRenderState
 import net.minecraft.entity.Entity
+import net.minecraft.text.Text
 import net.minecraft.util.math.Vec3d
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun removeEntityOnFire(
     entity: Entity,
-    x: Double,
-    y: Double,
-    z: Double,
-    partialTicks: Float,
+    state: EntityRenderState,
     ci: CallbackInfo
 ) {
     if (Skytils.config.hideEntityFire && Utils.inSkyblock) {
-        ci.cancel()
+        state.onFire = false
     }
 }
 
 fun renderLivingLabel(
-    entityIn: Entity,
-    str: String,
-    x: Double,
-    y: Double,
-    z: Double,
-    maxDistance: Int,
+    state: EntityRenderState,
+    text: Text,
     ci: CallbackInfo
 ) {
     val matrixStack = UMatrixStack()
+    val str = text.string
     if (Skytils.config.lowerEndermanNametags &&
         (str.contains('❤') || str.dropLastWhile { it == 's' }.endsWith(" Hit")) &&
         (str.contains("Enderman") || str.contains("Zealot") ||
                 str.contains("Voidling") || str.contains("Voidgloom"))
     ) {
         val player = mc.player!!
-        val vec3 = Vec3d(entityIn.x - player.x, 0.0, entityIn.z - player.z).normalize()
+        val vec3 = Vec3d(state.x - player.x, 0.0, state.z - player.z).normalize()
         matrixStack.translate(-vec3.x, -1.5, -vec3.z)
     }
     matrixStack.applyToGlobalState()
