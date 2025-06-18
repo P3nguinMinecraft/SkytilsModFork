@@ -19,7 +19,6 @@ package gg.skytils.skytilsmod.mixins.hooks.gui
 
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.features.impl.misc.MiscFeatures
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.item.ItemStack
@@ -32,23 +31,23 @@ fun alwaysShowItemHighlight(orig: Int): Int {
 
 fun modifyItemHighlightPosition(args: Args, highlightingItemStack: ItemStack) {
     if (Skytils.config.moveableItemNameHighlight && Utils.inSkyblock) {
-        val fr = highlightingItemStack.item.getFontRenderer(highlightingItemStack) ?: mc.textRenderer
+        val fr = mc.textRenderer
         val itemName = args.get<String>(0)
-        val element: GuiElement = MiscFeatures.ItemNameHighlightDummy
-        val x = element.scaleX - fr!!.getWidth(itemName) / 2f
+        val element= MiscFeatures.ItemNameHighlightDummy
+        val x = element.component.getLeft() - fr.getWidth(itemName) / 2f
         args.set(1, x)
-        args.set(2, element.scaleY)
+        args.set(2, element.component.getTop())
     }
 }
 
 fun modifyActionBarPosition(args: Args) {
     if (Skytils.config.moveableActionBar && Utils.inSkyblock) {
-        val element: GuiElement = MiscFeatures.ActionBarDummy
-        args.set(0, element.scaleX)
-        args.set(1, element.scaleY + 4f)
+        val element= MiscFeatures.ActionBarDummy
+        args.set(0, element.component.getLeft())
+        args.set(1, element.component.getTop() + 4f)
     }
 }
 
-fun setAbsorptionAmount(amount: Float): Float {
-    return if (Utils.inSkyblock && Skytils.config.hideAbsorption) 0f else amount
+fun setAbsorptionAmount(amount: Int): Int {
+    return if (Utils.inSkyblock && Skytils.config.hideAbsorption) 0 else amount
 }

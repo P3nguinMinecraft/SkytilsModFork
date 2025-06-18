@@ -33,7 +33,7 @@
     "entity.MixinEntityPlayerSP",
     "gui.MixinChatLine",
     "gui.MixinGuiIngame",
-    "gui.MixinGuiIngameForge",
+    "gui.MixinGuiIngameHud",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiNewChat",
     "gui.MixinGuiScreen",

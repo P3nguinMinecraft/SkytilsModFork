@@ -21,12 +21,12 @@ package gg.skytils.skytilsmod.mixins.transformers.gui;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import gg.essential.universal.UScreen;
 import gg.skytils.skytilsmod.gui.OptionsGui;
-import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameForgeHookKt;
-import net.minecraft.client.MinecraftClient;
+import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameHudHookKt;
 import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.item.ItemStack;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
@@ -35,37 +35,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(InGameHud.class)
-public abstract class MixinGuiIngameForge extends InGameHud {
-    public MixinGuiIngameForge(MinecraftClient mcIn) {
-        super(mcIn);
-    }
+public abstract class MixinGuiIngameHud {
 
-    @ModifyExpressionValue(method = "renderToolHightlight", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/hud/InGameHud;remainingHighlightTicks:I", opcode = Opcodes.GETFIELD))
+    @Shadow private ItemStack currentStack;
+
+    @ModifyExpressionValue(method = "renderHeldItemTooltip", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/hud/InGameHud;heldItemTooltipFade:I", opcode = Opcodes.GETFIELD))
     private int alwaysShowItemHighlight(int original) {
-        return GuiIngameForgeHookKt.alwaysShowItemHighlight(original);
+        return GuiIngameHudHookKt.alwaysShowItemHighlight(original);
     }
 
-    @ModifyArgs(method = "renderToolHightlight", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/TextRenderer;method_0_2382(Ljava/lang/String;FFI)I"))
+    @ModifyArgs(method = "renderHeldItemTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithBackground(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIII)I"))
     private void modifyItemHighlightPosition(Args args) {
-        GuiIngameForgeHookKt.modifyItemHighlightPosition(args, this.currentStack);
+        GuiIngameHudHookKt.modifyItemHighlightPosition(args, this.currentStack);
     }
 
-    @ModifyArgs(method = "renderRecordOverlay", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4348(FFF)V"))
+    @ModifyArgs(method = "renderOverlayMessage", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     private void modifyActionBarPosition(Args args) {
-        GuiIngameForgeHookKt.modifyActionBarPosition(args);
+        GuiIngameHudHookKt.modifyActionBarPosition(args);
     }
 
-    @ModifyVariable(method = "renderHealth", at = @At(value = "STORE"), ordinal = 1, remap = false)
-    private float removeAbsorption(float absorption) {
-        return GuiIngameForgeHookKt.setAbsorptionAmount(absorption);
+    @ModifyVariable(method = "renderHealthBar", at = @At(value = "HEAD"), ordinal = 6, remap = false, argsOnly = true)
+    private int removeAbsorption(int value) {
+        return GuiIngameHudHookKt.setAbsorptionAmount(value);
     }
 
-    @Inject(method = "render", at = @At("HEAD"))
+    @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
     private void renderOverlay(CallbackInfo ci) {
         if (UScreen.getCurrentScreen() instanceof OptionsGui) {
-            InGameHud.renderCrosshairs = false;
-        } else {
-            InGameHud.renderCrosshairs = true;
+            ci.cancel();
         }
     }
 }

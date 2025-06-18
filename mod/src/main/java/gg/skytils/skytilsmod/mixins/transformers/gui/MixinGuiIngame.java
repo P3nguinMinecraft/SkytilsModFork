@@ -21,7 +21,7 @@ package gg.skytils.skytilsmod.mixins.transformers.gui;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameForgeHookKt;
+import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameHudHookKt;
 import gg.skytils.skytilsmod.mixins.hooks.gui.GuiIngameHookKt;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
@@ -40,7 +40,7 @@ public abstract class MixinGuiIngame {
 
     @ModifyExpressionValue(method = "renderHeldItemTooltip", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/hud/InGameHud;heldItemTooltipFade:I", opcode = Opcodes.GETFIELD))
     private int alwaysShowItemHighlight(int original) {
-        return GuiIngameForgeHookKt.alwaysShowItemHighlight(original);
+        return GuiIngameHudHookKt.alwaysShowItemHighlight(original);
     }
 
     @Definition(id = "drawItem", method = "Lnet/minecraft/client/gui/DrawContext;drawItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;III)V")
