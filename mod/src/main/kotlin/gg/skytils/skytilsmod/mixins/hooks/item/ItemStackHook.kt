@@ -25,6 +25,7 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.countMatches
 import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.ifNull
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
@@ -45,14 +46,15 @@ fun showEnchantmentGlint(stack: Any, cir: CallbackInfoReturnable<Boolean>) {
                 return
             }
             if (Skytils.config.enchantGlintFix) {
-                if (extraAttr.contains("enchantments") && extraAttr.getCompound("enchantments").keys.isNotEmpty()) {
+                if (extraAttr.contains("enchantments") && extraAttr.getCompoundOrEmpty("enchantments").keys.isNotEmpty()) {
                     cir.returnValue = true
                     return
                 }
             }
         }
-        if (nbt?.contains("SkytilsForceGlint") == true) {
-            cir.returnValue = nbt.getBoolean("SkytilsForceGlint")
+        val customData = get(DataComponentTypes.CUSTOM_DATA)
+        if (customData?.contains("SkytilsForceGlint") == true) {
+            cir.returnValue = customData.nbt.getBoolean("SkytilsForceGlint").get()
         }
     }
 }
