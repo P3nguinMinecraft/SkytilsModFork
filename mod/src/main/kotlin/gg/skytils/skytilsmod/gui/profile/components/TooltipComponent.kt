@@ -36,10 +36,21 @@ import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.item.ItemStack
 import java.awt.Color
 
+//#if MC>12000
+import gg.skytils.skytilsmod.utils.formattedText
+import net.minecraft.item.Item
+import net.minecraft.item.tooltip.TooltipType
+import net.minecraft.text.Text
+//#endif
+
 class TooltipComponent(item: ItemStack, backgroundColor: Color = VigilancePalette.getBackground(), radius: Float = 5f) :
     UIRoundedRectangle(radius) {
 
-    val lore: MutableList<String> = item.getTooltip(UPlayer.getPlayer()!!, false)
+    //#if MC>12000
+    val lore = item.getTooltip(Item.TooltipContext.DEFAULT, UPlayer.getPlayer(), TooltipType.BASIC).map(Text::formattedText)
+    //#else
+    //$$ val lore: MutableList<String> = item.getTooltip(UPlayer.getPlayer()!!, false)
+    //#endif
 
     val itemTitle = UIRoundedRectangle(radius).constrain {
         y = 0.pixels
@@ -57,7 +68,6 @@ class TooltipComponent(item: ItemStack, backgroundColor: Color = VigilancePalett
         x = CenterConstraint() coerceAtLeast SiblingConstraint(2f)
         y = CenterConstraint()
         width = UMinecraft.getFontRenderer().getWidth(lore[0]).pixels
-        height = UMinecraft.getFontRenderer().field_0_2811.pixels
     } childOf itemTitle
 
     val contentContainer by UIContainer().constrain {
