@@ -22,7 +22,6 @@ import gg.essential.elementa.components.UIRoundedRectangle
 import gg.essential.elementa.dsl.constrain
 import gg.essential.elementa.dsl.pixels
 import gg.essential.elementa.dsl.toConstraint
-import gg.skytils.skytilsmod.gui.profile.components.TooltipComponent
 import gg.skytils.skytilsmod.utils.addTooltip
 import net.minecraft.item.ItemStack
 import java.awt.Color
