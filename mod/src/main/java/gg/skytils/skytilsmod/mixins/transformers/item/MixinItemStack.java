@@ -18,12 +18,13 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.item;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import gg.skytils.skytilsmod.mixins.hooks.item.ItemStackHookKt;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ItemStack.class)
@@ -33,8 +34,8 @@ public abstract class MixinItemStack {
         ItemStackHookKt.showEnchantmentGlint(this, cir);
     }
 
-    @ModifyVariable(method = "getName", at = @At(value = "STORE"))
-    private String modifyDisplayName(String s) {
-        return ItemStackHookKt.modifyDisplayName(s);
+    @ModifyReturnValue(method = "getName", at = @At(value = "RETURN"))
+    private Text modifyDisplayName(Text original) {
+        return ItemStackHookKt.modifyDisplayName(original);
     }
 }

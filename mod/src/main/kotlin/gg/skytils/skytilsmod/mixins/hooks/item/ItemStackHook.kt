@@ -23,8 +23,10 @@ import gg.skytils.skytilsmod.utils.ItemUtil.getExtraAttributes
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.countMatches
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.ifNull
 import net.minecraft.item.ItemStack
+import net.minecraft.text.Text
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 const val star = "✪"
@@ -55,25 +57,26 @@ fun showEnchantmentGlint(stack: Any, cir: CallbackInfoReturnable<Boolean>) {
     }
 }
 
-fun modifyDisplayName(displayName: String): String {
-    if (!Utils.inSkyblock || Skytils.config.starDisplayType == 0 || !displayName.contains(star)) return displayName
+fun modifyDisplayName(displayName: Text): Text {
+    if (!Utils.inSkyblock || Skytils.config.starDisplayType == 0 || !displayName.contains(Text.literal(star))) return displayName
 
     try {
+        val formattedText = displayName.formattedText
         when (Skytils.config.starDisplayType) {
             1 -> {
-                masterStarRegex.find(displayName)?.destructured?.let { (tier) ->
+                masterStarRegex.find(formattedText)?.destructured?.let { (tier) ->
                     val count = masterStars.indexOf(tier) + 1
 
-                    return displayName.replace(masterStarRegex, "")
-                        .replaceFirst("§6" + star.repeat(count), "§c" + star.repeat(count) + "§6")
+                    return Text.literal(formattedText.replace(masterStarRegex, "")
+                        .replaceFirst("§6" + star.repeat(count), "§c" + star.repeat(count) + "§6"))
                 }
             }
 
             2 -> {
-                masterStarRegex.find(displayName)?.destructured?.let { (tier) ->
+                masterStarRegex.find(formattedText)?.destructured?.let { (tier) ->
                     val count = masterStars.indexOf(tier) + 1 + 5
-                    return displayName.replace(starRegex, "").replace(masterStarRegex, "") + "§c$count$star"
-                } ?: return displayName.replace(starRegex, "") + "§6${displayName.countMatches(star)}$star"
+                    return Text.literal(formattedText.replace(starRegex, "").replace(masterStarRegex, "") + "§c$count$star")
+                } ?: return Text.literal(formattedText.replace(starRegex, "") + "§6${formattedText.countMatches(star)}$star")
             }
         }
     } catch (ignored: Exception) { }
