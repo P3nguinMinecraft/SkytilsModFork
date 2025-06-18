@@ -32,6 +32,6 @@ val prompts = listOf(
 )
 
 fun isConfirmableSign(gui: AccessorGuiEditSign): Boolean =
-    gui.tileSign.texts.drop(1).zip(gui.tileSign.texts.drop(2)).any { p ->
-        p.first.string.all { it == '^' } && prompts.any { it in p.second.string }
+    gui.tileSign.frontText.getMessages(false).drop(1).zipWithNext().any { (first, second) ->
+        first.string.all { it == '^' } && prompts.any { it in second.string }
     }
