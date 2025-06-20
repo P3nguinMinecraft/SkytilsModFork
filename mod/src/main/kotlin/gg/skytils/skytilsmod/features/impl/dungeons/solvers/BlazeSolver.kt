@@ -36,6 +36,7 @@ import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.RenderUtil
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.forceGlowWithColor
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import kotlinx.coroutines.launch
 import net.minecraft.entity.decoration.ArmorStandEntity
@@ -217,7 +218,7 @@ object BlazeSolver : EventSubscriber {
     }
 
     fun onWorldRender(event: WorldDrawEvent) {
-        if (Skytils.config.blazeSolver && Utils.inDungeons && orderedBlazes.size > 0) {
+        if (Skytils.config.blazeSolver && Utils.inDungeons && orderedBlazes.isNotEmpty()) {
             val matrixStack = UMatrixStack()
             if (blazeMode < 0) {
                 val shootableBlaze = orderedBlazes.first()
@@ -229,8 +230,15 @@ object BlazeSolver : EventSubscriber {
                     event.partialTicks,
                     matrixStack
                 )
+                lowestBlaze.forceGlowWithColor(Skytils.config.lowestBlazeColor.rgb)
+
+                val secondLowestBlaze = orderedBlazes.getOrNull(1)?.blaze ?: return
+
+                if (Skytils.config.showNextBlaze) {
+                    secondLowestBlaze.forceGlowWithColor(Skytils.config.nextBlazeColor.rgb)
+                }
+
                 if (Skytils.config.lineToNextBlaze) {
-                    val secondLowestBlaze = orderedBlazes.getOrNull(1)?.blaze ?: return
                     RenderUtil.draw3DLine(
                         Vec3d(lowestBlaze.x, lowestBlaze.y + 1.5, lowestBlaze.z),
                         Vec3d(secondLowestBlaze.x, secondLowestBlaze.y + 1.5, secondLowestBlaze.z),
@@ -251,8 +259,15 @@ object BlazeSolver : EventSubscriber {
                     event.partialTicks,
                     matrixStack
                 )
+                highestBlaze.forceGlowWithColor(Skytils.config.highestBlazeColor.rgb)
+
+                val secondHighestBlaze = orderedBlazes.getOrNull(orderedBlazes.size - 2)?.blaze ?: return
+
+                if (Skytils.config.showNextBlaze) {
+                    secondHighestBlaze.forceGlowWithColor(Skytils.config.nextBlazeColor.rgb)
+                }
+
                 if (Skytils.config.lineToNextBlaze) {
-                    val secondHighestBlaze = orderedBlazes.getOrNull(orderedBlazes.size - 2)?.blaze ?: return
                     RenderUtil.draw3DLine(
                         Vec3d(highestBlaze.x, highestBlaze.y + 1.5, highestBlaze.z),
                         Vec3d(secondHighestBlaze.x, secondHighestBlaze.y + 1.5, secondHighestBlaze.z),

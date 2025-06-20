@@ -42,7 +42,6 @@
     "item.MixinItemArmor",
     "item.MixinItemBow",
     "item.MixinItemStack",
-    "model.MixinModelBlaze",
     "network.MixinNetHandlerPlayClient",
     "particle.MixinEffectRenderer",
     "patcher.MixinHUDCaching",
