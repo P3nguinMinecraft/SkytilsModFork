@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.entity;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
@@ -50,8 +51,15 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayerEntity {
         EntityPlayerSPHookKt.onDropItem(dropAll, cir);
     }
 
-    @WrapOperation(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/KeyBinding;isPressed()Z"))
-    private boolean setSprintState(KeyBinding keyBinding, Operation<Boolean> original) {
-        return EntityPlayerSPHookKt.onKeybindCheck(keyBinding) || original.call(keyBinding);
+    //#if MC==10809
+    //$$ @WrapOperation(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/KeyBinding;isPressed()Z"))
+    //$$ private boolean setSprintState(KeyBinding keyBinding, Operation<Boolean> original) {
+    //$$    return EntityPlayerSPHookKt.onKeybindCheck(keyBinding) || original.call(keyBinding);
+    //$$ }
+    //#else
+    @ModifyExpressionValue(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/PlayerInput;sprint()Z"))
+    private boolean setSprintState(boolean original) {
+        return original || EntityPlayerSPHookKt.isSprintKeyOverride();
     }
+    //#endif
 }

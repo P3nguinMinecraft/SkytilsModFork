@@ -60,5 +60,9 @@ fun onDropItem(dropAll: Boolean, cir: CallbackInfoReturnable<ItemEntity?>) {
 }
 
 fun onKeybindCheck(keyBinding: KeyBinding): Boolean {
-    return keyBinding === mc.options.sprintKey && Utils.inSkyblock && Skytils.config.alwaysSprint
+    return keyBinding === mc.options.sprintKey && isSprintKeyOverride()
+}
+
+fun isSprintKeyOverride(): Boolean {
+    return Utils.inSkyblock && Skytils.config.alwaysSprint
 }
