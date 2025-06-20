@@ -21,8 +21,6 @@ import dev.falsehonesty.asmhelper.AsmHelper
 import dev.falsehonesty.asmhelper.dsl.instructions.Descriptor
 import gg.essential.lib.caffeine.cache.Cache
 import gg.essential.universal.ChatColor
-import gg.essential.universal.wrappers.message.UMessage
-import gg.essential.universal.wrappers.message.UTextComponent
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.gui.settings.CheckboxComponent
 import gg.skytils.event.postSync
@@ -46,12 +44,11 @@ import net.minecraft.client.option.GameOptions
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.attribute.EntityAttributes
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.text.HoverEvent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtList
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
+import net.minecraft.particle.ParticleEffect
 import net.minecraft.text.Text
 import net.minecraft.util.*
 import net.minecraft.world.World
@@ -105,14 +102,6 @@ object Utils {
         val corner1 = BlockPos(center.x - radius, y, center.z - radius)
         val corner2 = BlockPos(center.x + radius, y, center.z + radius)
         return BlockPos.iterate(corner1, corner2)
-    }
-
-    @JvmStatic
-    fun isInTablist(player: PlayerEntity): Boolean {
-        if (mc.isIntegratedServerRunning) {
-            return true
-        }
-        return mc.networkHandler.playerList.any { it.profile.name.equals(player.name, ignoreCase = true) }
     }
 
     /**
@@ -187,8 +176,7 @@ object Utils {
         val packet = event.packet
         checkThreadAndQueue {
             postSync(MainThreadPacketReceiveEvent(packet))
-            MinecraftForge.EVENT_BUS.post(MainReceivePacketEvent(mc.networkHandler, packet))
-            MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(packet.type, packet.message))
+            MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(packet.type, packet.content))
         }
     }
 
@@ -252,14 +240,7 @@ fun Vigilant.openGUI(): Job = Skytils.launch {
 }
 
 val LivingEntity.baseMaxHealth: Double
-    get() = this.getAttributeInstance(EntityAttributes.MAX_HEALTH).baseValue
-
-fun UMessage.append(item: Any) = this.addTextComponent(item)
-fun UTextComponent.setHoverText(text: String): UTextComponent {
-    hoverAction = HoverEvent.Action.SHOW_TEXT
-    hoverValue = text
-    return this
-}
+    get() = this.getAttributeInstance(EntityAttributes.MAX_HEALTH)!!.baseValue
 
 fun Text.map(action: Text.() -> Unit) {
     action(this)
@@ -329,7 +310,7 @@ inline val ParticleS2CPacket.y
 inline val ParticleS2CPacket.z
     get() = this.z
 
-inline val ParticleS2CPacket.type: ParticleType
+inline val ParticleS2CPacket.type: ParticleEffect
     get() = this.parameters
 
 inline val ParticleS2CPacket.count
@@ -345,7 +326,7 @@ operator fun <K : Any, V : Any> Cache<K, V>.set(name: K, value: V) = put(name, v
 
 fun Any?.toStringIfTrue(bool: Boolean?): String = if (bool == true) toString() else ""
 
-fun NbtList.asStringSet() = (0..size()).mapTo(hashSetOf()) { getString(it) }
+fun NbtList.asStringSet() = (0..size).mapTo(hashSetOf()) { getString(it) }
 
 
 fun Vec3i.toBoundingBox() = Box(x.toDouble(), y.toDouble(), z.toDouble(), x + 1.0, y + 1.0, z + 1.0)
@@ -380,7 +361,7 @@ val Pet.isSpirit
 val <E> MutableMap<E, Boolean>.asSet: MutableSet<E>
     get() = Collections.newSetFromMap(this)
 
-fun getSkytilsResource(path: String) = Identifier("skytils", path)
+fun getSkytilsResource(path: String) = Identifier.of("skytils", path)
 
 fun <E> List<E>.getLastOrNull(index: Int) = getOrNull(lastIndex - index)
 
@@ -416,7 +397,8 @@ fun <T> List<T>.elementPairs() = sequence {
 }
 
 inline val World.realWorldTime: Long
-    inline get() = (method_8401() as AccessorWorldInfo).realWorldTime
+    inline get() = (levelProperties as AccessorWorldInfo).realWorldTime
+
 //#if MC>=12000
 fun Entity.forceGlowWithColor(color: Int) {
     this as ExtensionEntity

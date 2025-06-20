@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.network;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;

@@ -519,7 +519,7 @@ object RenderUtil {
     }
 
     fun getViewerPos(partialTicks: Float): Triple<Double, Double, Double> {
-        val viewer = mc.cameraEntity
+        val viewer = mc.cameraEntity!!
         val viewerX = viewer.lastRenderX + (viewer.x - viewer.lastRenderX) * partialTicks
         val viewerY = viewer.lastRenderY + (viewer.y - viewer.lastRenderY) * partialTicks
         val viewerZ = viewer.lastRenderZ + (viewer.z - viewer.lastRenderZ) * partialTicks
@@ -559,16 +559,10 @@ object RenderUtil {
         return Triple(x + getRenderX(), y + getRenderY(), z + getRenderZ())
     }
 
-    infix fun Slot.highlight(color: Color) = highlight(color.rgb)
-
-    infix fun Slot.highlight(color: Int) {
-        DrawContext.fill(
-            this.x,
-            this.y,
-            this.x + 16,
-            this.y + 16,
-            color
-        )
+    infix fun Slot.highlight(color: Color) {
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
+        writeRectCoords(UMatrixStack.Compat.get(), buffer, x.toDouble(), y.toDouble(), x + 16.0, y + 16.0, color)
+        buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
     fun drawDurabilityBar(xPos: Int, yPos: Int, durability: Double) {
