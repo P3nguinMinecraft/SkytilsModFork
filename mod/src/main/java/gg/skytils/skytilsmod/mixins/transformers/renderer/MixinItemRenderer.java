@@ -24,7 +24,9 @@ import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.ItemRendererHookKt;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.item.HeldItemRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Arm;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,13 +38,14 @@ public abstract class MixinItemRenderer {
     @Shadow
     private ItemStack mainHand;
 
-    @WrapOperation(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;method_0_7990()I"))
-    private int getItemInUseCountForFirstPerson(AbstractClientPlayerEntity abstractClientPlayer, Operation<Integer> original) {
-        return ItemRendererHookKt.getItemInUseCountForFirstPerson(abstractClientPlayer, this.mainHand, original);
-    }
+    //#if MC==10809
+    //$$ @WrapOperation(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;method_0_7990()I"))
+    //$$ private int getItemInUseCountForFirstPerson(AbstractClientPlayerEntity abstractClientPlayer, Operation<Integer> original) {
+    //$$    return ItemRendererHookKt.getItemInUseCountForFirstPerson(abstractClientPlayer, this.mainHand, original);
+    //$$ }
 
     @Inject(method = "applySwingOffset", at = @At(value = "TAIL"))
-    private void modifySize(float equipProgress, float swingProgress, CallbackInfo ci) {
+    private void modifySize(MatrixStack matrices, Arm arm, float swingProgress, CallbackInfo ci) {
         ItemRendererHookKt.modifySize();
     }
 

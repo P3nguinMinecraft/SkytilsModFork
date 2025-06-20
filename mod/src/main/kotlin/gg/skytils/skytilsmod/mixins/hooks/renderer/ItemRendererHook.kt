@@ -25,12 +25,16 @@ import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.item.SwordItem
 
-fun getItemInUseCountForFirstPerson(player: AbstractClientPlayerEntity, item: ItemStack, original: Operation<Int>? = null): Int {
-    if (Skytils.config.disableBlockAnimation && Utils.inSkyblock && item.item is SwordItem && player.method_0_7992() <= 7) return 0
-    return original?.call(player) ?: player.method_0_7990()
-}
+
+//#if MC==10809
+//$$ import net.minecraft.item.SwordItem
+//$$
+//$$ fun getItemInUseCountForFirstPerson(player: AbstractClientPlayerEntity, item: ItemStack, original: Operation<Int>? = null): Int {
+//$$    if (Skytils.config.disableBlockAnimation && Utils.inSkyblock && item.item is SwordItem && player.method_0_7992() <= 7) return 0
+//$$    return original?.call(player) ?: player.method_0_7990()
+//$$ }
+//#endif
 
 fun modifySize() {
     val scale = Skytils.config.itemScale * if (SuperSecretSettings.twilightGiant) 5f else 1f
