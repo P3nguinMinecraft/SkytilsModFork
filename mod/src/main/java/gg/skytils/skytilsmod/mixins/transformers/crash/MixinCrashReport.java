@@ -18,47 +18,46 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.crash;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.skytilsmod.mixins.hooks.crash.CrashReportHook;
+import net.minecraft.util.SystemDetails;
 import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.CrashReportSection;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(value = CrashReport.class, priority = 988)
 public abstract class MixinCrashReport {
 
     @Shadow
     @Final
-    private CrashReportSection systemDetailsSection;
+    private SystemDetails systemDetailsSection;
 
     @Unique
     private final CrashReportHook hook = new CrashReportHook((CrashReport) (Object) this);
 
-    @Inject(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", shift = At.Shift.AFTER, remap = false, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void thereIsNoOtherWay(CallbackInfoReturnable<String> cir, StringBuilder stringbuilder) {
+    @Definition(id = "stringBuilder", local = @Local(ordinal = 0), type = StringBuilder.class)
+    @Definition(id = "append", method = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;")
+    @Expression("stringBuilder.append('Time: ')")
+    @Inject(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private void injectInfoIntoReport(CallbackInfoReturnable<String> cir, @Local(ordinal = 0) StringBuilder stringbuilder) {
         hook.checkSkytilsCrash(cir, stringbuilder);
     }
 
-    @ModifyArg(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", remap = false, ordinal = 10))
+    @ModifyExpressionValue(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/crash/CrashReport;getCauseAsString()Ljava/lang/String;"))
     private String otherReplaceCauseForLauncher(String theCauseStackTraceOrString) {
         return hook.generateCauseForLauncher(theCauseStackTraceOrString);
     }
 
-    @ModifyArg(method = "asString(Lnet/minecraft/util/crash/ReportType;Ljava/util/List;)Ljava/lang/String;", at = @At(value = "INVOKE", target = "Ljava/lang/StringBuilder;append(Ljava/lang/String;)Ljava/lang/StringBuilder;", ordinal = 2, remap = false, args = "matches=method::getWittyComment"))
-    private String replaceWittyComment(String comment) {
-        return hook.generateWittyComment(comment);
-    }
-
-
-    @Inject(method = "fillSystemDetails", at = @At("RETURN"))
+    @Inject(method = "<init>", at = @At("RETURN"))
     private void addDataToCrashReport(CallbackInfo ci) {
         hook.addDataToCrashReport(this.systemDetailsSection);
     }

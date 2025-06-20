@@ -18,13 +18,12 @@
 
 package gg.skytils.skytilsmod.mixins.hooks.crash
 
-import com.google.common.base.Objects
 import gg.skytils.skytilsmod.utils.ReflectionHelper
 import gg.skytils.skytilsmod.utils.ReflectionHelper.getFieldHelper
 import gg.skytils.skytilsmod.utils.countMatches
 import gg.skytils.skytilsmod.utils.startsWithAny
+import net.minecraft.util.SystemDetails
 import net.minecraft.util.crash.CrashReport
-import net.minecraft.util.crash.CrashReportSection
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.transformer.Config
@@ -96,22 +95,18 @@ class CrashReportHook(private val crash: CrashReport) {
         } else theCauseStackTraceOrString
     }
 
-    fun generateWittyComment(comment: String): String {
-        return if (isSkytilsCrash) "Did Sychic do that?" else comment
-    }
+    fun addDataToCrashReport(crashReportCategory: SystemDetails) {
+        crashReportCategory.addSection("Skytils Debug Info Start", "HERE")
+        val hasBetterFPS = runCatching {
+            Class.forName("me.guichaguri.betterfps.BetterFpsHelper").getDeclaredField("VERSION")
+                .also { it.isAccessible = true }
+                .get(null) as String
+        }.getOrDefault("NONE")
 
-    fun addDataToCrashReport(crashReportCategory: CrashReportSection) {
-        crashReportCategory.add("Skytils Debug Info") {
-            val hasBetterFPS = runCatching {
-                Class.forName("me.guichaguri.betterfps.BetterFpsHelper").getDeclaredField("VERSION")
-                    .also { it.isAccessible = true }
-                    .get(null) as String
-            }.getOrDefault("NONE")
-            return@add listOf(
-                "HasBetterFPS: ${hasBetterFPS != "NONE"}",
-                "BetterFPS Version: $hasBetterFPS",
-                "Disabled Start Checks: ${System.getProperty("skytils.skipStartChecks") != null}"
-            ).joinToString("\n")
-        }
+        crashReportCategory.addSection("Has BetterFPS", (hasBetterFPS != "NONE").toString())
+        crashReportCategory.addSection("BetterFPS Version", hasBetterFPS)
+        crashReportCategory.addSection("Disabled Start Checks", (System.getProperty("skytils.skipStartChecks") != null).toString())
+
+        crashReportCategory.addSection("Skytils Debug Info End", "HERE")
     }
 }
