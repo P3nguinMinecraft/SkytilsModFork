@@ -55,7 +55,6 @@
     "renderer.MixinLayerCustomHead",
     "renderer.MixinLayerEnderDragonDeath",
     "renderer.MixinRender",
-    "renderer.MixinRenderBat",
     "renderer.MixinRenderDragon",
     "renderer.MixinRenderEntityItem",
     "renderer.MixinRendererLivingEntity",
