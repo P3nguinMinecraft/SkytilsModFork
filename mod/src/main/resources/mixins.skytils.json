@@ -26,6 +26,7 @@
     "audio.MixinSoundManager",
     "crash.MixinCrashReport",
     "entity.MixinEnderman",
+    "entity.MixinEntity_GlowExtension",
     "entity.MixinEntityBlaze",
     "entity.MixinEntityDragon",
     "entity.MixinEntityFishHook",
@@ -64,6 +65,7 @@
     "renderer.MixinTileEntityChestRenderer",
     "renderer.MixinTileEntityItemStackRenderer",
     "renderer.MixinTileEntitySkullRenderer",
+    "renderer.MixinWorldRenderer_Glow",
     "util.MixinChatStyle",
     "util.MixinUtil",
     "world.MixinWorld"

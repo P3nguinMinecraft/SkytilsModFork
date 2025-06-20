@@ -32,7 +32,7 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.asm.SkytilsTransformer
-import gg.skytils.skytilsmod.events.impl.MainReceivePacketEvent
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntity
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory.web
@@ -417,3 +417,10 @@ fun <T> List<T>.elementPairs() = sequence {
 
 inline val World.realWorldTime: Long
     inline get() = (method_8401() as AccessorWorldInfo).realWorldTime
+//#if MC>=12000
+fun Entity.forceGlowWithColor(color: Int) {
+    this as ExtensionEntity
+    this.skytilsForceGlow = true
+    this.skytilsGlowColorOverride = color
+}
+//#endif
