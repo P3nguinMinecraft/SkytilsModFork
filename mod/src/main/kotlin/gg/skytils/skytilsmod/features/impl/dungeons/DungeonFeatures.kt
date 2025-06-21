@@ -666,9 +666,9 @@ object DungeonFeatures : EventSubscriber {
                 .contains("Reroll") && SBInfo.lastOpenContainerName?.endsWith(" Chest") == true
         ) {
             for (i in event.tooltip.indices) {
-                if (event.tooltip[i].contains("Click to reroll")) {
+                if (event.tooltip[i].string.contains("Click to reroll")) {
                     val neededClicks = Skytils.config.kismetRerollConfirm - rerollClicks
-                    event.tooltip[i] = "§eClick §a$neededClicks§e times to reroll this chest!"
+                    event.tooltip[i] = textComponent("§eClick §a$neededClicks§e times to reroll this chest!")
                     break
                 }
             }
