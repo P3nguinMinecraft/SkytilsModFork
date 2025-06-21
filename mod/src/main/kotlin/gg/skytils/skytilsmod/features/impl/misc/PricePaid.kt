@@ -27,6 +27,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.encodeToString
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket
@@ -74,7 +75,7 @@ object PricePaid : EventSubscriber, PersistentSave(File(Skytils.modDir, "pricepa
         if (!Utils.inSkyblock || !Skytils.config.pricePaid) return
         val extraAttr = ItemUtil.getExtraAttributes(event.stack) ?: return
         prices[UUID.fromString(extraAttr.getString("uuid").getOrDefault("").ifEmpty { return })]?.let { price ->
-            event.tooltip.add("§r§7Price Paid: §9\$${NumberUtil.nf.format(price)}")
+            event.tooltip.add(textComponent("§r§7Price Paid: §9\$${NumberUtil.nf.format(price)}"))
         } ?: return
     }
 
