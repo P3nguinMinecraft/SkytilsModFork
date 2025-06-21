@@ -35,7 +35,6 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.Skytils.prefix
 import gg.skytils.skytilsmod._event.LocationChangeEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.utils.*
@@ -46,12 +45,19 @@ import gg.skytils.skytilsws.shared.packet.C2SPacketCHWaypointsSubscribe
 import gg.skytils.skytilsws.shared.structs.CHWaypointType
 import kotlinx.coroutines.launch
 import net.minecraft.client.network.OtherClientPlayerEntity
-import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.elementa.UIComponent
+import gg.essential.elementa.components.UIImage
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.box
+import gg.essential.elementa.layoutdsl.fillParent
+import gg.essential.elementa.layoutdsl.height
+import gg.essential.elementa.layoutdsl.width
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.vertex.UBufferBuilder
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.utils.rendering.DrawHelper.writeRectCoords
 import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
-import net.minecraft.client.render.VertexFormats
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket
 import net.minecraft.text.ClickEvent
@@ -59,8 +65,6 @@ import net.minecraft.text.HoverEvent
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.Vec3d
 import java.awt.Color
 import kotlin.jvm.optionals.getOrNull
 
@@ -292,9 +296,54 @@ object CHWaypoints : EventSubscriber {
         waypointDelayTicks = 50
     }
 
+    object CrystalHollowsMap : HudElement("Crystal Hollows Map", 0f, 0f) {
+        override fun LayoutScope.render() {
+            box(Modifier.width(624f).height(624f)) {
+                UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
+                MapAddons(Modifier.fillParent())
+            }
+        }
 
-    class CrystalHollowsMap : GuiElement(name = "Crystal Hollows Map", x = 0, y = 0) {
-        val mapLocation = Identifier.of("skytils", "crystalhollowsmap.png")
+        object MapAddons : UIComponent() {
+            override fun draw(matrixStack: UMatrixStack) {
+                beforeDrawCompat(matrixStack)
+                matrixStack.push()
+                val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE)
+                // Locations
+                if (Skytils.config.crystalHollowMapPlaces) {
+                    Locations.entries.forEach { location ->
+                        location.loc.drawOnMap(location.size, location.color, buffer, matrixStack)
+                    }
+                }
+                // Player Marker
+                mc.player?.let { player ->
+                    val x = (player.x - 202).coerceIn(0.0, 624.0)
+                    val y = (player.y - 202).coerceIn(0.0, 624.0)
+                    val playerScale = Skytils.config.crystalHollowsMapPlayerScale
+                    matrixStack.push()
+                    matrixStack.translate(x, y, 0.0)
+
+                    // Rotate about the center to match the player's yaw
+                    matrixStack.rotate((player.headYaw + 180f) % 360f, 0f, 0f, 1f)
+                    matrixStack.scale(playerScale, playerScale, 1f)
+                    val textureStart = 0.0
+                    val textureEnd = 0.25
+                    buffer.pos(matrixStack, -8.0, -8.0, 100.0).tex(textureStart, textureStart).endVertex()
+                    buffer.pos(matrixStack, -8.0, 8.0, 100.0).tex(textureStart, textureEnd).endVertex()
+                    buffer.pos(matrixStack, -8.0, 8.0, 100.0).tex(textureEnd, textureEnd).endVertex()
+                    buffer.pos(matrixStack, 8.0, -8.0, 100.0).tex(textureEnd, textureStart).endVertex()
+                }
+                buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
+                matrixStack.pop()
+                super.draw(matrixStack)
+            }
+        }
+
+        override fun LayoutScope.demoRender() {
+            box(Modifier.width(624f).height(624f)) {
+                UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
+            }
+        }
 
         enum class Locations(val displayName: String, val id: String, val color: Color, val packetType: CHWaypointType, val size: Int = 50) {
             LostPrecursorCity("§fLost Precursor City", "internal_city", ColorFactory.WHITE, CHWaypointType.LostPrecursorCity),
@@ -323,71 +372,10 @@ object CHWaypoints : EventSubscriber {
             }
         }
 
-        override fun render() {
-            if (!toggled || SBInfo.mode != SkyblockIsland.CrystalHollows.mode || mc.player == null) return
-            val stack = UMatrixStack()
-            val player = mc.player ?: return
-            // FIXME: use new rendering stuff
-            UMatrixStack.Compat.runLegacyMethod(stack) {
-                stack.scale(0.1, 0.1, 1.0)
-                UGraphics.disableLighting()
-                stack.runWithGlobalState {
-                    RenderUtil.renderTexture(mapLocation, 0, 0, 624, 624)
-                    if (Skytils.config.crystalHollowMapPlaces) {
-                        Locations.entries.forEach {
-                            it.loc.drawOnMap(it.size, it.color)
-                        }
-                    }
-                }
-                val x = (player.x - 202).coerceIn(0.0, 624.0)
-                val y = (player.z - 202).coerceIn(0.0, 624.0)
-                val playerScale = Skytils.config.crystalHollowsMapPlayerScale
-
-                // player marker code
-                val wr = UGraphics.getFromTessellator()
-                val texture = mc.textureManager.getTexture(Identifier.ofVanilla("textures/map/map_icons.png")).glTexture
-                RenderSystem.setShaderTexture(11, texture)
-
-                stack.push()
-                stack.translate(x, y, 0.0)
-
-                // Rotate about the center to match the player's yaw
-                stack.rotate((player.headYaw + 180f) % 360f, 0f, 0f, 1f)
-                stack.scale(playerScale, playerScale, 1f)
-                stack.translate((-0.125f*playerScale).toDouble(), (0.125f*playerScale).toDouble(), 0.0)
-                UGraphics.color4f(1f, 1f, 1f, 1f)
-                UGraphics.enableAlpha()
-                val d1 = 0.0
-                val d2 = 0.25
-                wr.beginWithActiveShader(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
-                wr.pos(stack, -8.0, -8.0, 100.0).tex(d1, d1).endVertex()
-                wr.pos(stack, -8.0, 8.0, 100.0).tex(d1, d2).endVertex()
-                wr.pos(stack, 8.0, 8.0, 100.0).tex(d2, d2).endVertex()
-                wr.pos(stack, 8.0, -8.0, 100.0).tex(d2, d1).endVertex()
-                wr.drawDirect()
-                stack.pop()
-            }
-        }
-
-        override fun demoRender() {
-            UGraphics.disableLighting()
-            RenderUtil.renderTexture(mapLocation, 0, 0, 62, 62)
-        }
-
-        override val toggled: Boolean
-            get() = Skytils.config.crystalHollowMap
-        override val height: Int
-            get() = 62 // should be 62.4 but oh well
-        override val width: Int
-            get() = 62
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
     init {
-        CrystalHollowsMap()
+        Skytils.guiManager.registerElement(CrystalHollowsMap)
     }
 
     class LocationObject {
@@ -449,20 +437,17 @@ object CHWaypoints : EventSubscriber {
                 RenderUtil.renderWaypointText(text, locX!! + 200, locY!!, locZ!! + 200, partialTicks, matrixStack)
         }
 
-        fun drawOnMap(size: Int, color: Color) {
+        fun drawOnMap(size: Int, color: Color, buffer: UBufferBuilder, matrixStack: UMatrixStack) {
             if (exists()) {
-                val renderer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
-                val matrices = UMatrixStack.Compat.get()
                 writeRectCoords(
-                    matrices,
-                    renderer,
+                    matrixStack,
+                    buffer,
                     locX!! - size,
                     locZ!! - size,
                     locX!! + size,
                     locZ!! + size,
                     color
                 )
-                renderer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
             }
         }
 
