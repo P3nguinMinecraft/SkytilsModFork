@@ -73,6 +73,7 @@ import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import net.minecraft.entity.projectile.FishingBobberEntity
 import net.minecraft.block.Blocks
 import net.minecraft.client.font.TextRenderer
@@ -317,9 +318,11 @@ object ItemFeatures : EventSubscriber {
                                     valuePer * item.count
                                 )
                             event.tooltip.add(
-                                "§6Lowest BIN Price: §b$total" + if (item.count > 1 && !isSuperpairsReward) " §7(" + NumberUtil.nf.format(
-                                    valuePer
-                                ) + " each§7)" else ""
+                                textComponent(
+                                    "§6Lowest BIN Price: §b$total" + if (item.count > 1 && !isSuperpairsReward) " §7(" + NumberUtil.nf.format(
+                                        valuePer
+                                    ) + " each§7)" else ""
+                                )
                             )
                         }
                         if (Skytils.config.showKuudraLowestBinPrice && item.count == 1) {
@@ -327,14 +330,14 @@ object ItemFeatures : EventSubscriber {
                                 val kuudraPrice = KuudraPriceData.getOrRequestAttributePricedItem(attrId)
                                 if (kuudraPrice != null) {
                                     if (kuudraPrice == KuudraPriceData.AttributePricedItem.EMPTY) {
-                                        event.tooltip.add("§6Kuudra BIN Price: §cNot Found")
+                                        event.tooltip.add(textComponent("§6Kuudra BIN Price: §cNot Found"))
                                     } else {
                                         event.tooltip.add(
-                                            "§6Kuudra BIN Price: §b${NumberUtil.nf.format(kuudraPrice.price)}"
+                                            textComponent("§6Kuudra BIN Price: §b${NumberUtil.nf.format(kuudraPrice.price)}")
                                         )
                                     }
                                 } else {
-                                    event.tooltip.add("§6Kuudra BIN Price: §cLoading...")
+                                    event.tooltip.add(textComponent("§6Kuudra BIN Price: §cLoading..."))
                                 }
                             }
                         }
@@ -357,7 +360,7 @@ object ItemFeatures : EventSubscriber {
                                     }
                                 }
                             }
-                            if (bitValue != -1) event.tooltip.add("§6Coin/Bit: §b" + NumberUtil.nf.format(valuePer / bitValue))
+                            if (bitValue != -1) event.tooltip.add(textComponent("§6Coin/Bit: §b" + NumberUtil.nf.format(valuePer / bitValue)))
                         }
                         if (Skytils.config.showCoinsPerCopper) {
                             var copperValue = copperCosts.getOrDefault(auctionIdentifier, -1)
@@ -381,7 +384,7 @@ object ItemFeatures : EventSubscriber {
                                 }
                             }
                             if (copperValue != -1) event.tooltip.add(
-                                "§6Coin/Copper: §c" + NumberUtil.nf.format(valuePer / copperValue)
+                                textComponent("§6Coin/Copper: §c" + NumberUtil.nf.format(valuePer / copperValue))
                             )
                         }
                     }
@@ -390,9 +393,9 @@ object ItemFeatures : EventSubscriber {
             if (Skytils.config.showNPCSellPrice) {
                 val valuePer = sellPrices[itemId]
                 if (valuePer != null) event.tooltip.add(
-                    "§6NPC Value: §b" + NumberUtil.nf.format(valuePer * item.count) + if (item.count > 1) " §7(" + NumberUtil.nf.format(
+                    textComponent("§6NPC Value: §b" + NumberUtil.nf.format(valuePer * item.count) + if (item.count > 1) " §7(" + NumberUtil.nf.format(
                         valuePer
-                    ) + " each§7)" else ""
+                    ) + " each§7)" else "")
                 )
             }
         }
@@ -405,20 +408,20 @@ object ItemFeatures : EventSubscriber {
             }
             for (i in event.tooltip.indices) {
                 val line = event.tooltip[i]
-                if (line.contains("§7Crit Damage:")) {
-                    event.tooltip.add(i + 1, "§8Radioactive Bonus: §c+${bonus}%")
+                if (line.formattedText.contains("§7Crit Damage:")) {
+                    event.tooltip.add(i + 1, textComponent("§8Radioactive Bonus: §c+${bonus}%"))
                     break
                 }
             }
         }
         if (itemId == "PREHISTORIC_EGG" && extraAttr != null) {
-            event.tooltip.add((event.tooltip.indexOfFirst { it.contains("Legendary Armadillo") } + 1),
-                "§7Blocks Walked: §c${extraAttr.getInt("blocks_walked")}")
+            event.tooltip.add((event.tooltip.indexOfFirst { it.string.contains("Legendary Armadillo") } + 1),
+                textComponent("§7Blocks Walked: §c${extraAttr.getInt("blocks_walked")}"))
         }
         if (Skytils.config.showGemstones && extraAttr?.contains("gems") == true) {
             val gems = extraAttr.getCompound("gems").getOrNull() ?: return
-            event.tooltip.add("§bGemstones: ")
-            event.tooltip.addAll(gems.keys.filterNot { it.endsWith("_gem") || it == "unlocked_slots" }.map {
+            event.tooltip.add(textComponent("§bGemstones: "))
+            gems.keys.filterNot { it.endsWith("_gem") || it == "unlocked_slots" }.map {
                 val quality = when (val tag: NbtElement? = gems.get(it)) {
                     is NbtCompound -> tag.getString("quality").getOrDefault("").toTitleCase().ifEmpty { "Report Unknown" }
                     is NbtString -> tag.asString().getOrNull()?.toTitleCase()
@@ -428,7 +431,9 @@ object ItemFeatures : EventSubscriber {
                 "  §6- $quality ${
                     gems.getString("${it}_gem").getOrDefault("").ifEmpty { it.substringBeforeLast("_") }.toTitleCase()
                 }"
-            })
+            }.forEach {
+                event.tooltip.add(textComponent(it))
+            }
         }
 
         if (Skytils.config.showItemQuality && extraAttr != null) {
@@ -456,7 +461,7 @@ object ItemFeatures : EventSubscriber {
                     else -> "§b"
                 }
 
-                event.tooltip.add("§6Quality Bonus: $color+$boost% §7($floor§7)")
+                event.tooltip.add(textComponent("§6Quality Bonus: $color+$boost% §7($floor§7)"))
             }
         }
 
