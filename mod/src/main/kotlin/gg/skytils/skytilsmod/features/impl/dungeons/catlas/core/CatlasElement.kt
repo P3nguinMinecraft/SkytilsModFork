@@ -18,12 +18,19 @@
 
 package gg.skytils.skytilsmod.features.impl.dungeons.catlas.core
 
+import gg.essential.elementa.components.UIBlock
+import gg.essential.elementa.components.UIContainer
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.height
+import gg.essential.elementa.layoutdsl.width
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
@@ -31,6 +38,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonMapCo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.MapUtils
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.utils.RenderUtils
+import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
@@ -43,7 +51,7 @@ import net.minecraft.util.math.RotationAxis
 import net.minecraft.util.profiler.Profilers
 import java.awt.Color
 
-object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
+object CatlasElement : UIContainer() {
 
     private val neuGreen = Identifier.of("catlas:textures/checkmarks/neu/green_check.png")
     private val neuWhite = Identifier.of("catlas:textures/checkmarks/neu/white_check.png")
@@ -287,15 +295,15 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
         )
     }
 
-    override fun render() {
-        if (!toggled || SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.player == null || mc.world == null) return
+    override fun draw(matrixStack: UMatrixStack) {
+        beforeDrawCompat(matrixStack)
+        if (SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.player == null || mc.world == null) return
         if (DungeonTimer.dungeonStartTime == -1L && !CatlasConfig.mapShowBeforeStart) return
         if (CatlasConfig.mapHideInBoss && DungeonTimer.bossEntryTime != -1L) return
 
         val profiler = Profilers.get()
-        val matrices = UMatrixStack.Compat.get()
 
-        matrices.runWithGlobalState {
+        matrixStack.runWithGlobalState {
             profiler.push("border")
 
             RenderUtils.renderRect(
@@ -314,46 +322,44 @@ object CatlasElement : GuiElement(name = "Dungeon Map", x = 0, y = 0) {
             profiler.pop()
 
             if (CatlasConfig.mapRotate) {
-                matrices.push()
-                setupRotate(matrices)
+                matrixStack.push()
+                setupRotate(matrixStack)
             } else if (CatlasConfig.mapDynamicRotate) {
-                matrices.translate(64.0, 64.0, 0.0)
-                matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(dynamicRotation))
-                matrices.translate(-64.0, -64.0, 0.0)
+                matrixStack.translate(64.0, 64.0, 0.0)
+                matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(dynamicRotation))
+                matrixStack.translate(-64.0, -64.0, 0.0)
             }
 
             profiler.push("rooms")
-            renderRooms(matrices)
+            renderRooms(matrixStack)
             profiler.swap("text")
-            renderText(matrices)
+            renderText(matrixStack)
             profiler.swap("heads")
             renderPlayerHeads()
             profiler.pop()
 
             if (CatlasConfig.mapRotate) {
                 UGraphics.disableScissor()
-                matrices.pop()
+                matrixStack.pop()
             } else if (CatlasConfig.mapDynamicRotate) {
-                matrices.translate(64.0, 64.0, 0.0)
-                matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-dynamicRotation))
-                matrices.translate(-64.0, -64.0, 0.0)
+                matrixStack.translate(64.0, 64.0, 0.0)
+                matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-dynamicRotation))
+                matrixStack.translate(-64.0, -64.0, 0.0)
             }
         }
+
+        super.draw(matrixStack)
+    }
+}
+
+object CatlasHudElement : HudElement("Dungeon Map", 0f, 0f) {
+    override fun LayoutScope.render() {
+        CatlasElement(Modifier.width(128f).height(128f))
     }
 
-    override fun demoRender() {
-        RenderUtils.renderRect(0.0, 0.0, 128.0, 128.0, Color.RED)
-        fr.drawString("Dungeon Map", 64f, 5f, alignment = SmartFontRenderer.TextAlignment.MIDDLE)
-    }
-
-    override val toggled: Boolean
-        get() = CatlasConfig.mapEnabled
-    override val height: Int
-        get() = 128
-    override val width: Int
-        get() = 128
-
-    init {
-        Skytils.guiManager.registerElement(this)
+    override fun LayoutScope.demoRender() {
+        UIBlock(Color.RED)(Modifier.width(128f).height(128f)) {
+            text("Dungeon Map")
+        }
     }
 }

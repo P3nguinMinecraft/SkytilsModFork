@@ -27,6 +27,7 @@ import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.play.WorldUnloadEvent
 import gg.skytils.event.impl.render.WorldDrawEvent
 import gg.skytils.event.register
+import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.DungeonPuzzleResetEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
@@ -34,6 +35,7 @@ import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasConfig
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasElement
+import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.CatlasHudElement
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonInfo
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.handlers.DungeonScanner
@@ -187,7 +189,7 @@ object Catlas : EventSubscriber {
     }
 
     init {
-        CatlasElement
+        Skytils.guiManager.registerElement(CatlasHudElement)
 
         arrayOf(
             MimicDetector,
