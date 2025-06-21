@@ -18,23 +18,24 @@
 
 package gg.skytils.event.mixins.item;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.item.ItemTooltipEvent;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
 @Mixin(ItemStack.class)
 public class MixinItemStack {
-    @Inject(method = "getTooltip", at = @At("RETURN"), cancellable = true)
-    private void getTooltip(PlayerEntity playerIn, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
-        ItemTooltipEvent event = new ItemTooltipEvent((ItemStack) (Object) this, cir.getReturnValue(), advanced);
+    @ModifyReturnValue(method = "getTooltip", at = @At("RETURN"))
+    private List<Text> getTooltip(List<Text> original, @Local(argsOnly = true) TooltipType type) {
+        ItemTooltipEvent event = new ItemTooltipEvent((ItemStack) (Object) this, original, type.isAdvanced());
         EventsKt.postSync(event);
-        cir.setReturnValue(event.getTooltip());
+        return event.getTooltip();
     }
 }

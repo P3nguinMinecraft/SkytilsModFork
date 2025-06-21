@@ -20,8 +20,13 @@ package gg.skytils.event.impl.item
 
 import gg.skytils.event.Event
 import net.minecraft.item.ItemStack
+import net.minecraft.text.Text
 
 /**
 * [gg.skytils.event.mixins.item.MixinItemStack.getTooltip]
 */
-class ItemTooltipEvent(val stack: ItemStack, val tooltip: MutableList<String>, val advanced: Boolean) : Event()
+class ItemTooltipEvent(val stack: ItemStack, private val origTooltip: MCTooltip, val advanced: Boolean) : Event() {
+    val tooltip get() = origTooltip
+}
+
+typealias MCTooltip = MutableList<Text>
