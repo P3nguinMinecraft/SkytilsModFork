@@ -25,6 +25,8 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.utils.DevTools
+import gg.skytils.skytilsmod.utils.formattedText
+import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import kotlinx.serialization.encodeToString
 import java.io.File
 import java.io.Reader
@@ -41,9 +43,9 @@ object EnchantNames : EventSubscriber, PersistentSave(File(Skytils.modDir, "ench
 
     fun onTooltip(event: ItemTooltipEvent) {
         event.tooltip.replaceAll {
-            var newline = it
+            var line = it.formattedText
             enchantRegex.findAll(
-                it
+                line
             ).forEach { result ->
                 val color = result.groups["color"]!!.value
                 val enchant = result.groups["enchant"]!!.value
@@ -53,7 +55,7 @@ object EnchantNames : EventSubscriber, PersistentSave(File(Skytils.modDir, "ench
                     println(enchant)
                     println(result.groups)
                 }
-                newline = newline.replace(
+                line = line.replace(
                     result.value,
                     buildString {
                         append(color)
@@ -68,7 +70,7 @@ object EnchantNames : EventSubscriber, PersistentSave(File(Skytils.modDir, "ench
                     }
                 )
             }
-            newline
+            textComponent(line)
         }
     }
 
