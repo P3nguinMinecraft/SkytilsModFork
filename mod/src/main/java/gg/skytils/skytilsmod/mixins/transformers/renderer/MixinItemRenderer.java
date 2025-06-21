@@ -48,11 +48,4 @@ public abstract class MixinItemRenderer {
     private void modifySize(MatrixStack matrices, Arm arm, float swingProgress, CallbackInfo ci) {
         ItemRendererHookKt.modifySize();
     }
-
-    @WrapOperation(method = "renderOverlays", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;method_3236(F)V"))
-    private void cancelFirstPersonFire(HeldItemRenderer instance, float f1, Operation<Void> original) {
-        if (!Skytils.getConfig().getNoFire()) {
-            original.call(instance, f1);
-        }
-    }
 }

@@ -47,6 +47,7 @@
     "renderer.MixinBlockRendererDispatcher",
     "renderer.MixinEntityRenderer",
     "renderer.MixinEquipmentRenderer",
+    "renderer.MixinInGameOverlayRenderer",
     "renderer.MixinInventoryEffectRenderer",
     "renderer.MixinItemRenderer",
     "renderer.MixinLayerArmorBase",
