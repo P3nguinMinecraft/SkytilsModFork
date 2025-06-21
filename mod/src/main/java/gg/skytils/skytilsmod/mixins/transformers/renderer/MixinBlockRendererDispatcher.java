@@ -18,22 +18,22 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.BlockRendererDispatcherHookKt;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.block.BlockRenderManager;
+import net.minecraft.client.render.chunk.ChunkRendererRegion;
+import net.minecraft.client.render.chunk.SectionBuilder;
 import net.minecraft.resource.ResourceReloader;
-import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(BlockRenderManager.class)
+@Mixin(SectionBuilder.class)
 public abstract class MixinBlockRendererDispatcher implements ResourceReloader {
-    @Inject(method = "method_0_3583", at = @At("RETURN"), cancellable = true)
-    private void modifyGetModelFromBlockState(BlockState state, WorldView worldIn, BlockPos pos, CallbackInfoReturnable<BlockStateModel> cir) {
-        BlockRendererDispatcherHookKt.modifyGetModelFromBlockState((BlockRenderManager) (Object) this, state, worldIn, pos, cir);
+    @WrapOperation(method = "build", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRendererRegion;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"))
+    private BlockState modifyBlockState(ChunkRendererRegion instance, BlockPos pos, Operation<BlockState> original) {
+        return BlockRendererDispatcherHookKt.modifyBlockState((BlockRenderManager) (Object) this, instance, pos, original.call(instance, pos));
     }
 }

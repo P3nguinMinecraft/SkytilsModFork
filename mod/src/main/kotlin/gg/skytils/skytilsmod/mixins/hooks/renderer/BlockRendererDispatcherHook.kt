@@ -22,51 +22,41 @@ import gg.skytils.skytilsmod.features.impl.farming.GardenFeatures
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
-import net.minecraft.block.CarpetBlock
-import net.minecraft.class_0_308
 import net.minecraft.block.BlockState
-import net.minecraft.client.render.block.BlockRenderManager
-import net.minecraft.client.render.model.BlockStateModel
 import net.minecraft.block.Blocks
-import net.minecraft.util.DyeColor
+import net.minecraft.client.render.block.BlockRenderManager
+import net.minecraft.client.render.chunk.ChunkRendererRegion
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.WorldView
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
-fun modifyGetModelFromBlockState(
-    blockRendererDispatcher: BlockRenderManager,
-    state: BlockState?,
-    worldIn: WorldView,
-    pos: BlockPos?,
-    cir: CallbackInfoReturnable<BlockStateModel>
-) {
-    if (!Utils.inSkyblock || state == null || pos == null) return
-    var returnState = state
+fun modifyBlockState(
+    blockRenderManager: BlockRenderManager,
+    instance: ChunkRendererRegion,
+    pos: BlockPos,
+    original: BlockState
+): BlockState {
+    if (!Utils.inSkyblock) return original
+    var returnState = original
     if (SBInfo.mode == SkyblockIsland.DwarvenMines.mode) {
-        if (Skytils.config.recolorCarpets && state.block === Blocks.CARPET && Utils.equalsOneOf(
-                state.testProperty(
-                    CarpetBlock.field_0_1324
-                ), DyeColor.GRAY, DyeColor.LIGHT_BLUE, DyeColor.YELLOW
+        if (Skytils.config.recolorCarpets && Utils.equalsOneOf(
+                original.block,
+                Blocks.GRAY_CARPET, Blocks.LIGHT_BLUE_CARPET, Blocks.YELLOW_CARPET
             )
         ) {
-            returnState = state.method_0_1222(CarpetBlock.field_0_1324, DyeColor.RED)
+            returnState = Blocks.RED_CARPET.defaultState
         } else if (Skytils.config.darkModeMist && pos.y <= 76) {
-            if (state.block === Blocks.field_0_761 &&
-                state.testProperty(class_0_308.field_0_1192) == DyeColor.WHITE
+            if (original.block === Blocks.WHITE_STAINED_GLASS
             ) {
-                returnState = state.method_0_1222(class_0_308.field_0_1192, DyeColor.GRAY)
-            } else if (state.block === Blocks.CARPET && state.testProperty(CarpetBlock.field_0_1324) == DyeColor.WHITE) {
-                returnState = state.method_0_1222(CarpetBlock.field_0_1324, DyeColor.GRAY)
+                returnState = Blocks.GRAY_STAINED_GLASS.defaultState
+            } else if (original.block === Blocks.WHITE_CARPET) {
+                returnState = Blocks.GRAY_CARPET.defaultState
             }
         }
     } else if (Skytils.config.gardenPlotCleanupHelper && GardenFeatures.isCleaningPlot && GardenFeatures.trashBlocks.contains(
-            state.block
+            original.block
         )
     ) {
         returnState = Blocks.SPONGE.defaultState
     }
 
-    if (returnState !== state) {
-        cir.returnValue = blockRendererDispatcher.models.getModel(returnState)
-    }
+    return returnState
 }
