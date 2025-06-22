@@ -18,15 +18,21 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gg.skytils.skytilsmod.Skytils;
 import gg.skytils.skytilsmod.core.Config;
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityRenderState;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerArmorBaseHookKt;
 import gg.skytils.skytilsmod.utils.Utils;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.model.EntityModel;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
 import net.minecraft.class_995;
+import net.minecraft.client.render.entity.state.BipedEntityRenderState;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -47,10 +53,11 @@ public abstract class MixinLayerArmorBase<T extends EntityModel> implements clas
     @Unique
     private boolean modifiedAlpha = false;
 
-    @Inject(method = "method_4199", at = @At("HEAD"), cancellable = true)
-    private void onRenderAllArmor(LivingEntity entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
-        if (Config.INSTANCE.getTransparentArmorLayer() == 0 && Utils.INSTANCE.getInSkyblock() && entitylivingbaseIn == Skytils.getMc().player)
-            ci.cancel();
+    @WrapMethod(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/state/BipedEntityRenderState;FF)V")
+    private void onRenderAllArmor(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, BipedEntityRenderState bipedEntityRenderState, float f, float g, Operation<Void> original) {
+        if (Config.INSTANCE.getTransparentArmorLayer() != 0 || !Utils.INSTANCE.getInSkyblock() || ((ExtensionEntityRenderState) bipedEntityRenderState).getSkytilsEntity() != Skytils.getMc().player) {
+            original.call(matrixStack, vertexConsumerProvider, i, bipedEntityRenderState, f, g);
+        }
     }
 
     @Inject(method = "renderArmor", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ArmorItem;method_0_8149(Lnet/minecraft/item/ItemStack;)I"))
