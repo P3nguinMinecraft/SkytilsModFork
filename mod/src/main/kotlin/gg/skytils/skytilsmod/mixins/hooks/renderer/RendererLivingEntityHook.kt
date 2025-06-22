@@ -19,7 +19,6 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import gg.skytils.skytilsmod.Skytils
-import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures
 import gg.skytils.skytilsmod.features.impl.dungeons.LividFinder
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures.slayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.DemonlordSlayer
@@ -29,9 +28,8 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory
 import gg.skytils.skytilsmod.utils.withAlpha
 import net.minecraft.entity.Entity
-import net.minecraft.entity.mob.MobEntity
-import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.mob.EndermanEntity
+import net.minecraft.entity.mob.MobEntity
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 fun setColorMultiplier(
@@ -70,8 +68,10 @@ fun setColorMultiplier(
     }
 }
 
-fun replaceHurtTime(instance: LivingEntity, original: Operation<Int>): Int {
-    instance as ExtensionEntityLivingBase
-
-    return if (Skytils.config.changeHurtColorOnWitherKingsDragons && instance.skytilsHook.masterDragonType != null) 0 else original.call(instance)
+fun replaceHurtState(
+    entity: Entity,
+    original: Operation<Boolean>
+): Boolean {
+    entity as ExtensionEntityLivingBase
+    return if (Skytils.config.changeHurtColorOnWitherKingsDragons && entity.skytilsHook.masterDragonType != null) false else original.call(instance)
 }

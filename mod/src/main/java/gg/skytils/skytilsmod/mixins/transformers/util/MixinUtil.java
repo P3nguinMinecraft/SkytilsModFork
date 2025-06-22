@@ -31,10 +31,12 @@ import java.util.concurrent.FutureTask;
 
 @Mixin(Util.class)
 public abstract class MixinUtil {
-    @Inject(method = "executeTask", at = @At(value = "INVOKE", target = "Lorg/apache/logging/log4j/Logger;fatal(Ljava/lang/String;Ljava/lang/Throwable;)V", remap = false), cancellable = true)
-    private static <V> void interceptTaskExceptions(FutureTask<V> task, Logger logger, CallbackInfoReturnable<V> cir) {
-        if (Config.INSTANCE.getPreventLogSpam() && Utils.INSTANCE.getInDungeons()) {
-            cir.setReturnValue(null);
-        }
-    }
+    //#if MC==10809
+    //$$    @Inject(method = "executeTask", at = @At(value = "INVOKE", target = "Lorg/apache/logging/log4j/Logger;fatal(Ljava/lang/String;Ljava/lang/Throwable;)V", remap = false), cancellable = true)
+    //$$    private static <V> void interceptTaskExceptions(FutureTask<V> task, Logger logger, CallbackInfoReturnable<V> cir) {
+    //$$        if (Config.INSTANCE.getPreventLogSpam() && Utils.INSTANCE.getInDungeons()) {
+    //$$            cir.setReturnValue(null);
+    //$$        }
+    //$$    }
+    //#endif
 }

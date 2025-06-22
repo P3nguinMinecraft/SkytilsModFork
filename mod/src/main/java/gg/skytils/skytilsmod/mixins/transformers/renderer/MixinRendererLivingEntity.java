@@ -20,6 +20,7 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityRenderState;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderBatHookKt;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RendererLivingEntityHookKt;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
@@ -27,7 +28,6 @@ import net.minecraft.client.render.entity.state.BatEntityRenderState;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -41,9 +41,9 @@ public abstract class MixinRendererLivingEntity<T extends LivingEntity> {
         RendererLivingEntityHookKt.setColorMultiplier(entity, lightBrightness, partialTickTime, cir);
     }
 
-    @WrapOperation(method = "applyOverlayColor(Lnet/minecraft/entity/LivingEntity;FZ)Z", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;hurtTime:I", opcode = Opcodes.GETFIELD))
-    private int changeHurtTime(LivingEntity instance, Operation<Integer> original) {
-        return RendererLivingEntityHookKt.replaceHurtTime(instance, original);
+    @WrapOperation(method = "getOverlay", at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;hurt:Z"))
+    private static boolean changeHurtState(LivingEntityRenderState instance, Operation<Boolean> original) {
+        return RendererLivingEntityHookKt.replaceHurtState(((ExtensionEntityRenderState) instance).getSkytilsEntity(), original);
     }
 
     @Inject(method = "scale", at = @At("RETURN"))
