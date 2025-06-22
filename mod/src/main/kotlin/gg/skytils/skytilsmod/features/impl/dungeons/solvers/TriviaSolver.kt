@@ -33,7 +33,7 @@ import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.*
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.text.Text
-import kotlin.math.floor
+import java.time.Instant
 
 object TriviaSolver : EventSubscriber {
     private val questionStartRegex = Regex("§r§f {32}§r§6§lQuestion #\\d§r")
@@ -75,10 +75,9 @@ object TriviaSolver : EventSubscriber {
                     fullQuestion = lines.subList(1, lines.size - 2).joinToString(" ") { it.stripControlCodes().trim() }
 
                     if (fullQuestion == "What SkyBlock year is it?") {
-                        val currentTime =
-                            (if (DungeonTimer.dungeonStartTime > 0L) DungeonTimer.dungeonStartTime else System.currentTimeMillis()) / 1000.0
-                        val diff = floor(currentTime - 1560276000)
-                        val year = (diff / 446400 + 1).toInt()
+                        val currentTime = DungeonTimer.dungeonStartTime ?: Instant.now()
+                        val diff = currentTime.minusSeconds(1560276000L)
+                        val year = diff.epochSecond / 446400 + 1
                         correctAnswers.add("Year $year")
                     } else {
                         triviaSolutions.entries.find {

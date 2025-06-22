@@ -27,9 +27,7 @@ import gg.essential.elementa.layoutdsl.width
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
-import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonTimer
 import gg.skytils.skytilsmod.features.impl.dungeons.catlas.core.map.*
@@ -43,7 +41,6 @@ import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
 import net.minecraft.util.Identifier
@@ -263,7 +260,7 @@ object CatlasElement : UIContainer() {
     }
 
     private fun renderPlayerHeads() {
-        if (DungeonTimer.bossEntryTime != -1L) return
+        if (DungeonTimer.bossEntryTime != null) return
         DungeonListener.team.forEach { (name, teammate) ->
             if (!teammate.dead || teammate.mapPlayer.isOurMarker) {
                 RenderUtils.drawPlayerHead(name, teammate.mapPlayer)
@@ -298,8 +295,8 @@ object CatlasElement : UIContainer() {
     override fun draw(matrixStack: UMatrixStack) {
         beforeDrawCompat(matrixStack)
         if (SBInfo.mode != SkyblockIsland.Dungeon.mode || mc.player == null || mc.world == null) return
-        if (DungeonTimer.dungeonStartTime == -1L && !CatlasConfig.mapShowBeforeStart) return
-        if (CatlasConfig.mapHideInBoss && DungeonTimer.bossEntryTime != -1L) return
+        if (DungeonTimer.dungeonStartTime == null && !CatlasConfig.mapShowBeforeStart) return
+        if (CatlasConfig.mapHideInBoss && DungeonTimer.bossEntryTime != null) return
 
         val profiler = Profilers.get()
 

@@ -52,7 +52,7 @@ object ShootTheTargetSolver : EventSubscriber {
     }
 
     fun onBlockChange(event: BlockStateUpdateEvent) {
-        if (!Utils.inDungeons || DungeonTimer.phase2ClearTime == -1L || !Skytils.config.shootTheTargetSolver) return
+        if (!Utils.inDungeons || DungeonTimer.phase2ClearTime == null || !Skytils.config.shootTheTargetSolver) return
         val pos = event.pos
         val old = event.old
         val state = event.update

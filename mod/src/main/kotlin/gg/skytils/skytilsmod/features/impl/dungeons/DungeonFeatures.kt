@@ -57,6 +57,7 @@ import net.minecraft.client.network.OtherClientPlayerEntity
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.combinators.map
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UMinecraft
@@ -91,6 +92,7 @@ import net.minecraft.util.math.Box
 import net.minecraft.util.math.BlockPos
 import net.minecraft.text.Text
 import java.awt.Color
+import java.time.Instant
 
 object DungeonFeatures : EventSubscriber {
     private val deathOrPuzzleFail =
@@ -101,13 +103,14 @@ object DungeonFeatures : EventSubscriber {
         "dodg", "thumbs",
         "aim"
     )
-    var dungeonFloor: String? = null
-        set(value) {
-            field = value
-            dungeonFloorNumber = value?.drop(1)?.ifEmpty { "0" }?.toIntOrNull()
-        }
-    var dungeonFloorNumber: Int? = null
-        private set
+    val dungeonFloor: String?
+        get() = dungeonFloorState.getUntracked()
+    val dungeonFloorState = mutableStateOf<String?>(null)
+    val dungeonFloorNumber: Int?
+        get() = dungeonFloorNumberState.getUntracked()
+    val dungeonFloorNumberState = dungeonFloorState.map { value ->
+        value?.drop(1)?.ifEmpty { "0" }?.toIntOrNull()
+    }
     var hasBossSpawned = false
     private var isInTerracottaPhase = false
     private var terracottaEndTime = -1.0
@@ -215,7 +218,7 @@ object DungeonFeatures : EventSubscriber {
                 ScoreboardUtil.sidebarLines.find {
                     it.contains("The Catacombs (")
                 }?.let {
-                    dungeonFloor = it.substringAfter("(").substringBefore(")")
+                    dungeonFloorState.set(it.substringAfter("(").substringBefore(")"))
                     ScoreCalculation.floorReq.set(
                         ScoreCalculation.floorRequirements[dungeonFloor]
                             ?: ScoreCalculation.floorRequirements["default"]!!
@@ -226,7 +229,7 @@ object DungeonFeatures : EventSubscriber {
                 hasClearedText = ScoreboardUtil.sidebarLines.any { it.startsWith("Cleared: ") }
             }
 
-            if (Skytils.config.spiritPetWarning && !alertedSpiritPet && DungeonTimer.dungeonStartTime == -1L && mc.world?.entities?.any {
+            if (Skytils.config.spiritPetWarning && !alertedSpiritPet && DungeonTimer.dungeonStartTime == Instant.MAX && mc.world?.entities?.any {
                     if (it !is ArmorStandEntity || it.hasCustomName()) return@any false
                     val item = it.getEquippedStack(EquipmentSlot.HEAD) ?: return@any false
                     if (item.item !is PlayerHeadItem) return@any false
@@ -246,7 +249,7 @@ object DungeonFeatures : EventSubscriber {
 
     fun onTickLowest(event: TickEvent) {
         if (!Utils.inDungeons) return
-        if (Skytils.config.injectFakeDungeonMap && DungeonTimer.bossEntryTime == -1L) {
+        if (Skytils.config.injectFakeDungeonMap && DungeonTimer.bossEntryTime == null) {
             //FIXME
 //            (DungeonInfo.dungeonMap ?: DungeonInfo.guessMapData)?.let {
 //                val slot = mc.player?.inventory?.getStack(8)
@@ -676,7 +679,7 @@ object DungeonFeatures : EventSubscriber {
     }
 
     fun onWorldChange(event: WorldUnloadEvent) {
-        dungeonFloor = null
+        dungeonFloorState.set { null }
         hasBossSpawned = false
         isInTerracottaPhase = false
         terracottaEndTime = -1.0

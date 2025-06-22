@@ -63,7 +63,7 @@ object BloodHelper : EventSubscriber {
 
 
     fun onTick(event: gg.skytils.event.impl.TickEvent) {
-        if (!Utils.inDungeons || DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || !Skytils.config.bloodHelper) {
+        if (!Utils.inDungeons || DungeonTimer.bloodOpenTime == null || DungeonTimer.bloodClearTime != null || !Skytils.config.bloodHelper) {
             neededRender = emptyList()
             return
         } else {
@@ -95,7 +95,7 @@ object BloodHelper : EventSubscriber {
     }
 
     fun render(event: WorldDrawEvent) {
-        if (!Utils.inDungeons || DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || !Skytils.config.bloodHelper || neededRender.isEmpty()) return
+        if (!Utils.inDungeons || DungeonTimer.bloodOpenTime == null || DungeonTimer.bloodClearTime != null || !Skytils.config.bloodHelper || neededRender.isEmpty()) return
         val matrixStack = UMatrixStack.Compat.get()
         matrixStack.runWithGlobalState {
             val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR)
@@ -135,7 +135,7 @@ object BloodHelper : EventSubscriber {
     }
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (DungeonTimer.bloodOpenTime == -1L || DungeonTimer.bloodClearTime != -1L || watchers.isEmpty()) return
+        if (DungeonTimer.bloodOpenTime == null || DungeonTimer.bloodClearTime != null || watchers.isEmpty()) return
         if (event.packet !is EntityS2CPacket.RotateAndMoveRelative) return
         val entity = event.packet.getEntity(UMinecraft.getWorld() ?: return) ?: return
         if (entity !is ArmorStandEntity || entity.getEquippedStack(EquipmentSlot.HEAD)?.item != Items.PLAYER_HEAD) return

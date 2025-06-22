@@ -214,7 +214,7 @@ object DungeonListener : EventSubscriber {
             } else if (text == "§r§aStarting in 1 second.§r") {
                 Skytils.launch {
                     delay(2000)
-                    if (DungeonTimer.dungeonStartTime != -1L && team.size > 1) {
+                    if (DungeonTimer.dungeonStartTime != null && team.size > 1) {
                         val party = async {
                             ServerboundPartyInfoPacket().getResponse<ClientboundPartyInfoPacket>()
                         }
@@ -227,10 +227,10 @@ object DungeonListener : EventSubscriber {
                                 serverId = SBInfo.server ?: return@launch,
                                 floor = DungeonFeatures.dungeonFloor!!,
                                 members = partyMembers,
-                                startTime = DungeonTimer.dungeonStartTime,
+                                startTime = DungeonTimer.dungeonStartTime!!.toEpochMilli(),
                                 entranceLoc = entrance.mainRoom.z * entrance.mainRoom.x
                             )).join()
-                            while (DungeonTimer.dungeonStartTime != -1L) {
+                            while (DungeonTimer.dungeonStartTime != null) {
                                 for (packet in outboundRoomQueue) {
                                     WSClient.sendPacketAsync(packet)
                                     printDevMessage({ packet.toString() }, "dungeonws")

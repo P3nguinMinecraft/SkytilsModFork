@@ -52,6 +52,7 @@ import net.minecraft.network.packet.s2c.play.TeamS2CPacket
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket
 import net.minecraft.text.Text
 import java.awt.Color
+import java.time.Instant
 import kotlin.collections.forEach
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.ceil
@@ -109,7 +110,7 @@ object ScoreCalculation: EventSubscriber {
         totalRoomMap.toList().maxByOrNull { it.second }!!.first
     }
     val calcingCompletedRooms = completedRooms.map {
-        it + (!DungeonFeatures.hasBossSpawned).ifTrue(1) + (DungeonTimer.bloodClearTime == -1L).ifTrue(1)
+        it + (!DungeonFeatures.hasBossSpawned).ifTrue(1) + (DungeonTimer.bloodClearTime == null).ifTrue(1)
     }
     val calcingClearPercentage = calcingCompletedRooms.map { complete ->
         val total = totalRooms.get()
@@ -337,15 +338,15 @@ object ScoreCalculation: EventSubscriber {
         if (line.startsWith("Cleared: ")) {
             val matcher = dungeonClearedPattern.find(line)
             if (matcher != null) {
-                if (DungeonTimer.dungeonStartTime == -1L)
-                    DungeonTimer.dungeonStartTimeState.set { System.currentTimeMillis() }
+                if (DungeonTimer.dungeonStartTime == null)
+                    DungeonTimer.dungeonStartTimeState.set { Instant.now() }
                 clearedPercentage.set(matcher.groups["percentage"]?.value?.toIntOrNull() ?: 0)
                 return
             }
         }
         if (line.startsWith("Time Elapsed:")) {
-            if (DungeonTimer.dungeonStartTime == -1L)
-                DungeonTimer.dungeonStartTimeState.set { System.currentTimeMillis() }
+            if (DungeonTimer.dungeonStartTime == null)
+                DungeonTimer.dungeonStartTimeState.set { Instant.now() }
             val matcher = timeElapsedPattern.find(line)
             if (matcher != null) {
                 val hours = matcher.groups["hrs"]?.value?.toIntOrNull() ?: 0
@@ -510,7 +511,7 @@ object ScoreCalculation: EventSubscriber {
 
     class HugeCryptsHud : HudElement("Dungeon Crypts Counter", 200f, 200f) {
         override fun LayoutScope.render() {
-            if_(SBInfo.dungeonsState and { DungeonTimer.dungeonStartTimeState() != -1L }) {
+            if_(SBInfo.dungeonsState and { DungeonTimer.dungeonStartTimeState() != null }) {
                 text({ "Crypts: ${crypts.toV2()()}" }, Modifier.color { if (crypts.toV2()() < 5) Color.RED else Color(0x49ff59) })
             }
         }

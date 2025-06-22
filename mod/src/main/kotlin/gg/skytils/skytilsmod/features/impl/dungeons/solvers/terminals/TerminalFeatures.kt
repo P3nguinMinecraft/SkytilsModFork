@@ -36,8 +36,8 @@ import net.minecraft.screen.GenericContainerScreenHandler
 object TerminalFeatures : EventSubscriber {
 
     fun isInPhase3(): Boolean {
-        return ((SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != -1L) &&
-                        DungeonTimer.terminalClearTime == -1L && dungeonFloorNumber == 7)
+        return ((SuperSecretSettings.azooPuzzoo || DungeonTimer.phase2ClearTime != null) &&
+                        DungeonTimer.terminalClearTime == null && dungeonFloorNumber == 7)
                 || (SuperSecretSettings.azooPuzzoo && ItemUtil.getSkyBlockItemID(mc.player?.mainHandStack) == "PUZZLE_CUBE")
     }
 

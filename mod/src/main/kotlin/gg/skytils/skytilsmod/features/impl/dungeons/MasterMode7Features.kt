@@ -80,7 +80,7 @@ object MasterMode7Features : EventSubscriber {
     }
 
     fun onBlockChange(event: BlockStateUpdateEvent) {
-        if (DungeonTimer.phase4ClearTime == -1L) return
+        if (DungeonTimer.phase4ClearTime == null) return
         if (Skytils.config.witherKingDragonSlashAlert) {
             if (event.old.block === Blocks.GLOWSTONE) {
                 glowstones.clear()
@@ -99,7 +99,7 @@ object MasterMode7Features : EventSubscriber {
     init {
         tickTimer(15, repeats = true) {
             val player = mc.player
-            if (DungeonTimer.phase4ClearTime == -1L || DungeonTimer.scoreShownAt != -1L || player == null) return@tickTimer
+            if (DungeonTimer.phase4ClearTime == null || DungeonTimer.scoreShownAt != null || player == null) return@tickTimer
             if (Skytils.config.witherKingDragonSlashAlert) {
                 if (glowstones.any { it.contains(player.pos) }) {
                     GuiManager.createTitle("Dimensional Slash!", 10)
@@ -109,7 +109,7 @@ object MasterMode7Features : EventSubscriber {
     }
 
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
-        if (DungeonTimer.phase4ClearTime == -1L) return
+        if (DungeonTimer.phase4ClearTime == null) return
         if (event.packet is EntitySpawnS2CPacket && event.packet.entityType == EntityType.ENDER_DRAGON) {
             val x = event.packet.x / 32.0
             val y = event.packet.y / 32.0
@@ -137,7 +137,7 @@ object MasterMode7Features : EventSubscriber {
     }
 
     fun onMobSpawned(entity: Entity) {
-        if (DungeonTimer.phase4ClearTime != -1L && entity is EnderDragonEntity) {
+        if (DungeonTimer.phase4ClearTime != null && entity is EnderDragonEntity) {
             val type =
                 dragonMap[entity.id] ?: WitherKingDragons.entries
                     .minByOrNull { entity.squaredDistanceTo(it.blockPos.toVec3()) } ?: return
@@ -167,7 +167,7 @@ object MasterMode7Features : EventSubscriber {
 
     fun onRenderLivingPost(event: LivingEntityPreRenderEvent<*, *, *>) {
         val entity = event.entity
-        if (DungeonTimer.phase4ClearTime != -1L && entity is EnderDragonEntity && (Skytils.config.showWitherDragonsColorBlind || Skytils.config.showWitherKingDragonsHP || Skytils.config.showWitherKingStatueBox)) {
+        if (DungeonTimer.phase4ClearTime != null && entity is EnderDragonEntity && (Skytils.config.showWitherDragonsColorBlind || Skytils.config.showWitherKingDragonsHP || Skytils.config.showWitherKingStatueBox)) {
             val matrixStack = UMatrixStack()
             entity as ExtensionEntityLivingBase
             GlStateManager._disableCull()
@@ -210,7 +210,7 @@ object MasterMode7Features : EventSubscriber {
     }
 
     fun onRenderWorld(event: WorldDrawEvent) {
-        if (Skytils.config.showWitherKingStatueBox && DungeonTimer.phase4ClearTime != -1L) {
+        if (Skytils.config.showWitherKingStatueBox && DungeonTimer.phase4ClearTime != null) {
             for (drag in WitherKingDragons.entries) {
                 if (drag.isDestroyed) continue
                 RenderUtil.drawOutlinedBoundingBox(drag.bb, drag.color, 3.69f, event.partialTicks)
@@ -292,7 +292,7 @@ object MasterMode7Features : EventSubscriber {
     }
 
     fun shouldHideDragonDeath() =
-        Utils.inDungeons && DungeonTimer.phase4ClearTime != -1L && Skytils.config.hideWitherKingDragonDeath
+        Utils.inDungeons && DungeonTimer.phase4ClearTime != null && Skytils.config.hideWitherKingDragonDeath
 }
 
 enum class WitherKingDragons(

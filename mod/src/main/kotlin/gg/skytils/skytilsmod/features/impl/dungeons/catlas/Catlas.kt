@@ -94,7 +94,7 @@ object Catlas : EventSubscriber {
             }
 
             MapUtils.calibrated = MapUtils.calibrateMap()
-        } else if (DungeonTimer.scoreShownAt == -1L && DungeonTimer.bossEntryTime == -1L) {
+        } else if (DungeonTimer.scoreShownAt == null && DungeonTimer.bossEntryTime == null) {
             (DungeonInfo.dungeonMap ?: DungeonInfo.guessMapData)?.let {
                 MapUpdater.updateRooms(it)
                 MapUpdater.updatePlayers(it)
@@ -109,7 +109,7 @@ object Catlas : EventSubscriber {
             DungeonScanner.scan()
         }
 
-        if (CatlasConfig.mapShowBeforeStart && DungeonTimer.dungeonStartTime == -1L) {
+        if (CatlasConfig.mapShowBeforeStart && DungeonTimer.dungeonStartTime == null) {
             ScanUtils.getRoomFromPos(player.blockPos)?.uniqueRoom?.let { unq ->
                 if (unq.state == RoomState.PREVISITED) return@let
                 unq.state = RoomState.PREVISITED
@@ -128,7 +128,7 @@ object Catlas : EventSubscriber {
 
     private val doorShape = Box(-1.0, 69.0, -1.0, 2.0, 73.0, 2.0)
     fun onWorldRender(event: WorldDrawEvent) {
-        if (!Utils.inDungeons || DungeonTimer.bossEntryTime != -1L || !CatlasConfig.boxWitherDoors) return
+        if (!Utils.inDungeons || DungeonTimer.bossEntryTime != null || !CatlasConfig.boxWitherDoors) return
 
         val doors = DungeonInfo.dungeonList.filter {
             it is Door && it.type != DoorType.NORMAL && it.state == RoomState.DISCOVERED && !it.opened

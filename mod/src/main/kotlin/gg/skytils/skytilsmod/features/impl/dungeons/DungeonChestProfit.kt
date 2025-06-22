@@ -37,11 +37,8 @@ import gg.skytils.skytilsmod.utils.NumberUtil.romanToDecimal
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
-import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
 import com.mojang.blaze3d.systems.RenderSystem
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
@@ -74,7 +71,7 @@ object DungeonChestProfit : EventSubscriber {
 
     fun onGUIDrawnEvent(event: GuiContainerForegroundDrawnEvent) {
         if (!Skytils.config.dungeonChestProfit) return
-        if ((!Utils.inDungeons || DungeonTimer.scoreShownAt == -1L) && SBInfo.mode != SkyblockIsland.DungeonHub.mode) return
+        if ((!Utils.inDungeons || DungeonTimer.scoreShownAt == null) && SBInfo.mode != SkyblockIsland.DungeonHub.mode) return
         val inv = (event.container as? GenericContainerScreenHandler ?: return).inventory
 
         if (event.chestName == "Croesus") {

@@ -26,9 +26,9 @@ import net.minecraft.util.math.Direction
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 fun onBlockDestroyEffect(pos: BlockPos, state: BlockState, ci: CallbackInfo) {
-    if (Skytils.config.randomStuff && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.phase2ClearTime == -1L) ci.cancel()
+    if (Skytils.config.randomStuff && DungeonTimer.phase1ClearTime != null && DungeonTimer.phase2ClearTime == null) ci.cancel()
 }
 
 fun onBlockHitEffect(pos: BlockPos, facing: Direction, ci: CallbackInfo) {
-    if (Skytils.config.randomStuff && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.phase2ClearTime == -1L) ci.cancel()
+    if (Skytils.config.randomStuff && DungeonTimer.phase1ClearTime != null && DungeonTimer.phase2ClearTime == null) ci.cancel()
 }

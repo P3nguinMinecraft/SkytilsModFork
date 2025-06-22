@@ -44,7 +44,7 @@ object RandomStuff : EventSubscriber {
 
     fun onPacket(event: PacketReceiveEvent<*>) {
         if (!Skytils.config.randomStuff || !Utils.inSkyblock) return
-        if (event.packet is EntitySpawnS2CPacket && event.packet.entityType == EntityType.FALLING_BLOCK && ((DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L) || SBInfo.mode == SkyblockIsland.KuudraHollow.mode)) {
+        if (event.packet is EntitySpawnS2CPacket && event.packet.entityType == EntityType.FALLING_BLOCK && ((DungeonTimer.phase1ClearTime != null && DungeonTimer.bossClearTime == null) || SBInfo.mode == SkyblockIsland.KuudraHollow.mode)) {
             event.cancelled = true
         }
     }
@@ -52,7 +52,7 @@ object RandomStuff : EventSubscriber {
     fun onCheckRenderEvent(event: CheckRenderEntityEvent<*>) {
         if (!Skytils.config.randomStuff || !Utils.inSkyblock) return
         event.apply {
-            if (entity.isInvisible && DungeonTimer.phase1ClearTime != -1L && DungeonTimer.bossClearTime == -1L && entity is ArmorStandEntity) {
+            if (entity.isInvisible && DungeonTimer.phase1ClearTime != null && DungeonTimer.bossClearTime == null && entity is ArmorStandEntity) {
                 (entity as? ArmorStandEntity)?.let { armorStandEntity ->
                     val nn = EquipmentSlot.entries.mapNotNull { slot ->
                         armorStandEntity.getEquippedStack(slot).takeIf { it != ItemStack.EMPTY }
