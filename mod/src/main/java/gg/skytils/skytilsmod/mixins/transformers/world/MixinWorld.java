@@ -18,10 +18,9 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.world;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import gg.skytils.skytilsmod.mixins.hooks.world.WorldHookKt;
-import net.minecraft.world.WorldView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,11 +28,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(World.class)
 public abstract class MixinWorld implements WorldView {
-    @ModifyExpressionValue(method = "getSkyColorBody", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;ticksSinceLightning:I"))
-    private int lightningSkyColor(int orig) {
-        return WorldHookKt.lightningSkyColor(orig);
-    }
-
     @Inject(method = "getTimeOfDay", at = @At("HEAD"), cancellable = true)
     private void fixTime(CallbackInfoReturnable<Long> cir) {
         WorldHookKt.fixTime(this, cir);

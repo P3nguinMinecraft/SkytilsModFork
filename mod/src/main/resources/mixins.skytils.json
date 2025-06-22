@@ -67,6 +67,7 @@
     "renderer.MixinWorldRenderer_Glow",
     "util.MixinChatStyle",
     "util.MixinUtil",
+    "world.MixinClientWorld",
     "world.MixinWorld"
     //#if MC==10809
     //$$ ,
