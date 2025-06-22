@@ -172,7 +172,7 @@ object RenderUtil {
         val matrices = UMatrixStack.Compat.get()
         matrices.push()
         DrawHelper.cameraOffset(matrices)
-        GL11.glLineWidth(width)
+        RenderSystem.lineWidth(width)
         DrawHelper.writeOutlineCube(buffer, matrices, aabb, color.multAlpha(1f))
         buffer.build()?.drawAndClose(if (throughWalls) SRenderPipelines.noDepthBoxPipeline else SRenderPipelines.boxPipeline)
         matrices.pop()
@@ -216,7 +216,7 @@ object RenderUtil {
     ) {
         matrixStack.push()
         DrawHelper.cameraOffset(matrixStack)
-        GL11.glLineWidth(width.toFloat())
+        RenderSystem.lineWidth(width.toFloat())
         val fixedColor = color.multAlpha(alphaMultiplier)
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
         buffer.pos(matrixStack, pos1.x, pos1.y, pos1.z).color(fixedColor).endVertex()
@@ -235,7 +235,7 @@ object RenderUtil {
     ) {
         matrixStack.push()
         DrawHelper.cameraOffset(matrixStack)
-        GL11.glLineWidth(width.toFloat())
+        RenderSystem.lineWidth(width.toFloat())
         val fixedColor = color.multAlpha(alphaMultiplier)
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
         for (pos in points) {
@@ -508,7 +508,7 @@ object RenderUtil {
     fun drawCircle(matrixStack: UMatrixStack, x: Double, y: Double, z: Double, partialTicks: Float, radius: Double, edges: Int, r: Int, g: Int, b: Int, a: Int = 255) {
         val ug = UGraphics.getFromTessellator()
         val angleDelta = Math.PI * 2 / edges
-        GL11.glLineWidth(5f)
+        RenderSystem.lineWidth(5f)
         ug.beginWithDefaultShader(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
         repeat(edges) { idx ->
             ug.pos(matrixStack, x - mc.entityRenderDispatcher.field_4695 + radius * cos(idx * angleDelta), y - mc.entityRenderDispatcher.field_4694, z - mc.entityRenderDispatcher.field_4693 + radius * sin(idx * angleDelta)).color(r, g, b, a).endVertex()
