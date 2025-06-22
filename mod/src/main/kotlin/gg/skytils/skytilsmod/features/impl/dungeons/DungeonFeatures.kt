@@ -45,20 +45,18 @@ import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.core.GuiManager
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.features.impl.handlers.MayorInfo
 import gg.skytils.skytilsmod.listeners.DungeonListener
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.Utils.equalsOneOf
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.client.network.OtherClientPlayerEntity
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.MutableState
 import gg.essential.elementa.state.v2.combinators.map
 import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.state.v2.stateUsingSystemTime
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
@@ -120,7 +118,7 @@ object DungeonFeatures : EventSubscriber {
         "ewogICJ0aW1lc3RhbXAiIDogMTU5NTg2MjAyNjE5OSwKICAicHJvZmlsZUlkIiA6ICI0ZWQ4MjMzNzFhMmU0YmI3YTVlYWJmY2ZmZGE4NDk1NyIsCiAgInByb2ZpbGVOYW1lIiA6ICJGaXJlYnlyZDg4IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzhkOWNjYzY3MDY3N2QwY2ViYWFkNDA1OGQ2YWFmOWFjZmFiMDlhYmVhNWQ4NjM3OWEwNTk5MDJmMmZlMjI2NTUiCiAgICB9CiAgfQp9",
         "ewogICJ0aW1lc3RhbXAiIDogMTY5OTU1NDAwMzI4MywKICAicHJvZmlsZUlkIiA6ICJlOTgxNDA1MTJiNmQ0MzVhOWQwYzdmY2RjMzQxM2M3OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYXphcmJla0FsZGEiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjhmMzNhNDkxODVjMDdhZTIxZjNiNGQ1YTU2OWFjZDEyYWUxMTE1N2U0OTZjY2NjMjY0ODdlZDFiMDlkZWQzZiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
     )
-    private var lastLitUpTime = -1L
+    private var lastLitUpTime: MutableState<Instant?> = mutableStateOf(null)
     private val lastBlockPos = BlockPos(7, 77, 34)
     private var startWithoutFullParty = false
     private var blazes = 0
@@ -141,8 +139,8 @@ object DungeonFeatures : EventSubscriber {
     )
 
     init {
-        DungeonSecretDisplay
-        SpiritBearSpawnTimer()
+        Skytils.guiManager.registerElement(DungeonSecretDisplay)
+        Skytils.guiManager.registerElement(SpiritBearSpawnTimer)
     }
 
     override fun setup() {
@@ -169,9 +167,10 @@ object DungeonFeatures : EventSubscriber {
     fun onBlockChange(event: BlockStateUpdateEvent) {
         if (hasBossSpawned && Skytils.config.spiritBearTimer && dungeonFloor?.endsWith('4') == true) {
             if (event.pos == lastBlockPos) {
-                lastLitUpTime =
-                    if (event.update.block === Blocks.SEA_LANTERN && event.old.block === Blocks.COAL_BLOCK) System.currentTimeMillis() else -1L
-                printDevMessage({ "change light $lastLitUpTime" }, "spiritbear")
+                lastLitUpTime.set {
+                    if (event.update.block === Blocks.SEA_LANTERN && event.old.block === Blocks.COAL_BLOCK) Instant.now() else null
+                }
+                printDevMessage({ "change light ${lastLitUpTime.getUntracked()}" }, "spiritbear")
             }
         } else if (isInTerracottaPhase && Skytils.config.terracottaRespawnTimer && dungeonFloor?.endsWith('6') == true) {
             if (event.old.block == Blocks.AIR && event.update.block == Blocks.FLOWER_POT) {
@@ -187,22 +186,23 @@ object DungeonFeatures : EventSubscriber {
                 when (packet) {
                     is BlockUpdateS2CPacket -> {
                         if (packet.pos == lastBlockPos) {
-                            lastLitUpTime =
-                                if (packet.state.block === Blocks.SEA_LANTERN) System.currentTimeMillis() else -1L
-                            printDevMessage({ "light $lastLitUpTime" }, "spiritbear")
+                            lastLitUpTime.set {
+                                if (packet.state.block === Blocks.SEA_LANTERN) Instant.now() else null
+                            }
+                            printDevMessage({ "light ${lastLitUpTime.getUntracked()}" }, "spiritbear")
                         }
                     }
 
                     is ChatMessageS2CPacket -> {
-                        if (lastLitUpTime != -1L && packet.unsignedContent?.formattedText == "§r§a§lA §r§5§lSpirit Bear §r§a§lhas appeared!§r") {
-                            printDevMessage({ "chat ${System.currentTimeMillis() - lastLitUpTime}" }, "spiritbear")
-                            lastLitUpTime = -1L
+                        if (lastLitUpTime.getUntracked() != null && packet.unsignedContent?.formattedText == "§r§a§lA §r§5§lSpirit Bear §r§a§lhas appeared!§r") {
+                            printDevMessage({ "chat ${System.currentTimeMillis() - lastLitUpTime.getUntracked()!!.toEpochMilli()}" }, "spiritbear")
+                            lastLitUpTime.set { null }
                         }
                     }
 
                     is EntitySpawnS2CPacket -> {
-                        if (lastLitUpTime != -1L && packet.entityType == EntityType.PLAYER && packet.uuid.version() == 2) {
-                            printDevMessage({ "spawn ${System.currentTimeMillis() - lastLitUpTime}" }, "spiritbear")
+                        if (lastLitUpTime.getUntracked() != null && packet.entityType == EntityType.PLAYER && packet.uuid.version() == 2) {
+                            printDevMessage({ "spawn ${System.currentTimeMillis() - lastLitUpTime.getUntracked()!!.toEpochMilli()}" }, "spiritbear")
                             //lastLitUpTime = -1L
                         }
                     }
@@ -684,7 +684,7 @@ object DungeonFeatures : EventSubscriber {
         isInTerracottaPhase = false
         terracottaEndTime = -1.0
         alertedSpiritPet = false
-        lastLitUpTime = -1L
+        lastLitUpTime.set { null }
         startWithoutFullParty = false
         blazes = 0
         hasClearedText = false
@@ -693,54 +693,21 @@ object DungeonFeatures : EventSubscriber {
         intendedItemStack = null
     }
 
-    // TODO: Port when there's a way to have state based on time
-    class SpiritBearSpawnTimer : GuiElement("Spirit Bear Spawn Timer", x = 0.05f, y = 0.4f) {
-        override fun render() {
-            if (toggled && lastLitUpTime != -1L) {
-                val time = lastLitUpTime + 3400
-                val diff = time - System.currentTimeMillis()
-                if (diff < 0) {
-                    lastLitUpTime = -1
-                }
-
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-                ScreenRenderer.fontRenderer.drawString(
-                    "Spirit Bear ${diff / 1000f}s",
-                    if (leftAlign) 0f else width.toFloat(),
-                    0f,
-                    CommonColors.PURPLE,
-                    alignment,
-                    textShadow
-                )
+    object SpiritBearSpawnTimer : HudElement("Spirit Bear Spawn Timer", 10f, 160f) {
+        val diff = stateUsingSystemTime { currentTime ->
+            lastLitUpTime()?.plusMillis(3400)?.let { time -> currentTime.until(time) }
+        }
+        override fun LayoutScope.render() {
+            ifNotNull(diff) { diff ->
+                if (diff.isNegative) lastLitUpTime.set { null }
+                text("Spirit Bear ${diff.getValue().toMillis() / 1000f}s", Modifier.color(Color(0xb200ff)))
             }
         }
 
-        override fun demoRender() {
-
-            val leftAlign = scaleX < sr.scaledWidth / 2f
-            val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
-            ScreenRenderer.fontRenderer.drawString(
-                "Spirit Bear: 3.4s",
-                if (leftAlign) 0f else 0f + width,
-                0f,
-                CommonColors.PURPLE,
-                alignment,
-                textShadow
-            )
+        override fun LayoutScope.demoRender() {
+            text("Spirit Bear: 3.4s", Modifier.color(Color(0xb200ff)))
         }
 
-        override val height: Int
-            get() = 0
-        override val width: Int
-            get() = 0
-
-        override val toggled: Boolean
-            get() = Skytils.config.spiritBearTimer
-
-        init {
-            Skytils.guiManager.registerElement(this)
-        }
     }
 
     object DungeonSecretDisplay : HudElement("Dungeon Secret Display", x = 10f, y = 100f) {
