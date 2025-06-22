@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -19,23 +19,17 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderItemHookKt;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BlockStateModel;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ItemRenderer.class)
-public abstract class MixinRenderItem {
-    @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4384(FFF)V", shift = At.Shift.AFTER))
-    private void renderItemPre(ItemStack stack, BlockStateModel model, CallbackInfo ci) {
-        RenderItemHookKt.renderItemPre(stack, model, ci);
-    }
-
-    @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/ItemRenderer;method_4011(Lnet/minecraft/client/render/model/BlockStateModel;)V", shift = At.Shift.BEFORE), cancellable = true)
-    private void modifyGlintRendering(ItemStack stack, BlockStateModel model, CallbackInfo ci) {
-        RenderItemHookKt.modifyGlintRendering(stack, model, ci);
+@Mixin(DrawContext.class)
+public abstract class MixinDrawContext {
+    @Inject(method = "drawItem(Lnet/minecraft/item/ItemStack;II)V", at = @At("HEAD"))
+    private void onDrawItemHead(ItemStack item, int x, int y, CallbackInfo ci) {
+        RenderItemHookKt.renderRarity(item, x, y, ci);
     }
 }

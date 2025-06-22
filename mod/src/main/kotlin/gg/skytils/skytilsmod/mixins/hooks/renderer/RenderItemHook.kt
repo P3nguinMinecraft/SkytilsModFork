@@ -37,7 +37,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Identifier
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-val RES_ITEM_GLINT = Identifier("textures/misc/enchanted_item_glint.png")
+val RES_ITEM_GLINT = Identifier.of("textures/misc/enchanted_item_glint.png")
 
 var skipGlint = false
 
