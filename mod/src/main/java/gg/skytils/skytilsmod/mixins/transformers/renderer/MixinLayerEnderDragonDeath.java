@@ -18,19 +18,20 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
-import net.minecraft.client.render.entity.feature.EnderDragonDeathFeatureRenderer;
-import net.minecraft.class_995;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.entity.EnderDragonEntityRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(EnderDragonDeathFeatureRenderer.class)
-public abstract class MixinLayerEnderDragonDeath implements class_995<EnderDragonEntity> {
-    @Inject(method = "method_4199(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFFF)V", at = @At(value = "HEAD"), cancellable = true)
-    private void onRenderDragonDeath(EnderDragonEntity entitylivingbaseIn, float f, float g, float partialTicks, float h, float i, float j, float scale, CallbackInfo ci) {
-        if (MasterMode7Features.INSTANCE.shouldHideDragonDeath()) ci.cancel();
+@Mixin(EnderDragonEntityRenderer.class)
+public abstract class MixinLayerEnderDragonDeath {
+    @WrapMethod(method = "renderDeathAnimation")
+    private static void onRenderDragonDeath(MatrixStack matrices, float animationProgress, VertexConsumer vertexConsumer, Operation<Void> original) {
+        if (MasterMode7Features.INSTANCE.shouldHideDragonDeath()) return;
+
+        original.call(matrices, animationProgress, vertexConsumer);
     }
 }
