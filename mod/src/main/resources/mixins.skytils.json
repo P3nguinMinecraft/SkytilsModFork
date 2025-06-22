@@ -108,6 +108,7 @@
     "gui.MixinGuiEditSign",
     "gui.MixinGuiIngameMenu",
     "gui.ToggleHudParts_MixinGuiIngame",
+    "renderer.MixinEntityRenderState",
     "renderer.MixinModelBiped",
     "util.MixinMouseHelper"
   ]

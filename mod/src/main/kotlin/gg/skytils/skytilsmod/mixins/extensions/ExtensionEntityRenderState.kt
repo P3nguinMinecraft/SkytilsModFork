@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2023 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,15 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package gg.skytils.skytilsmod.mixins.transformers.accessors;
+package gg.skytils.skytilsmod.mixins.extensions
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderTickCounter;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import net.minecraft.entity.Entity
 
-@Mixin(MinecraftClient.class)
-public interface AccessorMinecraft {
-    @Accessor("renderTickCounter")
-    RenderTickCounter.Dynamic getTimer();
+interface ExtensionEntityRenderState {
+    var skytilsEntity: Entity?
 }

@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityRenderState;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderHookKt;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderer;
@@ -32,6 +33,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityRenderer.class)
 public abstract class MixinRender<T extends Entity> {
+    @Inject(method = "updateRenderState", at = @At("HEAD"))
+    private void preUpdateRenderState(T entity, EntityRenderState state, float tickProgress, CallbackInfo ci) {
+        ((ExtensionEntityRenderState) state).setSkytilsEntity(entity);
+    }
+
     @Inject(method = "updateRenderState", at = @At("TAIL"), cancellable = true)
     private void removeEntityOnFire(Entity entity, EntityRenderState state, float tickProgress, CallbackInfo ci) {
         RenderHookKt.removeEntityOnFire(entity, state, ci);

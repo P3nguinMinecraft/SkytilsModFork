@@ -36,6 +36,7 @@ import net.minecraft.block.Block
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
+import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.Slot
 import net.minecraft.util.*
@@ -526,8 +527,8 @@ object RenderUtil {
         return Triple(viewerX, viewerY, viewerZ)
     }
 
-    fun getPartialTicks() =
-        (mc as AccessorMinecraft).timer.getTickProgress(false)
+    fun getPartialTicks(entity: Entity? = null) =
+        (mc as AccessorMinecraft).timer.getTickProgress(entity?.let { mc.world?.tickManager?.shouldSkipTick(it)?.not() } ?: false)
 
     /**
      * Helper method for fixRenderPos
