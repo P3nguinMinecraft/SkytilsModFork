@@ -18,26 +18,29 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
-import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntityChestRendererHookKt;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import gg.skytils.skytilsmod.features.impl.dungeons.solvers.ThreeWeirdosSolver;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.block.entity.ChestBlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.client.render.block.entity.model.ChestBlockModel;
+import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ChestBlockEntityRenderer.class)
-public abstract class MixinTileEntityChestRenderer extends BlockEntityRenderer<ChestBlockEntity> {
+public abstract class MixinTileEntityChestRenderer{
 
-    @Inject(method = "render(Lnet/minecraft/block/entity/ChestBlockEntity;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/ChestEntityModel;method_2799()V", shift = At.Shift.BEFORE))
-    private void setChestColor(ChestBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
-        TileEntityChestRendererHookKt.setChestColor(te, x, y, z, partialTicks, destroyStage, ci);
+    @WrapOperation(method = "render(Lnet/minecraft/block/entity/BlockEntity;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/util/math/Vec3d;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/entity/ChestBlockEntityRenderer;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/client/render/block/entity/model/ChestBlockModel;FII)V"))
+    private void setChestColor(ChestBlockEntityRenderer<?> instance, MatrixStack matrices, VertexConsumer vertices, ChestBlockModel model, float animationProgress, int light, int overlay, Operation<Void> original, @Local(argsOnly = true) BlockEntity entity) {
+        // TODO: look into alternatives
+        if (entity.getPos() == ThreeWeirdosSolver.riddleChest) {
+            original.call(instance, matrices, vertices, model, animationProgress, light, OverlayTexture.getUv(0f, true));
+            return;
+        }
+        original.call(instance, matrices, vertices, model, animationProgress, light, overlay);
     }
-
-    @Inject(method = "render(Lnet/minecraft/block/entity/ChestBlockEntity;DDDFI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/ChestEntityModel;method_2799()V", shift = At.Shift.AFTER))
-    private void setChestColorPost(ChestBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, CallbackInfo ci) {
-        TileEntityChestRendererHookKt.setChestColorPost(te, x, y, z, partialTicks, destroyStage, ci);
-    }
-
 }
