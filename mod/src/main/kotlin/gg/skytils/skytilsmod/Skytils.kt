@@ -73,7 +73,6 @@ import gg.skytils.skytilsmod.mixins.hooks.util.MouseHelperHook
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorSettingsGui
 import gg.skytils.skytilsmod.tweaker.DependencyLoader
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CustomColor
 import gg.skytils.skytilsws.client.WSClient
 import io.ktor.client.*
@@ -429,7 +428,6 @@ object Skytils : CoroutineScope, EventSubscriber {
 
         ModChecker.checkModdedForge()
 
-        ScreenRenderer.init()
 
         SkytilsCommands
 
@@ -459,7 +457,6 @@ object Skytils : CoroutineScope, EventSubscriber {
     }
 
     fun onTick(event: TickEvent) {
-        ScreenRenderer.refresh()
 
         ScoreboardUtil.sidebarLines = ScoreboardUtil.fetchScoreboardLines().map { l -> ScoreboardUtil.cleanSB(l) }
         TabListUtils.tabEntries = TabListUtils.fetchTabEntries().map { e -> e to e.text }

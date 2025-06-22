@@ -30,7 +30,6 @@ import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.handlers.KuudraPriceData
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import gg.skytils.skytilsmod.utils.*
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -215,7 +214,6 @@ object KuudraChestProfit : EventSubscriber {
         }
     }
 
-    private var textShadow_ = SmartFontRenderer.TextShadow.NORMAL
     private data class KuudraChestLootItem(var stackSize: Int, var displayText: String, var value: Double) : Comparable<KuudraChestLootItem> {
         override fun compareTo(other: KuudraChestLootItem): Int = value.compareTo(other.value)
     }

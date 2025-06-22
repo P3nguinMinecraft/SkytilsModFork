@@ -25,10 +25,8 @@ import gg.essential.universal.UResolution
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.mixins.hooks.renderer.skipGlint
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorMinecraft
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import gg.skytils.skytilsmod.utils.rendering.DrawHelper.writeRectCoords
 import gg.skytils.skytilsmod.utils.rendering.SRenderPipelines
@@ -646,24 +644,6 @@ object RenderUtil {
 
     fun interpolate(currentValue: Double, lastValue: Double, multiplier: Float): Double {
         return lastValue + (currentValue - lastValue) * multiplier
-    }
-
-    fun drawAllInList(element: GuiElement, lines: Collection<String>) {
-        val leftAlign = element.scaleX < UResolution.scaledWidth / 2f
-
-        val matrices = UMatrixStack.Compat.get()
-        for ((i, str) in lines.withIndex()) {
-            val xPos = if (leftAlign) 0f else (element.width.toFloat() - UGraphics.getStringWidth(str))
-
-            UGraphics.drawString(
-                matrices,
-                str,
-                xPos,
-                (i * UGraphics.getFontHeight()).toFloat(),
-                0xFFFFFF,
-                element.textShadow != SmartFontRenderer.TextShadow.NONE,
-            )
-        }
     }
 
     fun drawSelectionBox(

@@ -45,7 +45,6 @@ import gg.skytils.skytilsmod.features.impl.misc.PricePaid
 import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.gui.OptionsGui
-import gg.skytils.skytilsmod.gui.editing.ElementaEditingGui
 import gg.skytils.skytilsmod.gui.features.*
 import gg.skytils.skytilsmod.gui.updater.UpdateGui
 import gg.skytils.skytilsmod.gui.waypoints.WaypointsGui
@@ -235,7 +234,7 @@ object SkytilsCommand {
 
     @Command("skytils|st editlocations|editloc|locations|loc|gui")
     fun openLocations() {
-        Skytils.displayScreen = ElementaEditingGui()
+        Skytils.displayScreen = Skytils.guiManager.demoHud
     }
 
     @Command("skytils|st keyshortcuts|shortcuts")

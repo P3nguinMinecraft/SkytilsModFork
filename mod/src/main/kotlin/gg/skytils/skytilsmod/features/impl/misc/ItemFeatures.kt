@@ -56,9 +56,6 @@ import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.RenderUtil.renderRarity
 import gg.skytils.skytilsmod.utils.SkillUtils.level
 import gg.skytils.skytilsmod.utils.Utils.equalsOneOf
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.minecraft.block.DoorBlock
@@ -789,13 +786,19 @@ object ItemFeatures : EventSubscriber {
         UGraphics.disableLighting()
         UGraphics.disableBlend()
         UGraphics.disableDepth()
-        ScreenRenderer.fontRenderer.drawString(
+        val matrixStack = UMatrixStack.Compat.get()
+        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+        UMinecraft.getMinecraft().textRenderer.draw(
             errorString,
-            gui.xSize / 2f,
-            22.5f,
-            CommonColors.RED,
-            TextAlignment.MIDDLE
+            gui.xSize / 2f, 22.5f,
+            Color.RED.rgb,
+            false,
+            matrixStack.peek().model,
+            vertexConsumer,
+            TextRenderer.TextLayerType.NORMAL,
+            0, 15728880
         )
+        vertexConsumer.draw()
         UGraphics.enableDepth()
         UGraphics.enableBlend()
         UGraphics.enableLighting()
