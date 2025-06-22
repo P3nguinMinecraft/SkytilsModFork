@@ -26,6 +26,7 @@ import gg.essential.elementa.state.v2.memo
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UResolution
+import gg.skytils.skytilsmod.core.GuiManager
 import gg.skytils.skytilsmod.gui.layout.modifier.OffsetMouseAlignment
 import gg.skytils.skytilsmod.gui.layout.modifier.Relative
 import gg.skytils.skytilsmod.gui.layout.modifier.onLeftClickEvent
@@ -86,4 +87,12 @@ abstract class HudElement(
     abstract fun LayoutScope.render()
 
     abstract fun LayoutScope.demoRender()
+
+    fun asMetadata(): GuiManager.GuiElementMetadata =
+        GuiManager.GuiElementMetadata(x.getUntracked(), y.getUntracked())
+
+    fun applyMetadata(metadata: GuiManager.GuiElementMetadata) {
+        x.set { metadata.x }
+        y.set { metadata.y }
+    }
 }

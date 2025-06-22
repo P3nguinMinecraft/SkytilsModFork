@@ -30,7 +30,6 @@ import gg.skytils.event.impl.screen.ScreenDrawEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
@@ -39,9 +38,6 @@ import gg.skytils.skytilsmod.mixins.hooks.item.masterStarRegex
 import gg.skytils.skytilsmod.mixins.hooks.item.masterStars
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.Utils.inDungeons
-import gg.skytils.skytilsmod.utils.graphics.ScreenRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.item.ItemStack

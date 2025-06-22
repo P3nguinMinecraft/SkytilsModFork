@@ -377,8 +377,8 @@ object SkytilsCommand {
         name: String
     ) {
         val element = Skytils.guiManager.getByName(name) ?: return UChat.chat("$failPrefix §cThat element was not found!")
-        element.setPos(0.5f, 0.5f)
-        element.scale = 1f
+        element.x.set { 0.5f }
+        element.y.set { 0.5f }
     }
 
     @Suggestions("skytilsguielements")

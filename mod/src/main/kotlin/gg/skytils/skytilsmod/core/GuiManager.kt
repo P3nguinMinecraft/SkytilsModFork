@@ -22,7 +22,6 @@ import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.Window
 import gg.essential.elementa.dsl.pixels
-import gg.essential.universal.UChat
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UResolution
@@ -31,10 +30,8 @@ import gg.skytils.event.EventSubscriber
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod._event.RenderHUDEvent
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.toast.Toast
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -46,7 +43,7 @@ import java.io.Reader
 import java.io.Writer
 
 object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), EventSubscriber {
-    val elements = hashMapOf<String, GuiElement>()
+    val elements = hashMapOf<String, HudElement>()
     val elementMetadata = hashMapOf<String, GuiElementMetadata>()
     val hud = Window(ElementaVersion.V5)
     val demoHud = object : WindowScreen(ElementaVersion.V5) {}
@@ -63,17 +60,8 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         get() = ((UResolution.scaledHeight * 0.5) / 32).toInt()
     private val takenSlots = sortedSetOf<Int>()
 
-    fun registerElement(e: GuiElement): Boolean {
-        return try {
-            elements[e.name] = e
-            true
-        } catch (err: Exception) {
-            err.printStackTrace()
-            false
-        }
-    }
-
     fun registerElement(e: HudElement) {
+        elements[e.name] = e
         hud.addChild(e.component)
         demoHud.window.addChild(e.demoComponent)
     }
@@ -96,11 +84,11 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         }
     }
 
-    fun getByName(name: String?): GuiElement? {
+    fun getByName(name: String?): HudElement? {
         return elements[name]
     }
 
-    fun searchElements(query: String): Collection<GuiElement> {
+    fun searchElements(query: String): Collection<HudElement> {
         return elements.filter { it.key.contains(query) }.values
     }
 
@@ -121,21 +109,11 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         //$$ val profiler = mc.tickProfilerResult
         //#endif
         profiler.push("SkytilsHUD")
+        profiler.push("Toasts")
         gui.draw(UMatrixStack.Compat.get())
+        profiler.swap("Hud")
         hud.draw(UMatrixStack.Compat.get())
-        for ((_, element) in elements) {
-            profiler.push(element.name)
-            try {
-                val matrix = UMatrixStack.Compat.get()
-                matrix.translate(element.scaleX, element.scaleY, 0f)
-                matrix.scale(element.scale, element.scale, 0f)
-                matrix.runWithGlobalState(element::render)
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-                UChat.chat("${Skytils.failPrefix} §cSkytils ${Skytils.VERSION} caught and logged an ${ex::class.simpleName ?: "error"} while rendering ${element.name}. Please report this on the Discord server at discord.gg/skytils.")
-            }
-            profiler.pop()
-        }
+        profiler.swap("Titles")
         renderTitles()
         profiler.pop()
     }
@@ -230,8 +208,12 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         writer.write("{}")
     }
 
+    enum class TextShadow {
+        NONE, NORMAL, OUTLINE
+    }
+
     @Serializable
-    data class GuiElementMetadata(val x: Float, val y: Float, val scale: Float = 1f, val textShadow: SmartFontRenderer.TextShadow = SmartFontRenderer.TextShadow.NORMAL)
+    data class GuiElementMetadata(val x: Float, val y: Float, val scale: Float = 1f, val textShadow: TextShadow = TextShadow.NORMAL)
 
     override fun setup() {
         register(::onRenderHUD, EventPriority.Highest)
