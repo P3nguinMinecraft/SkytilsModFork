@@ -18,13 +18,22 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.skytilsmod.features.impl.dungeons.MasterMode7Features;
-import net.minecraft.client.render.entity.model.EntityModel;
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityRenderState;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EnderDragonEntityRenderer;
-import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.entity.MobEntityRenderer;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.render.entity.state.EnderDragonEntityRenderState;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,13 +43,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EnderDragonEntityRenderer.class)
-public abstract class MixinRenderDragon extends MobEntityRenderer<EnderDragonEntity> {
+public abstract class MixinRenderDragon {
     @Unique
     private EnderDragonEntity lastDragon = null;
-
-    public MixinRenderDragon(EntityRenderDispatcher renderManager, EntityModel modelBase, float f) {
-        super(renderManager, modelBase, f);
-    }
 
     @Inject(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At("HEAD"))
     private void onRenderModel(EnderDragonEntity entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
@@ -57,8 +62,19 @@ public abstract class MixinRenderDragon extends MobEntityRenderer<EnderDragonEnt
         MasterMode7Features.INSTANCE.afterRenderHurtFrame((EnderDragonEntityRenderer) (Object) this, entitylivingbaseIn, f, g, h, i, j, scaleFactor, ci);
     }
 
-    @Inject(method = "getTexture", at = @At("HEAD"), cancellable = true)
-    private void replaceEntityTexture(EnderDragonEntity entity, CallbackInfoReturnable<Identifier> cir) {
-        MasterMode7Features.INSTANCE.getEntityTexture(entity, cir);
+    ///#if MC==10809
+    //$$ @Inject(method = "getTexture", at = @At("HEAD"), cancellable = true)
+    //$$ private void replaceEntityTexture(EnderDragonEntity entity, CallbackInfoReturnable<Identifier> cir) {
+    //$$    MasterMode7Features.INSTANCE.getEntityTexture(entity, cir);
+    //$$ }
+    //#else
+    @Definition(id = "getBuffer", method = "Lnet/minecraft/client/render/VertexConsumerProvider;getBuffer(Lnet/minecraft/client/render/RenderLayer;)Lnet/minecraft/client/render/VertexConsumer;")
+    @Definition(id = "DRAGON_CUTOUT", field = "Lnet/minecraft/client/render/entity/EnderDragonEntityRenderer;DRAGON_CUTOUT:Lnet/minecraft/client/render/RenderLayer;")
+    @Expression("?.getBuffer(DRAGON_CUTOUT)")
+    @ModifyArg(method = "render(Lnet/minecraft/client/render/entity/state/EnderDragonEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private RenderLayer getDragonCutoutLayer(RenderLayer renderLayer, @Local(argsOnly = true) EnderDragonEntityRenderState state) {
+        @Nullable Entity entity = ((ExtensionEntityRenderState) state).getSkytilsEntity();
+        return MasterMode7Features.INSTANCE.getDragonCutoutLayer(entity, renderLayer);
     }
+    //#endif
 }

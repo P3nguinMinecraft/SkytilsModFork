@@ -49,6 +49,7 @@ import net.minecraft.client.render.entity.EnderDragonEntityRenderer
 import net.minecraft.entity.Entity
 import net.minecraft.entity.boss.dragon.EnderDragonEntity
 import net.minecraft.block.Blocks
+import net.minecraft.client.render.RenderLayer
 import net.minecraft.entity.EntityType
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket
@@ -265,6 +266,14 @@ object MasterMode7Features : EventSubscriber {
         } else value
     }
 
+    fun getDragonCutoutLayer(entity: Entity?, renderLayer: RenderLayer): RenderLayer {
+        if (entity !is EnderDragonEntity || !Skytils.config.retextureWitherKingsDragons) return renderLayer
+        entity as ExtensionEntityLivingBase
+        val type = entity.skytilsHook.masterDragonType ?: return renderLayer
+        return type.cutoutLayer
+    }
+
+
     fun getEntityTexture(entity: EnderDragonEntity, cir: CallbackInfoReturnable<Identifier>) {
         if (!Skytils.config.retextureWitherKingsDragons) return
         entity as ExtensionEntityLivingBase
@@ -323,6 +332,11 @@ enum class WitherKingDragons(
         )
     }
     val particleLocation: BlockPos = blockPos.up(5)
+
+    //#if MC>=12104
+    val decalLayer = RenderLayer.getEntityDecal(texture)
+    val cutoutLayer = RenderLayer.getEntityCutoutNoCull(texture)
+    //#endif
 
     companion object {
         const val particleYConstant = 19.0
