@@ -18,7 +18,6 @@
 package gg.skytils.skytilsmod.features.impl.dungeons
 
 import gg.essential.api.EssentialAPI
-import gg.essential.universal.UResolution
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -28,7 +27,6 @@ import gg.skytils.event.impl.screen.GuiContainerSlotClickEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.core.structure.GuiElement
 import gg.skytils.skytilsmod.features.impl.handlers.AuctionData
 import gg.skytils.skytilsmod.features.impl.misc.ItemFeatures
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
@@ -37,12 +35,17 @@ import gg.skytils.skytilsmod.utils.NumberUtil.romanToDecimal
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
 import gg.skytils.skytilsmod.utils.SBInfo
 import gg.skytils.skytilsmod.utils.SkyblockIsland
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
-import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer.TextAlignment
 import com.mojang.blaze3d.systems.RenderSystem
-import gg.essential.universal.UGraphics
+import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.Modifier
+import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.combinators.or
+import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
+import gg.skytils.skytilsmod.core.structure.v2.HudElement
+import gg.skytils.skytilsmod.gui.layout.text
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
@@ -57,7 +60,7 @@ import java.util.TreeSet
  * @author Quantizr
  */
 object DungeonChestProfit : EventSubscriber {
-    private val element = DungeonChestProfitElement()
+    private val element = DungeonChestProfitHud.also { Skytils.guiManager.registerElement(it) }
     private var rerollBypass = false
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
     private val croesusChestRegex = Regex("^(Master Mode )?The Catacombs - Flo(or (IV|V?I{0,3}))?$")
@@ -210,9 +213,9 @@ object DungeonChestProfit : EventSubscriber {
     }
 
     private fun drawChestProfit(chest: DungeonChest) {
-        if (chest.items.size > 0) {
-            val leftAlign = element.scaleX < UResolution.scaledWidth / 2f
-            val alignment = if (leftAlign) TextAlignment.LEFT_RIGHT else TextAlignment.RIGHT_LEFT
+        if (chest.items.isNotEmpty()) {
+            // TODO: probably can just directly call draw on component
+//            val leftAlign = element.component.getLeft() < UResolution.scaledWidth / 2f
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
             // disable lighting
             var drawnLines = 1
@@ -224,8 +227,8 @@ object DungeonChestProfit : EventSubscriber {
                 chest.displayText + "§f: §" + (if (profit > 0) "a" else "c") + NumberUtil.nf.format(
                     profit
                 ),
-                if (leftAlign) element.scaleX else element.scaleX + element.width,
-                element.scaleY,
+                element.component.getLeft(),
+                element.component.getTop(),
                 chest.displayColor.rgb,
                 false,
                 matrixStack.peek().model,
@@ -239,8 +242,8 @@ object DungeonChestProfit : EventSubscriber {
                 val line = itemName + "§f: §a" + NumberUtil.nf.format(item.value)
                 mc.textRenderer.draw(
                     line,
-                    if (leftAlign) element.scaleX else element.scaleX + element.width,
-                    element.scaleY + drawnLines * mc.textRenderer.fontHeight,
+                    element.component.getLeft(),
+                    element.component.getTop() + drawnLines * mc.textRenderer.fontHeight,
                     0xFFFFFF,
                     false,
                     matrixStack.peek().model,
@@ -289,8 +292,18 @@ object DungeonChestProfit : EventSubscriber {
         OBSIDIAN("Obsidian Chest", Color.BLACK),
         BEDROCK("Bedrock Chest", Color(0xadadad));
 
+        val notifier = mutableStateOf(false)
+
         var price = 0.0
+            set(value) {
+                notifier.set { !it }
+                field = value
+            }
         var value = 0.0
+            set(value) {
+                notifier.set { !it }
+                field = value
+            }
         var items = TreeSet<DungeonChestLootItem>().descendingSet()
         val profit
             get() = value - price
@@ -311,53 +324,27 @@ object DungeonChestProfit : EventSubscriber {
         }
     }
 
-    private var textShadow_ = SmartFontRenderer.TextShadow.NORMAL
     private data class DungeonChestLootItem(var item: ItemStack, var value: Double) : Comparable<DungeonChestLootItem> {
         override fun compareTo(other: DungeonChestLootItem): Int = value.compareTo(other.value)
     }
-    // TODO: Migrate to new hud system
-    class DungeonChestProfitElement : GuiElement("Dungeon Chest Profit", x = 200, y = 120) {
-        override fun render() {
-            if (toggled && (Utils.inDungeons || SBInfo.mode == SkyblockIsland.DungeonHub.mode)) {
-                val leftAlign = scaleX < sr.scaledWidth / 2f
-                textShadow_ = textShadow
-                RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-                // disable lighting
-                val matrixStack = UMatrixStack.Compat.get()
-                val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-                DungeonChest.entries.filter { it.items.isNotEmpty() }.forEachIndexed { i, chest ->
-                    val profit = chest.value - chest.price
-                    // TODO: Fix text shadow
-                    mc.textRenderer.draw(
-                        "${chest.displayText}§f: §${(if (profit > 0) "a" else "c")}${NumberUtil.format(profit.toLong())}",
-                        if (leftAlign) 0f else width.toFloat(),
-                        (i * mc.textRenderer.fontHeight).toFloat(),
-                        chest.displayColor.rgb,
-                        false,
-                        matrixStack.peek().model,
-                        vertexConsumer,
-                        TextRenderer.TextLayerType.NORMAL,
-                        0,
-                        15728880
-                    )
+
+    object DungeonChestProfitHud : HudElement("Dungeon Chest Profit", 200f, 120f) {
+        override fun LayoutScope.render() {
+            if_(SBInfo.dungeonsState or State { SBInfo.modeState() == SkyblockIsland.DungeonHub.mode }) {
+                DungeonChest.entries.forEach { chest ->
+                    val text = State {
+                        chest.notifier()
+                        "${chest.displayText}§f: §${(if (chest.profit > 0) "a" else "c")}${NumberUtil.format(chest.profit.toLong())}"
+                    }
+                    text(text, Modifier.color(chest.displayColor))
                 }
             }
         }
 
-        override fun demoRender() {
-            RenderUtil.drawAllInList(this, DungeonChest.entries.map { "${it.displayText}: §a+300M" })
-        }
-
-        override val height: Int
-            get() = mc.textRenderer.fontHeight * DungeonChest.entries.size
-        override val width: Int
-            get() = UGraphics.getStringWidth("Obsidian Chest: +300M")
-
-        override val toggled: Boolean
-            get() = Skytils.config.dungeonChestProfit
-
-        init {
-            Skytils.guiManager.registerElement(this)
+        override fun LayoutScope.demoRender() {
+            DungeonChest.entries.forEach { chest ->
+                text("${chest.displayText}: §a+300M")
+            }
         }
     }
 }
