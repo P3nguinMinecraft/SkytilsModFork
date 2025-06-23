@@ -532,16 +532,16 @@ object MiscFeatures : EventSubscriber {
 
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {
-                row {
-                    ItemComponent(ENCHANTED_BOOK)()
+                row(Modifier.height(16f)) {
+                    ItemComponent(ENCHANTED_BOOK)(Modifier.fillHeight().widthAspect(1f))
                     text(stringState, Modifier.color(Color.ORANGE))
                 }
             }
         }
 
         override fun LayoutScope.demoRender() {
-            row {
-                ItemComponent(ENCHANTED_BOOK)()
+            row(Modifier.height(16f)) {
+                ItemComponent(ENCHANTED_BOOK)(Modifier.fillHeight().widthAspect(1f))
                 text("69", Modifier.color(Color.ORANGE))
             }
         }
