@@ -293,7 +293,7 @@ tasks {
         configurations = if (platform.isLegacyForge) listOf(include, relocated) else listOf(relocated)
 
         relocate("dev.falsehonesty.asmhelper", "gg.skytils.asmhelper")
-        relocate("com.llamalad7.mixinextras", "gg.skytils.mixinextras")
+        if (platform.isLegacyForge) relocate("com.llamalad7.mixinextras", "gg.skytils.mixinextras")
         relocate("io.ktor", "gg.skytils.ktor")
         relocate("kotlinx.serialization", "gg.skytils.ktx-serialization")
         relocate("kotlinx.coroutines", "gg.skytils.ktx-coroutines")
