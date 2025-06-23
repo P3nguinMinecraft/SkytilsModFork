@@ -19,7 +19,7 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import com.mojang.authlib.GameProfile;
-import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntitySkullRendererHookKt;
+// import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntitySkullRendererHookKt;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;

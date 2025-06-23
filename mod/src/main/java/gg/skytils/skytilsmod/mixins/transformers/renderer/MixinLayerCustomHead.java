@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerCustomHeadHookKt;
+// import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerCustomHeadHookKt;
 import net.minecraft.client.render.entity.feature.HeadFeatureRenderer;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;

@@ -72,7 +72,7 @@ public class TweakerUtil {
 
         Icon icon = null;
         try {
-            URL url = SkytilsLoadingPlugin.class.getResource("/assets/skytils/sychicpet.gif");
+            URL url = TweakerUtil.class.getResource("/assets/skytils/sychicpet.gif");
             if (url != null) {
                 icon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(url).getScaledInstance(50, 50, Image.SCALE_DEFAULT));
             }
@@ -121,7 +121,12 @@ public class TweakerUtil {
     }
 
     static Class<?> getClassForLaunch(String name, boolean initialize) throws ClassNotFoundException {
-        return Class.forName(name, initialize, Launch.classLoader);
+        //#if MC==10809
+        //$$ ClassLoader classLoader = Launch.classLoader;
+        //#else
+        ClassLoader classLoader = FabricLauncherBase.getLauncher().getTargetClassLoader();
+        //#endif
+        return Class.forName(name, initialize, classLoader);
     }
 
     static Field findField(final Class<?> clazz, final String name) throws ReflectiveOperationException {
