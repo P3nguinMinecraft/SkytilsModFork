@@ -314,16 +314,18 @@ object DungeonTimer : EventSubscriber {
         }
 
         override fun LayoutScope.demoRender() {
-            listOf(
-                "§aTime Elapsed: 0s",
-                "§7Wither Doors: 0",
-                "§4Blood Open: 0s",
-                "§cWatcher Clear: 0s",
-                "§dPortal: 0s",
-                "§9Boss Entry: 0s",
-                "§bBoss Clear: 0s"
-            ).forEach { line ->
-                text(line)
+            column {
+                listOf(
+                    "§aTime Elapsed: 0s",
+                    "§7Wither Doors: 0",
+                    "§4Blood Open: 0s",
+                    "§cWatcher Clear: 0s",
+                    "§dPortal: 0s",
+                    "§9Boss Entry: 0s",
+                    "§bBoss Clear: 0s"
+                ).forEach { line ->
+                    text(line)
+                }
             }
         }
 
@@ -332,35 +334,39 @@ object DungeonTimer : EventSubscriber {
     object NecronPhaseTimerHud : HudElement("Necron Phase Timer", 200f, 120f) {
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState and State { bossEntryTimeState() != null} and State { dungeonFloorNumberState() == 7 }) {
-                text({ "§bMaxor: ${createTimeTextState(bossEntryTimeState, phase1ClearTimeState).invoke()}" })
-                ifNotNull(phase1ClearTimeState) {
-                    text({ "§cStorm: ${createTimeTextState(phase1ClearTimeState, phase2ClearTimeState).invoke()}" })
-                }
-                ifNotNull(phase2ClearTimeState) {
-                    text({ "§eTerminals: ${createTimeTextState(phase2ClearTimeState, terminalClearTimeState).invoke()}" })
-                }
-                ifNotNull(terminalClearTimeState) {
-                    text({ "§6Goldor: ${createTimeTextState(terminalClearTimeState, phase3ClearTimeState).invoke()}" })
-                }
-                ifNotNull(phase3ClearTimeState) {
-                    text({ "§4Necron: ${createTimeTextState(phase3ClearTimeState, phase4ClearTimeState).invoke()}" })
-                }
-                if_(State { phase4ClearTimeState() != null } and State { DungeonFeatures.dungeonFloorState().equals("M7") }) {
-                    text({ "§7Wither King: ${createTimeTextState(phase4ClearTimeState, bossClearTimeState).invoke()}" })
+                column {
+                    text({ "§bMaxor: ${createTimeTextState(bossEntryTimeState, phase1ClearTimeState).invoke()}" })
+                    ifNotNull(phase1ClearTimeState) {
+                        text({ "§cStorm: ${createTimeTextState(phase1ClearTimeState, phase2ClearTimeState).invoke()}" })
+                    }
+                    ifNotNull(phase2ClearTimeState) {
+                        text({ "§eTerminals: ${createTimeTextState(phase2ClearTimeState, terminalClearTimeState).invoke()}" })
+                    }
+                    ifNotNull(terminalClearTimeState) {
+                        text({ "§6Goldor: ${createTimeTextState(terminalClearTimeState, phase3ClearTimeState).invoke()}" })
+                    }
+                    ifNotNull(phase3ClearTimeState) {
+                        text({ "§4Necron: ${createTimeTextState(phase3ClearTimeState, phase4ClearTimeState).invoke()}" })
+                    }
+                    if_(State { phase4ClearTimeState() != null } and State { DungeonFeatures.dungeonFloorState().equals("M7") }) {
+                        text({ "§7Wither King: ${createTimeTextState(phase4ClearTimeState, bossClearTimeState).invoke()}" })
+                    }
                 }
             }
         }
 
         override fun LayoutScope.demoRender() {
-            listOf(
-                "§bMaxor: 0s",
-                "§cStorm: 0s",
-                "§eTerminals: 0s",
-                "§6Goldor: 0s",
-                "§4Necron: 0s",
-                "§7Wither King: 0s"
-            ).forEach { line ->
-                text(line)
+            column {
+                listOf(
+                    "§bMaxor: 0s",
+                    "§cStorm: 0s",
+                    "§eTerminals: 0s",
+                    "§6Goldor: 0s",
+                    "§4Necron: 0s",
+                    "§7Wither King: 0s"
+                ).forEach { line ->
+                    text(line)
+                }
             }
         }
 
@@ -369,23 +375,27 @@ object DungeonTimer : EventSubscriber {
     object SadanPhaseTimer : HudElement("Sadan Phase Timer", 200f, 120f) {
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState and State { bossEntryTimeState() != null && dungeonFloorNumberState() == 6 }) {
-                text({ "§dTerracotta: ${createTimeTextState(bossEntryTimeState, terraClearTimeState).invoke()}" })
-                ifNotNull(terraClearTimeState) {
-                    text({ "§aGiants: ${createTimeTextState(terraClearTimeState, giantsClearTimeState).invoke()}" })
-                }
-                ifNotNull(giantsClearTimeState) {
-                    text({ "§cSadan: ${createTimeTextState(giantsClearTimeState, bossClearTimeState).invoke()}" })
+                column {
+                    text({ "§dTerracotta: ${createTimeTextState(bossEntryTimeState, terraClearTimeState).invoke()}" })
+                    ifNotNull(terraClearTimeState) {
+                        text({ "§aGiants: ${createTimeTextState(terraClearTimeState, giantsClearTimeState).invoke()}" })
+                    }
+                    ifNotNull(giantsClearTimeState) {
+                        text({ "§cSadan: ${createTimeTextState(giantsClearTimeState, bossClearTimeState).invoke()}" })
+                    }
                 }
             }
         }
 
         override fun LayoutScope.demoRender() {
-            listOf(
-                "§dTerracotta: 0s",
-                "§aGiants: 0s",
-                "§cSadan: 0s"
-            ).forEach { line ->
-                text(line)
+            column {
+                listOf(
+                    "§dTerracotta: 0s",
+                    "§aGiants: 0s",
+                    "§cSadan: 0s"
+                ).forEach { line ->
+                    text(line)
+                }
             }
         }
 
