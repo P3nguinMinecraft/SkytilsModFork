@@ -278,7 +278,7 @@ tasks {
     }
     named<RemapJarTask>("remapJar") {
         archiveBaseName.set("Skytils")
-        inputFile.set(shadowJar.get().archiveFile)
+        inputFile.set(shadowJar.flatMap { it.archiveFile })
         doLast {
             MessageDigest.getInstance("SHA-256").digest(archiveFile.get().asFile.readBytes())
                 .let {
