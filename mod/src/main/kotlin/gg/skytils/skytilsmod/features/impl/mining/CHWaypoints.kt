@@ -298,7 +298,7 @@ object CHWaypoints : EventSubscriber {
 
     object CrystalHollowsMap : HudElement("Crystal Hollows Map", 0f, 0f) {
         override fun LayoutScope.render() {
-            box(Modifier.width(624f).height(624f)) {
+            box(Modifier.width(128f).height(128f)) {
                 UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
                 MapAddons(Modifier.fillParent())
             }
@@ -340,7 +340,7 @@ object CHWaypoints : EventSubscriber {
         }
 
         override fun LayoutScope.demoRender() {
-            box(Modifier.width(624f).height(624f)) {
+            box(Modifier.width(62.4f).height(62.4f)) {
                 UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
             }
         }
