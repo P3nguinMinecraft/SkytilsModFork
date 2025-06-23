@@ -49,7 +49,8 @@ public abstract class MixinGuiNewChat {
 
     //#if MC==10809
     //$$ @Shadow
-    //$$ private final MinecraftClient client = null;
+    //$$ @Final
+    //$$ private MinecraftClient client;
     //$$
     //$$ @WrapOperation(method = "addMessage(Lnet/minecraft/text/Text;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/ChatMessages;breakRenderedChatMessageLines(Lnet/minecraft/text/Text;ILnet/minecraft/client/TextRenderer;ZZ)Ljava/util/List;"))
     //$$ private List<Text> filterDrawnTextComponents(Text p_178908_0_, int p_178908_1_, TextRenderer p_178908_2_, boolean p_178908_3_, boolean p_178908_4_, Operation<List<Text>> original) {
