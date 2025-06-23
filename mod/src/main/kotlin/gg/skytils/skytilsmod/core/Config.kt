@@ -4462,10 +4462,10 @@ object Config : Vigilant(
         addDependency("containerSellValueMaxItems", "containerSellValue")
         addDependency("includeModifiersInSellValue", "containerSellValue")
 
-        addDependency("assumeWitherImpact", "witherShieldCooldown")
+//        addDependency("assumeWitherImpact", "witherShieldCooldown")
 
         addDependency("showTrophyFishTotals", "trophyFishTracker")
-        addDependency("showTotalTrophyFish", "trophyFishTracker")
+//        addDependency("showTotalTrophyFish", "trophyFishTracker")
 
         addDependency("shinyPigLocations", "shinyOrbWaypoints")
 
