@@ -190,6 +190,7 @@ dependencies {
 
     if (platform.isFabric && !isLegacyFabric) {
         include(modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")!!)
+        modLocalRuntime("net.fabricmc:fabric-language-kotlin:1.13.3+kotlin.2.1.21")
     }
     annotationProcessor(
         shadowMe("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") { excludeKotlin() }
