@@ -161,15 +161,17 @@ object TrophyFish : EventSubscriber {
         }
 
         override fun LayoutScope.demoRender() {
-            TrophyFish.entries.forEachIndexed { idx, fish ->
-                text("${fish.formattedName} ${ChatColor.DARK_AQUA}» "+
-                        "${ChatColor.DARK_GRAY}999${ChatColor.DARK_AQUA}-" +
-                        "${ChatColor.GRAY}99${ChatColor.DARK_AQUA}-" +
-                        "${ChatColor.GOLD}9${ChatColor.DARK_AQUA}-" +
-                        "${ChatColor.AQUA}0")
-            }
-            if_(Config.showTotalTrophyFishState) {
-                text("${ChatColor.LIGHT_PURPLE}Total ${ChatColor.DARK_AQUA}» 9999")
+            column {
+                TrophyFish.entries.forEachIndexed { idx, fish ->
+                    text("${fish.formattedName} ${ChatColor.DARK_AQUA}» "+
+                            "${ChatColor.DARK_GRAY}999${ChatColor.DARK_AQUA}-" +
+                            "${ChatColor.GRAY}99${ChatColor.DARK_AQUA}-" +
+                            "${ChatColor.GOLD}9${ChatColor.DARK_AQUA}-" +
+                            "${ChatColor.AQUA}0")
+                }
+                if_(Config.showTotalTrophyFishState) {
+                    text("${ChatColor.LIGHT_PURPLE}Total ${ChatColor.DARK_AQUA}» 9999")
+                }
             }
         }
     }
