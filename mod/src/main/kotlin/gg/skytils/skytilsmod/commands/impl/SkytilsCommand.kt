@@ -385,19 +385,19 @@ object SkytilsCommand {
         return Skytils.guiManager.searchElements(input).map { it.name }
     }
 
-    @Command("skytils|st dungeonmap|catlas")
+    @Command("skytils|st catlas|dungeonmap")
     fun dungeonMapCommand() {
         Skytils.displayScreen = CatlasConfig.gui()
     }
 
-    @Command("skytils|st dungeonmap|catlas scan")
+    @Command("skytils|st catlas|dungeonmap scan")
     fun dungeonMapScanCommand() {
         // Scans the dungeon
         Catlas.reset()
         DungeonScanner.scan()
     }
 
-    @Command("skytils|st dungeonmap|catlas roomdata")
+    @Command("skytils|st catlas|dungeonmap roomdata")
     fun dungeonMapRoomDataCommand() {
         // Copies room data or room core to clipboard
         val pos = ScanUtils.getRoomCenter(mc.player!!.x.toInt(), mc.player!!.z.toInt())
@@ -411,7 +411,7 @@ object SkytilsCommand {
         }
     }
 
-    @Command("skytils|st dungeonmap|catlas mapdata")
+    @Command("skytils|st catlas|dungeonmap mapdata")
     fun dungeonMapMapDataCommand() {
         // Copies map data to clipboard
         val data = MapUtils.getMapData()
@@ -423,14 +423,14 @@ object SkytilsCommand {
         }
     }
 
-    @Command("skytils|st dungeonmap|catlas cheater")
+    @Command("skytils|st catlas|dungeonmap cheater")
     fun dungeonMapCheaterCommand() {
         if (Skytils.deobfEnvironment) {
             UChat.chat(DungeonInfo.uniqueRooms.entries.sortedByDescending { it.value.mainRoom.data.type }.map { it.key })
         }
     }
 
-    @Command("skytils|st dungeonmap|catlas cheaterpre")
+    @Command("skytils|st catlas|dungeonmap cheaterpre")
     fun dungeonMapCheaterPreCommand() {
         if (Skytils.deobfEnvironment) {
             DungeonInfo.dungeonList.forEach {
