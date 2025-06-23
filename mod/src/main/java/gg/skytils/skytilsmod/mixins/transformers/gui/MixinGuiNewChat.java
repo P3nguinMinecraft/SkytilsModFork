@@ -45,12 +45,12 @@ import java.util.List;
 public abstract class MixinGuiNewChat {
 
     @Shadow
-    private final MinecraftClient client = null;
-
-    @Shadow
     public abstract int getVisibleLineCount();
 
     //#if MC==10809
+    //$$ @Shadow
+    //$$ private final MinecraftClient client = null;
+    //$$
     //$$ @WrapOperation(method = "addMessage(Lnet/minecraft/text/Text;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/ChatMessages;breakRenderedChatMessageLines(Lnet/minecraft/text/Text;ILnet/minecraft/client/TextRenderer;ZZ)Ljava/util/List;"))
     //$$ private List<Text> filterDrawnTextComponents(Text p_178908_0_, int p_178908_1_, TextRenderer p_178908_2_, boolean p_178908_3_, boolean p_178908_4_, Operation<List<Text>> original) {
     //$$    return ChatTabs.INSTANCE.shouldAllow(p_178908_0_) ? original.call(p_178908_0_, p_178908_1_, p_178908_2_, p_178908_3_, p_178908_4_) : Collections.emptyList();
