@@ -28,9 +28,7 @@ import gg.skytils.skytilsmod.utils.Utils;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.model.EntityModel;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
-import net.minecraft.class_995;
 import net.minecraft.client.render.entity.state.BipedEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
@@ -41,14 +39,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
 @Mixin(ArmorFeatureRenderer.class)
-public abstract class MixinLayerArmorBase<T extends EntityModel> implements class_995<LivingEntity> {
-
-    @Shadow
-    @Final
-    private LivingEntityRenderer<?> field_4828;
-
-    @Shadow
-    private float alpha;
+public abstract class MixinLayerArmorBase<T extends EntityModel> {
 
     @Unique
     private boolean modifiedAlpha = false;
@@ -59,7 +50,7 @@ public abstract class MixinLayerArmorBase<T extends EntityModel> implements clas
             original.call(matrixStack, vertexConsumerProvider, i, bipedEntityRenderState, f, g);
         }
     }
-
+/*
     @Inject(method = "renderArmor", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ArmorItem;method_0_8149(Lnet/minecraft/item/ItemStack;)I"))
     private void setAlpha(LivingEntity entitylivingbaseIn, float p_177182_2_, float p_177182_3_, float partialTicks, float p_177182_5_, float p_177182_6_, float p_177182_7_, float scale, int armorSlot, CallbackInfo ci) {
         if (Utils.INSTANCE.getInSkyblock() && entitylivingbaseIn == Skytils.getMc().player) {
@@ -82,5 +73,5 @@ public abstract class MixinLayerArmorBase<T extends EntityModel> implements clas
     @Inject(method = "renderArmor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/feature/ArmorFeatureRenderer;method_4171(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/model/EntityModel;FFFFFFF)V"), cancellable = true)
     private void replaceArmorGlint(LivingEntity entitylivingbaseIn, float p_177182_2_, float p_177182_3_, float partialTicks, float p_177182_5_, float p_177182_6_, float p_177182_7_, float scale, int armorSlot, CallbackInfo ci) {
         LayerArmorBaseHookKt.replaceArmorGlint(this, this.field_4828, entitylivingbaseIn, p_177182_2_, p_177182_3_, partialTicks, p_177182_5_, p_177182_6_, p_177182_7_, scale, armorSlot, ci);
-    }
+    }*/
 }

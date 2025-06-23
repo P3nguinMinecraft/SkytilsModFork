@@ -22,7 +22,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.LayerCustomHeadHookKt;
 import net.minecraft.client.render.entity.feature.HeadFeatureRenderer;
-import net.minecraft.class_995;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,8 +30,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(HeadFeatureRenderer.class)
-public abstract class MixinLayerCustomHead implements class_995<LivingEntity> {
+public abstract class MixinLayerCustomHead {
 
+/*
     @WrapOperation(method = "method_4199", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isSneaking()Z"))
     private boolean disableSneakOffset(LivingEntity instance, Operation<Boolean> original) {
         return (!(instance instanceof PlayerEntity) || !instance.isBaby()) && original.call(instance);
@@ -52,5 +52,6 @@ public abstract class MixinLayerCustomHead implements class_995<LivingEntity> {
     private void renderGlintOnSkull(LivingEntity entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale, CallbackInfo ci) {
         LayerCustomHeadHookKt.renderGlintOnSkull(entitylivingbaseIn, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, ci);
     }
+*/
 
 }

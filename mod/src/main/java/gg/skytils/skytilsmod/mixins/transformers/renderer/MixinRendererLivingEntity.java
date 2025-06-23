@@ -36,14 +36,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class MixinRendererLivingEntity<T extends LivingEntity> {
-    @Inject(method = "getOverlayColor", at = @At("HEAD"), cancellable = true)
+/*    @Inject(method = "getOverlayColor", at = @At("HEAD"), cancellable = true)
     private void setColorMultiplier(T entity, float lightBrightness, float partialTickTime, CallbackInfoReturnable<Integer> cir) {
         RendererLivingEntityHookKt.setColorMultiplier(entity, lightBrightness, partialTickTime, cir);
-    }
+    }*/
 
     @WrapOperation(method = "getOverlay", at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;hurt:Z"))
     private static boolean changeHurtState(LivingEntityRenderState instance, Operation<Boolean> original) {
-        return RendererLivingEntityHookKt.replaceHurtState(((ExtensionEntityRenderState) instance).getSkytilsEntity(), original);
+        return RendererLivingEntityHookKt.replaceHurtState(instance, original);
     }
 
     @Inject(method = "scale", at = @At("RETURN"))

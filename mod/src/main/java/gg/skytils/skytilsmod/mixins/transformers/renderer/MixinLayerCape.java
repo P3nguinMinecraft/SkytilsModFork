@@ -22,7 +22,6 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.feature.CapeFeatureRenderer;
-import net.minecraft.class_995;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,8 +30,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = CapeFeatureRenderer.class, priority = 1010)
-public abstract class MixinLayerCape implements class_995<AbstractClientPlayerEntity> {
-    @Shadow
+public abstract class MixinLayerCape{
+/*    @Shadow
     @Final
     private PlayerEntityRenderer field_4840;
 
@@ -42,5 +41,5 @@ public abstract class MixinLayerCape implements class_995<AbstractClientPlayerEn
             RenderSystem.method_4453(0.5, 0.5, 0.5);
             RenderSystem.method_4348(0.0F, 24.0F * scale, 0.0F);
         }
-    }
+    }*/
 }

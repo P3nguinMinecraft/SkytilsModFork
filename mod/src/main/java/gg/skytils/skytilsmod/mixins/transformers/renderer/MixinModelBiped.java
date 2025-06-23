@@ -32,8 +32,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BipedEntityModel.class)
-public abstract class MixinModelBiped extends EntityModel {
-    @Shadow public ModelPart hat;
+public abstract class MixinModelBiped {
+/*    @Shadow public ModelPart hat;
 
     @Inject(method = "setAngles", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;popMatrix()V", ordinal = 0))
     private void renderChildHeadPost(Entity entityIn, float f, float g, float h, float i, float j, float scale, CallbackInfo ci) {
@@ -45,5 +45,5 @@ public abstract class MixinModelBiped extends EntityModel {
     @WrapWithCondition(method = "setAngles", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelPart;render(F)V", ordinal = 6))
     private boolean renderChildHeadwear(ModelPart instance, float j, @Local(argsOnly = true) Entity entityIn) {
         return !this.child || !(entityIn instanceof PlayerEntity);
-    }
+    }*/
 }

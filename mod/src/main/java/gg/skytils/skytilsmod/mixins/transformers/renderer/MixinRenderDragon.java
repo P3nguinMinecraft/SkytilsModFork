@@ -47,7 +47,7 @@ public abstract class MixinRenderDragon {
     @Unique
     private EnderDragonEntity lastDragon = null;
 
-    @Inject(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At("HEAD"))
+/*    @Inject(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At("HEAD"))
     private void onRenderModel(EnderDragonEntity entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
         lastDragon = entitylivingbaseIn;
     }
@@ -60,7 +60,7 @@ public abstract class MixinRenderDragon {
     @Inject(method = "render(Lnet/minecraft/entity/boss/dragon/EnderDragonEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;setAngles(Lnet/minecraft/entity/Entity;FFFFFF)V", ordinal = 2, shift = At.Shift.AFTER))
     private void afterRenderHurtFrame(EnderDragonEntity entitylivingbaseIn, float f, float g, float h, float i, float j, float scaleFactor, CallbackInfo ci) {
         MasterMode7Features.INSTANCE.afterRenderHurtFrame((EnderDragonEntityRenderer) (Object) this, entitylivingbaseIn, f, g, h, i, j, scaleFactor, ci);
-    }
+    }*/
 
     ///#if MC==10809
     //$$ @Inject(method = "getTexture", at = @At("HEAD"), cancellable = true)

@@ -20,7 +20,7 @@ package gg.skytils.skytilsmod.mixins.hooks.renderer
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.handlers.GlintCustomizer
-import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorRenderItem
+// import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorRenderItem
 import gg.skytils.skytilsmod.utils.ItemUtil.getSkyBlockItemID
 import gg.skytils.skytilsmod.utils.NEUCompatibility.isCustomAHActive
 import gg.skytils.skytilsmod.utils.NEUCompatibility.isStorageMenuActive
@@ -28,7 +28,7 @@ import gg.skytils.skytilsmod.utils.NEUCompatibility.isTradeWindowActive
 import gg.skytils.skytilsmod.utils.RenderUtil.renderRarity
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.TextRenderer
+import net.minecraft.client.font.TextRenderer
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.texture.SpriteAtlasTexture
 import net.minecraft.client.render.model.BlockStateModel
@@ -51,6 +51,7 @@ fun renderRarity(stack: ItemStack?, x: Int, y: Int, ci: CallbackInfo) {
     }
 }
 
+/*
 fun renderItemPre(stack: ItemStack, model: BlockStateModel, ci: CallbackInfo) {
     if (!Utils.inSkyblock) return
     if (stack.item === Items.PLAYER_HEAD) {
@@ -102,4 +103,4 @@ fun modifyGlintRendering(stack: ItemStack, model: BlockStateModel, ci: CallbackI
             RenderSystem.popMatrix()
         }
     }
-}
+}*/

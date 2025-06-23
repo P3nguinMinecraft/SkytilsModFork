@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.mixins.hooks.renderer
 
+/*
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.network.ClientPlayerEntity
@@ -124,3 +125,4 @@ fun renderGlintOnSkull(
         Utils.lastRenderedSkullEntity = entitylivingbaseIn
     }
 }
+*/

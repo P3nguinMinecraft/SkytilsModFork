@@ -17,6 +17,7 @@
  */
 package gg.skytils.skytilsmod.mixins.hooks.renderer
 
+/*
 import com.mojang.authlib.GameProfile
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.handlers.GlintCustomizer
@@ -33,7 +34,7 @@ import net.minecraft.util.Identifier
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 val instance: SkullBlockEntityRenderer = SkullBlockEntityRenderer.INSTANCE
-private val enchantedItemGlintResource = Identifier("textures/misc/enchanted_item_glint.png")
+private val enchantedItemGlintResource = Identifier.of("textures/misc/enchanted_item_glint.png")
 
 fun addGlintToSkull(
     x: Float,
@@ -87,4 +88,4 @@ fun renderGlint(entity: LivingEntity?, model: EntityModel?, rotation: Float, col
     RenderSystem.depthFunc(515)
     //GlStateManager.disableBlend();
     RenderSystem.blendFunc(770, 771)
-}
+}*/

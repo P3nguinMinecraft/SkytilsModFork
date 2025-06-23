@@ -24,9 +24,11 @@ import gg.skytils.skytilsmod.features.impl.slayer.SlayerFeatures.slayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.DemonlordSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.SeraphSlayer
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityLivingBase
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntityRenderState
 import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.colors.ColorFactory
 import gg.skytils.skytilsmod.utils.withAlpha
+import net.minecraft.client.render.entity.state.LivingEntityRenderState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.mob.EndermanEntity
 import net.minecraft.entity.mob.MobEntity
@@ -69,9 +71,11 @@ fun setColorMultiplier(
 }
 
 fun replaceHurtState(
-    entity: Entity,
+    state: LivingEntityRenderState,
     original: Operation<Boolean>
 ): Boolean {
+    state as ExtensionEntityRenderState
+    val entity = state.skytilsEntity
     entity as ExtensionEntityLivingBase
-    return if (Skytils.config.changeHurtColorOnWitherKingsDragons && entity.skytilsHook.masterDragonType != null) false else original.call(instance)
+    return if (Skytils.config.changeHurtColorOnWitherKingsDragons && entity.skytilsHook.masterDragonType != null) false else original.call(state)
 }

@@ -18,6 +18,7 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
+/*
 import gg.skytils.skytilsmod.mixins.hooks.renderer.TileEntityItemStackRendererHookKt;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.item.ItemStack;
@@ -33,3 +34,4 @@ public abstract class MixinTileEntityItemStackRenderer {
         TileEntityItemStackRendererHookKt.fixGlintForSkulls(itemStack, ci);
     }
 }
+*/

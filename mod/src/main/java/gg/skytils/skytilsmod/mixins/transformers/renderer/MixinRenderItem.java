@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinRenderItem {
-    @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4384(FFF)V", shift = At.Shift.AFTER))
+/*    @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;method_4384(FFF)V", shift = At.Shift.AFTER))
     private void renderItemPre(ItemStack stack, BlockStateModel model, CallbackInfo ci) {
         RenderItemHookKt.renderItemPre(stack, model, ci);
     }
@@ -37,5 +37,5 @@ public abstract class MixinRenderItem {
     @Inject(method = "renderItemAndGlow(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BlockStateModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/ItemRenderer;method_4011(Lnet/minecraft/client/render/model/BlockStateModel;)V", shift = At.Shift.BEFORE), cancellable = true)
     private void modifyGlintRendering(ItemStack stack, BlockStateModel model, CallbackInfo ci) {
         RenderItemHookKt.modifyGlintRendering(stack, model, ci);
-    }
+    }*/
 }

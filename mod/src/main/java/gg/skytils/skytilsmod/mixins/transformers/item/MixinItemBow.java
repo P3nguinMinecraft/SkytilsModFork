@@ -31,8 +31,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(BowItem.class)
-public abstract class MixinItemBow extends Item {
-    @WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;method_0_7937(Lnet/minecraft/item/Item;)Z"))
+public abstract class MixinItemBow {
+/*    @WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;method_0_7937(Lnet/minecraft/item/Item;)Z"))
     private boolean onItemRightClick$hasItem(PlayerInventory instance, Item itemIn, Operation<Boolean> original) {
         boolean hasItem = original.call(instance, itemIn);
 
@@ -45,5 +45,5 @@ public abstract class MixinItemBow extends Item {
         }
 
         return false;
-    }
+    }*/
 }

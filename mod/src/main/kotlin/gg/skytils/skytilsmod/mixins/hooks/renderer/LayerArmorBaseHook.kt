@@ -27,8 +27,9 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.util.Identifier
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-private val enchantedItemGlintResource = Identifier("textures/misc/enchanted_item_glint.png")
+private val enchantedItemGlintResource = Identifier.of("textures/misc/enchanted_item_glint.png")
 
+/*
 
 fun replaceArmorGlint(
     layerArmorBase: Any,
@@ -91,4 +92,4 @@ fun replaceArmorGlint(
             }
         }
     }
-}
+}*/

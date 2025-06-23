@@ -33,9 +33,9 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 
 @Mixin(SkullBlockEntityRenderer.class)
-public abstract class MixinTileEntitySkullRenderer extends BlockEntityRenderer<SkullBlockEntity> {
-    @Inject(method = "method_3581", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;setAngles(Lnet/minecraft/entity/Entity;FFFFFF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILSOFT)
+public abstract class MixinTileEntitySkullRenderer {
+/*    @Inject(method = "method_3581", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;setAngles(Lnet/minecraft/entity/Entity;FFFFFF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void addGlintToSkull(float x, float y, float z, Direction face, float rotation, int type, GameProfile profile, int p_180543_8_, CallbackInfo ci, EntityModel model) {
         TileEntitySkullRendererHookKt.addGlintToSkull(x, y, z, face, rotation, type, profile, p_180543_8_, ci, model);
-    }
+    }*/
 }
