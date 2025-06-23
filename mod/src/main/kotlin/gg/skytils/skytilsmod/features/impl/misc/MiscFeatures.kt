@@ -19,7 +19,6 @@ package gg.skytils.skytilsmod.features.impl.misc
 
 import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UChat
 import gg.essential.universal.UGraphics
@@ -68,10 +67,9 @@ import gg.essential.elementa.layoutdsl.fillHeight
 import gg.essential.elementa.layoutdsl.height
 import gg.essential.elementa.layoutdsl.row
 import gg.essential.elementa.layoutdsl.widthAspect
+import gg.essential.elementa.state.v2.*
 import gg.essential.elementa.state.v2.combinators.and
 import gg.essential.elementa.state.v2.combinators.map
-import gg.essential.elementa.state.v2.mutableStateOf
-import gg.essential.elementa.state.v2.stateUsingSystemTime
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UKeyboard
 import gg.skytils.skytilsmod.gui.components.ItemComponent
@@ -101,7 +99,7 @@ import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
 object MiscFeatures : EventSubscriber {
-    private val golemSpawnTimeState = mutableStateOf(Instant.MIN)
+    private val golemSpawnTimeState: MutableState<Instant?> = mutableStateOf(null)
     val playerInRangeCountState = mutableStateOf(0)
     val placedEyesState = mutableStateOf(0)
     private var lastGLeaveCommand = 0L
@@ -510,10 +508,15 @@ object MiscFeatures : EventSubscriber {
     }
 
     class GolemSpawnTimerHud : HudElement("Endstone Protector Spawn Timer", 150f, 20f) {
-        val diff = stateUsingSystemTime { time -> time.until(golemSpawnTimeState()) }
         override fun LayoutScope.render() {
-            if_(SBInfo.skyblockState and { diff().isPositive }) {
-                text({ "§cGolem spawn in: §a${(diff().toMillis().getValue() / 1000.0).roundToPrecision(1)}s"})
+            if_(SBInfo.skyblockState) {
+                ifNotNull(golemSpawnTimeState) { spawnTime ->
+                    val diffText = State {
+                        val diff = (withSystemTime { time -> time.until(spawnTime) }.toMillis().getValue() / 1000.0).roundToPrecision(1)
+                        "§cGolem spawn in: §a${diff}s"
+                    }
+                    text(diffText)
+                }
             }
         }
 
