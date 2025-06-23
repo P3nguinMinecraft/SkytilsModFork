@@ -176,7 +176,7 @@ object LividFinder : EventSubscriber {
     private val BlockState.dyeColor
         get() = block.defaultMapColor.let { mapColor -> DyeColor.entries.find { it.mapColor == mapColor } }
 
-    private class LividHud : HudElement("Livid HP", 10f, 160f) {
+    private class LividHud : HudElement("Livid HP", 0.05, 0.4) {
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState) {
                 ifNotNull(lividTag) { lividTag ->

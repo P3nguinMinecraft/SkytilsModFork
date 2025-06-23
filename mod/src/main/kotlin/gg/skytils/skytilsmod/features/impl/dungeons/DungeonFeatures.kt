@@ -693,7 +693,7 @@ object DungeonFeatures : EventSubscriber {
         intendedItemStack = null
     }
 
-    object SpiritBearSpawnTimer : HudElement("Spirit Bear Spawn Timer", 10f, 160f) {
+    object SpiritBearSpawnTimer : HudElement("Spirit Bear Spawn Timer", 0.05, 0.4) {
         val diff = stateUsingSystemTime { currentTime ->
             lastLitUpTime()?.plusMillis(3400)?.let { time -> currentTime.until(time) }
         }
@@ -710,7 +710,7 @@ object DungeonFeatures : EventSubscriber {
 
     }
 
-    object DungeonSecretDisplay : HudElement("Dungeon Secret Display", x = 10f, y = 100f) {
+    object DungeonSecretDisplay : HudElement("Dungeon Secret Display", x = 0.05, y = 0.4) {
         val secretsState = mutableStateOf(-1)
         val maxSecretsState = mutableStateOf(-1)
 

@@ -137,7 +137,7 @@ object VisitorHelper : EventSubscriber {
      * of this class so that the user can move the element around normally.
      * @see ContainerSellValue
      */
-    object VisitorHelperDisplay : HudElement("Visitor Offer Helper", 51.6f, 113.2f) {
+    object VisitorHelperDisplay : HudElement("Visitor Offer Helper", 0.258, 0.283) {
         override fun LayoutScope.render() {
             // Rendering is handled in the BackgroundDrawnEvent to give the text proper lighting
 

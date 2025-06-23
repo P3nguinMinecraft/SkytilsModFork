@@ -77,7 +77,7 @@ object ContainerSellValue : EventSubscriber {
      * of this class so that the user can move the element around normally.
      * @see renderGuiComponent
      */
-    class SellValueDisplay : HudElement("Container Sell Value", x = 0.258f, y = 0.283f) {
+    class SellValueDisplay : HudElement("Container Sell Value", x = 0.258, y = 0.283) {
         override fun LayoutScope.render() {
             // Rendering is handled in the BackgroundDrawnEvent to give the text proper lighting
             // FIXME: still create component here, just call render later

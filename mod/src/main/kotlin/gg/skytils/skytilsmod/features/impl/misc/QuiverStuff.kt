@@ -79,7 +79,7 @@ object QuiverStuff : EventSubscriber {
         }
     }
 
-    object QuiverDisplay : HudElement("Quiver Display", 10f, 160f) {
+    object QuiverDisplay : HudElement("Quiver Display", 0.05, 0.4) {
         private val ARROW = ItemStack(Items.ARROW)
         private val color = State {
             val count = arrowCountState()
@@ -111,7 +111,7 @@ object QuiverStuff : EventSubscriber {
 
     }
 
-    object SelectedArrowDisplay : HudElement("SelectedArrowDisplay", 130f, 340f) {
+    object SelectedArrowDisplay : HudElement("SelectedArrowDisplay", 0.65, 0.85) {
         val text = State { "Selected: §r${selectedTypeState().ifBlank { "§cUnknown" }}" }
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {

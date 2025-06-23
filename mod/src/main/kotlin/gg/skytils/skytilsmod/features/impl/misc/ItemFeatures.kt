@@ -851,7 +851,7 @@ object ItemFeatures : EventSubscriber {
         }
     }
 
-    class StackingEnchantHud : HudElement("Stacking Enchant Display", 130f, 340f) {
+    class StackingEnchantHud : HudElement("Stacking Enchant Display", 0.65, 0.85) {
         override fun LayoutScope.render() {
             text(stackingEnchantTextState)
         }
@@ -862,7 +862,7 @@ object ItemFeatures : EventSubscriber {
 
     }
 
-    class SoulflowHud : HudElement("Soulflow Display", 120f, 340f) {
+    class SoulflowHud : HudElement("Soulflow Display", 0.65, 0.85) {
         override fun LayoutScope.render() {
             text(soulflowState)
         }
@@ -873,7 +873,7 @@ object ItemFeatures : EventSubscriber {
 
     }
 
-    class WitherShieldHud : HudElement("Wither Shield Display", 140f, 340f) {
+    class WitherShieldHud : HudElement("Wither Shield Display", 0.65, 0.85) {
         override fun LayoutScope.render() {
             text(stateUsingSystemTime { time ->
                 val lastShieldUse = lastShieldUseState()
