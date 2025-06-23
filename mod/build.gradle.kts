@@ -137,6 +137,7 @@ dependencies {
     })
     relocated(implementation("com.github.Skytils.Vigilance:vigilance-${if (!isLegacyFabric) if (platform.mcVersion >= 11801) "1.18.1-${platform.loaderStr}" else platform.toString() else "${platform.mcVersionStr}-forge"}:afb0909442") {
         isTransitive = false
+        exclude(module = "fabric-loader")
     })
 
     include(implementation("dev.dediamondpro:minemark-elementa:1.2.3") {
@@ -184,11 +185,10 @@ dependencies {
     include(implementation("org.brotli:dec:0.1.2")!!)
     include(implementation("com.aayushatharva.brotli4j:brotli4j:1.18.0")!!)
 
-    implementation(project(":events:$platform", configuration = "namedElements"))
-    relocated(project(":events:$platform")) {
+    relocated(implementation(project(":events:$platform", configuration = "namedElements")) {
         excludeKotlin()
         exclude(module = "fabric-loader")
-    }
+    })
     relocated(implementation(project(":vigilance")) {
         excludeKotlin()
         exclude(module = "fabric-loader")
