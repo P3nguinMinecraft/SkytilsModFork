@@ -41,6 +41,9 @@ abstract class HudElement(
     constructor(name: String, x: Float, y: Float) :
             this(name, mutableStateOf(x / UResolution.scaledWidth), mutableStateOf(y / UResolution.scaledHeight))
 
+    constructor(name: String, x: Double, y: Double):
+            this(name, mutableStateOf(x.toFloat()), mutableStateOf(y.toFloat()))
+
     private val position = memo {
         Modifier.alignHorizontal(Alignment.Relative(x()))
             .alignVertical(Alignment.Relative(y()))
