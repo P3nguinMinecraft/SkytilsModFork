@@ -74,7 +74,7 @@ object DungeonChestProfit : EventSubscriber {
     }
 
     fun onGUIDrawnEvent(event: GuiContainerForegroundDrawnEvent) {
-        if (!Skytils.config.dungeonChestProfit) return
+        if (!Skytils.config.dungeonChestProfit.getUntracked()) return
         if ((!Utils.inDungeons || DungeonTimer.scoreShownAt == null) && SBInfo.mode != SkyblockIsland.DungeonHub.mode) return
         val inv = (event.container as? GenericContainerScreenHandler ?: return).inventory
 
@@ -330,6 +330,9 @@ object DungeonChestProfit : EventSubscriber {
     }
 
     object DungeonChestProfitHud : HudElement("Dungeon Chest Profit", 200f, 120f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.dungeonChestProfit
+
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState or State { SBInfo.modeState() == SkyblockIsland.DungeonHub.mode }) {
                 column {

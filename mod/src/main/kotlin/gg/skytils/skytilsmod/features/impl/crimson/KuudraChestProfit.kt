@@ -75,7 +75,7 @@ object KuudraChestProfit : EventSubscriber {
     }
 
     fun onGUIDrawnEvent(event: GuiContainerForegroundDrawnEvent) {
-        if (!Skytils.config.kuudraChestProfit || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
+        if (!Skytils.config.kuudraChestProfit.getUntracked() || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
 
         if (event.chestName.endsWith(" Chest")) {
             val matrixStack = UMatrixStack.Compat.get()
@@ -100,7 +100,7 @@ object KuudraChestProfit : EventSubscriber {
         if (element.currentlyDisplayingChest.getUntracked() != null && event.screen == null) {
             element.currentlyDisplayingChest.set(null)
         } else {
-            if (!Skytils.config.kuudraChestProfit || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
+            if (!Skytils.config.kuudraChestProfit.getUntracked() || !KuudraFeatures.kuudraOver || KuudraFeatures.myFaction == null) return
             (event.screen as? GenericContainerScreen)?.let { container ->
                 val inv = container.screenHandler.inventory
                 val chestName = container.title.string
@@ -219,6 +219,8 @@ object KuudraChestProfit : EventSubscriber {
         override fun compareTo(other: KuudraChestLootItem): Int = value.compareTo(other.value)
     }
     private class KuudraChestProfitHud : HudElement("Kuudra Chest Profit", 200f, 120f) {
+        override val toggleState = Skytils.config.kuudraChestProfit
+
         override fun LayoutScope.render() {
             column {
                 KuudraChest.entries.forEach { chest ->

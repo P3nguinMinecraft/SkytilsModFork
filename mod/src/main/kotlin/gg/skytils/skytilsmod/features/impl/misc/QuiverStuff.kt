@@ -80,6 +80,8 @@ object QuiverStuff : EventSubscriber {
     }
 
     object QuiverDisplay : HudElement("Quiver Display", 0.05, 0.4) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.quiverDisplay
         private val ARROW = ItemStack(Items.ARROW)
         private val color = State {
             val count = arrowCountState()
@@ -112,6 +114,8 @@ object QuiverStuff : EventSubscriber {
     }
 
     object SelectedArrowDisplay : HudElement("SelectedArrowDisplay", 0.65, 0.85) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.showSelectedArrowDisplay
         val text = State { "Selected: §r${selectedTypeState().ifBlank { "§cUnknown" }}" }
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {

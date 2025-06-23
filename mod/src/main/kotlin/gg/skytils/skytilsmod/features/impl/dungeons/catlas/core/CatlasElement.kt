@@ -24,6 +24,7 @@ import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.height
 import gg.essential.elementa.layoutdsl.width
+import gg.essential.elementa.state.v2.State
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
@@ -350,6 +351,8 @@ object CatlasElement : UIContainer() {
 }
 
 object CatlasHudElement : HudElement("Dungeon Map", 0f, 0f) {
+    override val toggleState: State<Boolean>
+        get() = CatlasConfig.mapEnabled
     override fun LayoutScope.render() {
         CatlasElement(Modifier.width(128f).height(128f))
     }

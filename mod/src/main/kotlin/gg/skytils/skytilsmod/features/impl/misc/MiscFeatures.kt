@@ -432,14 +432,14 @@ object MiscFeatures : EventSubscriber {
         if (!Utils.inSkyblock || mc.player == null) return
         val world = mc.world ?: return
 
-        if (Skytils.config.playersInRangeDisplay) {
+        if (Skytils.config.playersInRangeDisplay.getUntracked()) {
             playerInRangeCountState.set {
                 (world.players.filterIsInstance<OtherClientPlayerEntity>().count {
                     (it.uuid.version() == 4 || it.uuid.version() == 1) && it.squaredDistanceTo(mc.player) <= 30 * 30 // Nicked players have uuid v1, Watchdog has uuid v4
                 } - 1).coerceAtLeast(0) // The -1 is to remove watchdog from the list
             }
         }
-        if (Skytils.config.summoningEyeDisplay && SBInfo.mode == SkyblockIsland.TheEnd.mode) {
+        if (Skytils.config.summoningEyeDisplay.getUntracked() && SBInfo.mode == SkyblockIsland.TheEnd.mode) {
             placedEyesState.set {
                 PlacedSummoningEyeHud.SUMMONING_EYE_FRAMES.count {
                     world.getBlockState(it).run {
@@ -508,6 +508,8 @@ object MiscFeatures : EventSubscriber {
     }
 
     class GolemSpawnTimerHud : HudElement("Endstone Protector Spawn Timer", 150f, 20f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.golemSpawnTimer
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {
                 ifNotNull(golemSpawnTimeState) { spawnTime ->
@@ -527,6 +529,8 @@ object MiscFeatures : EventSubscriber {
     }
 
     class PlayersInRangeHud : HudElement("Players In Range Display", 50f, 50f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.playersInRangeDisplay
         private val ENCHANTED_BOOK = ItemStack(Items.ENCHANTED_BOOK)
         private val stringState = playerInRangeCountState.map { it.toString() }
 
@@ -548,6 +552,8 @@ object MiscFeatures : EventSubscriber {
     }
 
     class PlacedSummoningEyeHud : HudElement("Placed Summoning Eye Display", 50f, 60f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.summoningEyeDisplay
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState and { SBInfo.modeState() == SkyblockIsland.TheEnd.mode }) {
                 row(Modifier.height(16f)) {
@@ -579,6 +585,7 @@ object MiscFeatures : EventSubscriber {
     }
 
     class WorldAgeHud : HudElement("World Age Display", 50f, 60f) {
+        override val toggleState: State<Boolean> = Skytils.config.showWorldAgeState
         //TODO: Properly update state using mixin
         val dayState: State<String> = State {
             val day = mc.world?.realWorldTime?.div(24000)
@@ -590,12 +597,10 @@ object MiscFeatures : EventSubscriber {
         }
 
         override fun LayoutScope.render() {
-            if_(Skytils.config.showWorldAgeState) {
-                if_(isUsingBaldTimeChanger) {
-                    text("Incompatible Time Changer detected.")
-                } `else` {
-                    text(dayState)
-                }
+            if_(isUsingBaldTimeChanger) {
+                text("Incompatible Time Changer detected.")
+            } `else` {
+                text(dayState)
             }
         }
 
@@ -610,6 +615,8 @@ object MiscFeatures : EventSubscriber {
     }
 
     object ItemNameHighlightDummy : HudElement("Item Name Highlight", 50f, 60f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.moveableItemNameHighlight
         override fun LayoutScope.render() {
             /**
              * handled in [gg.skytils.skytilsmod.mixins.hooks.gui.modifyItemHighlightPosition]
@@ -623,6 +630,8 @@ object MiscFeatures : EventSubscriber {
     }
 
     object ActionBarDummy : HudElement("Action Bar", 50f, 70f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.moveableActionBar
         override fun LayoutScope.render() {
             /**
              * handled in [gg.skytils.skytilsmod.mixins.hooks.gui.modifyItemHighlightPosition]

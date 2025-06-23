@@ -102,7 +102,7 @@ object MayorInfo : EventSubscriber {
                     ?.contains("alpha") == true
             ) return@tickTimer
             if (currentMayor == "Jerry" && System.currentTimeMillis() > newJerryPerks) {
-                if (jerryMayor != null && Skytils.config.displayJerryPerks) {
+                if (jerryMayor != null && Skytils.config.displayJerryPerks.getUntracked()) {
                     SoundQueue.addToQueue("random.orb", 0.8f, 1f, 1, true)
                     SoundQueue.addToQueue("random.orb", 0.8f, 1f, 2, true)
                     SoundQueue.addToQueue("random.orb", 0.8f, 1f, 3, true)

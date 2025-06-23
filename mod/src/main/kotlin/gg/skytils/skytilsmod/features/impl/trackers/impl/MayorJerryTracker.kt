@@ -22,6 +22,7 @@ import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
 import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -80,7 +81,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
     }
 
     fun onJerry(type: String) {
-        if (!Skytils.config.trackHiddenJerry) return
+        if (!Skytils.config.trackHiddenJerry.getUntracked()) return
         HiddenJerry.getFromString(type)!!.discoveredTimes.set { it + 1 }
         markDirty<MayorJerryTracker>()
     }
@@ -90,7 +91,7 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
-        if (!Skytils.config.trackHiddenJerry) return
+        if (!Skytils.config.trackHiddenJerry.getUntracked()) return
         val formatted = event.message.formattedText
         val unformatted = event.message.string.stripControlCodes()
         if (!formatted.startsWith("§r§b ☺ ")) return
@@ -169,6 +170,8 @@ object MayorJerryTracker : EventSubscriber, Tracker("mayorjerry") {
     }
 
     class JerryTrackerHud : HudElement("Mayor Jerry Tracker", 150f, 120f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.trackHiddenJerry
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {
                 HiddenJerry.entries.forEach { jerry ->

@@ -280,6 +280,9 @@ object DungeonTimer : EventSubscriber {
     }
 
     object DungeonTimerHud: HudElement("Dungeon Timer", 200f, 80f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.dungeonTimerState
+
         private val timeElapsed = State {
             val start = dungeonStartTimeState()
             bossClearTimeState()?.let { bossClearTime ->
@@ -332,6 +335,9 @@ object DungeonTimer : EventSubscriber {
     }
 
     object NecronPhaseTimerHud : HudElement("Necron Phase Timer", 200f, 120f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.necronPhaseTimerState
+
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState and State { bossEntryTimeState() != null} and State { dungeonFloorNumberState() == 7 }) {
                 column {
@@ -373,6 +379,9 @@ object DungeonTimer : EventSubscriber {
     }
 
     object SadanPhaseTimer : HudElement("Sadan Phase Timer", 200f, 120f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.sadanPhaseTimerState
+
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState and State { bossEntryTimeState() != null && dungeonFloorNumberState() == 6 }) {
                 column {

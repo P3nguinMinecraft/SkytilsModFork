@@ -20,6 +20,7 @@ package gg.skytils.skytilsmod.features.impl.dungeons
 
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.skytils.event.EventSubscriber
@@ -177,6 +178,9 @@ object LividFinder : EventSubscriber {
         get() = block.defaultMapColor.let { mapColor -> DyeColor.entries.find { it.mapColor == mapColor } }
 
     private class LividHud : HudElement("Livid HP", 0.05, 0.4) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.findCorrectLividState
+
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState) {
                 ifNotNull(lividTag) { lividTag ->

@@ -20,6 +20,7 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.core
 
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
+import gg.skytils.vigilance.property
 import java.awt.Color
 import java.io.File
 
@@ -29,17 +30,18 @@ object CatlasConfig : Vigilant(
     sortingBehavior = CategorySorting
 ) {
 
-    @Property(
-        name = "Map Enabled",
-        type = PropertyType.SWITCH,
-        description = "Render the map!",
-        category = "Map",
-        subcategory = "Toggle",
-        i18nName = "catlas.config.map.toggle.map_enabled",
-        i18nCategory = "catlas.config.map",
-        i18nSubcategory = "catlas.config.map.toggle"
+    val mapEnabled = property(
+        PropertyAttributesExt(
+            name = "Map Enabled",
+            type = PropertyType.SWITCH,
+            description = "Render the map!",
+            category = "Map",
+            subcategory = "Toggle",
+            i18nName = "catlas.config.map.toggle.map_enabled",
+            i18nCategory = "catlas.config.map",
+            i18nSubcategory = "catlas.config.map.toggle"
+        ), false
     )
-    var mapEnabled = false
 
     @Property(
         name = "Rotate Map",

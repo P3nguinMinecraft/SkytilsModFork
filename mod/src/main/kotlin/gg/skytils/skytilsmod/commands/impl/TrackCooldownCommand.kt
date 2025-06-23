@@ -36,7 +36,7 @@ object TrackCooldownCommand {
         @Greedy
         @Argument("ability") ability: String
     ) {
-        if (!Skytils.config.itemCooldownDisplay) return UChat.chat("$failPrefix §cYou must turn on Item Cooldown Display to use this command!")
+        if (!Skytils.config.itemCooldownDisplay.getUntracked()) return UChat.chat("$failPrefix §cYou must turn on Item Cooldown Display to use this command!")
         if (seconds < 0) throw IllegalArgumentException("You must specify a valid number")
         if (ability.isBlank()) throw IllegalArgumentException("You must specify valid arguments.")
         if (CooldownTracker.itemCooldowns[ability] == seconds) {

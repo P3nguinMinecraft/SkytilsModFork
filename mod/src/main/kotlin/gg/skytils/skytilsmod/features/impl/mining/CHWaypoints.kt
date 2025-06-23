@@ -53,6 +53,7 @@ import gg.essential.elementa.layoutdsl.box
 import gg.essential.elementa.layoutdsl.fillParent
 import gg.essential.elementa.layoutdsl.height
 import gg.essential.elementa.layoutdsl.width
+import gg.essential.elementa.state.v2.State
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
@@ -297,6 +298,8 @@ object CHWaypoints : EventSubscriber {
     }
 
     object CrystalHollowsMap : HudElement("Crystal Hollows Map", 0f, 0f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.crystalHollowMap
         override fun LayoutScope.render() {
             box(Modifier.width(128f).height(128f)) {
                 UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())

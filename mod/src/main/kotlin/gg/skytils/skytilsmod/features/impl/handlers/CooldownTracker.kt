@@ -21,6 +21,7 @@ package gg.skytils.skytilsmod.features.impl.handlers
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.state.v2.State
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ActionBarReceivedEvent
@@ -61,7 +62,7 @@ object CooldownTracker : PersistentSave(File(Skytils.modDir, "cooldowntracker.js
 
 //    @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onActionBar(event: ActionBarReceivedEvent) {
-        if (!Utils.inSkyblock || !Skytils.config.itemCooldownDisplay) return
+        if (!Utils.inSkyblock || !Skytils.config.itemCooldownDisplay.getUntracked()) return
         event.apply {
             val unformatted = message.string
             if (unformatted.contains("§b-") && unformatted.contains(" Mana (§6")) {
@@ -79,6 +80,9 @@ object CooldownTracker : PersistentSave(File(Skytils.modDir, "cooldowntracker.js
     }
 
     class CooldownDisplayHud : HudElement("Item Cooldown Display", x = 10f, y = 10f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.itemCooldownDisplay
+
         override fun LayoutScope.render() {
             // TODO: requires some kind of state that updates based on time
         }

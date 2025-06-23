@@ -20,6 +20,8 @@ package gg.skytils.skytilsmod.features.impl.farming
 
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.stateOf
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.screen.GuiContainerBackgroundDrawnEvent
@@ -138,6 +140,8 @@ object VisitorHelper : EventSubscriber {
      * @see ContainerSellValue
      */
     object VisitorHelperDisplay : HudElement("Visitor Offer Helper", 0.258, 0.283) {
+        override val toggleState: State<Boolean>
+            get() = stateOf(false)
         override fun LayoutScope.render() {
             // Rendering is handled in the BackgroundDrawnEvent to give the text proper lighting
 

@@ -401,7 +401,7 @@ object DungeonListener : EventSubscriber {
     }
 
     fun onChatLow(event: ActionBarReceivedEvent) {
-        if (Skytils.config.dungeonSecretDisplay && Utils.inDungeons) {
+        if (Skytils.config.dungeonSecretDisplay.getUntracked() && Utils.inDungeons) {
             event.message = Text.literal(event.message.formattedText.replace(secretsRegex, ""))
             event.message.siblings.map {
                 Text.literal(it.formattedText.replace(secretsRegex, ""))

@@ -19,10 +19,6 @@ package gg.skytils.skytilsmod.features.impl.dungeons
 
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.column
-import gg.essential.elementa.state.v2.clear
-import gg.essential.elementa.state.v2.mutableListStateOf
-import gg.essential.elementa.state.v2.setAll
-import gg.essential.elementa.state.v2.stateOf
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -48,6 +44,7 @@ import java.awt.Color
 import gg.skytils.skytilsmod.utils.formattedText
 import net.minecraft.entity.EntityType
 import com.mojang.blaze3d.opengl.GlStateManager
+import gg.essential.elementa.state.v2.*
 import java.util.LinkedList
 //#endif
 
@@ -92,7 +89,7 @@ object BossHPDisplays : EventSubscriber {
         if (!Utils.inDungeons) return
         val world = mc.world
 
-        if (world != null && canGiantsSpawn && (Skytils.config.showGiantHPAtFeet || Skytils.config.showGiantHP)) {
+        if (world != null && canGiantsSpawn && (Skytils.config.showGiantHPAtFeet || Skytils.config.showGiantHP.getUntracked())) {
             val hasSadanPlayer = world.players.any {
                 "Sadan " == it.name
                 //#if MC>=11602
@@ -115,7 +112,7 @@ object BossHPDisplays : EventSubscriber {
             )
         } else giantNames.clear()
 
-        if (Skytils.config.showGuardianRespawnTimer && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && world != null) {
+        if (Skytils.config.showGuardianRespawnTimer.getUntracked() && DungeonFeatures.hasBossSpawned && dungeonFloorNumber == 3 && world != null) {
             guardianRespawnTimers.setAll(mutableListOf<String>().apply {
                 for (entity in world.entities) {
                     if (size >= 4) break
@@ -171,6 +168,8 @@ object BossHPDisplays : EventSubscriber {
     }
 
     class GuardianRespawnTimer : HudElement("Guardian Respawn Timer", x = 200f, y = 30f) {
+        override val toggleState: State<Boolean> = Skytils.config.showGuardianRespawnTimer
+
         override fun LayoutScope.render() {
             column {
                 forEach(guardianRespawnTimers) { timer ->
@@ -186,6 +185,8 @@ object BossHPDisplays : EventSubscriber {
     }
 
     class GiantHPElement : HudElement("Show Giant HP", x = 200f, y = 30f) {
+        override val toggleState: State<Boolean> = Skytils.config.showGiantHP
+
         override fun LayoutScope.render() {
             column {
                 forEach(giantNames) { (name, _) ->

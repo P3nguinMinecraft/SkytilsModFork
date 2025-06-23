@@ -30,7 +30,7 @@ fun alwaysShowItemHighlight(orig: Int): Int {
 }
 
 fun modifyItemHighlightPosition(args: Args, highlightingItemStack: ItemStack) {
-    if (Skytils.config.moveableItemNameHighlight && Utils.inSkyblock) {
+    if (Skytils.config.moveableItemNameHighlight.getUntracked() && Utils.inSkyblock) {
         val fr = mc.textRenderer
         val itemName = args.get<String>(0)
         val element= MiscFeatures.ItemNameHighlightDummy
@@ -41,7 +41,7 @@ fun modifyItemHighlightPosition(args: Args, highlightingItemStack: ItemStack) {
 }
 
 fun modifyActionBarPosition(args: Args) {
-    if (Skytils.config.moveableActionBar && Utils.inSkyblock) {
+    if (Skytils.config.moveableActionBar.getUntracked() && Utils.inSkyblock) {
         val element= MiscFeatures.ActionBarDummy
         args.set(0, element.component.getLeft())
         args.set(1, element.component.getTop() + 4f)

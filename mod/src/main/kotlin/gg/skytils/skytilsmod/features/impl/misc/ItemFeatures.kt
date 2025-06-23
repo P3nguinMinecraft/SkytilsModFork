@@ -22,6 +22,7 @@ import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
 import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
@@ -137,7 +138,7 @@ object ItemFeatures : EventSubscriber {
                     addToCache(player.offHandStack)
                     //#endif
                 }
-                if (Skytils.config.stackingEnchantProgressDisplay) {
+                if (Skytils.config.stackingEnchantProgressDisplay.getUntracked()) {
                     apply {
                         also {
                             val extraAttr = getExtraAttributes(held) ?: return@also
@@ -852,6 +853,8 @@ object ItemFeatures : EventSubscriber {
     }
 
     class StackingEnchantHud : HudElement("Stacking Enchant Display", 0.65, 0.85) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.stackingEnchantProgressDisplay
         override fun LayoutScope.render() {
             text(stackingEnchantTextState)
         }
@@ -863,6 +866,8 @@ object ItemFeatures : EventSubscriber {
     }
 
     class SoulflowHud : HudElement("Soulflow Display", 0.65, 0.85) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.showSoulflowDisplay
         override fun LayoutScope.render() {
             text(soulflowState)
         }
@@ -874,6 +879,8 @@ object ItemFeatures : EventSubscriber {
     }
 
     class WitherShieldHud : HudElement("Wither Shield Display", 0.65, 0.85) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.witherShieldCooldown
         override fun LayoutScope.render() {
             text(stateUsingSystemTime { time ->
                 val lastShieldUse = lastShieldUseState()

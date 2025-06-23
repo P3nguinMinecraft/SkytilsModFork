@@ -54,6 +54,7 @@ import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
 import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.combinators.map
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.elementa.state.v2.stateUsingSystemTime
@@ -165,7 +166,7 @@ object DungeonFeatures : EventSubscriber {
     }
 
     fun onBlockChange(event: BlockStateUpdateEvent) {
-        if (hasBossSpawned && Skytils.config.spiritBearTimer && dungeonFloor?.endsWith('4') == true) {
+        if (hasBossSpawned && Skytils.config.spiritBearTimer.getUntracked() && dungeonFloor?.endsWith('4') == true) {
             if (event.pos == lastBlockPos) {
                 lastLitUpTime.set {
                     if (event.update.block === Blocks.SEA_LANTERN && event.old.block === Blocks.COAL_BLOCK) Instant.now() else null
@@ -182,7 +183,7 @@ object DungeonFeatures : EventSubscriber {
 
     fun onReceivePacketHighest(event: PacketReceiveEvent<*>) {
         event.apply {
-            if (hasBossSpawned && Skytils.config.spiritBearTimer && dungeonFloor?.endsWith('4') == true) {
+            if (hasBossSpawned && Skytils.config.spiritBearTimer.getUntracked() && dungeonFloor?.endsWith('4') == true) {
                 when (packet) {
                     is BlockUpdateS2CPacket -> {
                         if (packet.pos == lastBlockPos) {
@@ -694,6 +695,9 @@ object DungeonFeatures : EventSubscriber {
     }
 
     object SpiritBearSpawnTimer : HudElement("Spirit Bear Spawn Timer", 0.05, 0.4) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.spiritBearTimer
+
         val diff = stateUsingSystemTime { currentTime ->
             lastLitUpTime()?.plusMillis(3400)?.let { time -> currentTime.until(time) }
         }
@@ -711,6 +715,9 @@ object DungeonFeatures : EventSubscriber {
     }
 
     object DungeonSecretDisplay : HudElement("Dungeon Secret Display", x = 0.05, y = 0.4) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.dungeonSecretDisplay
+
         val secretsState = mutableStateOf(-1)
         val maxSecretsState = mutableStateOf(-1)
 

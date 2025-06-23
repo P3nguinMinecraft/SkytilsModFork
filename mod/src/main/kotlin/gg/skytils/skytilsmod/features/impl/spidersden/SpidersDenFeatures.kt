@@ -30,6 +30,7 @@ import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.*
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
@@ -53,7 +54,7 @@ object SpidersDenFeatures : EventSubscriber {
 
     fun onTick(event: TickEvent) {
         arachneName.set(
-            if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.SpiderDen.mode || !Skytils.config.showArachneHP) null else mc.world?.entities?.find {
+            if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.SpiderDen.mode || !Skytils.config.showArachneHP.getUntracked()) null else mc.world?.entities?.find {
                 val name = it.displayName?.formattedText ?: return@find false
                 it is ArmorStandEntity && name.endsWith("§c❤") && (name.contains("§cArachne §") || name.contains("§5Runic Arachne §"))
             }?.displayName?.formattedText
@@ -93,6 +94,8 @@ object SpidersDenFeatures : EventSubscriber {
     }
 
     class ArachneHPHud : HudElement("Show Arachne HP", 200f, 30f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.showArachneHP
         override fun LayoutScope.render() {
             ifNotNull(arachneName) { name ->
                 text(name)

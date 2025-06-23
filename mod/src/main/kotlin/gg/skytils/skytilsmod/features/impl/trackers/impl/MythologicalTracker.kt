@@ -23,6 +23,7 @@ import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
 import gg.essential.elementa.layoutdsl.column
 import gg.essential.elementa.state.v2.MutableState
+import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.combinators.and
 import gg.essential.elementa.state.v2.mutableStateOf
 import gg.essential.universal.UChat
@@ -271,6 +272,8 @@ object MythologicalTracker : EventSubscriber, Tracker("mythological") {
     }
 
     object MythologicalTrackerHud : HudElement("Mythological Tracker", 150f, 120f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.trackMythEventState
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState and GriffinBurrows.hasSpadeInHotbarState and { SBInfo.modeState() == SkyblockIsland.Hub.mode }) {
                 column {

@@ -510,6 +510,9 @@ object ScoreCalculation: EventSubscriber {
     }
 
     class HugeCryptsHud : HudElement("Dungeon Crypts Counter", 200f, 200f) {
+        override val toggleState: gg.essential.elementa.state.v2.State<Boolean>
+            get() = Skytils.config.bigCryptsCounter
+
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState and { DungeonTimer.dungeonStartTimeState() != null }) {
                 text({ "Crypts: ${crypts.toV2()()}" }, Modifier.color { if (crypts.toV2()() < 5) Color.RED else Color(0x49ff59) })
@@ -523,6 +526,9 @@ object ScoreCalculation: EventSubscriber {
     }
 
     object ScoreCalculationHud : HudElement("Dungeon Score Estimate", 200f, 100f) {
+        override val toggleState: gg.essential.elementa.state.v2.State<Boolean>
+            get() = Skytils.config.showScoreCalculation
+
         val text = mutableListStateOf<String>()
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState) {

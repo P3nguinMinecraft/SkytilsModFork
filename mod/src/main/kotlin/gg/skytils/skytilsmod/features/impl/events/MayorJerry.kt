@@ -60,7 +60,7 @@ object MayorJerry : EventSubscriber {
 
     fun onChat(event: ChatMessageReceivedEvent) {
         if (!Utils.inSkyblock) return
-        if (!Skytils.config.hiddenJerryTimer && !Skytils.config.hiddenJerryAlert && !Skytils.config.trackHiddenJerry) return
+        if (!Skytils.config.hiddenJerryTimer.getUntracked() && !Skytils.config.hiddenJerryAlert && !Skytils.config.trackHiddenJerry.getUntracked()) return
         val unformatted = event.message.string.stripControlCodes()
         val formatted = event.message.formattedText
         if (formatted.startsWith("§b ☺ §e") && unformatted.contains("Jerry") && !unformatted.contains(
@@ -71,7 +71,7 @@ object MayorJerry : EventSubscriber {
             if (match != null) {
                 val lastJerry = lastJerryState.getUntracked()
                 val now = Instant.now()
-                if (Skytils.config.hiddenJerryTimer && lastJerry != null) UChat.chat(
+                if (Skytils.config.hiddenJerryTimer.getUntracked() && lastJerry != null) UChat.chat(
                     "§bIt has been ${
                         NumberUtil.nf.format(
                             lastJerry.until(now, ChronoUnit.SECONDS)
@@ -89,6 +89,9 @@ object MayorJerry : EventSubscriber {
     }
 
     class JerryPerkHud : HudElement("Mayor Jerry Perk Display", 10f, 10f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.displayJerryPerks
+
         val diff = stateUsingSystemTime { time -> time.until(MayorInfo.newJerryPerksState()) }
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState and { MayorInfo.currentMayorState() == "Jerry" }) {
@@ -114,6 +117,8 @@ object MayorJerry : EventSubscriber {
     }
 
     class HiddenJerryTimerHud : HudElement("Mayor Jerry Timer", 10f, 20f) {
+        override val toggleState: State<Boolean>
+            get() = Skytils.config.hiddenJerryTimer
         private val villagerEgg = ItemStack(Items.VILLAGER_SPAWN_EGG)
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {

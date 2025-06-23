@@ -17,7 +17,11 @@
  */
 package gg.skytils.skytilsmod.core
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop
 import gg.essential.api.EssentialAPI
+import gg.essential.elementa.state.v2.ReferenceHolder
+import gg.essential.elementa.state.v2.effect
+import gg.essential.elementa.state.v2.onChange
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
@@ -263,15 +267,16 @@ object Config : Vigilant(
     )
     var injectFakeDungeonMap = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Dungeon Crypts Counter",
-        description = "Shows the amount of crypts destroyed on your HUD.",
-        category = "Dungeons", subcategory = "HUD",
-        i18nName = "skytils.config.dungeons.hud.dungeon_crypts_counter",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.hud"
+    val bigCryptsCounter = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Dungeon Crypts Counter",
+            description = "Shows the amount of crypts destroyed on your HUD.",
+            category = "Dungeons", subcategory = "HUD",
+            i18nName = "skytils.config.dungeons.hud.dungeon_crypts_counter",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.hud"
+        ), false
     )
-    var bigCryptsCounter = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Auto Copy Fails to Clipboard",
@@ -313,15 +318,16 @@ object Config : Vigilant(
     )
     var partyFinderStats = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Dungeon Chest Profit",
-        description = "Shows the estimated profit for items from chests in dungeons.",
-        category = "Dungeons", subcategory = "Miscellaneous",
-        i18nName = "skytils.config.dungeons.miscellaneous.dungeon_chest_profit",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.miscellaneous"
+    val dungeonChestProfit = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Dungeon Chest Profit",
+            description = "Shows the estimated profit for items from chests in dungeons.",
+            category = "Dungeons", subcategory = "Miscellaneous",
+            i18nName = "skytils.config.dungeons.miscellaneous.dungeon_chest_profit",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.miscellaneous"
+        ), false
     )
-    var dungeonChestProfit = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Dungeon Chest Profit Includes Essence",
@@ -399,25 +405,33 @@ object Config : Vigilant(
         UDesktop.browse(URI.create("https://l.skytils.gg/dungeonsweatsonly"))
     }
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Dungeon Timer",
-        description = "Shows the time taken for certain actions in dungeons.",
-        category = "Dungeons", subcategory = "Miscellaneous",
-        i18nName = "skytils.config.dungeons.miscellaneous.dungeon_timer",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.miscellaneous"
-    )
-    var dungeonTimer = false
+    val dungeonTimer
+        get() = dungeonTimerState.getUntracked()
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Necron Phase Timer",
-        description = "Shows the time taken for each phase in the Necron boss fight.",
-        category = "Dungeons", subcategory = "Miscellaneous",
-        i18nName = "skytils.config.dungeons.miscellaneous.necron_phase_timer",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.miscellaneous"
+    val dungeonTimerState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Dungeon Timer",
+            description = "Shows the time taken for certain actions in dungeons.",
+            category = "Dungeons", subcategory = "Miscellaneous",
+            i18nName = "skytils.config.dungeons.miscellaneous.dungeon_timer",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.miscellaneous"
+        ), false
     )
-    var necronPhaseTimer = false
+
+    val necronPhaseTimer
+        get() = necronPhaseTimerState.getUntracked()
+
+    val necronPhaseTimerState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Necron Phase Timer",
+            description = "Shows the time taken for each phase in the Necron boss fight.",
+            category = "Dungeons", subcategory = "Miscellaneous",
+            i18nName = "skytils.config.dungeons.miscellaneous.necron_phase_timer",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.miscellaneous"
+        ), false
+    )
 
     @Property(
         type = PropertyType.SWITCH, name = "Red Screen Fix",
@@ -439,25 +453,30 @@ object Config : Vigilant(
     )
     var showMillisOnDungeonTimer = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Sadan Phase Timer",
-        description = "Shows the time taken for each phase in the Sadan boss fight.",
-        category = "Dungeons", subcategory = "Miscellaneous",
-        i18nName = "skytils.config.dungeons.miscellaneous.sadan_phase_timer",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.miscellaneous"
-    )
-    var sadanPhaseTimer = false
+    val sadanPhaseTimer
+        get() = sadanPhaseTimerState.getUntracked()
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Show Dungeon Score Estimate",
-        description = "Shows an estimate of the current dungeon score.",
-        category = "Dungeons", subcategory = "Score Calculation",
-        i18nName = "skytils.config.dungeons.score_calculation.show_dungeon_score_estimate",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.score_calculation"
+    val sadanPhaseTimerState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Sadan Phase Timer",
+            description = "Shows the time taken for each phase in the Sadan boss fight.",
+            category = "Dungeons", subcategory = "Miscellaneous",
+            i18nName = "skytils.config.dungeons.miscellaneous.sadan_phase_timer",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.miscellaneous"
+        ), false
     )
-    var showScoreCalculation = false
+
+    val showScoreCalculation = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Show Dungeon Score Estimate",
+            description = "Shows an estimate of the current dungeon score.",
+            category = "Dungeons", subcategory = "Score Calculation",
+            i18nName = "skytils.config.dungeons.score_calculation.show_dungeon_score_estimate",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.score_calculation"
+        ), false
+    )
 
     val minimizedScoreCalculationState = property(
         PropertyAttributesExt(
@@ -677,15 +696,16 @@ object Config : Vigilant(
     )
     var kismetRerollThreshold = 0
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Dungeon Secret Display",
-        description = "Shows the amount of dungeon secrets in the current room.",
-        category = "Dungeons", subcategory = "Quality of Life",
-        i18nName = "skytils.config.dungeons.quality_of_life.dungeon_secret_display",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+    val dungeonSecretDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Dungeon Secret Display",
+            description = "Shows the amount of dungeon secrets in the current room.",
+            category = "Dungeons", subcategory = "Quality of Life",
+            i18nName = "skytils.config.dungeons.quality_of_life.dungeon_secret_display",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+        ), false
     )
-    var dungeonSecretDisplay = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Ghost Leap Names",
@@ -888,15 +908,16 @@ object Config : Vigilant(
     )
     var itemScale = 1f
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Show Giant HP",
-        description = "Shows the HP of Giants in your HUD.",
-        category = "Dungeons", subcategory = "Quality of Life",
-        i18nName = "skytils.config.dungeons.quality_of_life.show_giant_hp",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+    val showGiantHP = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Show Giant HP",
+            description = "Shows the HP of Giants in your HUD.",
+            category = "Dungeons", subcategory = "Quality of Life",
+            i18nName = "skytils.config.dungeons.quality_of_life.show_giant_hp",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+        ), false
     )
-    var showGiantHP = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Show Giant HP at Feet",
@@ -908,15 +929,16 @@ object Config : Vigilant(
     )
     var showGiantHPAtFeet = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Show Guardian Respawn Timer",
-        description = "Shows the respawn timer for the Guardians in Floor 3.",
-        category = "Dungeons", subcategory = "Quality of Life",
-        i18nName = "skytils.config.dungeons.quality_of_life.show_guardian_respawn_timer",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+    val showGuardianRespawnTimer = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Show Guardian Respawn Timer",
+            description = "Shows the respawn timer for the Guardians in Floor 3.",
+            category = "Dungeons", subcategory = "Quality of Life",
+            i18nName = "skytils.config.dungeons.quality_of_life.show_guardian_respawn_timer",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+        ), false
     )
-    var showGuardianRespawnTimer = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Show Wither King Statue Box",
@@ -989,15 +1011,16 @@ object Config : Vigilant(
     )
     var showWitherKingDragonsSpawnTimer = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Spirit Bear Timer",
-        description = "Shows the time it takes for the Spirit Bears to spawn.",
-        category = "Dungeons", subcategory = "Quality of Life",
-        i18nName = "skytils.config.dungeons.quality_of_life.spirit_bear_timer",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+    val spiritBearTimer = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Spirit Bear Timer",
+            description = "Shows the time it takes for the Spirit Bears to spawn.",
+            category = "Dungeons", subcategory = "Quality of Life",
+            i18nName = "skytils.config.dungeons.quality_of_life.spirit_bear_timer",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.quality_of_life"
+        ), false
     )
-    var spiritBearTimer = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Spirit Leap Names",
@@ -1263,15 +1286,19 @@ object Config : Vigilant(
     )
     var waterBoardSolver = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Find correct Livid",
-        description = "Shows the hp of the correct livid on F5 and M5",
-        category = "Dungeons", subcategory = "Solvers",
-        i18nName = "skytils.config.dungeons.solvers.find_correct_livid",
-        i18nCategory = "skytils.config.dungeons",
-        i18nSubcategory = "skytils.config.dungeons.solvers"
+    val findCorrectLivid
+        get() = findCorrectLividState.getUntracked()
+
+    val findCorrectLividState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Find correct Livid",
+            description = "Shows the hp of the correct livid on F5 and M5",
+            category = "Dungeons", subcategory = "Solvers",
+            i18nName = "skytils.config.dungeons.solvers.find_correct_livid",
+            i18nCategory = "skytils.config.dungeons",
+            i18nSubcategory = "skytils.config.dungeons.solvers"
+        ), false
     )
-    var findCorrectLivid = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Boxed Tanks",
@@ -1501,15 +1528,16 @@ object Config : Vigilant(
     )
     var predictSimonClicks = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Display Jerry Perks",
-        description = "Displays the perks for Jerry.\nYou must visit Jerry in order for the display to function correctly.",
-        category = "Events", subcategory = "Mayor Jerry",
-        i18nName = "skytils.config.events.mayor_jerry.display_jerry_perks",
-        i18nCategory = "skytils.config.events",
-        i18nSubcategory = "skytils.config.events.mayor_jerry"
+    val displayJerryPerks = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Display Jerry Perks",
+            description = "Displays the perks for Jerry.\nYou must visit Jerry in order for the display to function correctly.",
+            category = "Events", subcategory = "Mayor Jerry",
+            i18nName = "skytils.config.events.mayor_jerry.display_jerry_perks",
+            i18nCategory = "skytils.config.events",
+            i18nSubcategory = "skytils.config.events.mayor_jerry"
+        ), false
     )
-    var displayJerryPerks = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Hidden Jerry Alert",
@@ -1521,25 +1549,27 @@ object Config : Vigilant(
     )
     var hiddenJerryAlert = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Hidden Jerry Timer",
-        description = "Displays a timer from when you last discovered a Hidden Jerry.",
-        category = "Events", subcategory = "Mayor Jerry",
-        i18nName = "skytils.config.events.mayor_jerry.hidden_jerry_timer",
-        i18nCategory = "skytils.config.events",
-        i18nSubcategory = "skytils.config.events.mayor_jerry"
+    val hiddenJerryTimer = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Hidden Jerry Timer",
+            description = "Displays a timer from when you last discovered a Hidden Jerry.",
+            category = "Events", subcategory = "Mayor Jerry",
+            i18nName = "skytils.config.events.mayor_jerry.hidden_jerry_timer",
+            i18nCategory = "skytils.config.events",
+            i18nSubcategory = "skytils.config.events.mayor_jerry"
+        ), false
     )
-    var hiddenJerryTimer = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Track Mayor Jerry Items",
-        description = "Tracks the amount of each type of Jerry that you've found, as well as drops obtained from Jerry Boxes.",
-        category = "Events", subcategory = "Mayor Jerry",
-        i18nName = "skytils.config.events.mayor_jerry.track_mayor_jerry_items",
-        i18nCategory = "skytils.config.events",
-        i18nSubcategory = "skytils.config.events.mayor_jerry"
+    val trackHiddenJerry = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Track Mayor Jerry Items",
+            description = "Tracks the amount of each type of Jerry that you've found, as well as drops obtained from Jerry Boxes.",
+            category = "Events", subcategory = "Mayor Jerry",
+            i18nName = "skytils.config.events.mayor_jerry.track_mayor_jerry_items",
+            i18nCategory = "skytils.config.events",
+            i18nSubcategory = "skytils.config.events.mayor_jerry"
+        ), false
     )
-    var trackHiddenJerry = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Show Griffin Burrows",
@@ -1629,16 +1659,20 @@ object Config : Vigilant(
     )
     var trackGaiaHits = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Track Mythological Creatures",
-        description = "Tracks and saves drops from Mythological Creatures.",
-        category = "Events", subcategory = "Mythological",
-        searchTags = ["Griffin", "Diana", "Myth", "Tracker"],
-        i18nName = "skytils.config.events.mythological.track_mythological_creatures",
-        i18nCategory = "skytils.config.events",
-        i18nSubcategory = "skytils.config.events.mythological"
+    val trackMythEvent
+        get() = trackMythEventState.getUntracked()
+
+    val trackMythEventState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Track Mythological Creatures",
+            description = "Tracks and saves drops from Mythological Creatures.",
+            category = "Events", subcategory = "Mythological",
+            searchTags = listOf("Griffin", "Diana", "Myth", "Tracker"),
+            i18nName = "skytils.config.events.mythological.track_mythological_creatures",
+            i18nCategory = "skytils.config.events",
+            i18nSubcategory = "skytils.config.events.mythological"
+        ), false
     )
-    var trackMythEvent = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Trick or Treat Chest Alert",
@@ -1793,15 +1827,17 @@ object Config : Vigilant(
     )
     var kuudraHideNonNametags = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Kuudra Chest Profit",
-        description = "Shows the estimated profit for items from chests in Kuudra.",
-        category = "Kuudra", subcategory = "Price Checking",
-        i18nName = "skytils.config.kuudra.price_checking.kuudra_chest_profit",
-        i18nCategory = "skytils.config.kuudra",
-        i18nSubcategory = "skytils.config.kuudra.price_checking"
+    val kuudraChestProfit = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Kuudra Chest Profit",
+            description = "Shows the estimated profit for items from chests in Kuudra.",
+            category = "Kuudra", subcategory = "Price Checking",
+            i18nName = "skytils.config.kuudra.price_checking.kuudra_chest_profit",
+            i18nCategory = "skytils.config.kuudra",
+            i18nSubcategory = "skytils.config.kuudra.price_checking"
+        ),
+        false
     )
-    var kuudraChestProfit = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Kuudra Chest Profit Includes Essence",
@@ -1953,15 +1989,16 @@ object Config : Vigilant(
     )
     var crystalHollowDeathWaypoint = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Crystal Hollows map",
-        description = "Shows a map to see in which part of the crystal hollows you are and saves locations of special places.",
-        category = "Mining", subcategory = "Crystal Hollows",
-        i18nName = "skytils.config.mining.crystal_hollows.crystal_hollows_map",
-        i18nCategory = "skytils.config.mining",
-        i18nSubcategory = "skytils.config.mining.crystal_hollows"
+    val crystalHollowMap = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Crystal Hollows map",
+            description = "Shows a map to see in which part of the crystal hollows you are and saves locations of special places.",
+            category = "Mining", subcategory = "Crystal Hollows",
+            i18nName = "skytils.config.mining.crystal_hollows.crystal_hollows_map",
+            i18nCategory = "skytils.config.mining",
+            i18nSubcategory = "skytils.config.mining.crystal_hollows"
+        ), false
     )
-    var crystalHollowMap = false
 
     @Property(
         type = PropertyType.DECIMAL_SLIDER, name = "Crystal Hollows map player arrow scale",
@@ -2176,16 +2213,17 @@ object Config : Vigilant(
     )
     var highlightFilledBazaarOrders = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Item Cooldown Display",
-        description = "Displays the cooldowns for your items. Items must be whitelisted with the /trackcooldown command.",
-        category = "Miscellaneous", subcategory = "Items",
-        searchTags = ["Wither Impact", "Hyperion", "Wither Shield"],
-        i18nName = "skytils.config.miscellaneous.items.item_cooldown_display",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.items"
+    var itemCooldownDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Item Cooldown Display",
+            description = "Displays the cooldowns for your items. Items must be whitelisted with the /trackcooldown command.",
+            category = "Miscellaneous", subcategory = "Items",
+            searchTags = listOf("Wither Impact", "Hyperion", "Wither Shield"),
+            i18nName = "skytils.config.miscellaneous.items.item_cooldown_display",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.items"
+        ), false
     )
-    var itemCooldownDisplay = false
 
     @Property(
         type = PropertyType.SELECTOR, name = "Item Stars Display",
@@ -2231,16 +2269,17 @@ object Config : Vigilant(
     )
     var preventPlacingWeapons = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Wither Shield Cooldown Tracker",
-        description = "Displays the cooldowns for your wither shield (because apparently people can't follow directions)",
-        category = "Miscellaneous", subcategory = "Items",
-        searchTags = ["Wither Impact", "Hyperion", "Wither Shield", "Scylla", "Astraea", "Valkyrie"],
-        i18nName = "skytils.config.miscellaneous.items.wither_shield_cooldown_tracker",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.items"
+    val witherShieldCooldown = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Wither Shield Cooldown Tracker",
+            description = "Displays the cooldowns for your wither shield (because apparently people can't follow directions)",
+            category = "Miscellaneous", subcategory = "Items",
+            searchTags = listOf("Wither Impact", "Hyperion", "Wither Shield", "Scylla", "Astraea", "Valkyrie"),
+            i18nName = "skytils.config.miscellaneous.items.wither_shield_cooldown_tracker",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.items"
+        ), false
     )
-    var witherShieldCooldown = false
 
     val assumeWitherImpactState = property(
         PropertyAttributesExt(
@@ -2408,15 +2447,16 @@ object Config : Vigilant(
     )
     var showStarCount = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Stacking Enchant Progress Display",
-        description = "Displays the progress for the held item's stacking enchant.",
-        category = "Miscellaneous", subcategory = "Items",
-        i18nName = "skytils.config.miscellaneous.items.stacking_enchant_progress_display",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.items"
+    var stackingEnchantProgressDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Stacking Enchant Progress Display",
+            description = "Displays the progress for the held item's stacking enchant.",
+            category = "Miscellaneous", subcategory = "Items",
+            i18nName = "skytils.config.miscellaneous.items.stacking_enchant_progress_display",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.items"
+        ), false
     )
-    var stackingEnchantProgressDisplay = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Radioactive Bonus",
@@ -2581,36 +2621,39 @@ object Config : Vigilant(
     )
     var dupeTrackerOverlayColor = Color.BLACK.withAlpha(169)
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Endstone Protector Spawn Timer",
-        description = "Counts down the time until the Endstone Protector spawns.",
-        category = "Miscellaneous", subcategory = "Other",
-        i18nName = "skytils.config.miscellaneous.other.endstone_protector_spawn_timer",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.other"
+    val golemSpawnTimer = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Endstone Protector Spawn Timer",
+            description = "Counts down the time until the Endstone Protector spawns.",
+            category = "Miscellaneous", subcategory = "Other",
+            i18nName = "skytils.config.miscellaneous.other.endstone_protector_spawn_timer",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.other"
+        ), false
     )
-    var golemSpawnTimer = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Players in Range Display",
-        description = "Shows the amount of players within a 30 block radius.",
-        category = "Miscellaneous", subcategory = "Other",
-        searchTags = ["Dolphin", "Legion", "Bobbin' Time"],
-        i18nName = "skytils.config.miscellaneous.other.players_in_range_display",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.other"
+    val playersInRangeDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Players in Range Display",
+            description = "Shows the amount of players within a 30 block radius.",
+            category = "Miscellaneous", subcategory = "Other",
+            searchTags = listOf("Dolphin", "Legion", "Bobbin' Time"),
+            i18nName = "skytils.config.miscellaneous.other.players_in_range_display",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.other"
+        ), false
     )
-    var playersInRangeDisplay = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Placed Summoning Eye Display",
-        description = "Shows the amount of summoning eyes placed in the Dragon's Nest.",
-        category = "Miscellaneous", subcategory = "Other",
-        i18nName = "skytils.config.miscellaneous.other.placed_summoning_eye_display",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.other"
+    val summoningEyeDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Placed Summoning Eye Display",
+            description = "Shows the amount of summoning eyes placed in the Dragon's Nest.",
+            category = "Miscellaneous", subcategory = "Other",
+            i18nName = "skytils.config.miscellaneous.other.placed_summoning_eye_display",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.other"
+        ), false
     )
-    var summoningEyeDisplay = false
 
     @Property(
         type = PropertyType.SELECTOR, name = "Ping Display",
@@ -2653,15 +2696,16 @@ object Config : Vigilant(
     )
     var showBestiaryLevel = false
 
-    @Property(
-        PropertyType.SWITCH, name = "Show Selected Arrow",
-        description = "Shows your current selected arrow.",
-        category = "Miscellaneous", subcategory = "Other",
-        i18nName = "skytils.config.miscellaneous.other.show_selected_arrow",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.other"
+    val showSelectedArrowDisplay = property(
+        PropertyAttributesExt(
+            PropertyType.SWITCH, name = "Show Selected Arrow",
+            description = "Shows your current selected arrow.",
+            category = "Miscellaneous", subcategory = "Other",
+            i18nName = "skytils.config.miscellaneous.other.show_selected_arrow",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.other"
+        ), false
     )
-    var showSelectedArrowDisplay = false
 
     val showWorldAgeState = property(
         PropertyAttributesExt(
@@ -2727,15 +2771,19 @@ object Config : Vigilant(
     )
     var betterAuctionPriceInput = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Container Sell Value",
-        description = "Display the lowest BIN prices for the most valuable items in backpacks, ender chest pages, minions, and island chests.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.container_sell_value",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val containerSellValue
+        get() = containerSellValueState.getUntracked()
+
+    val containerSellValueState = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Container Sell Value",
+            description = "Display the lowest BIN prices for the most valuable items in backpacks, ender chest pages, minions, and island chests.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.container_sell_value",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ), false
     )
-    var containerSellValue = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Include Item Modifiers",
@@ -3009,25 +3057,27 @@ object Config : Vigilant(
     )
     var middleClickGUIItems = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Moveable Action Bar",
-        description = "Allows you to move the action bar as if it were a Skytils HUD element.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.moveable_action_bar",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val moveableActionBar = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Moveable Action Bar",
+            description = "Allows you to move the action bar as if it were a Skytils HUD element.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.moveable_action_bar",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ), false
     )
-    var moveableActionBar = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Moveable Item Name Highlight",
-        description = "Allows you to move the item name highlight as if it were a Skytils HUD element.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.moveable_item_name_highlight",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val moveableItemNameHighlight = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Moveable Item Name Highlight",
+            description = "Allows you to move the item name highlight as if it were a Skytils HUD element.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.moveable_item_name_highlight",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ), false
     )
-    var moveableItemNameHighlight = false
 
     @Property(
         type = PropertyType.SWITCH, name = "No Fire",
@@ -3148,15 +3198,16 @@ object Config : Vigilant(
     )
     var protectStarredItems = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Quiver Display",
-        description = "Displays the amount of arrows in your quiver.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.quiver_display",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val quiverDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Quiver Display",
+            description = "Displays the amount of arrows in your quiver.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.quiver_display",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ), false
     )
-    var quiverDisplay = false
 
     @Property(
         type = PropertyType.NUMBER, name = "Restock Arrows Warning",
@@ -3189,15 +3240,16 @@ object Config : Vigilant(
     )
     var showArachneSpawn = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Show Arachne HP",
-        description = "Shows the HP of Arachne on your HUD.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.show_arachne_hp",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val showArachneHP = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Show Arachne HP",
+            description = "Shows the HP of Arachne on your HUD.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.show_arachne_hp",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ), false
     )
-    var showArachneHP = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Show Coins per Bit",
@@ -3306,15 +3358,16 @@ object Config : Vigilant(
     )
     var fishingHookAge = false
 
-    @Property(
-        type = PropertyType.SWITCH, name = "Trophy Fish Tracker",
-        description = "Tracks trophy fish caught.",
-        category = "Miscellaneous", subcategory = "Quality of Life",
-        i18nName = "skytils.config.miscellaneous.quality_of_life.trophy_fish_tracker",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+    val trophyFishTracker = property(
+        PropertyAttributesExt(
+            type = PropertyType.SWITCH, name = "Trophy Fish Tracker",
+            description = "Tracks trophy fish caught.",
+            category = "Miscellaneous", subcategory = "Quality of Life",
+            i18nName = "skytils.config.miscellaneous.quality_of_life.trophy_fish_tracker",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.quality_of_life"
+        ), false
     )
-    var trophyFishTracker = false
 
     @Property(
         type = PropertyType.SWITCH, name = "Show Trophy Fish Totals",
@@ -3634,15 +3687,16 @@ object Config : Vigilant(
     )
     var seraphNormalPhaseColor = Color(255, 255, 255)
 
-    @Property(
-        PropertyType.SWITCH, name = "Show Seraph Display",
-        description = "§b[WIP] §rShows info about your current Voidgloom Seraph boss.",
-        category = "Slayer", subcategory = "Voidgloom Seraph",
-        i18nName = "skytils.config.slayer.voidgloom_seraph.show_seraph_display",
-        i18nCategory = "skytils.config.slayer",
-        i18nSubcategory = "skytils.config.slayer.voidgloom_seraph"
+    val showSeraphDisplay = property(
+        PropertyAttributesExt(
+            PropertyType.SWITCH, name = "Show Seraph Display",
+            description = "§b[WIP] §rShows info about your current Voidgloom Seraph boss.",
+            category = "Slayer", subcategory = "Voidgloom Seraph",
+            i18nName = "skytils.config.slayer.voidgloom_seraph.show_seraph_display",
+            i18nCategory = "skytils.config.slayer",
+            i18nSubcategory = "skytils.config.slayer.voidgloom_seraph"
+        ), false
     )
-    var showSeraphDisplay = false
 
 
     /*    @Property(
@@ -3723,16 +3777,17 @@ object Config : Vigilant(
     )
     var nukekebiHeadColor = Color(65, 102, 245, 128)
 
-    @Property(
-        PropertyType.SWITCH, name = "Show Soulflow Display",
-        description = "Shows your current internalized soulflow.\n" +
-                "§cRequires your Soulflow battery to be in your inventory.",
-        category = "Slayer", subcategory = "Voidgloom Seraph",
-        i18nName = "skytils.config.slayer.voidgloom_seraph.show_soulflow_display",
-        i18nCategory = "skytils.config.slayer",
-        i18nSubcategory = "skytils.config.slayer.voidgloom_seraph"
+    val showSoulflowDisplay = property(
+        PropertyAttributesExt(
+            PropertyType.SWITCH, name = "Show Soulflow Display",
+            description = "Shows your current internalized soulflow.\n" +
+                    "§cRequires your Soulflow battery to be in your inventory.",
+            category = "Slayer", subcategory = "Voidgloom Seraph",
+            i18nName = "skytils.config.slayer.voidgloom_seraph.show_soulflow_display",
+            i18nCategory = "skytils.config.slayer",
+            i18nSubcategory = "skytils.config.slayer.voidgloom_seraph"
+        ), false
     )
-    var showSoulflowDisplay = false
 
     @Property(
         PropertyType.NUMBER, name = "Low Soulflow Ping",
@@ -4374,13 +4429,13 @@ object Config : Vigilant(
         arrayOf(
             "showLowestBINPrice",
             "betterAuctionPriceInput",
-            "dungeonChestProfit",
+//            "dungeonChestProfit",
             "showCoinsPerBit",
             "protectItemBINThreshold",
-            "containerSellValue",
+//            "containerSellValue",
             "visitorOfferHelper",
             "showCoinsPerCopper",
-            "kuudraChestProfit",
+//            "kuudraChestProfit",
             "fetchKuudraPrices"
         ).forEach { propertyName ->
             addDependency(propertyName, "fetchLowestBINPrices")
@@ -4389,19 +4444,24 @@ object Config : Vigilant(
             }
         }
 
-        arrayOf("kuudraChestProfit").forEach { propertyName ->
-            addDependency(propertyName, "fetchKuudraPrices")
-            registerListener(propertyName) { prop: Any ->
-                if (prop is Boolean && prop) fetchKuudraPrices = true
+//        arrayOf("kuudraChestProfit").forEach { propertyName ->
+//            addDependency(propertyName, "fetchKuudraPrices")
+//            registerListener(propertyName) { prop: Any ->
+//                if (prop is Boolean && prop) fetchKuudraPrices = true
+//            }
+//        }
+        effect(ReferenceHolder.Weak) {
+            if (kuudraChestProfit()) {
+                fetchKuudraPrices = true
             }
         }
 
-        addDependency("dungeonChestProfitIncludesEssence", "dungeonChestProfit")
+//        addDependency("dungeonChestProfitIncludesEssence", "dungeonChestProfit")
         addDependency("croesusHideOpened", "croesusChestHighlight")
-        addDependency("kismetRerollThreshold", "dungeonChestProfit")
+//        addDependency("kismetRerollThreshold", "dungeonChestProfit")
 
-        addDependency("kuudraChestProfitIncludesEssence", "kuudraChestProfit")
-        addDependency("kuudraChestProfitCountsKey", "kuudraChestProfit")
+//        addDependency("kuudraChestProfitIncludesEssence", "kuudraChestProfit")
+//        addDependency("kuudraChestProfitCountsKey", "kuudraChestProfit")
 
         addDependency("message270Score", "sendMessageOn270Score")
         addDependency("messageTitle270Score", "createTitleOn270Score")
@@ -4459,17 +4519,17 @@ object Config : Vigilant(
         addDependency("powerOrbDuration", "powerOrbLock")
         addDependency("dupeTrackerOverlayColor", "dupeTracker")
 
-        addDependency("containerSellValueMaxItems", "containerSellValue")
-        addDependency("includeModifiersInSellValue", "containerSellValue")
+//        addDependency("containerSellValueMaxItems", "containerSellValue")
+//        addDependency("includeModifiersInSellValue", "containerSellValue")
 
 //        addDependency("assumeWitherImpact", "witherShieldCooldown")
 
-        addDependency("showTrophyFishTotals", "trophyFishTracker")
+//        addDependency("showTrophyFishTotals", "trophyFishTracker")
 //        addDependency("showTotalTrophyFish", "trophyFishTracker")
 
         addDependency("shinyPigLocations", "shinyOrbWaypoints")
 
-        addDependency("crystalHollowsMapPlayerScale", "crystalHollowMap")
+//        addDependency("crystalHollowsMapPlayerScale", "crystalHollowMap")
 
         registerListener("protectItemBINThreshold") { _: String ->
             tickTimer(1) {

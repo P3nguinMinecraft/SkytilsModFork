@@ -20,6 +20,7 @@ package gg.skytils.skytilsmod.features.impl.crimson
 
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.combinators.and
 import gg.essential.elementa.state.v2.mutableListStateOf
 import gg.essential.elementa.state.v2.setAll
@@ -64,7 +65,7 @@ object TrophyFish : EventSubscriber {
     }
 
     fun onChat(event: ChatMessageReceivedEvent) {
-        if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.CrimsonIsle.mode || !Config.trophyFishTracker) return
+        if (!Utils.inSkyblock || SBInfo.mode != SkyblockIsland.CrimsonIsle.mode || !Config.trophyFishTracker.getUntracked()) return
         printDevMessage({ event.message.string }, "trophyspam")
         trophyFishRegex.matchEntire(event.message.string.stripControlCodes())?.destructured?.let { (type, tier) ->
             printDevMessage({ "Found trophy fish of $type of tier $tier" }, "trophy")
@@ -145,6 +146,8 @@ object TrophyFish : EventSubscriber {
     }
 
     object TrophyFishDisplay : HudElement("Trophy Fish Display", 0f, 0f) {
+        override val toggleState: State<Boolean> = Config.trophyFishTracker
+
         private val text = mutableListStateOf<String>()
 
         fun update() =
