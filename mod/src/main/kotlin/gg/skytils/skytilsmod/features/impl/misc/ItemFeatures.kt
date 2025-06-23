@@ -824,7 +824,6 @@ object ItemFeatures : EventSubscriber {
             if (isValidEtherwarpPos(obj)) {
                 RenderUtil.drawSelectionBox(
                     block,
-                    state.block,
                     Skytils.config.showEtherwarpTeleportPosColor,
                     event.partialTicks
                 )

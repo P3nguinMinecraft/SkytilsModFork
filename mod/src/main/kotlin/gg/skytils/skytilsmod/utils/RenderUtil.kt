@@ -21,6 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import gg.essential.universal.ChatColor
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
+import gg.essential.universal.UMinecraft
 import gg.essential.universal.UResolution
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils
@@ -34,6 +35,7 @@ import net.minecraft.block.Block
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
+import net.minecraft.client.render.block.entity.BeaconBlockEntityRenderer
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.Slot
@@ -56,101 +58,24 @@ object RenderUtil {
     private val beaconBeam = Identifier.of("textures/entity/beacon_beam.png")
     private val mutex = ReentrantLock()
 
-    /**
-     * Taken from NotEnoughUpdates under Creative Commons Attribution-NonCommercial 3.0
-     * https://github.com/Moulberry/NotEnoughUpdates/blob/master/LICENSE
-     * @author Moulberry
-     * @author Mojang
-     */
-    fun renderBeaconBeam(x: Double, y: Double, z: Double, rgb: Int, alphaMultiplier: Float, partialTicks: Float) {
+    fun renderBeaconBeam(matrixStack: UMatrixStack, rgb: Int, partialTicks: Float) {
         val height = 300
         val bottomOffset = 0
-        val topOffset = bottomOffset + height
-        val tessellator = Tessellator.getInstance()
-        val worldrenderer = tessellator.buffer
-        mc.textureManager.bindTextureInner(beaconBeam)
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, 10497.0f)
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, 10497.0f)
-        RenderSystem.method_4406()
-        RenderSystem.enableCull()
-        RenderSystem.method_4397()
-        RenderSystem.blendFuncSeparate(770, 1, 1, 0)
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-        val time = mc.world.time + partialTicks.toDouble()
-        val d1 = MathHelper.method_0_6636(
-            -time * 0.2 - MathHelper.floor(-time * 0.1)
-                .toDouble()
+        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+        BeaconBlockEntityRenderer.renderBeam(
+            matrixStack.toMC(),
+            vertexConsumer,
+            beaconBeam,
+            partialTicks,
+            1f,
+            mc.world!!.time,
+            bottomOffset,
+            height,
+            rgb,
+            0.2f,
+            0.25f
         )
-        val r = (rgb shr 16 and 0xFF) / 255f
-        val g = (rgb shr 8 and 0xFF) / 255f
-        val b = (rgb and 0xFF) / 255f
-        val d2 = time * 0.025 * -1.5
-        val d4 = 0.5 + cos(d2 + 2.356194490192345) * 0.2
-        val d5 = 0.5 + sin(d2 + 2.356194490192345) * 0.2
-        val d6 = 0.5 + cos(d2 + Math.PI / 4.0) * 0.2
-        val d7 = 0.5 + sin(d2 + Math.PI / 4.0) * 0.2
-        val d8 = 0.5 + cos(d2 + 3.9269908169872414) * 0.2
-        val d9 = 0.5 + sin(d2 + 3.9269908169872414) * 0.2
-        val d10 = 0.5 + cos(d2 + 5.497787143782138) * 0.2
-        val d11 = 0.5 + sin(d2 + 5.497787143782138) * 0.2
-        val d14 = -1.0 + d1
-        val d15 = height.toDouble() * 2.5 + d14
-        worldrenderer.begin(7, VertexFormats.POSITION_TEXTURE_COLOR)
-        worldrenderer.vertex(x + d4, y + topOffset, z + d5).texture(1.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d4, y + bottomOffset, z + d5).texture(1.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d6, y + bottomOffset, z + d7).texture(0.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d6, y + topOffset, z + d7).texture(0.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d10, y + topOffset, z + d11).texture(1.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d10, y + bottomOffset, z + d11).texture(1.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d8, y + bottomOffset, z + d9).texture(0.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d8, y + topOffset, z + d9).texture(0.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d6, y + topOffset, z + d7).texture(1.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d6, y + bottomOffset, z + d7).texture(1.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d10, y + bottomOffset, z + d11).texture(0.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d10, y + topOffset, z + d11).texture(0.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d8, y + topOffset, z + d9).texture(1.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + d8, y + bottomOffset, z + d9).texture(1.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d4, y + bottomOffset, z + d5).texture(0.0, d14).color(r, g, b, 1.0f).next()
-        worldrenderer.vertex(x + d4, y + topOffset, z + d5).texture(0.0, d15).color(r, g, b, 1.0f * alphaMultiplier)
-            .next()
-        tessellator.draw()
-        RenderSystem.disableCull()
-        val d12 = -1.0 + d1
-        val d13 = height + d12
-        worldrenderer.begin(7, VertexFormats.POSITION_TEXTURE_COLOR)
-        worldrenderer.vertex(x + 0.2, y + topOffset, z + 0.2).texture(1.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.2, y + bottomOffset, z + 0.2).texture(1.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.8, y + bottomOffset, z + 0.2).texture(0.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.8, y + topOffset, z + 0.2).texture(0.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.8, y + topOffset, z + 0.8).texture(1.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.8, y + bottomOffset, z + 0.8).texture(1.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.2, y + bottomOffset, z + 0.8).texture(0.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.2, y + topOffset, z + 0.8).texture(0.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.8, y + topOffset, z + 0.2).texture(1.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.8, y + bottomOffset, z + 0.2).texture(1.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.8, y + bottomOffset, z + 0.8).texture(0.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.8, y + topOffset, z + 0.8).texture(0.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.2, y + topOffset, z + 0.8).texture(1.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        worldrenderer.vertex(x + 0.2, y + bottomOffset, z + 0.8).texture(1.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.2, y + bottomOffset, z + 0.2).texture(0.0, d12).color(r, g, b, 0.25f).next()
-        worldrenderer.vertex(x + 0.2, y + topOffset, z + 0.2).texture(0.0, d13).color(r, g, b, 0.25f * alphaMultiplier)
-            .next()
-        tessellator.draw()
+        vertexConsumer.drawCurrentLayer()
     }
 
     internal fun <T> Color.withParts(block: (Int, Int, Int, Int) -> T) =
@@ -274,10 +199,10 @@ object RenderUtil {
         matrixStack: UMatrixStack
     ) {
         matrixStack.push()
-        RenderSystem.method_4377(516, 0.1f)
         val (viewerX, viewerY, viewerZ) = getViewerPos(partialTicks)
+        val cameraEntity = mc.cameraEntity!!
         val distX = x - viewerX
-        val distY = y - viewerY - mc.cameraEntity.standingEyeHeight
+        val distY = y - viewerY - cameraEntity.standingEyeHeight
         val distZ = z - viewerZ
         val dist = sqrt(distX * distX + distY * distY + distZ * distZ)
         val renderX: Double
@@ -285,7 +210,7 @@ object RenderUtil {
         val renderZ: Double
         if (dist > 12) {
             renderX = distX * 12 / dist + viewerX
-            renderY = distY * 12 / dist + viewerY + mc.cameraEntity.standingEyeHeight
+            renderY = distY * 12 / dist + viewerY + cameraEntity.standingEyeHeight
             renderZ = distZ * 12 / dist + viewerZ
         } else {
             renderX = x
@@ -345,49 +270,29 @@ object RenderUtil {
         }
     }
 
-    /**
-     * Taken from Skyblockcatia under MIT License
-     * https://github.com/SteveKunG/SkyBlockcatia/blob/1.8.9/LICENSE.md
-     * @author SteveKunG
-     */
     @JvmStatic
     fun renderRarity(xPos: Int, yPos: Int, rarity: ItemRarity) {
         val alpha = Skytils.config.itemRarityOpacity
-
-        // save the states
-        val lightingEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING)
-        val depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
-        val alphaEnabled = GL11.glIsEnabled(GL11.GL_ALPHA_TEST)
-
-        if (lightingEnabled) RenderSystem.method_4406()
-        if (depthEnabled) RenderSystem.disableDepthTest()
-        RenderSystem.pushMatrix()
-        RenderSystem.enableBlend()
-        if (!alphaEnabled) RenderSystem.method_4456()
-        mc.textureManager.bindTextureInner(
-            when (Skytils.config.itemRarityShape) {
-                0 -> RARITY
-                1 -> RARITY2
-                2 -> RARITY3
-                3 -> RARITY4
-                4 -> CUSTOMRARITY
-                else -> RARITY
-            }
-        )
+        val matrixStack = UMatrixStack()
+        matrixStack.push()
+        matrixStack.translate(xPos.toDouble(), yPos.toDouble(), 0.0)
+        val texture = when (Skytils.config.itemRarityShape) {
+            0 -> RARITY
+            1 -> RARITY2
+            2 -> RARITY3
+            3 -> RARITY4
+            4 -> CUSTOMRARITY
+            else -> RARITY
+        }
         RenderSystem.setShaderColor(
             rarity.color.red / 255.0f,
             rarity.color.green / 255.0f,
             rarity.color.blue / 255.0f,
             alpha
         )
-        RenderSystem.popMatrix()
-        RenderSystem.blendFunc(770, 771)
-        GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_BLEND)
-        DrawContext.method_1781(xPos, yPos, 0f, 0f, 16, 16, 16f, 16f)
-        GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE)
-        if (lightingEnabled) RenderSystem.method_4394()
-        if (depthEnabled) RenderSystem.enableDepthTest()
-        if (!alphaEnabled) RenderSystem.method_4441()
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR)
+        DrawHelper.drawTexture(matrixStack, buffer, texture, xPos.toDouble(), yPos.toDouble(), width = 16.0, height = 16.0)
+        buffer.build()?.draw(SRenderPipelines.guiTexturePiepline)
     }
 
     private fun renderRarity(xPos: Int, yPos: Int, itemStack: ItemStack?) {
@@ -395,74 +300,77 @@ object RenderUtil {
         val rarity = ItemUtil.getRarity(itemStack)
         if (rarity != ItemRarity.NONE) {
             val alpha = Skytils.config.itemRarityOpacity
+            val matrixStack = UMatrixStack()
 
             if (Skytils.config.itemRarityShape < 5) {
                 renderRarity(xPos, yPos, rarity)
             } else {
-                RenderSystem.pushMatrix()
-                // save the states
-                val lightingEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING)
-                val depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
-                val alphaEnabled = GL11.glIsEnabled(GL11.GL_ALPHA_TEST)
-
-                if (lightingEnabled) RenderSystem.method_4406()
-                if (depthEnabled) RenderSystem.disableDepthTest()
-                RenderSystem.enableBlend()
-                if (!alphaEnabled) RenderSystem.method_4456()
-
-                GL11.glEnable(GL11.GL_STENCIL_TEST) // Turn on da test
-                val scissorState = GL11.glGetInteger(GL11.GL_SCISSOR_TEST) // check if scissor test was on
-                GL11.glStencilMask(0xFF)
-                GL11.glDisable(GL11.GL_SCISSOR_TEST)
-                GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT) // Flush old data
-                if (scissorState == GL11.GL_TRUE) GL11.glEnable(GL11.GL_SCISSOR_TEST)
-
-                GL11.glStencilMask(0xFF) // Writing = ON
-                GL11.glStencilFunc(GL11.GL_ALWAYS, 1, 0xFF) // Always "add" to frame
-                GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE) // Replace on success
-                GL11.glColorMask(false, false, false, false)
-                //Anything rendered here becomes "cut" frame.
-
-                val scale = 1.2
-                RenderSystem.method_4412(
-                    xPos.toDouble(),
-                    yPos.toDouble(),
-                    0.0
-                )
-
-                RenderSystem.pushMatrix()
-                RenderSystem.method_4412(8.0, 8.0, 0.0)
-                RenderSystem.method_4453(scale, scale, 0.0)
-                RenderSystem.method_4412(-8.0, -8.0, 0.0)
-                skipGlint = true
-                renderItem(itemStack, 0, 0)
-                skipGlint = false
-                RenderSystem.popMatrix()
-
-                GL11.glColorMask(true, true, true, true)
-
-                GL11.glStencilMask(0x00) // Writing = OFF
-                GL11.glStencilFunc(
-                    GL11.GL_NOTEQUAL,
-                    0,
-                    0xFF
-                ) // Anything that wasn't defined above will not be rendered.
-                //Anything rendered here will be cut if goes beyond frame defined before.
-                DrawContext.fill(
-                    1, 1, 17, 17,
-                    Color(
-                        (rarity.color.red).coerceAtLeast(0) / 255f,
-                        (rarity.color.green).coerceAtLeast(0) / 255f,
-                        (rarity.color.blue).coerceAtLeast(0) / 255f,
-                        alpha
-                    ).rgb
-                )
-                GL11.glDisable(GL11.GL_STENCIL_TEST)
-
-                if (lightingEnabled) RenderSystem.method_4394()
-                if (depthEnabled) RenderSystem.enableDepthTest()
-                if (!alphaEnabled) RenderSystem.method_4441()
-                RenderSystem.popMatrix()
+                renderRarity(xPos, yPos, rarity)
+                // TODO: Redo using shader to apply post processing instead of hacky stencil test
+//                matrixStack.push()
+//                // save the states
+//                val lightingEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING)
+//                val depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
+//                val alphaEnabled = GL11.glIsEnabled(GL11.GL_ALPHA_TEST)
+//
+//                if (lightingEnabled) RenderSystem.method_4406()
+//                if (depthEnabled) RenderSystem.disableDepthTest()
+//                RenderSystem.enableBlend()
+//                if (!alphaEnabled) RenderSystem.method_4456()
+//
+//                GL11.glEnable(GL11.GL_STENCIL_TEST) // Turn on da test
+//                val scissorState = GL11.glGetInteger(GL11.GL_SCISSOR_TEST) // check if scissor test was on
+//                GL11.glStencilMask(0xFF)
+//                GL11.glDisable(GL11.GL_SCISSOR_TEST)
+//                GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT) // Flush old data
+//                if (scissorState == GL11.GL_TRUE) GL11.glEnable(GL11.GL_SCISSOR_TEST)
+//
+//                GL11.glStencilMask(0xFF) // Writing = ON
+//                GL11.glStencilFunc(GL11.GL_ALWAYS, 1, 0xFF) // Always "add" to frame
+//                GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE) // Replace on success
+//                GL11.glColorMask(false, false, false, false)
+//                //Anything rendered here becomes "cut" frame.
+//
+//                val scale = 1.2
+//                RenderSystem.method_4412(
+//                    xPos.toDouble(),
+//                    yPos.toDouble(),
+//                    0.0
+//                )
+//
+//                RenderSystem.pushMatrix()
+//                RenderSystem.method_4412(8.0, 8.0, 0.0)
+//                RenderSystem.method_4453(scale, scale, 0.0)
+//                RenderSystem.method_4412(-8.0, -8.0, 0.0)
+//                skipGlint = true
+//                renderItem(itemStack, 0, 0)
+//                skipGlint = false
+//                RenderSystem.popMatrix()
+//
+//                GL11.glColorMask(true, true, true, true)
+//
+//                GL11.glStencilMask(0x00) // Writing = OFF
+//                GL11.glStencilFunc(
+//                    GL11.GL_NOTEQUAL,
+//                    0,
+//                    0xFF
+//                ) // Anything that wasn't defined above will not be rendered.
+//                //Anything rendered here will be cut if goes beyond frame defined before.
+//                DrawContext.fill(
+//                    1, 1, 17, 17,
+//                    Color(
+//                        (rarity.color.red).coerceAtLeast(0) / 255f,
+//                        (rarity.color.green).coerceAtLeast(0) / 255f,
+//                        (rarity.color.blue).coerceAtLeast(0) / 255f,
+//                        alpha
+//                    ).rgb
+//                )
+//                GL11.glDisable(GL11.GL_STENCIL_TEST)
+//
+//                if (lightingEnabled) RenderSystem.method_4394()
+//                if (depthEnabled) RenderSystem.enableDepthTest()
+//                if (!alphaEnabled) RenderSystem.method_4441()
+//                RenderSystem.popMatrix()
             }
 
         }
@@ -474,47 +382,49 @@ object RenderUtil {
      * @author BiscuitDevelopment
      *
      */
+    // TODO: Fix later when UC supports QUAD_STRIP
     fun drawCylinderInWorld(x: Double, y: Double, z: Double, radius: Float, height: Float, partialTicks: Float) {
-        var x1 = x
-        var y1 = y
-        var z1 = z
-        val renderViewEntity = mc.cameraEntity
-        val viewX =
-            renderViewEntity.lastX + (renderViewEntity.x - renderViewEntity.lastX) * partialTicks.toDouble()
-        val viewY =
-            renderViewEntity.lastY + (renderViewEntity.y - renderViewEntity.lastY) * partialTicks.toDouble()
-        val viewZ =
-            renderViewEntity.lastZ + (renderViewEntity.z - renderViewEntity.lastZ) * partialTicks.toDouble()
-        x1 -= viewX
-        y1 -= viewY
-        z1 -= viewZ
-        val tessellator = Tessellator.getInstance()
-        val worldrenderer = tessellator.buffer
-        worldrenderer.begin(GL11.GL_QUAD_STRIP, VertexFormats.POSITION)
-        var currentAngle = 0f
-        val angleStep = 0.1f
-        while (currentAngle < 2 * Math.PI) {
-            val xOffset = radius * cos(currentAngle.toDouble()).toFloat()
-            val zOffset = radius * sin(currentAngle.toDouble()).toFloat()
-            worldrenderer.vertex(x1 + xOffset, y1 + height, z1 + zOffset).next()
-            worldrenderer.vertex(x1 + xOffset, y1 + 0, z1 + zOffset).next()
-            currentAngle += angleStep
-        }
-        worldrenderer.vertex(x1 + radius, y1 + height, z1).next()
-        worldrenderer.vertex(x1 + radius, y1 + 0.0, z1).next()
-        tessellator.draw()
+//        var x1 = x
+//        var y1 = y
+//        var z1 = z
+//        val renderViewEntity = mc.cameraEntity!!
+//        val viewX =
+//            renderViewEntity.lastX + (renderViewEntity.x - renderViewEntity.lastX) * partialTicks.toDouble()
+//        val viewY =
+//            renderViewEntity.lastY + (renderViewEntity.y - renderViewEntity.lastY) * partialTicks.toDouble()
+//        val viewZ =
+//            renderViewEntity.lastZ + (renderViewEntity.z - renderViewEntity.lastZ) * partialTicks.toDouble()
+//        x1 -= viewX
+//        y1 -= viewY
+//        z1 -= viewZ
+//        val tessellator = Tessellator.getInstance()
+//        val worldrenderer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION)
+////        worldrenderer.begin(GL11.GL_QUAD_STRIP, VertexFormats.POSITION)
+//        var currentAngle = 0f
+//        val angleStep = 0.1f
+//        while (currentAngle < 2 * Math.PI) {
+//            val xOffset = radius * cos(currentAngle.toDouble()).toFloat()
+//            val zOffset = radius * sin(currentAngle.toDouble()).toFloat()
+//            worldrenderer.pos(x1 + xOffset, y1 + height, z1 + zOffset).next()
+//            worldrenderer.pos(x1 + xOffset, y1 + 0, z1 + zOffset).next()
+//            currentAngle += angleStep
+//        }
+//        worldrenderer.vertex(x1 + radius, y1 + height, z1).next()
+//        worldrenderer.vertex(x1 + radius, y1 + 0.0, z1).next()
+//        tessellator.draw()
     }
 
     fun drawCircle(matrixStack: UMatrixStack, x: Double, y: Double, z: Double, partialTicks: Float, radius: Double, edges: Int, r: Int, g: Int, b: Int, a: Int = 255) {
         val ug = UGraphics.getFromTessellator()
         val angleDelta = Math.PI * 2 / edges
         RenderSystem.lineWidth(5f)
-        ug.beginWithDefaultShader(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
+        val (dx, dy, dz) = getViewerPos(partialTicks)
         repeat(edges) { idx ->
-            ug.pos(matrixStack, x - mc.entityRenderDispatcher.field_4695 + radius * cos(idx * angleDelta), y - mc.entityRenderDispatcher.field_4694, z - mc.entityRenderDispatcher.field_4693 + radius * sin(idx * angleDelta)).color(r, g, b, a).endVertex()
+            buffer.pos(matrixStack, x - dx + radius * cos(idx * angleDelta), y - dy, z - dz + radius * sin(idx * angleDelta)).color(r, g, b, a).endVertex()
         }
-        ug.pos(matrixStack, x + radius - mc.entityRenderDispatcher.field_4695, y - mc.entityRenderDispatcher.field_4694, z - mc.entityRenderDispatcher.field_4693).color(r, g, b, a).endVertex()
-        ug.drawDirect()
+        buffer.pos(matrixStack, x + radius - dx, y - dy, z - dz).color(r, g, b, a).endVertex()
+        buffer.build()?.drawAndClose(SRenderPipelines.linesPipeline)
     }
 
     fun getViewerPos(partialTicks: Float): Triple<Double, Double, Double> {
@@ -648,27 +558,18 @@ object RenderUtil {
 
     fun drawSelectionBox(
         pos: BlockPos,
-        block: Block = mc.world.getBlockState(pos).block,
         color: Color,
         partialTicks: Float
     ) {
         val (viewerX, viewerY, viewerZ) = getViewerPos(partialTicks)
         val matrixStack = UMatrixStack()
-        RenderSystem.disableCull()
-        RenderSystem.disableDepthTest()
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(770, 771, 1, 0)
-        block.method_9529(mc.world, pos)
         drawFilledBoundingBox(
             matrixStack,
-            block.method_0_686(mc.world, pos)
+            Box(pos)
                 .expandBlock()
                 .offset(-viewerX, -viewerY, -viewerZ),
             color
         )
-        RenderSystem.disableBlend()
-        RenderSystem.enableCull()
-        RenderSystem.enableDepthTest()
     }
 }
 

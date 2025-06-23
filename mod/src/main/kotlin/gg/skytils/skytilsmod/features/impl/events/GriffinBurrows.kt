@@ -384,7 +384,9 @@ object GriffinBurrows : EventSubscriber {
                 (0.1f + 0.005f * distSq.toFloat()).coerceAtLeast(0.2f)
             )
             // disable texture 2d
-            if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(renderX, renderY + 1, renderZ, this.color.rgb, 1.0f, partialTicks)
+            matrixStack.push()
+            matrixStack.translate(renderX, renderY, renderZ)
+            if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(matrixStack, this.color.rgb, partialTicks)
             RenderUtil.renderWaypointText(
                 waypointText,
                 x + 0.5,

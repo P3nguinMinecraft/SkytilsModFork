@@ -96,14 +96,14 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                     Color(114, 245, 82),
                     1f
                 )
+                matrixStack.push()
+                matrixStack.translate(x, y+1, z)
                 if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(
-                    x,
-                    y + 1,
-                    z,
+                    matrixStack,
                     Color(114, 245, 82).rgb,
-                    1.0f,
                     event.partialTicks
                 )
+                matrixStack.pop()
                 RenderUtil.renderWaypointText("Relic", relic, event.partialTicks, matrixStack)
                 // disable lighting
                 GlStateManager._enableDepthTest()
@@ -124,14 +124,14 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
                     Color(152, 41, 222),
                     1f
                 )
+                matrixStack.push()
+                matrixStack.translate(x, y+1, z)
                 if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(
-                    x,
-                    y + 1,
-                    z,
+                    matrixStack,
                     Color(152, 41, 222).rgb,
-                    1.0f,
                     event.partialTicks
                 )
+                matrixStack.pop()
                 RenderUtil.renderWaypointText("Rare Relic", relic, event.partialTicks, matrixStack)
                 // disable lighting
                 GlStateManager._enableDepthTest()

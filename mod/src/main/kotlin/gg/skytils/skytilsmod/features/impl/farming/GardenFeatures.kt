@@ -112,7 +112,6 @@ object GardenFeatures : EventSubscriber {
         if (baseState.block !in trashBlocks) return
         RenderUtil.drawSelectionBox(
             base,
-            baseState.block,
             Skytils.config.samScytheColor,
             event.partialTicks,
         )
@@ -123,7 +122,6 @@ object GardenFeatures : EventSubscriber {
             if (state.block in trashBlocks) {
                 RenderUtil.drawSelectionBox(
                     pos,
-                    state.block,
                     Skytils.config.samScytheColor,
                     event.partialTicks,
                 )

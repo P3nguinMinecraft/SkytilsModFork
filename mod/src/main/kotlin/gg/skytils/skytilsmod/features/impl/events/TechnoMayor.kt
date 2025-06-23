@@ -85,8 +85,9 @@ object TechnoMayor : EventSubscriber {
             val distSq = x * x + y * y + z * z
             GlStateManager._disableCull()
             // disable texture 2d
-
-            if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(x, y, z, Color(114, 245, 82).rgb, 0.75f, event.partialTicks)
+            matrixStack.push()
+            matrixStack.translate(x, y, z)
+            if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(matrixStack, 0x72f552, event.partialTicks)
             GlStateManager._disableDepthTest()
             RenderUtil.renderWaypointText(
                 "Orb",
