@@ -54,13 +54,13 @@ object SRenderPipelines {
     }.build()
 
     val boxPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/box",
-        UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR
+        UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
         blendState = BlendState.ALPHA
     }.build()
 
     val noDepthBoxPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/no_depth_box",
-        UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR
+        UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {
         depthTest = URenderPipeline.DepthTest.Always
         blendState = BlendState.ALPHA

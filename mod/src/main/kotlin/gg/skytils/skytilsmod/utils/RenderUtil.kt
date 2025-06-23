@@ -82,7 +82,7 @@ object RenderUtil {
         block(this.red, this.green, this.blue, this.alpha)
 
     fun drawFilledBoundingBox(matrixStack: UMatrixStack, aabb: Box, c: Color, alphaMultiplier: Float = 1f, throughWalls: Boolean = false) {
-        val buffer = UBufferBuilder.create(UGraphics.DrawMode.TRIANGLES, UGraphics.CommonVertexFormats.POSITION_COLOR)
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
         DrawHelper.writeFilledCube(buffer, matrixStack, aabb, c.multAlpha(alphaMultiplier))
         buffer.build()?.drawAndClose(if (throughWalls) SRenderPipelines.noDepthBoxPipeline else SRenderPipelines.boxPipeline)
     }

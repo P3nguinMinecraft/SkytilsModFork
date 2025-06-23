@@ -95,7 +95,7 @@ object DrawHelper {
 
     /**
      * Writes a filled cube to the given buffer. Draw must still be called manually.
-     * Buffer must be created with [gg.essential.universal.UGraphics.DrawMode.TRIANGLES]
+     * Buffer must be created with [gg.essential.universal.UGraphics.DrawMode.TRIANGLE_STRIP]
      */
     fun writeFilledCube(
         buffer: UBufferBuilder,
@@ -104,47 +104,36 @@ object DrawHelper {
         color: Color
     ) {
         box.apply {
-            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, maxY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
-
-            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
             buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
             buffer.pos(matrices, minX, maxY, minZ).color(color).endVertex()
-            buffer.pos(matrices, minX, maxY, minZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, maxY, minZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
-
             buffer.pos(matrices, minX, maxY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, minX, maxY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
             buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
             buffer.pos(matrices, maxX, maxY, minZ).color(color).endVertex()
             buffer.pos(matrices, maxX, maxY, minZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, maxY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, minX, maxY, minZ).color(color).endVertex()
             buffer.pos(matrices, minX, maxY, minZ).color(color).endVertex()
             buffer.pos(matrices, minX, maxY, maxZ).color(color).endVertex()
-
-            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
-
-            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, minZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, maxY, minZ).color(color).endVertex()
             buffer.pos(matrices, maxX, maxY, minZ).color(color).endVertex()
             buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, maxX, minY, maxZ).color(color).endVertex()
-
-            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
-            buffer.pos(matrices, minX, minY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, maxY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, maxY, maxZ).color(color).endVertex()
-            buffer.pos(matrices, minX, maxY, minZ).color(color).endVertex()
-            buffer.pos(matrices, minX, minY, minZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
+            buffer.pos(matrices, maxX, maxY, maxZ).color(color).endVertex()
         }
     }
 
