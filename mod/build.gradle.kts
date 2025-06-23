@@ -206,7 +206,13 @@ dependencies {
         compileOnly("net.hypixel:mod-api:1.0.1")
     }
 
-    shadowMe(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-rc.1")!!)
+    val mixinExtrasVersion = "0.5.0-rc.2"
+    annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")
+    if (platform.isFabric) {
+        include(implementation("io.github.llamalad7:mixinextras-fabric:${mixinExtrasVersion}")!!)
+    } else {
+        shadowMe("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")
+    }
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
     compileOnly("org.spongepowered:mixin:0.8.5")
 }

@@ -114,5 +114,8 @@
     "renderer.MixinEntityRenderState",
     "renderer.MixinModelBiped",
     "util.MixinMouseHelper"
-  ]
+  ],
+  "mixinextras": {
+    "minVersion": "0.5.0-rc.1"
+  }
 }

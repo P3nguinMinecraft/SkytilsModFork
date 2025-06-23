@@ -30,5 +30,8 @@
     "entity.MixinEntityLivingBase",
     "item.MixinItemStack",
     "world.MixinChunk"
-  ]
+  ],
+  "mixinextras": {
+    "minVersion": "0.5.0-rc.1"
+  }
 }
