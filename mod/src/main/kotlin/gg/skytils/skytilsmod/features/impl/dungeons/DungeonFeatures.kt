@@ -612,11 +612,11 @@ object DungeonFeatures : EventSubscriber {
         if (event.packet is PlaySoundS2CPacket) {
             val packet = event.packet
             if (Skytils.config.disableTerracottaSounds && isInTerracottaPhase) {
-                val sound = packet.sound
+                val sound = packet.sound.value()
                 val pitch = packet.pitch
                 val volume = packet.volume
                 if (sound == SoundEvents.ENTITY_GENERIC_HURT && pitch == 0f && volume == 0f) event.cancelled = true
-                if (sound == SoundEvents.ENTITY_GENERIC_EAT && pitch == 0.6984127f && volume == 1f) event.cancelled = true
+                if (sound == SoundEvents.ENTITY_GENERIC_EAT.value() && pitch == 0.6984127f && volume == 1f) event.cancelled = true
             }
         }
     }
