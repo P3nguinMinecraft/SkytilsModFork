@@ -26,6 +26,8 @@ import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.RenderUtil
+import net.minecraft.client.render.DiffuseLighting
+import net.minecraft.client.render.OverlayTexture
 import net.minecraft.item.Item
 import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
@@ -37,30 +39,29 @@ class ItemComponent(val state: State<ItemStack>) : UIComponent() {
 
     override fun draw(matrixStack: UMatrixStack) {
         beforeDraw(matrixStack)
-        super.draw(matrixStack)
         matrixStack.push()
         matrixStack.translate(getLeft(), getTop(), 100f)
         //matrixStack.scale(getWidth() / 16f, getHeight() / 16f, 0f)
         UGraphics.color4f(1f, 1f, 1f, 1f)
         // TODO: ensure this behaves as expected
-        matrixStack.runWithGlobalState {
-            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-            val item = state.getUntracked()
-            RenderUtil.renderItem(item, 0, 0)
-//            mc.renderItem.renderItemIntoGUI(item, 0, 0)
-            mc.itemRenderer.renderItem(
-                item,
-                ItemDisplayContext.GUI,
-                15728880,
-                0,
-                matrixStack.toMC(),
-                vertexConsumer,
-                null,
-                0
-            )
-            vertexConsumer.draw()
-        }
+        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
+        val item = state.getUntracked()
+        RenderUtil.renderItem(item, 0, 0)
+        mc.itemRenderer.renderItem(
+            item,
+            ItemDisplayContext.GUI,
+            15728880,
+            OverlayTexture.DEFAULT_UV,
+            matrixStack.toMC(),
+            vertexConsumer,
+            null,
+            0
+        )
+        DiffuseLighting.disableGuiDepthLighting()
+        vertexConsumer.draw()
+        DiffuseLighting.enableGuiDepthLighting()
         matrixStack.pop()
         UGraphics.disableLighting()
+        super.draw(matrixStack)
     }
 }
