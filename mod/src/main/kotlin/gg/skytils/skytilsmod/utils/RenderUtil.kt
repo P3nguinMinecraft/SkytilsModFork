@@ -219,21 +219,21 @@ object RenderUtil {
         }
         drawNametag(renderX, renderY, renderZ, str, Color.WHITE, partialTicks, matrixStack)
         //#if MC>=12000
-        matrixStack.multiply(mc.entityRenderDispatcher.rotation)
+        // matrixStack.multiply(mc.entityRenderDispatcher.rotation)
         //#else
         //$$ matrixStack.rotate(-mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
         //$$ matrixStack.rotate(mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
         //#endif
-        matrixStack.translate(0.0, -0.25, 0.0)
+        // matrixStack.translate(0.0, -0.25, 0.0)
         //#if MC>=12000
-        matrixStack.multiply(mc.entityRenderDispatcher.rotation.invert())
+        // matrixStack.multiply(mc.entityRenderDispatcher.rotation.invert())
         //#else
         //$$ matrixStack.rotate(-mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
         //$$ matrixStack.rotate(mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
         //#endif
         drawNametag(
             renderX,
-            renderY,
+            renderY - 0.25,
             renderZ,
             "${ChatColor.YELLOW}${dist.roundToInt()}m",
             Color.WHITE,
