@@ -34,6 +34,7 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.tweaker.DependencyLoader
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -399,13 +400,15 @@ data class Waypoint @OptIn(ExperimentalSerializationApi::class) constructor(
         }
 
     fun draw(partialTicks: Float, matrixStack: UMatrixStack) {
-        val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(partialTicks)
+        matrixStack.push()
+        DrawHelper.setupCameraTransformations(matrixStack)
         RenderUtil.drawFilledBoundingBox(
             matrixStack,
-            pos.toBoundingBox().expandBlock().offset(-viewerX, -viewerY, -viewerZ),
+            pos.toBoundingBox().expandBlock(),
             color.withAlpha(color.alpha.coerceAtMost(128)),
             1f
         )
+        matrixStack.pop()
         UGraphics.disableDepth()
         RenderUtil.renderWaypointText(
             name,

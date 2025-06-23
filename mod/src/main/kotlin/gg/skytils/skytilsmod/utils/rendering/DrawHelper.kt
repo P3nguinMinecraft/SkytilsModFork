@@ -31,6 +31,7 @@ import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.MathHelper
+import org.joml.Quaternionf
 import java.awt.Color
 
 object DrawHelper {
@@ -42,6 +43,23 @@ object DrawHelper {
      */
     fun cameraOffset(matrices: UMatrixStack) {
         matrices.translate(mc.gameRenderer.camera.pos.negate())
+    }
+
+    /**
+     * Applies the camera rotation to the given matrices.
+     * This is useful for rendering things in world space, as it will negate the camera rotation.
+     */
+    fun cameraRotation(matrices: UMatrixStack) {
+        matrices.multiply(mc.gameRenderer.camera.rotation.conjugate(Quaternionf()))
+    }
+
+    /**
+     * Applies the camera offset and rotation to the given matrices.
+     * This is useful for rendering things in world space, as it will negate the camera position and rotation.
+     */
+    fun setupCameraTransformations(matrices: UMatrixStack) {
+        cameraOffset(matrices)
+        cameraRotation(matrices)
     }
 
     /**

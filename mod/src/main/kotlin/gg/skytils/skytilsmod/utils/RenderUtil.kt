@@ -96,7 +96,7 @@ object RenderUtil {
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
         val matrices = UMatrixStack.Compat.get()
         matrices.push()
-        DrawHelper.cameraOffset(matrices)
+        DrawHelper.setupCameraTransformations(matrices)
         RenderSystem.lineWidth(width)
         DrawHelper.writeOutlineCube(buffer, matrices, aabb, color.multAlpha(1f))
         buffer.build()?.drawAndClose(if (throughWalls) SRenderPipelines.noDepthBoxPipeline else SRenderPipelines.boxPipeline)
@@ -140,7 +140,7 @@ object RenderUtil {
         alphaMultiplier: Float = 1f
     ) {
         matrixStack.push()
-        DrawHelper.cameraOffset(matrixStack)
+        DrawHelper.setupCameraTransformations(matrixStack)
         RenderSystem.lineWidth(width.toFloat())
         val fixedColor = color.multAlpha(alphaMultiplier)
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
@@ -159,7 +159,7 @@ object RenderUtil {
         alphaMultiplier: Float = 1f
     ) {
         matrixStack.push()
-        DrawHelper.cameraOffset(matrixStack)
+        DrawHelper.setupCameraTransformations(matrixStack)
         RenderSystem.lineWidth(width.toFloat())
         val fixedColor = color.multAlpha(alphaMultiplier)
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
@@ -226,7 +226,7 @@ object RenderUtil {
         //#endif
         // matrixStack.translate(0.0, -0.25, 0.0)
         //#if MC>=12000
-        // matrixStack.multiply(mc.entityRenderDispatcher.rotation.invert())
+        // matrixStack.multiply(mc.entityRenderDispatcher.rotation.invert(Quaternionf()))
         //#else
         //$$ matrixStack.rotate(-mc.entityRenderDispatcher.cameraPitch, 1.0f, 0.0f, 0.0f)
         //$$ matrixStack.rotate(mc.entityRenderDispatcher.cameraYaw, 0.0f, 1.0f, 0.0f)
@@ -250,7 +250,7 @@ object RenderUtil {
         shadow: Boolean = true, scale: Float = 1f, background: Boolean = true
     ) {
         matrixStack.push()
-        DrawHelper.cameraOffset(matrixStack)
+        DrawHelper.setupCameraTransformations(matrixStack)
         DrawHelper.drawNametag(matrixStack, str, x, y, z, shadow, scale, background)
         matrixStack.pop()
     }

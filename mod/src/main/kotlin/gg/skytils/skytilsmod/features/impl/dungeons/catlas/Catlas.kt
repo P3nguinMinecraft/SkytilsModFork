@@ -141,7 +141,7 @@ object Catlas : EventSubscriber {
 
         matrices.runWithGlobalState {
             matrices.push()
-            DrawHelper.cameraOffset(matrices)
+            DrawHelper.setupCameraTransformations(matrices)
             val linesBuffer = UBufferBuilder.create(UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR)
             val trianglesBuffer = UBufferBuilder.create(UGraphics.DrawMode.TRIANGLES, UGraphics.CommonVertexFormats.POSITION_COLOR)
             doors.forEach {
