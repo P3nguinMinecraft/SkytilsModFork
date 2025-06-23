@@ -189,11 +189,10 @@ dependencies {
         excludeKotlin()
         exclude(module = "fabric-loader")
     }
-    implementation(project(":vigilance"))
-    relocated(project(":vigilance")) {
+    relocated(implementation(project(":vigilance")) {
         excludeKotlin()
         exclude(module = "fabric-loader")
-    }
+    })
     include(implementation("gg.skytils.hypixel.types:types") { excludeKotlin() })
     include(implementation("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() })
 
@@ -217,16 +216,16 @@ dependencies {
         compileOnly("net.hypixel:mod-api-forge:1.0.1.2") {
             exclude(group = "me.djtheredstoner", module = "DevAuth-forge-legacy")
         }
-        include("net.hypixel:mod-api-forge-tweaker:1.0.1.2")
+        relocated(include(implementation("net.hypixel:mod-api-forge-tweaker:1.0.1.2")!!)!!)
     } else {
         compileOnly("net.hypixel:mod-api:1.0.1")
     }
 
     val mixinExtrasVersion = "0.5.0-rc.2"
     if (platform.isFabric) {
-        relocated(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinExtrasVersion}")!!)!!)
+        include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinExtrasVersion}")!!)!!)
     } else {
-        relocated(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")!!)
+        relocated(implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")!!)!!)
     }
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
     compileOnly("org.spongepowered:mixin:0.8.5")
