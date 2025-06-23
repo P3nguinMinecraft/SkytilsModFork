@@ -112,7 +112,7 @@ dependencies {
         modImplementation("net.fabricmc.fabric-api:fabric-api") {
             version {
                 require(when {
-                    platform.mcVersion == 12105 -> "0.121.0+1.21.5"
+                    platform.mcVersion == 12105 -> "0.128.0+1.21.5"
                     else -> "0.119.2+1.21.4"
                 })
             }
