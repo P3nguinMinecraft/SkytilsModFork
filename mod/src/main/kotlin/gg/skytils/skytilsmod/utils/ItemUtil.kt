@@ -17,11 +17,19 @@
  */
 package gg.skytils.skytilsmod.utils
 
+import com.mojang.authlib.properties.Property
+import com.mojang.authlib.properties.PropertyMap
 import gg.skytils.skytilsmod.utils.ItemRarity.Companion.RARITY_PATTERN
 import gg.skytils.skytilsmod.utils.multiplatform.nbt
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.LoreComponent
+import net.minecraft.component.type.ProfileComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtList
+import net.minecraft.text.Text
+import java.util.Optional
+import java.util.UUID
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.max
@@ -63,7 +71,7 @@ object ItemUtil {
      */
     @JvmStatic
     fun getSkyBlockItemID(item: ItemStack?): String? {
-        if (item == null) {
+        if (item == null || item.isEmpty) {
             return null
         }
         val extraAttributes = getExtraAttributes(item) ?: return null
@@ -81,7 +89,7 @@ object ItemUtil {
      */
     @JvmStatic
     fun getExtraAttributes(item: ItemStack?): NbtCompound? =
-        item?.nbt?.getCompoundOrEmpty("ExtraAttributes")
+        item?.get(DataComponentTypes.CUSTOM_DATA)?.nbt?.getCompoundOrEmpty("ExtraAttributes")
 
     /**
      * Returns the Skyblock Item ID of a given Skyblock Extra Attributes NBT Compound
@@ -103,12 +111,7 @@ object ItemUtil {
      */
     @JvmStatic
     fun getItemLore(itemStack: ItemStack): List<String> =
-        itemStack.nbt?.getCompoundOrEmpty("display")
-            ?.takeUnless(NbtCompound::isEmpty)
-            ?.getListOrEmpty("Lore")
-            ?.mapNotNull { line ->
-                line.asString().getOrNull()
-            } ?: emptyList()
+        itemStack.get(DataComponentTypes.LORE)?.lines?.map { it.formattedText } ?: emptyList()
 
     @JvmStatic
     fun hasRightClickAbility(itemStack: ItemStack): Boolean {
@@ -150,9 +153,12 @@ object ItemUtil {
             ?.getOrNull()
             ?.run(PET_PATTERN::matches) ?: false
 
-    // TODO: Fix this, maybe construct the entire item nbt and deserialize from that?
     fun setSkullTexture(item: ItemStack, texture: String, SkullOwner: String): ItemStack {
-        val textureTagCompound = NbtCompound()
+        item.set(DataComponentTypes.PROFILE, ProfileComponent(Optional.empty(), Optional.of(UUID.fromString(SkullOwner)),
+            PropertyMap().apply {
+                put("textures", Property("Value", texture))
+            }))
+        /*val textureTagCompound = NbtCompound()
         textureTagCompound.putString("Value", texture)
 
         val textures = NbtList()
@@ -168,18 +174,12 @@ object ItemUtil {
         val nbtTag = NbtCompound()
         nbtTag.put("SkullOwner", skullOwner)
 
-//        item.nbt = nbtTag
+//        item.nbt = nbtTag*/
         return item
     }
 
     fun getSkullTexture(item: ItemStack?): String? =
-        item?.nbt
-            ?.getCompoundOrEmpty("SkullOwner")
-            ?.getCompoundOrEmpty("Properties")
-            ?.getListOrEmpty("textures")
-            ?.getCompoundOrEmpty(0)
-            ?.getString("Value")
-            ?.getOrNull()
+        item?.get(DataComponentTypes.PROFILE)?.properties?.get("textures")?.first()?.value
 
     // TODO: fix later
     fun ItemStack.setLore(lines: List<String>): ItemStack {
@@ -188,6 +188,7 @@ object ItemUtil {
 //                for (line in lines) add(NbtString(line))
 //            })
 //        })
+        this.set(DataComponentTypes.LORE, LoreComponent(lines.map { Text.of(it) }))
         return this
     }
 
