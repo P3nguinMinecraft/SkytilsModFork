@@ -31,7 +31,7 @@
     "mixins.skytils-events.json"
   ],
   "depends": {
-    "cloud-fabric": "*",
+    "cloud": "*",
     "essential-loader": ">=1.2.3",
     "fabricloader": "*",
     "fabric-api": "*",
