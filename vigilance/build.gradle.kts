@@ -23,7 +23,7 @@ dependencies {
         attributes { attribute(common, true) }
     }
     api("gg.essential:vigilance:306")
-    api("gg.essential:elementa-unstable-layoutdsl:676")
+    api("gg.essential:elementa-unstable-layoutdsl:710")
 }
 
 java.toolchain {

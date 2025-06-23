@@ -18,7 +18,7 @@
 
 package gg.skytils.vigilance
 
-import gg.essential.elementa.state.v2.*
+import gg.essential.elementa.unstable.state.v2.*
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
 
