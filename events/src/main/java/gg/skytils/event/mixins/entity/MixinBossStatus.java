@@ -30,7 +30,7 @@ import java.util.Map;
 
 @Mixin(targets = "net.minecraft.client.gui.hud.BossBarHud$1")
 public class MixinBossStatus {
-    @WrapOperation(method = "add", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
+    @WrapOperation(method = "add(Ljava/util/UUID;Lnet/minecraft/text/Text;FLnet/minecraft/entity/boss/BossBar$Color;Lnet/minecraft/entity/boss/BossBar$Style;ZZZ)V", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
     public <K, V> V onSetBossStatus(Map<K, V> instance, K k, V v, Operation<V> original) {
         if (!EventsKt.postCancellableSync(new BossBarSetEvent((BossBar) v, false))) {
             return original.call(instance, k, v);
