@@ -39,6 +39,7 @@ import gg.essential.elementa.constraints.CopyConstraintFloat
 import gg.essential.elementa.dsl.boundTo
 import gg.essential.elementa.dsl.constrain
 import gg.essential.elementa.layoutdsl.LayoutScope
+import gg.essential.elementa.layoutdsl.column
 import gg.essential.elementa.layoutdsl.layout
 import gg.essential.elementa.state.v2.add
 import gg.essential.elementa.state.v2.clear
@@ -219,8 +220,10 @@ object KuudraChestProfit : EventSubscriber {
     }
     private class KuudraChestProfitHud : HudElement("Kuudra Chest Profit", 200f, 120f) {
         override fun LayoutScope.render() {
-            KuudraChest.entries.forEach { chest ->
-                text({ "${chest.displayText}§f: §${(if (chest.value() > 0) "a" else "c")}${NumberUtil.format(chest.value())}" })
+            column {
+                KuudraChest.entries.forEach { chest ->
+                    text({ "${chest.displayText}§f: §${(if (chest.value() > 0) "a" else "c")}${NumberUtil.format(chest.value())}" })
+                }
             }
         }
 
@@ -231,16 +234,20 @@ object KuudraChestProfit : EventSubscriber {
         }.apply {
             layout {
                 ifNotNull(currentlyDisplayingChest) { chest ->
-                    text(chest.displayText + "§f: §" + (if (chest.value.getUntracked() > 0) "a" else "c") + NumberUtil.nf.format(chest.value))
-                    forEach(chest.items.toList()) { item ->
-                        text("§8${item.stackSize} §r".toStringIfTrue(item.stackSize > 1) + item.displayText + "§f: §${if (item.value >= 0) 'a' else 'c'}" + NumberUtil.nf.format(item.value))
+                    column {
+                        text(chest.displayText + "§f: §" + (if (chest.value.getUntracked() > 0) "a" else "c") + NumberUtil.nf.format(chest.value))
+                        forEach(chest.items.toList()) { item ->
+                            text("§8${item.stackSize} §r".toStringIfTrue(item.stackSize > 1) + item.displayText + "§f: §${if (item.value >= 0) 'a' else 'c'}" + NumberUtil.nf.format(item.value))
+                        }
                     }
                 }
             }
         }
 
         override fun LayoutScope.demoRender() {
-            KuudraChest.entries.forEach { chest -> text("${chest.displayText}: §a+300M") }
+            column {
+                KuudraChest.entries.forEach { chest -> text("${chest.displayText}: §a+300M") }
+            }
         }
 
     }
