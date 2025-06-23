@@ -47,6 +47,7 @@ import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 //$$ @Mixin(LivingEntityRenderer.class)
 //#else
 @Mixin(EntityRenderDispatcher.class)
+//#endif
 public class MixinRendererLivingEntity
         //#if MC<12000
         //$$ <T extends LivingEntity>
