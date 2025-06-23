@@ -206,6 +206,7 @@ dependencies {
         include(modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10") {
             exclude(module = "fabric-loader")
         })
+        include(modImplementation("org.incendo:cloud-annotations:2.0.0")!!)
         modLocalRuntime("net.fabricmc:fabric-language-kotlin:1.13.3+kotlin.2.1.21")
     }
     annotationProcessor(
