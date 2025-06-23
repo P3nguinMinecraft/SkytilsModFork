@@ -27,12 +27,13 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Slice;
 
 import java.util.List;
 
 @Mixin(ItemStack.class)
 public class MixinItemStack {
-    @ModifyReturnValue(method = "getTooltip", at = @At("RETURN"))
+    @ModifyReturnValue(method = "getTooltip", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z")))
     private List<Text> getTooltip(List<Text> original, @Local(argsOnly = true) TooltipType type) {
         ItemTooltipEvent event = new ItemTooltipEvent((ItemStack) (Object) this, original, type.isAdvanced());
         EventsKt.postSync(event);
