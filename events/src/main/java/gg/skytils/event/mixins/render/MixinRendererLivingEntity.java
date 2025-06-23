@@ -18,10 +18,13 @@
 
 package gg.skytils.event.mixins.render;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.render.LivingEntityPostRenderEvent;
 import gg.skytils.event.impl.render.LivingEntityPreRenderEvent;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -40,7 +43,10 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 //#endif
 
-@Mixin(LivingEntityRenderer.class)
+//#if MC==10809
+//$$ @Mixin(LivingEntityRenderer.class)
+//#else
+@Mixin(EntityRenderDispatcher.class)
 public class MixinRendererLivingEntity
         //#if MC<12000
         //$$ <T extends LivingEntity>
@@ -56,14 +62,15 @@ public class MixinRendererLivingEntity
     //$$ @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;DDDFF)V", at = @At("HEAD"), cancellable = true)
     //$$ private void onRender(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
     //#else
-    @Inject(method = "render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("HEAD"), cancellable = true)
-    private void onRender(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/EntityRenderDispatcher;render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/EntityRenderer;)V"), cancellable = true)
+    private void onRender(Entity entity, double x, double y, double z, float tickProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci, @Local EntityRenderer<T, S> renderer) {
     //#endif
+        if (!(entity instanceof LivingEntity)) return;
         Entity viewEntity = MinecraftClient.getInstance().getCameraEntity();
         if (viewEntity == null) return;
-        double renderX = entity.lastRenderX + (entity.getPos().x - entity.lastRenderX - viewEntity.getPos().x + viewEntity.lastRenderX) * partialTicks - viewEntity.lastRenderX;
-        double renderY = entity.lastRenderY + (entity.getPos().y - entity.lastRenderY - viewEntity.getPos().y + viewEntity.lastRenderY) * partialTicks - viewEntity.lastRenderY;
-        double renderZ = entity.lastRenderZ + (entity.getPos().z - entity.lastRenderZ - viewEntity.getPos().z + viewEntity.lastRenderZ) * partialTicks - viewEntity.lastRenderZ;
+        double renderX = entity.lastRenderX + (entity.getPos().x - entity.lastRenderX - viewEntity.getPos().x + viewEntity.lastRenderX) * tickProgress - viewEntity.lastRenderX;
+        double renderY = entity.lastRenderY + (entity.getPos().y - entity.lastRenderY - viewEntity.getPos().y + viewEntity.lastRenderY) * tickProgress - viewEntity.lastRenderY;
+        double renderZ = entity.lastRenderZ + (entity.getPos().z - entity.lastRenderZ - viewEntity.getPos().z + viewEntity.lastRenderZ) * tickProgress - viewEntity.lastRenderZ;
         @SuppressWarnings("unchecked")
         //#if MC<12000
         //$$ LivingEntityPreRenderEvent<T>
@@ -75,17 +82,17 @@ public class MixinRendererLivingEntity
         //#endif
         //#endif
                 event =
-                new LivingEntityPreRenderEvent<>(entity,
+                new LivingEntityPreRenderEvent<>((T) entity,
                     //#if MC<12000
                     //$$ (LivingEntityRenderer<T>) (Object) this,
                     //#else
                     //#if MC<12100
                     //$$ (LivingEntityRenderer<T, M>) (Object) this,
                     //#else
-                    (LivingEntityRenderer<T, S, M>) (Object) this,
+                    (LivingEntityRenderer<T, S, M>) renderer,
                     //#endif
                     //#endif
-                    renderX, renderY, renderZ, partialTicks);
+                    renderX, renderY, renderZ, tickProgress);
         if (EventsKt.postCancellableSync(event)) {
             ci.cancel();
         }
@@ -95,8 +102,8 @@ public class MixinRendererLivingEntity
     //$$ @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;DDDFF)V", at = @At("TAIL"))
     //$$ private void onRenderPost(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
     //#else
-    @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At("TAIL"))
-    private void onRenderPost(T entity, float f, float partialTicks, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/EntityRenderDispatcher;render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/EntityRenderer;)V", shift = At.Shift.AFTER))
+    private void onRenderPost(Entity entity, double x, double y, double z, float tickProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
     //#endif
         EventsKt.postSync(new LivingEntityPostRenderEvent(entity));
     }
