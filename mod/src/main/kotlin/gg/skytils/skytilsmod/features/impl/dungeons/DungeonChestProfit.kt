@@ -39,6 +39,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
+import gg.essential.elementa.layoutdsl.column
 import gg.essential.elementa.state.v2.State
 import gg.essential.elementa.state.v2.combinators.or
 import gg.essential.elementa.state.v2.mutableStateOf
@@ -331,19 +332,23 @@ object DungeonChestProfit : EventSubscriber {
     object DungeonChestProfitHud : HudElement("Dungeon Chest Profit", 200f, 120f) {
         override fun LayoutScope.render() {
             if_(SBInfo.dungeonsState or State { SBInfo.modeState() == SkyblockIsland.DungeonHub.mode }) {
-                DungeonChest.entries.forEach { chest ->
-                    val text = State {
-                        chest.notifier()
-                        "${chest.displayText}§f: §${(if (chest.profit > 0) "a" else "c")}${NumberUtil.format(chest.profit.toLong())}"
+                column {
+                    DungeonChest.entries.forEach { chest ->
+                        val text = State {
+                            chest.notifier()
+                            "${chest.displayText}§f: §${(if (chest.profit > 0) "a" else "c")}${NumberUtil.format(chest.profit.toLong())}"
+                        }
+                        text(text, Modifier.color(chest.displayColor))
                     }
-                    text(text, Modifier.color(chest.displayColor))
                 }
             }
         }
 
         override fun LayoutScope.demoRender() {
-            DungeonChest.entries.forEach { chest ->
-                text("${chest.displayText}: §a+300M")
+            column {
+                DungeonChest.entries.forEach { chest ->
+                    text("${chest.displayText}: §a+300M")
+                }
             }
         }
     }
