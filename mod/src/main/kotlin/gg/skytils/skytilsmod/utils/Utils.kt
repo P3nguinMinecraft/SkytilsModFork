@@ -17,10 +17,9 @@
  */
 package gg.skytils.skytilsmod.utils
 
-import dev.falsehonesty.asmhelper.AsmHelper
-import dev.falsehonesty.asmhelper.dsl.instructions.Descriptor
 import gg.essential.lib.caffeine.cache.Cache
 import gg.essential.universal.ChatColor
+import gg.essential.universal.UKeyboard
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.gui.settings.CheckboxComponent
 import gg.skytils.event.postSync
@@ -29,7 +28,6 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
-import gg.skytils.skytilsmod.asm.SkytilsTransformer
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionEntity
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorWorldInfo
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
@@ -41,6 +39,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.minecraft.client.network.ClientPlayNetworkHandler
 import net.minecraft.client.option.GameOptions
+import net.minecraft.client.resource.language.I18n
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.attribute.EntityAttributes
@@ -49,11 +48,11 @@ import net.minecraft.nbt.NbtList
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket
 import net.minecraft.particle.ParticleEffect
+import net.minecraft.sound.SoundEvent
+import net.minecraft.sound.SoundEvents
 import net.minecraft.text.Text
 import net.minecraft.util.*
 import net.minecraft.world.World
-import net.minecraftforge.client.event.ClientChatReceivedEvent
-import net.minecraftforge.common.MinecraftForge
 import org.objectweb.asm.tree.MethodInsnNode
 import java.awt.Color
 import java.io.File
@@ -109,9 +108,10 @@ object Utils {
      * https://github.com/BiscuitDevelopment/SkyblockAddons/blob/master/LICENSE
      * @author BiscuitDevelopment
      */
-    fun playLoudSound(sound: String?, pitch: Double) {
+    fun playLoudSound(sound: String, pitch: Double) {
         shouldBypassVolume = true
-        mc.player.playSound(sound, 1f, pitch.toFloat())
+        val sound = SoundEvent.of(Identifier.of(sound))
+        mc.player?.playSound(sound, 1f, pitch.toFloat())
         shouldBypassVolume = false
     }
 
@@ -166,20 +166,6 @@ object Utils {
         } else run()
     }
 
-    /**
-     * Cancels a chat packet and posts the chat event to the event bus if other mods need it
-     * @param event packet to cancel
-     */
-    fun cancelChatPacket(event: PacketReceiveEvent<*>) {
-        if (event.packet !is GameMessageS2CPacket) return
-        event.cancelled = true
-        val packet = event.packet
-        checkThreadAndQueue {
-            postSync(MainThreadPacketReceiveEvent(packet))
-            MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(packet.type, packet.content))
-        }
-    }
-
     fun timeFormat(seconds: Double): String {
         return if (seconds >= 60) {
             "${floor(seconds / 60).toInt()}m ${(seconds % 60).roundToPrecision(3)}s"
@@ -223,7 +209,13 @@ object Utils {
     }
 
     fun getKeyDisplayStringSafe(keyCode: Int): String =
-        runCatching { GameOptions.method_0_2345(keyCode) }.getOrNull() ?: "Key $keyCode"
+        if (keyCode < 0) {
+            "Button ${keyCode + 101}"
+        } else if (keyCode < 256) {
+            UKeyboard.getKeyName(keyCode)!!
+        } else {
+            "%c".format((keyCode - 256).toChar()).uppercase()
+        }
 }
 
 inline val Box.minVec: Vec3d

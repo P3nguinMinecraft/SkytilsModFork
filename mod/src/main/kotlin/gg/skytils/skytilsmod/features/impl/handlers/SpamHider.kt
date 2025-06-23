@@ -30,6 +30,7 @@ import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.TickEvent
 import gg.skytils.event.impl.play.ActionBarReceivedEvent
+import gg.skytils.event.impl.play.ChatMessageReceivedEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
@@ -164,6 +165,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
         register(::onActionBarDisplay)
         register(::onChatPacket, EventPriority.Lowest)
         register(::onTick)
+        register(::handleChat)
     }
 
     fun onActionBarDisplay(event: ActionBarReceivedEvent) {
@@ -780,9 +782,18 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
 
     private fun cancelChatPacket(event: PacketReceiveEvent<*>, addToSpam: Boolean) {
         if (event.packet !is ChatMessageS2CPacket) return
-        Utils.cancelChatPacket(event)
+        event.packet.unsignedContent?.let { messagesToHide.add(it) }
         if (addToSpam) newMessage(event.packet.unsignedContent?.formattedText)
     }
+
+    private fun handleChat(event: ChatMessageReceivedEvent) {
+        if (event.message in messagesToHide) {
+            messagesToHide.remove(event.message)
+            event.cancelled = true
+        }
+    }
+
+    private val messagesToHide = mutableSetOf<Text>()
 
     private fun newMessage(message: String?) {
         SpamHudElement.queueSpam(message ?: return)
