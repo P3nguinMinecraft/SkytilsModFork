@@ -57,8 +57,8 @@ import kotlin.time.toJavaDuration
 object MayorInfo : EventSubscriber {
 
     val FIVE_MINUTES = object : TemporalUnit {
-        val duration = Duration.ofMinutes(5)
-        override fun getDuration(): Duration? = duration
+        val _duration = Duration.ofMinutes(5)
+        override fun getDuration(): Duration? = _duration
 
         override fun isDurationEstimated(): Boolean = false
 
