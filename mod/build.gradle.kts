@@ -133,6 +133,7 @@ dependencies {
     modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:406")
     relocated(implementation("gg.essential:elementa-unstable-layoutdsl:710") {
         excludeKotlin()
+        exclude(module = "fabric-loader")
     })
     relocated(implementation("com.github.Skytils.Vigilance:vigilance-${if (!isLegacyFabric) if (platform.mcVersion >= 11801) "1.18.1-${platform.loaderStr}" else platform.toString() else "${platform.mcVersionStr}-forge"}:afb0909442") {
         isTransitive = false
@@ -184,9 +185,15 @@ dependencies {
     include(implementation("com.aayushatharva.brotli4j:brotli4j:1.18.0")!!)
 
     implementation(project(":events:$platform", configuration = "namedElements"))
-    relocated(project(":events:$platform")) { excludeKotlin() }
+    relocated(project(":events:$platform")) {
+        excludeKotlin()
+        exclude(module = "fabric-loader")
+    }
     implementation(project(":vigilance"))
-    relocated(project(":vigilance")) { excludeKotlin() }
+    relocated(project(":vigilance")) {
+        excludeKotlin()
+        exclude(module = "fabric-loader")
+    }
     include(implementation("gg.skytils.hypixel.types:types") { excludeKotlin() })
     include(implementation("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() })
 
@@ -196,7 +203,9 @@ dependencies {
     compileOnly("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
     if (platform.isFabric && !isLegacyFabric) {
-        include(modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10")!!)
+        include(modImplementation("org.incendo:cloud-fabric:2.0.0-beta.10") {
+            exclude(module = "fabric-loader")
+        })
         modLocalRuntime("net.fabricmc:fabric-language-kotlin:1.13.3+kotlin.2.1.21")
     }
     annotationProcessor(
