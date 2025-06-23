@@ -10,7 +10,7 @@
     "gui.MixinChatScreen",
     "render.MixinWorldRenderer",
     "network.MixinMessageHandler",
-    "world.MixinClientChunkManager"
+    "world.MixinClientChunkManager",
     //#endif
     "MixinMinecraft",
     "entity.MixinBossStatus",
