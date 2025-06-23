@@ -190,6 +190,7 @@ dependencies {
         exclude(module = "fabric-loader")
     })
     relocated(implementation(project(":vigilance")) {
+        isTransitive = false
         excludeKotlin()
         exclude(module = "fabric-loader")
     })
