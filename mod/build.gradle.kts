@@ -178,7 +178,7 @@ dependencies {
     shadowMe("org.brotli:dec:0.1.2")
     shadowMe("com.aayushatharva.brotli4j:brotli4j:1.18.0")
 
-    shadowMe(project(":events:$platform")) { excludeKotlin() }
+    shadowMe(project(":events:$platform", configuration = "namedElements")) { excludeKotlin() }
     shadowMe(project(":vigilance")) { excludeKotlin() }
     shadowMe("gg.skytils.hypixel.types:types") { excludeKotlin() }
     shadowMe("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() }
