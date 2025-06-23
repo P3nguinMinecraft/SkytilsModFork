@@ -27,13 +27,17 @@ import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.render.chunk.SectionBuilder;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.util.math.BlockPos;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(SectionBuilder.class)
 public abstract class MixinBlockRendererDispatcher implements ResourceReloader {
+    @Shadow @Final private BlockRenderManager blockRenderManager;
+
     @WrapOperation(method = "build", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRendererRegion;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"))
     private BlockState modifyBlockState(ChunkRendererRegion instance, BlockPos pos, Operation<BlockState> original) {
-        return BlockRendererDispatcherHookKt.modifyBlockState((BlockRenderManager) (Object) this, instance, pos, original.call(instance, pos));
+        return BlockRendererDispatcherHookKt.modifyBlockState(this.blockRenderManager, instance, pos, original.call(instance, pos));
     }
 }
