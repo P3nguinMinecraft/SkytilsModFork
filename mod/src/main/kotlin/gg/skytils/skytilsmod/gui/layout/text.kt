@@ -19,11 +19,11 @@
 package gg.skytils.skytilsmod.gui.layout
 
 import gg.essential.elementa.components.UIText
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.layoutdsl.Modifier
-import gg.essential.elementa.state.v2.State
-import gg.essential.elementa.state.v2.effect
-import gg.essential.elementa.state.v2.stateOf
+import gg.essential.elementa.unstable.layoutdsl.LayoutScope
+import gg.essential.elementa.unstable.layoutdsl.Modifier
+import gg.essential.elementa.unstable.state.v2.State
+import gg.essential.elementa.unstable.state.v2.effect
+import gg.essential.elementa.unstable.state.v2.stateOf
 
 fun LayoutScope.text(text: State<String>, modifier: Modifier = Modifier): UIText {
     val component = UIText()

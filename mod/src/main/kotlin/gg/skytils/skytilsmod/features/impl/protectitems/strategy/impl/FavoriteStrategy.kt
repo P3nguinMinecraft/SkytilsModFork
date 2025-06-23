@@ -18,7 +18,7 @@
 
 package gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl
 
-import gg.essential.elementa.state.v2.*
+import gg.essential.elementa.unstable.state.v2.*
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.dungeons.DungeonFeatures

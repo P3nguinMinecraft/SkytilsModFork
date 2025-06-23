@@ -96,17 +96,20 @@ loom {
     }
 }
 
-val shadowMe: Configuration by configurations.creating {
-    configurations.implementation.get().extendsFrom(this)
+val include: Configuration = if (platform.isLegacyForge) {
+    val config: Configuration by configurations.creating {
+        configurations.implementation.get().extendsFrom(this)
+    }
+    config
+} else {
+    configurations.include.get()
 }
 
-val shadowMeMod: Configuration by configurations.creating {
-    configurations.modImplementation.get().extendsFrom(this)
-}
+val relocated: Configuration by configurations.creating
 
 dependencies {
     if (platform.isForge) {
-        shadowMe("gg.essential:loader-launchwrapper:1.2.3")
+        include("gg.essential:loader-launchwrapper:1.2.3")
     } else {
         include(modRuntimeOnly("gg.essential:loader-fabric:1.2.3")!!)
         modImplementation("net.fabricmc.fabric-api:fabric-api") {
@@ -128,64 +131,68 @@ dependencies {
         exclude(module = "universalcraft-1.20.6-fabric")
     }
     modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:406")
-    shadowMe("gg.essential:elementa-unstable-layoutdsl:708")
-    shadowMe("com.github.Skytils.Vigilance:vigilance-${if (!isLegacyFabric) if (platform.mcVersion >= 11801) "1.18.1-${platform.loaderStr}" else platform.toString() else "${platform.mcVersionStr}-forge"}:afb0909442") {
+    relocated(implementation("gg.essential:elementa-unstable-layoutdsl:710") {
+        excludeKotlin()
+    })
+    relocated(implementation("com.github.Skytils.Vigilance:vigilance-${if (!isLegacyFabric) if (platform.mcVersion >= 11801) "1.18.1-${platform.loaderStr}" else platform.toString() else "${platform.mcVersionStr}-forge"}:afb0909442") {
         isTransitive = false
-    }
+    })
 
-    shadowMe("dev.dediamondpro:minemark-elementa:1.2.3") {
+    include(implementation("dev.dediamondpro:minemark-elementa:1.2.3") {
         excludeKotlin()
         exclude(module = "elementa-1.8.9-forge")
-    }
+    })
 
-    shadowMeMod("com.github.Skytils:AsmHelper:91ecc2bd9c") {
+    include(modImplementation("com.github.Skytils:AsmHelper:91ecc2bd9c") {
         exclude(module = "kotlin-reflect")
         exclude(module = "kotlin-stdlib-jdk8")
         exclude(module = "kotlin-stdlib-jdk7")
         exclude(module = "kotlin-stdlib")
         exclude(module = "kotlinx-coroutines-core")
-    }
+    })
 
-    shadowMe(platform(kotlin("bom")))
-    shadowMe(platform(ktor("bom", "2.3.13", addSuffix = false)))
+    relocated(implementation(platform(kotlin("bom")))!!)
+    relocated(implementation(platform(ktor("bom", "2.3.13", addSuffix = false)))!!)
 
-    shadowMe(ktor("serialization-kotlinx-json")) { excludeKotlin() }
+    relocated(implementation(ktor("serialization-kotlinx-json")) { excludeKotlin() })
 
-    shadowMe("org.jetbrains.kotlinx:kotlinx-serialization-json") {
+    relocated(implementation("org.jetbrains.kotlinx:kotlinx-serialization-json") {
         version {
             strictly("[1.5.1,)")
             prefer("1.6.2")
         }
         excludeKotlin()
-    }
+    })
 
-    shadowMe(ktorClient("core")) { excludeKotlin() }
-    shadowMe(ktorClient("cio")) { excludeKotlin() }
-    shadowMe(ktorClient("content-negotiation")) { excludeKotlin() }
-    shadowMe(ktorClient("encoding")) { excludeKotlin() }
+    relocated(implementation(ktorClient("core")) { excludeKotlin() })
+    relocated(implementation(ktorClient("cio")) { excludeKotlin() })
+    relocated(implementation(ktorClient("content-negotiation")) { excludeKotlin() })
+    relocated(implementation(ktorClient("encoding")) { excludeKotlin() })
 
-    shadowMe(ktorServer("core")) { excludeKotlin() }
-    shadowMe(ktorServer("cio")) { excludeKotlin() }
-    shadowMe(ktorServer("content-negotiation")) { excludeKotlin() }
-    shadowMe(ktorServer("compression")) { excludeKotlin() }
-    shadowMe(ktorServer("cors")) { excludeKotlin() }
-    shadowMe(ktorServer("conditional-headers")) { excludeKotlin() }
-    shadowMe(ktorServer("auto-head-response")) { excludeKotlin() }
-    shadowMe(ktorServer("default-headers")) { excludeKotlin() }
-    shadowMe(ktorServer("host-common")) { excludeKotlin() }
-    shadowMe(ktorServer("auth")) { excludeKotlin() }
+    relocated(implementation(ktorServer("core")) { excludeKotlin() })
+    relocated(implementation(ktorServer("cio")) { excludeKotlin() })
+    relocated(implementation(ktorServer("content-negotiation")) { excludeKotlin() })
+    relocated(implementation(ktorServer("compression")) { excludeKotlin() })
+    relocated(implementation(ktorServer("cors")) { excludeKotlin() })
+    relocated(implementation(ktorServer("conditional-headers")) { excludeKotlin() })
+    relocated(implementation(ktorServer("auto-head-response")) { excludeKotlin() })
+    relocated(implementation(ktorServer("default-headers")) { excludeKotlin() })
+    relocated(implementation(ktorServer("host-common")) { excludeKotlin() })
+    relocated(implementation(ktorServer("auth")) { excludeKotlin() })
 
-    shadowMe("org.brotli:dec:0.1.2")
-    shadowMe("com.aayushatharva.brotli4j:brotli4j:1.18.0")
+    include(implementation("org.brotli:dec:0.1.2")!!)
+    include(implementation("com.aayushatharva.brotli4j:brotli4j:1.18.0")!!)
 
-    shadowMe(project(":events:$platform", configuration = "namedElements")) { excludeKotlin() }
-    shadowMe(project(":vigilance")) { excludeKotlin() }
-    shadowMe("gg.skytils.hypixel.types:types") { excludeKotlin() }
-    shadowMe("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() }
+    implementation(project(":events:$platform", configuration = "namedElements"))
+    relocated(project(":events:$platform")) { excludeKotlin() }
+    implementation(project(":vigilance"))
+    relocated(project(":vigilance")) { excludeKotlin() }
+    include(implementation("gg.skytils.hypixel.types:types") { excludeKotlin() })
+    include(implementation("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() })
 
-    shadowMe("org.bouncycastle:bcpg-jdk18on:1.78.1") {
+    include(implementation("org.bouncycastle:bcpg-jdk18on:1.78.1") {
         exclude(module = "bcprov-jdk18on")
-    }
+    })
     compileOnly("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
     if (platform.isFabric && !isLegacyFabric) {
@@ -193,25 +200,24 @@ dependencies {
         modLocalRuntime("net.fabricmc:fabric-language-kotlin:1.13.3+kotlin.2.1.21")
     }
     annotationProcessor(
-        shadowMe("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") { excludeKotlin() }
+        include(implementation("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") { excludeKotlin() })!!
     )
-    shadowMe("org.incendo:cloud-kotlin-extensions:2.0.0") { excludeKotlin() }
+    include(implementation("org.incendo:cloud-kotlin-extensions:2.0.0") { excludeKotlin() })
 
     if (platform.isLegacyForge) {
         compileOnly("net.hypixel:mod-api-forge:1.0.1.2") {
             exclude(group = "me.djtheredstoner", module = "DevAuth-forge-legacy")
         }
-        shadowMe("net.hypixel:mod-api-forge-tweaker:1.0.1.2")
+        include("net.hypixel:mod-api-forge-tweaker:1.0.1.2")
     } else {
         compileOnly("net.hypixel:mod-api:1.0.1")
     }
 
     val mixinExtrasVersion = "0.5.0-rc.2"
-    annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")
     if (platform.isFabric) {
-        include(implementation("io.github.llamalad7:mixinextras-fabric:${mixinExtrasVersion}")!!)
+        relocated(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinExtrasVersion}")!!)!!)
     } else {
-        shadowMe("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")
+        relocated(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}")!!)
     }
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
     compileOnly("org.spongepowered:mixin:0.8.5")
@@ -276,7 +282,7 @@ tasks {
         archiveBaseName.set("Skytils")
         archiveClassifier.set("dev")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        configurations = listOf(shadowMe, shadowMeMod)
+        configurations = if (platform.isLegacyForge) listOf(include, relocated) else listOf(relocated)
 
         relocate("dev.falsehonesty.asmhelper", "gg.skytils.asmhelper")
         relocate("com.llamalad7.mixinextras", "gg.skytils.mixinextras")
@@ -284,6 +290,7 @@ tasks {
         relocate("kotlinx.serialization", "gg.skytils.ktx-serialization")
         relocate("kotlinx.coroutines", "gg.skytils.ktx-coroutines")
         relocate("gg.essential.vigilance", "gg.skytils.vigilance")
+        relocate("gg.essential.elementa.unstable", "gg.skytils.elementa.unstable")
         relocate("net.hypixel.modapi.tweaker", "gg.skytils.hypixel-net.modapi.tweaker")
 
         exclude(

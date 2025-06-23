@@ -19,7 +19,7 @@ package gg.skytils.skytilsmod.features.impl.events
 
 import com.google.common.collect.EvictingQueue
 import com.mojang.blaze3d.opengl.GlStateManager
-import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.unstable.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority

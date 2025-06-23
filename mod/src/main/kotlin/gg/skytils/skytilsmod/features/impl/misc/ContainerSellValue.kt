@@ -18,8 +18,8 @@
 
 package gg.skytils.skytilsmod.features.impl.misc
 
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.unstable.layoutdsl.LayoutScope
+import gg.essential.elementa.unstable.layoutdsl.column
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UResolution

@@ -24,7 +24,7 @@ import gg.essential.elementa.constraints.PositionConstraint
 import gg.essential.elementa.constraints.RelativeConstraint
 import gg.essential.elementa.dsl.plus
 import gg.essential.elementa.dsl.pixels
-import gg.essential.elementa.layoutdsl.*
+import gg.essential.elementa.unstable.layoutdsl.*
 
 class OffsetMouseAlignment(val x: Float = 0f, val y: Float = 0f) : Alignment {
     override fun align(parentSize: Float, childSize: Float): Float {

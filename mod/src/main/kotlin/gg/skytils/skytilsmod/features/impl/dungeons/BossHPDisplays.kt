@@ -17,8 +17,8 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.unstable.layoutdsl.LayoutScope
+import gg.essential.elementa.unstable.layoutdsl.column
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -44,7 +44,7 @@ import java.awt.Color
 import gg.skytils.skytilsmod.utils.formattedText
 import net.minecraft.entity.EntityType
 import com.mojang.blaze3d.opengl.GlStateManager
-import gg.essential.elementa.state.v2.*
+import gg.essential.elementa.unstable.state.v2.*
 import java.util.LinkedList
 //#endif
 
