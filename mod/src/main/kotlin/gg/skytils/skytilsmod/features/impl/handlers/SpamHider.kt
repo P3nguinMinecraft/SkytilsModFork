@@ -730,7 +730,7 @@ object SpamHider : EventSubscriber, PersistentSave(File(Skytils.modDir, "spamhid
         return false
     }
 
-    object SpamHudElement : HudElement("Spam Hider", 130f, 370f) {
+    object SpamHudElement : HudElement("Spam Hider", 0.65, 0.925) {
         private var container: UIComponent? = null
 
         fun queueSpam(spam: String) {
