@@ -374,7 +374,7 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         }
 
         if (packet is PlaySoundS2CPacket) {
-            if (Skytils.config.slayerMinibossSpawnAlert && slayerEntity == null && packet.sound.value() == SoundEvents.ENTITY_GENERIC_EXPLODE && packet.volume == 0.6f && packet.pitch == 9 / 7f && GuiManager.title != "§cMINIBOSS" && sidebarLines.any {
+            if (Skytils.config.slayerMinibossSpawnAlert && slayerEntity == null && packet.sound.value() == SoundEvents.ENTITY_GENERIC_EXPLODE.value() && packet.volume == 0.6f && packet.pitch == 9 / 7f && GuiManager.title != "§cMINIBOSS" && sidebarLines.any {
                     it.contains("Slayer Quest")
                 }) {
                 createTitle("§cMINIBOSS", 20)
