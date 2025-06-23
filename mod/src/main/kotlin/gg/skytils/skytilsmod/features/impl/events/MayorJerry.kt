@@ -21,10 +21,8 @@ import gg.essential.elementa.layoutdsl.LayoutScope
 import gg.essential.elementa.layoutdsl.Modifier
 import gg.essential.elementa.layoutdsl.color
 import gg.essential.elementa.layoutdsl.row
-import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.state.v2.*
 import gg.essential.elementa.state.v2.combinators.and
-import gg.essential.elementa.state.v2.mutableStateOf
-import gg.essential.elementa.state.v2.stateUsingSystemTime
 import gg.essential.universal.UChat
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
@@ -45,13 +43,14 @@ import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.item.Items
 import net.minecraft.item.ItemStack
 import java.awt.Color
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 object MayorJerry : EventSubscriber {
 
     private val jerryType = Regex("(\\w+)(?=\\s+Jerry)")
-    val lastJerryState = mutableStateOf(Instant.MAX)
+    val lastJerryState: MutableState<Instant?> = mutableStateOf(null)
 
     init {
         Skytils.guiManager.registerElement(JerryPerkHud())
@@ -75,7 +74,7 @@ object MayorJerry : EventSubscriber {
             if (match != null) {
                 val lastJerry = lastJerryState.getUntracked()
                 val now = Instant.now()
-                if (Skytils.config.hiddenJerryTimer && lastJerry.isBefore(now)) UChat.chat(
+                if (Skytils.config.hiddenJerryTimer && lastJerry != null) UChat.chat(
                     "§bIt has been ${
                         NumberUtil.nf.format(
                             lastJerry.until(now, ChronoUnit.SECONDS)
@@ -120,20 +119,21 @@ object MayorJerry : EventSubscriber {
     class HiddenJerryTimerHud : HudElement("Mayor Jerry Timer", 10f, 20f) {
         private val villagerEgg = ItemStack(Items.VILLAGER_SPAWN_EGG)
         override fun LayoutScope.render() {
-            val elapsed = stateUsingSystemTime { time -> time.until(lastJerryState()) }
-            if_(SBInfo.skyblockState and { elapsed().isNegative }) {
-                row {
-                    ItemComponent(villagerEgg)()
-                    text({
-                        val since = elapsed().getValue()
-                        val minutes = since.toMinutesPart()
-                        "${if (minutes >= 6) "§a" else ""}${minutes}:${
-                            "%02d".format(
-                                since.toSecondsPart()
-                            )
-                        }"
-                    }, Modifier.color(Color.ORANGE))
+            if_(SBInfo.skyblockState) {
+                ifNotNull(lastJerryState) { lastJerry ->
+                    row {
+                        ItemComponent(villagerEgg)()
+                        text({
+                            val since = withSystemTime { time -> Duration.between(lastJerry, time.getValue()) }
+                            val minutes = since.toMinutesPart()
+                            "${if (minutes >= 6) "§a" else ""}${minutes}:${
+                                "%02d".format(
+                                    since.toSecondsPart()
+                                )
+                            }"
+                        }, Modifier.color(Color.ORANGE))
 
+                    }
                 }
             }
         }
