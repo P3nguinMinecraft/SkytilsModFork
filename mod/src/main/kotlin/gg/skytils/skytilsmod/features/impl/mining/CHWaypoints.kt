@@ -340,7 +340,7 @@ object CHWaypoints : EventSubscriber {
         }
 
         override fun LayoutScope.demoRender() {
-            box(Modifier.width(62.4f).height(62.4f)) {
+            box(Modifier.width(128f).height(128f)) {
                 UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
             }
         }
