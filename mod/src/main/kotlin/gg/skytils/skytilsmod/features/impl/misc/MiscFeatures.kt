@@ -84,6 +84,7 @@ import net.minecraft.entity.projectile.FishingBobberEntity
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
 import net.minecraft.block.Blocks
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.entity.boss.WitherEntity
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
@@ -95,6 +96,7 @@ import net.minecraft.text.Text
 import java.awt.Color
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
@@ -273,6 +275,7 @@ object MiscFeatures : EventSubscriber {
         }
     }
 
+    private val trickOrTreat = UUID.fromString("f955b4ac-0c41-3e45-8703-016c46a8028e")
     fun onJoin(event: EntityJoinWorldEvent) {
         val player = mc.player
         if (!Utils.inSkyblock || player == null || mc.world == null) return
@@ -280,13 +283,12 @@ object MiscFeatures : EventSubscriber {
             tickTimer(5) {
                 val entity = event.entity as ArmorStandEntity
                 val headSlot = entity.getEquippedStack(EquipmentSlot.HEAD)
-                val headNbt = headSlot?.toNbt(player.registryManager)?.asCompound()?.getOrNull() ?: return@tickTimer
-                if (Skytils.config.trickOrTreatChestAlert && mc.player != null && headSlot.item === Items.PLAYER_HEAD && !headNbt.isEmpty && entity.squaredDistanceTo(
+                val headUUID = headSlot?.get(DataComponentTypes.PROFILE)?.id?.getOrNull() ?: return@tickTimer
+                if (Skytils.config.trickOrTreatChestAlert && mc.player != null && headSlot.item === Items.PLAYER_HEAD && entity.squaredDistanceTo(
                         mc.player
                     ) < 10 * 10
                 ) {
-                    if (headNbt.getCompound("SkullOwner").getOrNull()?.get("Id")?.asString()?.getOrNull() == "f955b4ac-0c41-3e45-8703-016c46a8028e"
-                    ) {
+                    if (headUUID == trickOrTreat) {
                         createTitle("§cTrick or Treat!", 60)
                     }
                 }
