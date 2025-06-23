@@ -30,6 +30,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Enumeration;
 
+//#if FABRIC
+import net.fabricmc.loader.api.FabricLoader;
+//#endif
+
 public class Reference {
     public static String dataUrl = "https://data.skytils.gg/";
     public static final String MOD_ID = "skytils";
@@ -39,27 +43,35 @@ public class Reference {
     public static final String UNKNOWN_VERSION = "unknown";
 
     private static String getVersion() {
-        try {
-            Enumeration<URL> urls = Skytils.class.getClassLoader().getResources("mcmod.info");
-            Gson gson = new Gson();
-            while (urls.hasMoreElements()) {
-                URL url = urls.nextElement();
-                try (InputStream is = url.openStream()) {
-                    JsonArray jsonArray = gson.fromJson(new InputStreamReader(is), JsonArray.class);
-                    for (int i = 0; i < jsonArray.size(); i++) {
-                        JsonObject json = jsonArray.get(i).getAsJsonObject();
-                        if (json.get("modid").getAsString().equals("skytils")) {
-                            String version = json.get("version").getAsString();
-                            return version.isEmpty() ? UNKNOWN_VERSION : version;
-                        }
-                    }
-                }
-            }
-            return UNKNOWN_VERSION;
-        } catch (IOException ioe) {
-            LogManager.getLogger(Reference.class).fatal("Failed while getting Skytils version", ioe);
-            return UNKNOWN_VERSION;
-        }
+        //#if MC>12000
+        return FabricLoader.getInstance()
+                .getModContainer(MOD_ID)
+                .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                .orElse(UNKNOWN_VERSION);
+        //#else
+        //$$ try {
+        //$$     Enumeration<URL> urls = Skytils.class.getClassLoader().getResources("mcmod.info");
+        //$$     Gson gson = new Gson();
+        //$$     while (urls.hasMoreElements()) {
+        //$$         URL url = urls.nextElement();
+        //$$         try (InputStream is = url.openStream()) {
+        //$$             JsonArray jsonArray = gson.fromJson(new InputStreamReader(is), JsonArray.class);
+        //$$             for (int i = 0; i < jsonArray.size(); i++) {
+        //$$                 JsonObject json = jsonArray.get(i).getAsJsonObject();
+        //$$                 if (json.get("modid").getAsString().equals("skytils")) {
+        //$$                     String version = json.get("version").getAsString();
+        //$$                     return version.isEmpty() ? UNKNOWN_VERSION : version;
+        //$$                 }
+        //$$             }
+        //$$         }
+        //$$     }
+        //$$
+        //$$     return UNKNOWN_VERSION;
+        //$$ } catch (IOException ioe) {
+        //$$     LogManager.getLogger(Reference.class).fatal("Failed while getting Skytils version", ioe);
+        //$$     return UNKNOWN_VERSION;
+        //$$ }
+        //#endif
     }
 
     public static final int apiVersion = 7;
