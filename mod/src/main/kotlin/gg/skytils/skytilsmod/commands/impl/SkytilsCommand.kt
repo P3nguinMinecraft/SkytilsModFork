@@ -325,7 +325,7 @@ object SkytilsCommand {
         Ping.sendPing()
     }
 
-    @Command("skytils|st waypoint|waypoints")
+    @Command("skytils|st waypoints|waypoint")
     fun waypointCommand() {
         Skytils.displayScreen = WaypointsGui()
     }
