@@ -191,6 +191,7 @@ enum class SkyblockIsland(val displayName: String, val mode: String) {
     CrystalHollows("Crystal Hollows", "crystal_hollows"),
     FarmingIsland("The Farming Islands", "farming_1"),
     ThePark("The Park", "foraging_1"),
+    Galatea("Galatea", "foraging_2"),
     Dungeon("Dungeon", "dungeon"),
     DungeonHub("Dungeon Hub", "dungeon_hub"),
     Hub("Hub", "hub"),
