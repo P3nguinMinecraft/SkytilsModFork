@@ -17,10 +17,7 @@
  */
 package gg.skytils.skytilsmod.features.impl.events
 
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.layoutdsl.Modifier
-import gg.essential.elementa.layoutdsl.color
-import gg.essential.elementa.layoutdsl.row
+import gg.essential.elementa.layoutdsl.*
 import gg.essential.elementa.state.v2.*
 import gg.essential.elementa.state.v2.combinators.and
 import gg.essential.universal.UChat
@@ -121,8 +118,8 @@ object MayorJerry : EventSubscriber {
         override fun LayoutScope.render() {
             if_(SBInfo.skyblockState) {
                 ifNotNull(lastJerryState) { lastJerry ->
-                    row {
-                        ItemComponent(villagerEgg)()
+                    row(Modifier.height(16f)) {
+                        ItemComponent(villagerEgg)(Modifier.fillHeight().widthAspect(1f))
                         text({
                             val since = withSystemTime { time -> Duration.between(lastJerry, time.getValue()) }
                             val minutes = since.toMinutesPart()
@@ -139,8 +136,8 @@ object MayorJerry : EventSubscriber {
         }
 
         override fun LayoutScope.demoRender() {
-            row {
-                ItemComponent(villagerEgg)()
+            row(Modifier.height(16f)) {
+                ItemComponent(villagerEgg)(Modifier.fillHeight().widthAspect(1f))
                 text("0:30", Modifier.color(Color.ORANGE))
             }
         }
