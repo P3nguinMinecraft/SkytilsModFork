@@ -24,6 +24,7 @@ import gg.essential.elementa.layoutdsl.*
 import gg.essential.elementa.state.v2.MutableState
 import gg.essential.elementa.state.v2.memo
 import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.state.v2.stateOf
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UResolution
 import gg.skytils.skytilsmod.core.GuiManager
@@ -67,10 +68,16 @@ abstract class HudElement(
             }.then(mouseConstraint)
     }
 
+    open val toggleState = stateOf(true)
+
     val component
         get() = UIContainer()
             .apply {
-                layout(Modifier.then(position).childBasedSize(2f)) { render() }
+                layout(Modifier.then(position).childBasedSize(2f)) {
+                    if_(toggleState) {
+                        render()
+                    }
+                }
             }
 
     val demoComponent
@@ -82,8 +89,11 @@ abstract class HudElement(
                         .childBasedSize(2f)
                         .hoverScope()
                         .hoverColor(Color.WHITE.withAlpha(100))
-                    , block = { demoRender() }
-                )
+                ) {
+                    if_(toggleState) {
+                        demoRender()
+                    }
+                }
             }
 
 
