@@ -20,8 +20,8 @@ package gg.skytils.skytilsmod.core
 import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop
 import gg.essential.api.EssentialAPI
 import gg.essential.elementa.state.v2.ReferenceHolder
-import gg.essential.elementa.state.v2.effect
-import gg.essential.elementa.state.v2.onChange
+import gg.essential.elementa.unstable.state.v2.effect
+import gg.essential.elementa.unstable.state.v2.onChange
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop

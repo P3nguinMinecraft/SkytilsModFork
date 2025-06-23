@@ -28,10 +28,10 @@ import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.utils.*
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.state.v2.MutableState
-import gg.essential.elementa.state.v2.State
-import gg.essential.elementa.state.v2.mutableStateOf
+import gg.essential.elementa.unstable.layoutdsl.LayoutScope
+import gg.essential.elementa.unstable.state.v2.MutableState
+import gg.essential.elementa.unstable.state.v2.State
+import gg.essential.elementa.unstable.state.v2.mutableStateOf
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
 import net.minecraft.entity.decoration.ArmorStandEntity

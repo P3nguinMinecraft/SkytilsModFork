@@ -17,17 +17,17 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.layoutdsl.Modifier
-import gg.essential.elementa.layoutdsl.color
-import gg.essential.elementa.layoutdsl.column
+import gg.essential.elementa.unstable.layoutdsl.LayoutScope
+import gg.essential.elementa.unstable.layoutdsl.Modifier
+import gg.essential.elementa.unstable.layoutdsl.color
+import gg.essential.elementa.unstable.layoutdsl.column
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.state.State
-import gg.essential.elementa.state.v2.clear
-import gg.essential.elementa.state.v2.collections.MutableTrackedList
-import gg.essential.elementa.state.v2.combinators.and
-import gg.essential.elementa.state.v2.mutableListStateOf
-import gg.essential.elementa.state.v2.toV2
+import gg.essential.elementa.unstable.state.v2.clear
+import gg.essential.elementa.unstable.state.v2.collections.MutableTrackedList
+import gg.essential.elementa.unstable.state.v2.combinators.and
+import gg.essential.elementa.unstable.state.v2.mutableListStateOf
+import gg.essential.elementa.unstable.state.v2.toV2
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -510,7 +510,7 @@ object ScoreCalculation: EventSubscriber {
     }
 
     class HugeCryptsHud : HudElement("Dungeon Crypts Counter", 200f, 200f) {
-        override val toggleState: gg.essential.elementa.state.v2.State<Boolean>
+        override val toggleState: gg.essential.elementa.unstable.state.v2.State<Boolean>
             get() = Skytils.config.bigCryptsCounter
 
         override fun LayoutScope.render() {
@@ -526,7 +526,7 @@ object ScoreCalculation: EventSubscriber {
     }
 
     object ScoreCalculationHud : HudElement("Dungeon Score Estimate", 200f, 100f) {
-        override val toggleState: gg.essential.elementa.state.v2.State<Boolean>
+        override val toggleState: gg.essential.elementa.unstable.state.v2.State<Boolean>
             get() = Skytils.config.showScoreCalculation
 
         val text = mutableListStateOf<String>()

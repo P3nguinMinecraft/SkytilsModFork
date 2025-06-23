@@ -20,11 +20,11 @@ package gg.skytils.skytilsmod.features.impl.dungeons.catlas.core
 
 import gg.essential.elementa.components.UIBlock
 import gg.essential.elementa.components.UIContainer
-import gg.essential.elementa.layoutdsl.LayoutScope
-import gg.essential.elementa.layoutdsl.Modifier
-import gg.essential.elementa.layoutdsl.height
-import gg.essential.elementa.layoutdsl.width
-import gg.essential.elementa.state.v2.State
+import gg.essential.elementa.unstable.layoutdsl.LayoutScope
+import gg.essential.elementa.unstable.layoutdsl.Modifier
+import gg.essential.elementa.unstable.layoutdsl.height
+import gg.essential.elementa.unstable.layoutdsl.width
+import gg.essential.elementa.unstable.state.v2.State
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder

@@ -19,8 +19,8 @@
 package gg.skytils.skytilsmod.gui.components
 
 import gg.essential.elementa.UIComponent
-import gg.essential.elementa.state.v2.State
-import gg.essential.elementa.state.v2.stateOf
+import gg.essential.elementa.unstable.state.v2.State
+import gg.essential.elementa.unstable.state.v2.stateOf
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft

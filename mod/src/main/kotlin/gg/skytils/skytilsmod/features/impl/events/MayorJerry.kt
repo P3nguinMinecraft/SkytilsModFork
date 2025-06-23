@@ -17,9 +17,9 @@
  */
 package gg.skytils.skytilsmod.features.impl.events
 
-import gg.essential.elementa.layoutdsl.*
-import gg.essential.elementa.state.v2.*
-import gg.essential.elementa.state.v2.combinators.and
+import gg.essential.elementa.unstable.layoutdsl.*
+import gg.essential.elementa.unstable.state.v2.*
+import gg.essential.elementa.unstable.state.v2.combinators.and
 import gg.essential.universal.UChat
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
