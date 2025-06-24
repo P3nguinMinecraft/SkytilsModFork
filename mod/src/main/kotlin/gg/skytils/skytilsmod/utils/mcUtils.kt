@@ -72,11 +72,19 @@ fun isModLoaded(id: String) =
     FabricLoader.getInstance().isModLoaded(id)
     //#endif
 
-fun runClientCommand(command: String) =
+fun runClientCommand(command: String): Int
     //#if MC<11400
-    //$$ ClientCommandHandler.instance.method_0_6233(UPlayer.getPlayer(), command)
+    //$$ = ClientCommandHandler.instance.method_0_6233(UPlayer.getPlayer(), command)
     //#else
-    ClientCommandManager.getActiveDispatcher()?.execute(command.removePrefix("/"), UPlayer.getPlayer()?.networkHandler?.commandSource as? FabricClientCommandSource ?: error("No command source"))
+    {
+        return try {
+            ClientCommandManager.getActiveDispatcher()?.execute(command.removePrefix("/"), UPlayer.getPlayer()?.networkHandler?.commandSource as? FabricClientCommandSource ?: error("No command source")) ?: error("Tried to run a client command when not in a world")
+        } catch (_: com.mojang.brigadier.exceptions.CommandSyntaxException) {
+            0
+        } catch (throwable: Throwable) {
+            throw throwable
+        }
+    }
     //#endif
 
 fun isTimechangerLoaded() =
