@@ -309,7 +309,6 @@ tasks {
             "**/LICENSE",
             "**/NOTICE",
             "**/NOTICE.txt",
-            "pack.mcmeta",
             "dummyThing",
             "**/module-info.class",
             "META-INF/proguard/**",
