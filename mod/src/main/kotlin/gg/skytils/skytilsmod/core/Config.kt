@@ -2655,16 +2655,17 @@ object Config : Vigilant(
         ), false
     )
 
-    @Property(
-        type = PropertyType.SELECTOR, name = "Ping Display",
-        description = "Shows your ping to the current server, similar to the /skytils ping command.\nYou must be in a GUI or not moving in order to queue a ping.\nThere is a tiny chance that this will cause you to be punished.",
-        category = "Miscellaneous", subcategory = "Other",
-        options = ["Off", "Server List", "Packet"],
-        i18nName = "skytils.config.miscellaneous.other.ping_display",
-        i18nCategory = "skytils.config.miscellaneous",
-        i18nSubcategory = "skytils.config.miscellaneous.other"
+    var pingDisplay = property(
+        PropertyAttributesExt(
+            type = PropertyType.SELECTOR, name = "Ping Display",
+            description = "Shows your ping to the current server, similar to the /skytils ping command.\nYou must be in a GUI or not moving in order to queue a ping.\nThere is a tiny chance that this will cause you to be punished.",
+            category = "Miscellaneous", subcategory = "Other",
+            options = listOf("Off", "Server List", "Packet"),
+            i18nName = "skytils.config.miscellaneous.other.ping_display",
+            i18nCategory = "skytils.config.miscellaneous",
+            i18nSubcategory = "skytils.config.miscellaneous.other"
+        ), 0
     )
-    var pingDisplay = 0
 
     @Property(
         type = PropertyType.SWITCH, name = "Random Stuff",

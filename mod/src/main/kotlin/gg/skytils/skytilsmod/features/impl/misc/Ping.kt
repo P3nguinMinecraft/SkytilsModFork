@@ -22,6 +22,7 @@ import gg.essential.elementa.unstable.layoutdsl.LayoutScope
 import gg.essential.elementa.unstable.layoutdsl.Modifier
 import gg.essential.elementa.unstable.layoutdsl.color
 import gg.essential.elementa.unstable.state.v2.State
+import gg.essential.elementa.unstable.state.v2.combinators.map
 import gg.essential.elementa.unstable.state.v2.mutableStateOf
 import gg.essential.universal.UChat
 import gg.skytils.event.EventSubscriber
@@ -62,7 +63,7 @@ object Ping : EventSubscriber {
 
     override fun setup() {
         register(::onPacket)
-        register(::onRenderhud)
+        register(::onRenderHUD)
     }
 
     fun sendPing() {
@@ -119,9 +120,9 @@ object Ping : EventSubscriber {
         }
     }
 
-    fun onRenderhud(event: RenderHUDEvent) {
+    fun onRenderHUD(event: RenderHUDEvent) {
         if (SBInfo.skyblockState.getUntracked() && mc.player != null) {
-            when (Skytils.config.pingDisplay) {
+            when (Skytils.config.pingDisplay.getUntracked()) {
                 1 -> pingServerList()
                 2 -> {
                     if (lastPingAt < 0 && (mc.currentScreen != null || mc.player?.hasMoved == false) && System.nanoTime()
@@ -135,6 +136,8 @@ object Ping : EventSubscriber {
     }
 
     class PingDisplayHud : HudElement("Ping Display", 10f, 10f) {
+        override val toggleState: State<Boolean> = Skytils.config.pingDisplay.map { it != 0 }
+
         private val color = State {
             val ping = pingCacheState()
             when {
