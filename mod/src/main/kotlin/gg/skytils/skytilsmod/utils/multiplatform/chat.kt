@@ -25,6 +25,7 @@ import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
+import net.minecraft.util.StringHelper
 
 typealias MCTextComponent =
     Text
@@ -80,5 +81,4 @@ fun MutableMCTextComponent.setClickRun(command: String) = apply {
     setStyle(style.withClickEvent(ClickEvent.RunCommand(command)))
 }
 
-fun isValidChar(c: Char) =
-    c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9' || c == ' '
+fun isValidChar(c: Char) = StringHelper.isValidChar(c)
