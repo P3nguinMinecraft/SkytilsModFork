@@ -463,8 +463,8 @@ object ItemFeatures : EventSubscriber {
             }
         }
 
-        if (DevTools.getToggle("nbt") && UKeyboard.isKeyDown(46) && UKeyboard.isCtrlKeyDown() && !UKeyboard.isShiftKeyDown() && !UKeyboard.isAltKeyDown()) {
-            UDesktop.setClipboardString(event.stack.toNbt(UMinecraft.getMinecraft().player!!.registryManager).toString())
+        if (DevTools.getToggle("nbt") && UKeyboard.isKeyDown(UKeyboard.KEY_C) && UKeyboard.isCtrlKeyDown() && !UKeyboard.isShiftKeyDown() && !UKeyboard.isAltKeyDown()) {
+            UDesktop.setClipboardString(event.stack.toNbt(mc.player!!.registryManager).toString())
         }
     }
 
