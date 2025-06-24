@@ -58,8 +58,8 @@ object DrawHelper {
      * This is useful for rendering things in world space, as it will negate the camera position and rotation.
      */
     fun setupCameraTransformations(matrices: UMatrixStack) {
-        cameraOffset(matrices)
         cameraRotation(matrices)
+        cameraOffset(matrices)
     }
 
     /**
