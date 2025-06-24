@@ -194,8 +194,8 @@ dependencies {
         excludeKotlin()
         exclude(module = "fabric-loader")
     })
-    include(implementation("gg.skytils.hypixel.types:types") { excludeKotlin() })
-    include(implementation("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() })
+    relocated(implementation("gg.skytils.hypixel.types:types") { excludeKotlin() })
+    relocated(implementation("gg.skytils.skytilsws.shared:ws-shared") { excludeKotlin() })
 
     include(implementation("org.bouncycastle:bcpg-jdk18on:1.78.1") {
         exclude(module = "bcprov-jdk18on")
