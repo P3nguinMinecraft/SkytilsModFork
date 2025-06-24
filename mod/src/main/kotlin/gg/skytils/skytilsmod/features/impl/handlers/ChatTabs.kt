@@ -236,7 +236,7 @@ object ChatTabs : EventSubscriber {
             val screen = Window(ElementaVersion.V5)
             private val container = UIContainer().constrain {
                 x = 2.pixels
-                y = basicYConstraint { UResolution.scaledHeight - calculateChatHeight().toFloat() - 30f /* bottom bit */ - 20f /* height */ - 5f /* padding */ }
+                y = basicYConstraint { UResolution.scaledHeight - calculateChatHeight().toFloat() - 40f /* bottom bit */ - 20f /* height */ - 5f /* padding */ }
                 height = ChildBasedMaxSizeConstraint()
                 width = ChildBasedRangeConstraint()
             } childOf screen
@@ -248,9 +248,7 @@ object ChatTabs : EventSubscriber {
             }
 
             private fun calculateChatHeight() =
-                UMinecraft.getChatGUI()?.let { chat ->
-                    chat.height.coerceAtMost((chat as AccessorGuiNewChat).drawnChatLines.size * UMinecraft.getFontRenderer().fontHeight)
-                } ?: 0
+                UMinecraft.getChatGUI()?.height ?: 0
         }
     }
 }
