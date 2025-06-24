@@ -27,12 +27,12 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(Mouse.class)
 public abstract class MixinMouseHelper {
-    @WrapWithCondition(method = "unlockCursor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;x:D", opcode = Opcodes.PUTFIELD))
+    @WrapWithCondition(method = {"unlockCursor", "lockCursor"}, at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;x:D", opcode = Opcodes.PUTFIELD))
     private boolean shouldSetCursorX(Mouse instance, double value) {
         return MouseHelperHook.INSTANCE.shouldResetMouseToCenter();
     }
 
-    @WrapWithCondition(method = "unlockCursor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;y:D", opcode = Opcodes.PUTFIELD))
+    @WrapWithCondition(method = {"unlockCursor", "lockCursor"}, at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;y:D", opcode = Opcodes.PUTFIELD))
     private boolean shouldSetCursorY(Mouse instance, double value) {
         return MouseHelperHook.INSTANCE.shouldResetMouseToCenter();
     }
