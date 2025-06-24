@@ -24,6 +24,7 @@
     "accessors.AccessorWorld",
     "accessors.AccessorWorldInfo",
     "audio.MixinSoundManager",
+    "cloud.MixinModdedExceptionHandler",
     "crash.MixinCrashReport",
     "entity.MixinEnderman",
     "entity.MixinEntity_GlowExtension",
