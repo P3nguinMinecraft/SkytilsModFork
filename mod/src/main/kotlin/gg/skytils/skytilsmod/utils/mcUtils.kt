@@ -119,12 +119,13 @@ val ItemStack.displayNameStr: String
 //#if MC>=12000
 val Text.formattedText: String
     get() = buildString {
-        this@formattedText.visit<String>({ style, string ->
-            append(serializeFormattingToString(style))
-            append(string)
+        append(serializeFormattingToString(style))
+        this@formattedText.content.visit<String> {
+            append(it)
             Optional.empty()
-        }, Style.EMPTY)
+        }
         append("§r")
+        siblings.forEach { append(it.formattedText) }
     }
 
 
