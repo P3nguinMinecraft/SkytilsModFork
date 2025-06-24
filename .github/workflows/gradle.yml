@@ -27,5 +27,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: ./build/libs
+          path: ./mod/versions/1.21.5-fabric/build/libs
           if-no-files-found: error
