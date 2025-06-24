@@ -294,13 +294,16 @@ tasks {
         configurations = if (platform.isLegacyForge) listOf(include, relocated) else listOf(relocated)
 
         relocate("dev.falsehonesty.asmhelper", "gg.skytils.asmhelper")
-        if (platform.isLegacyForge) relocate("com.llamalad7.mixinextras", "gg.skytils.mixinextras")
         relocate("io.ktor", "gg.skytils.ktor")
         relocate("kotlinx.serialization", "gg.skytils.ktx-serialization")
-        relocate("kotlinx.coroutines", "gg.skytils.ktx-coroutines")
         relocate("gg.essential.vigilance", "gg.skytils.vigilance")
         relocate("gg.essential.elementa.unstable", "gg.skytils.elementa.unstable")
         relocate("net.hypixel.modapi.tweaker", "gg.skytils.hypixel-net.modapi.tweaker")
+
+        if (platform.isLegacyForge) {
+            relocate("com.llamalad7.mixinextras", "gg.skytils.mixinextras")
+            relocate("kotlinx.coroutines", "gg.skytils.ktx-coroutines")
+        }
 
         exclude(
             "**/LICENSE_MixinExtras",
