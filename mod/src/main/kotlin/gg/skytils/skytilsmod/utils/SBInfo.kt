@@ -123,6 +123,7 @@ object SBInfo : EventSubscriber {
     fun onHypixelPacket(event: HypixelPacketReceiveEvent) {
         if (event.packet is ClientboundLocationPacket) {
             Utils.checkThreadAndQueue {
+                _hypixelState.set(true)
                 _modeState.set(event.packet.mode.orElse(""))
                 _serverIdState.set(event.packet.serverName)
                 _serverTypeState.set(event.packet.serverType.orElse(null))
