@@ -303,6 +303,8 @@ tasks {
         if (platform.isLegacyForge) {
             relocate("com.llamalad7.mixinextras", "gg.skytils.mixinextras")
             relocate("kotlinx.coroutines", "gg.skytils.ktx-coroutines")
+        } else {
+            exclude("kotlinx/coroutines/**")
         }
 
         exclude(
