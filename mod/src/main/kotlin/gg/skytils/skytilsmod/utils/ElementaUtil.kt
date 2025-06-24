@@ -23,6 +23,7 @@ import gg.essential.elementa.components.UIContainer
 import gg.essential.elementa.components.input.UITextInput
 import gg.essential.elementa.dsl.childOf
 import gg.essential.elementa.events.UIClickEvent
+import gg.essential.elementa.unstable.util.selfAndParents
 import gg.essential.universal.UKeyboard
 import gg.essential.vigilance.gui.settings.SettingComponent
 import java.awt.Color
@@ -71,10 +72,14 @@ fun UIComponent.clickMouse(x: Double, y: Double, button: Int): Boolean {
             consumed = true
         }
     }
-
-    mouseClickListeners.add(finalListener)
+    val target = hitTest(x.toFloat(), y.toFloat())
+    target.selfAndParents().forEach { component ->
+        component.mouseClickListeners.add(finalListener)
+    }
     mouseClick(x, y, button)
-    mouseClickListeners.remove(finalListener)
+    target.selfAndParents().forEach { component ->
+        component.mouseClickListeners.remove(finalListener)
+    }
 
     return consumed
 }
