@@ -212,7 +212,8 @@ object Utils {
         if (keyCode < 0) {
             "Button ${keyCode + 101}"
         } else if (keyCode < 256) {
-            UKeyboard.getKeyName(keyCode)!!
+            UKeyboard.getKeyName(keyCode) ?:
+                if (keyCode == 0) "None" else "Key $keyCode"
         } else {
             "%c".format((keyCode - 256).toChar()).uppercase()
         }
