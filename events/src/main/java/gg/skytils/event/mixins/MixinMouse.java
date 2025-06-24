@@ -24,6 +24,7 @@ import gg.skytils.event.impl.play.MouseInputEvent;
 import gg.skytils.event.impl.screen.ScreenMouseInputEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,6 +42,8 @@ public class MixinMouse {
 
     @Inject(method = "onMouseButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J", shift = At.Shift.AFTER, ordinal = 0), cancellable = true)
     private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
+        if (action != GLFW.GLFW_PRESS) return;
+
         if (this.client.currentScreen != null &&
                 EventsKt.postCancellableSync(new ScreenMouseInputEvent(this.client.currentScreen, this.x, this.y, button))) {
             ci.cancel();
