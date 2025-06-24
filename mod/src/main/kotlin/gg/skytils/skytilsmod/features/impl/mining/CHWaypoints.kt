@@ -54,6 +54,7 @@ import gg.essential.elementa.unstable.layoutdsl.fillParent
 import gg.essential.elementa.unstable.layoutdsl.height
 import gg.essential.elementa.unstable.layoutdsl.width
 import gg.essential.elementa.unstable.state.v2.State
+import gg.essential.elementa.unstable.state.v2.combinators.map
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
@@ -298,12 +299,14 @@ object CHWaypoints : EventSubscriber {
     }
 
     object CrystalHollowsMap : HudElement("Crystal Hollows Map", 0f, 0f) {
-        override val toggleState: State<Boolean>
-            get() = Skytils.config.crystalHollowMap
+        override val toggleState: State<Boolean> = Skytils.config.crystalHollowMap
+
         override fun LayoutScope.render() {
-            box(Modifier.width(128f).height(128f)) {
-                UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
-                MapAddons(Modifier.fillParent())
+            if_(SBInfo.locationState.map { it == SkyblockIsland.CrystalHollows.mode }) {
+                box(Modifier.width(128f).height(128f)) {
+                    UIImage.ofResource("/assets/skytils/crystalhollowsmap.png")(Modifier.fillParent())
+                    MapAddons(Modifier.fillParent())
+                }
             }
         }
 
