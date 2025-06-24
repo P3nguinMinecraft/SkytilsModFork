@@ -203,8 +203,8 @@ object ChatTabs : EventSubscriber {
             width = 20.pixels
             height = 20.pixels
         }.onMouseClick { event ->
-            if (selectedTab == this@ChatTab) return@onMouseClick
             event.stopPropagation()
+            if (selectedTab == this@ChatTab) return@onMouseClick
             USound.playButtonPress()
             selectedTab = this@ChatTab
             val chat = UMinecraft.getChatGUI() ?: return@onMouseClick
