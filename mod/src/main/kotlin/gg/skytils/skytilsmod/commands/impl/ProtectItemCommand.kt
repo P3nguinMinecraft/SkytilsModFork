@@ -25,6 +25,7 @@ import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
 import gg.skytils.skytilsmod.gui.features.ProtectItemGui
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.formattedText
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.Commands
 import org.incendo.cloud.annotations.Flag
@@ -53,9 +54,9 @@ object ProtectItemCommand {
         val item = mc.player?.mainHandStack
             ?: throw IllegalArgumentException("You must hold an item to use this command")
         when (FavoriteStrategy.toggleItem(item)) {
-            FavoriteStrategy.ToggleItemResult.SUCCESS_ADDED -> UChat.chat("$successPrefix §aI will now protect your ${item.name}!")
-            FavoriteStrategy.ToggleItemResult.SUCCESS_REMOVED -> UChat.chat("$successPrefix §cI will no longer protect your ${item.name}§a!")
-            FavoriteStrategy.ToggleItemResult.FAILED_NO_UUID -> throw IllegalArgumentException("Unable to get Item UUID: ${item.name}")
+            FavoriteStrategy.ToggleItemResult.SUCCESS_ADDED -> UChat.chat("$successPrefix §aI will now protect your ${item.name.formattedText}§a!")
+            FavoriteStrategy.ToggleItemResult.SUCCESS_REMOVED -> UChat.chat("$successPrefix §cI will no longer protect your ${item.name.formattedText}§c!")
+            FavoriteStrategy.ToggleItemResult.FAILED_NO_UUID -> throw IllegalArgumentException("Unable to get Item UUID: ${item.name.formattedText}")
             FavoriteStrategy.ToggleItemResult.FAILED_NO_ITEM_ID -> throw IllegalArgumentException("This item doesn't have a Skyblock ID.")
             FavoriteStrategy.ToggleItemResult.FAILED_NO_EXT_ATTRB -> throw IllegalArgumentException("This isn't a Skyblock Item? Where'd you get it from cheater...")
         }

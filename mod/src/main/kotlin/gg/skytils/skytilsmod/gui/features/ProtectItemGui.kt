@@ -35,6 +35,7 @@ import gg.skytils.skytilsmod.features.impl.protectitems.strategy.ItemProtectStra
 import gg.skytils.skytilsmod.features.impl.protectitems.strategy.impl.FavoriteStrategy
 import gg.skytils.skytilsmod.gui.components.SlotComponent
 import gg.skytils.skytilsmod.utils.ItemUtil
+import gg.skytils.skytilsmod.utils.formattedText
 import gg.skytils.skytilsmod.utils.multiplatform.armorItems
 import java.awt.Color
 
@@ -101,19 +102,19 @@ class ProtectItemGui : WindowScreen(ElementaVersion.V2, newGuiScale = EssentialA
         when (FavoriteStrategy.toggleItem(item)) {
             FavoriteStrategy.ToggleItemResult.SUCCESS_ADDED -> {
                 if (isUUID) {
-                    UChat.chat("${Skytils.successPrefix} §aI will now protect your ${item.name}!")
+                    UChat.chat("${Skytils.successPrefix} §aI will now protect your ${item.name.formattedText}§a!")
                 } else {
                     val itemId = ItemUtil.getSkyBlockItemID(item)!!
-                    UChat.chat("${Skytils.successPrefix} §aI will now protect all of your ${itemId}s!")
+                    UChat.chat("${Skytils.successPrefix} §aI will now protect all of your ${itemId}§as!")
                 }
                 return true
             }
             FavoriteStrategy.ToggleItemResult.SUCCESS_REMOVED -> {
                 if (isUUID) {
-                    UChat.chat("${Skytils.successPrefix} §cI will no longer protect your ${item.name}§a!")
+                    UChat.chat("${Skytils.successPrefix} §cI will no longer protect your ${item.name.formattedText}§c!")
                 } else {
                     val itemId = ItemUtil.getSkyBlockItemID(item)!!
-                    UChat.chat("${Skytils.successPrefix} §cI will no longer protect all of your ${itemId}s!")
+                    UChat.chat("${Skytils.successPrefix} §cI will no longer protect all of your ${itemId}§cs!")
                 }
                 return true
             }
