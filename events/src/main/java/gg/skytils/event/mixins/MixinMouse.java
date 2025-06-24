@@ -19,11 +19,13 @@
 //#if MC>=12000
 package gg.skytils.event.mixins;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.event.EventsKt;
 import gg.skytils.event.impl.play.MouseInputEvent;
 import gg.skytils.event.impl.screen.ScreenMouseInputEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
+import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,23 +35,27 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Mouse.class)
-public class MixinMouse {
-    @Shadow private double x;
-
-    @Shadow private double y;
+public abstract class MixinMouse {
 
     @Shadow @Final private MinecraftClient client;
 
+    @Shadow public abstract double getScaledX(Window window);
+
+    @Shadow public abstract double getScaledY(Window window);
+
     @Inject(method = "onMouseButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J", shift = At.Shift.AFTER, ordinal = 0), cancellable = true)
-    private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
+    private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci, @Local Window windowObj) {
         if (action != GLFW.GLFW_PRESS) return;
 
+        double scaledX = this.getScaledX(windowObj);
+        double scaledY = this.getScaledY(windowObj);
+
         if (this.client.currentScreen != null &&
-                EventsKt.postCancellableSync(new ScreenMouseInputEvent(this.client.currentScreen, this.x, this.y, button))) {
+                EventsKt.postCancellableSync(new ScreenMouseInputEvent(this.client.currentScreen, scaledX, scaledY, button))) {
             ci.cancel();
             return;
         }
-        if (EventsKt.postCancellableSync(new MouseInputEvent((int) this.x, (int) this.y, button))) {
+        if (EventsKt.postCancellableSync(new MouseInputEvent((int) scaledX, (int) scaledY, button))) {
             ci.cancel();
         }
     }
