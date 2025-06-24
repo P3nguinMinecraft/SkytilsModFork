@@ -126,7 +126,6 @@ dependencies {
         exclude(module = "asm-commons")
         exclude(module = "asm-tree")
         exclude(module = "gson")
-        exclude(module = "vigilance")
         exclude(module = "kotlinx-coroutines-core-jvm")
         exclude(module = "universalcraft-1.20.6-fabric")
     }
@@ -134,9 +133,6 @@ dependencies {
     relocated(implementation("gg.essential:elementa-unstable-layoutdsl:710") {
         excludeKotlin()
         exclude(module = "fabric-loader")
-    })
-    relocated(implementation("com.github.Skytils.Vigilance:vigilance-${if (!isLegacyFabric) if (platform.mcVersion >= 11801) "1.18.1-${platform.loaderStr}" else platform.toString() else "${platform.mcVersionStr}-forge"}:afb0909442") {
-        isTransitive = false
     })
 
     include(implementation("dev.dediamondpro:minemark-elementa:1.2.3") {
@@ -296,7 +292,6 @@ tasks {
         relocate("dev.falsehonesty.asmhelper", "gg.skytils.asmhelper")
         relocate("io.ktor", "gg.skytils.ktor")
         relocate("kotlinx.serialization", "gg.skytils.ktx-serialization")
-        relocate("gg.essential.vigilance", "gg.skytils.vigilance")
         relocate("gg.essential.elementa.unstable", "gg.skytils.elementa.unstable")
         relocate("net.hypixel.modapi.tweaker", "gg.skytils.hypixel-net.modapi.tweaker")
 
