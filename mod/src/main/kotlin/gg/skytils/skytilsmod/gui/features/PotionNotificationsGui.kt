@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.gui.features
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.ScrollComponent
@@ -33,6 +32,7 @@ import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.OutlineEffect
 import gg.essential.universal.UKeyboard
 import gg.essential.vigilance.utils.onLeftClick
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.PotionEffectTimers
 import gg.skytils.skytilsmod.gui.ReopenableGUI
@@ -162,7 +162,7 @@ class PotionNotificationsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2)
                 PotionEffectTimers.notifications[potion.getText()] = remainingTicks.getText().toLong()
             }.onFailure {
                 it.printStackTrace()
-                EssentialAPI.getNotifications().push("Invalid notification", potion.getText(), 3f)
+                Notifications.push("Invalid notification", potion.getText(), 3f)
             }
         }
 

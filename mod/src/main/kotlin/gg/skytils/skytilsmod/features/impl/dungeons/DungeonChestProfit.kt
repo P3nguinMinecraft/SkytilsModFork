@@ -17,7 +17,6 @@
  */
 package gg.skytils.skytilsmod.features.impl.dungeons
 
-import gg.essential.api.EssentialAPI
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.WorldUnloadEvent
@@ -45,6 +44,7 @@ import gg.essential.elementa.unstable.state.v2.combinators.or
 import gg.essential.elementa.unstable.state.v2.mutableStateOf
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
 import net.minecraft.client.font.TextRenderer
@@ -271,7 +271,7 @@ object DungeonChestProfit : EventSubscriber {
             val chestType = DungeonChest.getFromName(event.chestName) ?: return
             if (chestType.value >= Skytils.config.kismetRerollThreshold * 1_000_000) {
                 event.cancelled = true
-                EssentialAPI.getNotifications()
+                Notifications
                     .push(
                         "Blocked Chest Reroll",
                         "The ${chestType.displayText} you are rerolling has ${chestType.profit}!\nClick me to disable this warning.",

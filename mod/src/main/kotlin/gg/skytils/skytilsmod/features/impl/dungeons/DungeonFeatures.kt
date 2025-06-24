@@ -18,7 +18,6 @@
 package gg.skytils.skytilsmod.features.impl.dungeons
 
 import com.mojang.blaze3d.opengl.GlStateManager
-import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventPriority
@@ -60,6 +59,7 @@ import gg.essential.elementa.unstable.state.v2.mutableStateOf
 import gg.essential.elementa.unstable.state.v2.stateUsingSystemTime
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UMinecraft
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
@@ -649,7 +649,7 @@ object DungeonFeatures : EventSubscriber {
                             )?.toIntOrNull() ?: 0)
                         if (teamCount < 5) {
                             event.cancelled = true
-                            EssentialAPI.getNotifications()
+                            Notifications
                                 .push(
                                     "Party only has $teamCount members!",
                                     "Click me to disable this warning.",

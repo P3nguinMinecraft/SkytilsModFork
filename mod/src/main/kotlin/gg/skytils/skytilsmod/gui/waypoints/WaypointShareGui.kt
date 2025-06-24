@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.gui.waypoints
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.ScrollComponent
@@ -32,6 +31,7 @@ import gg.essential.universal.UDesktop
 import gg.essential.vigilance.gui.settings.DropDown
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.CategoryList
 import gg.skytils.skytilsmod.features.impl.handlers.Waypoint
@@ -176,7 +176,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 val file = fileChooser.selectedFile
                 val data = Waypoints.getWaypointsFromFile(file)
                 Waypoints.categories.addAll(data.categories)
-                EssentialAPI.getNotifications().push(
+                Notifications.push(
                     "Waypoints Imported",
                     "Successfully imported ${data.categories.sumOf { it.waypoints.size }} waypoints!",
                     2.5f
@@ -187,7 +187,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             }
         }.onFailure {
             it.printStackTrace()
-            EssentialAPI.getNotifications()
+            Notifications
                 .push("Error", "Failed to import waypoints, reason: ${it::class.simpleName}: ${it.message}")
         }
 
@@ -220,7 +220,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 Waypoints.writeWaypointsToFile(CategoryList(categories), file.toPath(), version)
 
                 val count = categories.sumOf { it.waypoints.size }
-                EssentialAPI.getNotifications()
+                Notifications
                     .push(
                         "Waypoints Exported",
                         "$count ${island.displayName} waypoints were saved!",
@@ -230,7 +230,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             }
         }.onFailure {
             it.printStackTrace()
-            EssentialAPI.getNotifications()
+            Notifications
                 .push("Error", "Failed to export waypoints, reason: ${it::class.simpleName}: ${it.message}")
         }
     }
@@ -240,7 +240,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             val clipboard = UDesktop.getClipboardString()
             val categories = Waypoints.getWaypointsFromString(clipboard)
             Waypoints.categories.addAll(categories)
-            EssentialAPI.getNotifications().push(
+            Notifications.push(
                 "Waypoints Imported",
                 "Successfully imported ${categories.sumOf { it.waypoints.size }} waypoints!",
                 2.5f
@@ -250,7 +250,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             loadWaypointsForSelection(islandDropdown.getValue())
         }.onFailure {
             it.printStackTrace()
-            EssentialAPI.getNotifications()
+            Notifications
                 .push("Error", "Failed to import waypoints, reason: ${it::class.simpleName}: ${it.message}")
         }
     }
@@ -275,7 +275,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
             UDesktop.setClipboardString(Waypoints.getStringFromWaypoints(categories, versionDropdown.getValue() + 1))
 
             val count = categories.sumOf { it.waypoints.size }
-            EssentialAPI.getNotifications()
+            Notifications
                 .push(
                     "Waypoints Exported",
                     "$count ${island.displayName} waypoints were copied to your clipboard!",
@@ -283,7 +283,7 @@ class WaypointShareGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 )
         }.onFailure {
             it.printStackTrace()
-            EssentialAPI.getNotifications()
+            Notifications
                 .push("Error", "Failed to export waypoints, reason: ${it::class.simpleName}: ${it.message}")
         }
     }

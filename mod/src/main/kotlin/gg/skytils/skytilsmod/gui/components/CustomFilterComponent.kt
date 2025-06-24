@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.gui.components
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.UIComponent
 import gg.essential.elementa.components.UIBlock
 import gg.essential.elementa.components.UIContainer
@@ -36,9 +35,9 @@ import gg.essential.elementa.state.BasicState
 import gg.essential.vigilance.gui.VigilancePalette
 import gg.essential.vigilance.gui.settings.CheckboxComponent
 import gg.essential.vigilance.gui.settings.DropDown
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.features.impl.handlers.SpamHider
 import gg.skytils.skytilsmod.utils.toTitleCase
-import java.awt.Color
 
 /**
  * Based on Vigilance under LGPL 3.0 license
@@ -122,7 +121,7 @@ class CustomFilterComponent(filter: SpamHider.Filter, dropDown: DropDown) : UICo
                     text.toRegex()
                 }.getOrElse {
                     filterName.setColor(VigilancePalette.getTextWarning())
-                    EssentialAPI.getNotifications().push("Invalid Regex", """${it.message}""".trimIndent(), 3000f)
+                    Notifications.push("Invalid Regex", """${it.message}""".trimIndent(), 3000f)
                     Regex.escape(text).toRegex()
                 }
             }

@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.gui.waypoints
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.ScrollComponent
@@ -31,6 +30,7 @@ import gg.essential.elementa.effects.OutlineEffect
 import gg.essential.vigilance.gui.settings.DropDown
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.features.impl.handlers.Waypoint
 import gg.skytils.skytilsmod.features.impl.handlers.WaypointCategory
@@ -169,7 +169,7 @@ class WaypointUnknownGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
         PersistentSave.markDirty<Waypoints>()
 
         val count = newCategories.sumOf { it.waypoints.size }
-        EssentialAPI.getNotifications()
+        Notifications
             .push(
                 "Waypoints Moved",
                 "$count waypoints were moved to ${island.displayName}!",

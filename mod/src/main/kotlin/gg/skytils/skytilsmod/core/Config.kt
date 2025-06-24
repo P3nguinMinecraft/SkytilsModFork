@@ -17,7 +17,6 @@
  */
 package gg.skytils.skytilsmod.core
 
-import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop
 import gg.essential.api.EssentialAPI
 import gg.essential.elementa.state.v2.ReferenceHolder
 import gg.essential.elementa.unstable.state.v2.effect
@@ -398,7 +397,7 @@ object Config : Vigilant(
             SuperSecretSettings.add("azoopuzzoo")
         SuperSecretSettings.save()
         if (ModChecker.canShowNotifications) {
-            EssentialAPI.getNotifications().push("Dungeon Sweat", "Dungeon Sweat mode ${SuperSecretSettings.azooPuzzoo}")
+            Notifications.push("Dungeon Sweat", "Dungeon Sweat mode ${SuperSecretSettings.azooPuzzoo}")
         } else {
             UChat.chat("${Skytils.prefix} §bDungeon Sweat mode ${SuperSecretSettings.azooPuzzoo}")
         }
@@ -3172,7 +3171,7 @@ object Config : Vigilant(
     )
     fun protectItems() {
         if (ModChecker.canShowNotifications) {
-            EssentialAPI.getNotifications().push("Protect Items Help", "Hold the item you'd like to protect, and then run /protectitem.", 5f)
+            Notifications.push("Protect Items Help", "Hold the item you'd like to protect, and then run /protectitem.", 5f)
         } else UChat.chat("${Skytils.prefix} §bHold the item you'd like to protect, and then run /protectitem.")
         Skytils.displayScreen = ProtectItemGui()
     }
@@ -4567,7 +4566,7 @@ object Config : Vigilant(
                     tickTimer(1) {
                         if (itemRarityShape == 4) {
                             itemRarityShape = old
-                            EssentialAPI.getNotifications()
+                            Notifications
                                 .push("Invalid Value", "You cannot use the Custom rarity while the texture is missing!")
                         }
                     }

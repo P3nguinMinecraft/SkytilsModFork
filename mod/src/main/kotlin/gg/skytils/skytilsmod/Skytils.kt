@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod
 
-import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
 import gg.essential.universal.UKeyboard
@@ -433,11 +432,11 @@ object Skytils : CoroutineScope, EventSubscriber {
 
         if (UpdateChecker.currentVersion.specialVersionType != UpdateChecker.UpdateType.RELEASE && config.updateChannel == 2) {
             if (ModChecker.canShowNotifications) {
-                EssentialAPI.getNotifications().push("Skytils Update Checker", "You are on a development version of Skytils. Click here to change your update channel to pre-release.") {
+                Notifications.push("Skytils Update Checker", "You are on a development version of Skytils. Click here to change your update channel to pre-release.") {
                     onAction = {
                         config.updateChannel = 1
                         config.markDirty()
-                        EssentialAPI.getNotifications().push("Skytils Update Checker", "Your update channel has been changed to pre-release.", duration = 3f)
+                        Notifications.push("Skytils Update Checker", "Your update channel has been changed to pre-release.", duration = 3f)
                     }
                 }
             } else {
@@ -449,7 +448,7 @@ object Skytils : CoroutineScope, EventSubscriber {
 
         if (!DependencyLoader.hasNativeBrotli) {
             if (ModChecker.canShowNotifications) {
-                EssentialAPI.getNotifications().push("Skytils Warning", "Native Brotli is not available. Skytils will use the Java Brotli decoder, which cannot encode Brotli.", duration = 3f)
+                Notifications.push("Skytils Warning", "Native Brotli is not available. Skytils will use the Java Brotli decoder, which cannot encode Brotli.", duration = 3f)
             } else {
                 UChat.chat("$prefix §fNative Brotli is not available. Skytils will use the Java Brotli decoder, which cannot encode Brotli.")
             }
@@ -582,7 +581,7 @@ object Skytils : CoroutineScope, EventSubscriber {
                 println("Got local clock offset: $localClockOffset")
                 if (abs(localClockOffset) > 3) {
                     if (ModChecker.canShowNotifications) {
-                        EssentialAPI.getNotifications().push("Skytils", "Your system time is inaccurate.", 3f)
+                        Notifications.push("Skytils", "Your system time is inaccurate.", 3f)
                     } else {
                         UChat.chat("$prefix §fYour system time appears to be inaccurate. Please sync your system time to avoid issues with Skytils.")
                     }

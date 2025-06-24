@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.features.impl.handlers
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.components.UIContainer
 import gg.essential.elementa.components.Window
@@ -41,6 +40,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionVisibleChatLine
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionChatStyle
@@ -154,7 +154,7 @@ object ChatTabs : EventSubscriber {
             val string = (if (UKeyboard.isCtrlKeyDown()) (chatLine as ExtensionVisibleChatLine).fullComponent?.string
                 ?: chatLine.content.string else if (UKeyboard.isShiftKeyDown()) chatLine.content.string else return).stripControlCodes()
             UDesktop.setClipboardString(string)
-            EssentialAPI.getNotifications()
+            Notifications
                 .push("Copied chat", string, 1f)
         }
     }

@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.gui.waypoints
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.*
@@ -32,6 +31,7 @@ import gg.essential.vigilance.gui.settings.ColorComponent
 import gg.essential.vigilance.gui.settings.DropDown
 import gg.essential.vigilance.utils.onLeftClick
 import gg.skytils.skytilsmod.Skytils
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.PersistentSave
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.features.impl.handlers.Waypoint
@@ -268,7 +268,7 @@ class WaypointsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reopenab
         loadWaypointsForSelection(islandDropdown.getValue(), savePrev = false)
 
         if (hasAnyUnknownWaypoint) {
-            EssentialAPI.getNotifications()
+            Notifications
                 .push("Unknown Island Detected", "You have waypoints on an unknown island. Would you like to transfer them to a different island?", 5f) {
                     onAction = {
                         client?.setScreen(null)

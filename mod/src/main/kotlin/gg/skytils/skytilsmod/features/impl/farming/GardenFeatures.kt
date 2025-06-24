@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.features.impl.farming
 
-import gg.essential.api.EssentialAPI
 import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.play.ChatMessageReceivedEvent
@@ -27,6 +26,7 @@ import gg.skytils.event.impl.render.SelectionBoxDrawEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
+import gg.skytils.skytilsmod.core.Notifications
 import gg.skytils.skytilsmod.core.tickTimer
 import gg.skytils.skytilsmod.utils.*
 import gg.skytils.skytilsmod.utils.multiplatform.EquipmentSlot
@@ -70,7 +70,7 @@ object GardenFeatures : EventSubscriber {
         if (!Skytils.config.visitorNotifications) return
         val unformatted = event.message.string.stripControlCodes()
         if (unformatted.matches(newVisitorRegex)) {
-            EssentialAPI.getNotifications()
+            Notifications
                 .push(
                     "New Visitor!",
                     unformatted,

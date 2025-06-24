@@ -18,7 +18,6 @@
 
 package gg.skytils.skytilsmod.gui.features
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.*
@@ -43,6 +42,7 @@ import gg.skytils.skytilsmod.gui.components.CustomFilterComponent
 import gg.skytils.skytilsmod.gui.components.RepoFilterComponent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
 import gg.skytils.skytilsmod.utils.ModChecker
+import gg.skytils.skytilsmod.core.Notifications
 import java.awt.Color
 
 class SpamHiderGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
@@ -393,7 +393,7 @@ class SpamHiderGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
     override fun onScreenClose() {
         if (SpamHider.filters.mapTo(hashSetOf()) { it.name }.size != SpamHider.filters.size) {
             if (ModChecker.canShowNotifications) {
-                EssentialAPI.getNotifications().push("Warning!", "Your spam hider filters must have unique names!\nThey will not save correctly upon exiting.")
+                Notifications.push("Warning!", "Your spam hider filters must have unique names!\nThey will not save correctly upon exiting.")
             } else {
                 UChat.chat("${Skytils.failPrefix} §cYour spam hider filters must have unique names!\nThey will not save correctly upon exiting.")
             }

@@ -17,7 +17,6 @@
  */
 package gg.skytils.skytilsmod.gui
 
-import gg.essential.api.EssentialAPI
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.UIText
@@ -39,7 +38,6 @@ import gg.skytils.skytilsmod.utils.openGUI
 import gg.skytils.skytilsmod.utils.toStringIfTrue
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.util.Identifier
 import java.net.URI
 
 //#if MC>11400
