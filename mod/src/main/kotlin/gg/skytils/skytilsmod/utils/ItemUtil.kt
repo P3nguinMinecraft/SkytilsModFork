@@ -89,7 +89,7 @@ object ItemUtil {
      */
     @JvmStatic
     fun getExtraAttributes(item: ItemStack?): NbtCompound? =
-        item?.get(DataComponentTypes.CUSTOM_DATA)?.nbt?.getCompoundOrEmpty("ExtraAttributes")
+        item?.get(DataComponentTypes.CUSTOM_DATA)?.nbt
 
     /**
      * Returns the Skyblock Item ID of a given Skyblock Extra Attributes NBT Compound
