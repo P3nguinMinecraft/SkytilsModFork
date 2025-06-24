@@ -37,6 +37,7 @@ import gg.skytils.skytilsmod.gui.features.SpiritLeapNamesGui
 import gg.skytils.skytilsmod.utils.ModChecker
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.startsWithAny
 import gg.skytils.skytilsws.client.WSClient
 import gg.skytils.vigilance.property
 import net.minecraft.util.Identifier
@@ -4589,7 +4590,7 @@ object Config : Vigilant(
         if (Skytils.config.lastLaunchedVersion != Skytils.VERSION) {
             val ver = UpdateChecker.SkytilsVersion(Skytils.config.lastLaunchedVersion)
             when {
-                !ver.isSafe || ver < UpdateChecker.SkytilsVersion("1.2-pre3") || Skytils.config.lastLaunchedVersion == "0" -> {
+                (!ver.isSafe && lastLaunchedVersion.startsWithAny("0.", "1.")) || ver < UpdateChecker.SkytilsVersion("1.2-pre3") || Skytils.config.lastLaunchedVersion == "0" -> {
                     if (GuiManager.elementMetadata["Crystal Hollows Map"]?.scale == 0.1f) {
                         GuiManager.elementMetadata["Crystal Hollows Map"] = GuiManager.elementMetadata["Crystal Hollows Map"]!!.copy(
                             scale = 1f
