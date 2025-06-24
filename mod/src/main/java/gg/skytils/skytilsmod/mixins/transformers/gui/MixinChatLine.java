@@ -18,15 +18,15 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
-import gg.skytils.skytilsmod.mixins.extensions.ExtensionChatLine;
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionVisibleChatLine;
 import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(ChatHudLine.class)
-public class MixinChatLine implements ExtensionChatLine {
+@Mixin(ChatHudLine.Visible.class)
+public class MixinChatLine implements ExtensionVisibleChatLine {
 
     @Unique
     private Text fullComponent = null;
@@ -40,12 +40,5 @@ public class MixinChatLine implements ExtensionChatLine {
     @Override
     public void setFullComponent(@NotNull Text fullComponent) {
         this.fullComponent = fullComponent;
-    }
-
-    @NotNull
-    @Override
-    public ChatHudLine withFullComponent(@NotNull Text fullComponent) {
-        this.fullComponent = fullComponent;
-        return (ChatHudLine) (Object) this;
     }
 }

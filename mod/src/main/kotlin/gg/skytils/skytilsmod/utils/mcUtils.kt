@@ -45,6 +45,8 @@ import java.util.Optional
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+import net.minecraft.text.OrderedText
+
 //#endif
 
 val isDeobfuscatedEnvironment = State {
@@ -125,5 +127,33 @@ fun serializeFormattingToString(style: Style): String = buildString {
     if (style.isUnderlined) append("§n")
     if (style.isObfuscated) append("§k")
     if (style.isStrikethrough) append("§m")
+}
+
+val OrderedText.string
+    get() = buildString {
+        this@string.accept { index: Int, style: Style, codePoint: Int ->
+            this.appendCodePoint(codePoint)
+            true
+        }
+    }
+
+// Rough representation of `OrderedText` as `Text`.
+fun OrderedText.asText(): Text {
+    return Text.empty().also { component ->
+        var prevStyle = Style.EMPTY
+        val currString = StringBuilder()
+        this.accept { index: Int, style: Style, codePoint: Int ->
+            if (style != prevStyle) {
+                component.append(Text.literal(currString.toString()).fillStyle(prevStyle))
+                currString.clear()
+            }
+            prevStyle = style
+            currString.append(component)
+            true
+        }
+        if (currString.isNotEmpty()) {
+            component.append(Text.literal(currString.toString()).fillStyle(prevStyle))
+        }
+    }
 }
 //#endif

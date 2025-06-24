@@ -18,28 +18,21 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.gui;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.skytilsmod.features.impl.handlers.ChatTabs;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.hud.ChatHudLine;
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionVisibleChatLine;
 import net.minecraft.client.gui.hud.ChatHud;
-import net.minecraft.text.Text;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.gui.hud.MessageIndicator;
+import net.minecraft.text.OrderedText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 @Mixin(value = ChatHud.class, priority = 1001)
 public abstract class MixinGuiNewChat {
@@ -87,4 +80,16 @@ public abstract class MixinGuiNewChat {
         if (ChatTabs.INSTANCE.shouldAllow(message.content())) original.call(message);
     }
     //#endif
+
+    @Definition(id = "visibleMessages", field = "Lnet/minecraft/client/gui/hud/ChatHud;visibleMessages:Ljava/util/List;")
+    @Definition(id = "add", method = "Ljava/util/List;add(ILjava/lang/Object;)V")
+    @Expression("this.visibleMessages.add(0, @(?))")
+    @WrapOperation(method = "addVisibleMessage", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private ChatHudLine.Visible addVisibleMessage(int creationTick, OrderedText orderedText, MessageIndicator messageIndicator, boolean endOfEntry, Operation<ChatHudLine.Visible> original, @Local(argsOnly = true) ChatHudLine message) {
+        ChatHudLine.Visible chatLine = original.call(creationTick, orderedText, messageIndicator, endOfEntry);
+
+        ((ExtensionVisibleChatLine) (Object) chatLine).setFullComponent(message.content());
+
+        return chatLine;
+    }
 }

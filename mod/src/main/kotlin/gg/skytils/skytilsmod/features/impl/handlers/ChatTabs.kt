@@ -42,7 +42,7 @@ import gg.skytils.skytilsmod.Skytils.failPrefix
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod._event.PacketReceiveEvent
 import gg.skytils.skytilsmod.gui.components.SimpleButton
-import gg.skytils.skytilsmod.mixins.extensions.ExtensionChatLine
+import gg.skytils.skytilsmod.mixins.extensions.ExtensionVisibleChatLine
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionChatStyle
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiChat
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiNewChat
@@ -56,7 +56,7 @@ import java.awt.Color
 
 object ChatTabs : EventSubscriber {
     var selectedTab = ChatTab.ALL
-    var hoveredChatLine: ChatHudLine? = null
+    var hoveredChatLine: ChatHudLine.Visible? = null
 
     override fun setup() {
         register(::onChat, EventPriority.Highest)
@@ -112,7 +112,7 @@ object ChatTabs : EventSubscriber {
 
     fun drawScreen(event: ScreenDrawEvent) {
         if (!Skytils.config.chatTabs || !Utils.isOnHypixel || event.screen !is ChatScreen) return
-        ChatTab.screen.draw(UMatrixStack.Compat.get())
+        ChatTab.screen.draw(UMatrixStack())
         UMinecraft.getChatGUI()?.let { chat ->
             hoveredChatLine =
                 if (Skytils.config.copyChat && chat.isChatFocused) chat.getChatLine(event.mouseX, event.mouseY) else null
@@ -128,17 +128,17 @@ object ChatTabs : EventSubscriber {
             if (event.button != 0 && event.button != 1) return
             val chatLine = hoveredChatLine ?: return
             if (event.button == 0) {
-                val component = (chatLine as ExtensionChatLine).fullComponent ?: chatLine.content
+                val component = (chatLine as ExtensionVisibleChatLine).fullComponent ?: chatLine.content.asText()
                 UDesktop.setClipboardString(component.formattedText)
                 printDevMessage("Copied formatted message to clipboard!", "chat")
             } else {
                 val component =
                     chat.chatLines.find {
-                        it.content.string == ((chatLine as ExtensionChatLine).fullComponent
-                            ?: chatLine.content).string
+                        it.content.string == ((chatLine as ExtensionVisibleChatLine).fullComponent?.string
+                            ?: chatLine.content.string)
                     }?.content
-                        ?: ((chatLine as ExtensionChatLine).fullComponent
-                            ?: chatLine.content)
+                        ?: ((chatLine as ExtensionVisibleChatLine).fullComponent
+                            ?: chatLine.content.asText())
 
                 printDevMessage("Copied serialized message to clipboard!", "chat")
                 UDesktop.setClipboardString(
@@ -151,11 +151,11 @@ object ChatTabs : EventSubscriber {
         } else if (Skytils.config.copyChat) {
             if (event.button != 0) return
             val chatLine = hoveredChatLine ?: return
-            val component = if (UKeyboard.isCtrlKeyDown()) (chatLine as ExtensionChatLine).fullComponent
-                ?: chatLine.content else if (UKeyboard.isShiftKeyDown()) chatLine.content else return
-            UDesktop.setClipboardString(component.string.stripControlCodes())
+            val string = (if (UKeyboard.isCtrlKeyDown()) (chatLine as ExtensionVisibleChatLine).fullComponent?.string
+                ?: chatLine.content.string else if (UKeyboard.isShiftKeyDown()) chatLine.content.string else return).stripControlCodes()
+            UDesktop.setClipboardString(string)
             EssentialAPI.getNotifications()
-                .push("Copied chat", component.string.stripControlCodes(), 1f)
+                .push("Copied chat", string, 1f)
         }
     }
 
@@ -255,23 +255,30 @@ object ChatTabs : EventSubscriber {
     }
 }
 
-fun ChatHud.getChatLine(mouseX: Double, mouseY: Double): ChatHudLine? {
+fun ChatHud.getChatLine(mouseX: Double, mouseY: Double): ChatHudLine.Visible? {
     if (isChatFocused && this is AccessorGuiNewChat) {
-        val extraOffset =
-            if (
-                ReflectionHelper.getFieldFor("club.sk1er.patcher.config.PatcherConfig", "chatPosition")
-                    ?.getBoolean(null) == true
-            ) 12 else 0
-        val x = ((mouseX - 3) / chatScale).toInt()
-        val y = (((UResolution.scaledHeight - mouseY) - 30 - extraOffset) / chatScale).toInt()
-
-        if (x >= 0 && y >= 0) {
-            val l = visibleLineCount.coerceAtMost(drawnChatLines.size)
-            if (x <= width / chatScale && y < UGraphics.getFontHeight() * l + l) {
-                val lineNum = y / UGraphics.getFontHeight() + scrollPos
-                return drawnChatLines.getOrNull(lineNum)
-            }
-        }
+        //#if MC==10809
+        //$$ val extraOffset =
+        //$$     if (
+        //$$         ReflectionHelper.getFieldFor("club.sk1er.patcher.config.PatcherConfig", "chatPosition")
+        //$$             ?.getBoolean(null) == true
+        //$$     ) 12 else 0
+        //$$ val x = ((mouseX - 3) / chatScale).toInt()
+        //$$ val y = (((UResolution.scaledHeight - mouseY) - 30 - extraOffset) / chatScale).toInt()
+        //$$
+        //$$ if (x >= 0 && y >= 0) {
+        //$$     val l = visibleLineCount.coerceAtMost(drawnChatLines.size)
+        //$$     if (x <= width / chatScale && y < UGraphics.getFontHeight() * l + l) {
+        //$$         val lineNum = y / UGraphics.getFontHeight() + scrollPos
+        //$$         return drawnChatLines.getOrNull(lineNum)
+        //$$     }
+        //$$ }
+        //#else
+        val chatX = this.invokeToChatLineX(mouseX)
+        val chatY = this.invokeToChatLineY(mouseY)
+        val chatIndex = this.invokeGetMessageLineIndex(chatX, chatY)
+        return this.drawnChatLines.getOrNull(chatIndex)
+        //#endif
     }
     return null
 }

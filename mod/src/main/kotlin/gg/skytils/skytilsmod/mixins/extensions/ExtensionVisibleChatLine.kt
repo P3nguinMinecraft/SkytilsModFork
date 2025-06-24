@@ -18,11 +18,8 @@
 
 package gg.skytils.skytilsmod.mixins.extensions
 
-import net.minecraft.client.gui.hud.ChatHudLine
 import net.minecraft.text.Text
 
-interface ExtensionChatLine {
+interface ExtensionVisibleChatLine {
     var fullComponent: Text?
-
-    fun withFullComponent(fullComponent: Text): ChatHudLine
 }

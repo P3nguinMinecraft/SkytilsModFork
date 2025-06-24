@@ -33,10 +33,19 @@ public interface AccessorGuiNewChat {
     List<ChatHudLine> getChatLines();
 
     @Accessor("visibleMessages")
-    List<ChatHudLine> getDrawnChatLines();
+    List<ChatHudLine.Visible> getDrawnChatLines();
 
     @Accessor("scrolledLines")
     int getScrollPos();
+
+    @Invoker
+    double invokeToChatLineX(double x);
+
+    @Invoker
+    double invokeToChatLineY(double y);
+
+    @Invoker
+    int invokeGetMessageLineIndex(double x, double y);
 
     //#if MC==10809
     //$$ @Invoker("addMessage")
