@@ -191,6 +191,7 @@ class OptionsGui(val parent: Screen? = null) :
 
     override fun onKeyPressed(keyCode: Int, typedChar: Char, modifiers: UKeyboard.Modifiers?) {
         super.onKeyPressed(keyCode, typedChar, modifiers)
+        if (keyCode == 0 && typedChar != '\u0000') return
         if (keyCode == order[orderIndex] || keyCode == gamerOrder[orderIndex]) orderIndex++
         else orderIndex = 0
         if (orderIndex == order.size) {
