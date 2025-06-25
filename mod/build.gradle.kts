@@ -274,8 +274,8 @@ tasks {
         enabled = false
     }
     named<RemapJarTask>("remapJar") {
-        archiveBaseName.set("Skytils")
-        inputFile.set(shadowJar.flatMap { it.archiveFile })
+        archiveBaseName.set(shadowJar.flatMap(ShadowJar::getArchiveBaseName))
+        inputFile.set(shadowJar.flatMap(ShadowJar::getArchiveFile))
         doLast {
             MessageDigest.getInstance("SHA-256").digest(archiveFile.get().asFile.readBytes())
                 .let {
@@ -284,7 +284,7 @@ tasks {
         }
     }
     named<ShadowJar>("shadowJar") {
-        archiveBaseName.set("Skytils")
+        archiveBaseName.set("Skytils-${platform}")
         archiveClassifier.set("dev")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         configurations = if (platform.isLegacyForge) listOf(include, relocated) else listOf(relocated)
