@@ -256,7 +256,7 @@ object CatlasElement : UIContainer() {
         getCheckmark(tile.state, CatlasConfig.mapCheckmark)?.let {
             val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
             DrawHelper.drawTexture(matrices, buffer, it, xOffset + (MapUtils.mapRoomSize - checkmarkSize) / 2, yOffset + (MapUtils.mapRoomSize - checkmarkSize) / 2, width = checkmarkSize, height = checkmarkSize)
-            buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePiepline)
+            buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
         }
     }
 

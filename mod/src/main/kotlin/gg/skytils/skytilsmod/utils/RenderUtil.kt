@@ -127,7 +127,7 @@ object RenderUtil {
         if (texture == null) return
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR)
         DrawHelper.drawTexture(UMatrixStack.Compat.get(), buffer, texture, x.toDouble(), y.toDouble(), width = width.toDouble(), height = height.toDouble())
-        buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePiepline)
+        buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
     }
 
     fun draw3DLine(
@@ -292,7 +292,7 @@ object RenderUtil {
         )
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR)
         DrawHelper.drawTexture(matrixStack, buffer, texture, xPos.toDouble(), yPos.toDouble(), width = 16.0, height = 16.0)
-        buffer.build()?.draw(SRenderPipelines.guiTexturePiepline)
+        buffer.build()?.draw(SRenderPipelines.guiTexturePipeline)
     }
 
     private fun renderRarity(xPos: Int, yPos: Int, itemStack: ItemStack?) {

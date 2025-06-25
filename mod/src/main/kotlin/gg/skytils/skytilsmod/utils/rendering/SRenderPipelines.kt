@@ -32,7 +32,7 @@ object SRenderPipelines {
         depthTest = URenderPipeline.DepthTest.LessOrEqual
     }.build()
 
-    val guiTexturePiepline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/gui_texture",
+    val guiTexturePipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/gui_texture",
         UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR
     ).apply {
         blendState = translucentBlendState

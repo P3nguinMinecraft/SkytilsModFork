@@ -133,7 +133,7 @@ object RenderUtils {
                     12.0, 12.0,
                     12.0, 12.0
                 )
-                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePiepline)
+                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
                 matrices.pop()
             } else {
                 // Render box behind the player head
@@ -159,7 +159,7 @@ object RenderUtils {
                 if (player.renderHat) {
                     DrawHelper.drawTexture(matrices, buffer, player.skin, -6.0, -6.0, 40.0, 8.0, 12.0, 12.0, 64.0, 64.0)
                 }
-                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePiepline)
+                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
                 matrices.pop()
             }
 
