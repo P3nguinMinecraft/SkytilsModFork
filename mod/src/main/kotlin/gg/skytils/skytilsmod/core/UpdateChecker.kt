@@ -213,7 +213,7 @@ object UpdateChecker : EventSubscriber {
                 else -> return println("Update Channel set as none")
             }
 
-            val allVersions: List<ModrinthVersion> = client.get("https://api.modrinth.com/v2/project/${Reference.MODRINTH_ID}/version").body()
+            val allVersions: List<ModrinthVersion> = client.get("https://data.skytils.gg/updateInfo.json").body()
 
             val allowedVersions = allVersions.filter { it.versionType >= targetChannel }
 
