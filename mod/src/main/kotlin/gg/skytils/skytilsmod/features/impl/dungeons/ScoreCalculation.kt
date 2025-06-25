@@ -361,6 +361,7 @@ object ScoreCalculation: EventSubscriber {
     fun onTabChange(event: MainThreadPacketReceiveEvent<*>) {
         if (
             !Utils.inDungeons ||
+            DungeonTimer.scoreShownAt != null ||
             event.packet !is PlayerListS2CPacket ||
             setOf(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, PlayerListS2CPacket.Action.ADD_PLAYER).intersect(event.packet.actions).isNotEmpty()
         ) return

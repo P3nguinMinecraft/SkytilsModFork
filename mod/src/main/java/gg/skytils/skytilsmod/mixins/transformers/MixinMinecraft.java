@@ -54,13 +54,15 @@ public abstract class MixinMinecraft
     private void clickMouse(CallbackInfoReturnable<Boolean> cir) {
         if (!Utils.INSTANCE.getInSkyblock()) return;
 
-        ItemStack item = this.player.getMainHandStack();
-        if (item != null) {
-            NbtCompound extraAttr = ItemUtil.getExtraAttributes(item);
-            String itemId = ItemUtil.getSkyBlockItemID(extraAttr);
+        if (Skytils.getConfig().getBlockZapperLeftClickUndo()) {
+            ItemStack item = player.getMainHandStack();
+            if (item != null) {
+                NbtCompound extraAttr = ItemUtil.getExtraAttributes(item);
+                String itemId = ItemUtil.getSkyBlockItemID(extraAttr);
 
-            if (Objects.equals(itemId, "BLOCK_ZAPPER")) {
-                Skytils.sendMessageQueue.add("/undozap");
+                if (Objects.equals(itemId, "BLOCK_ZAPPER")) {
+                    Skytils.sendMessageQueue.add("/undozap");
+                }
             }
         }
     }

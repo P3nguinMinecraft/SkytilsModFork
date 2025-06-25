@@ -256,7 +256,7 @@ object DungeonListener : EventSubscriber {
                 }
             }
         }
-        else if (event.packet is PlayerListS2CPacket) {
+        else if (event.packet is PlayerListS2CPacket && DungeonTimer.scoreShownAt == null) {
             val action = event.packet.actions
             val entries = event.packet.entries
 

@@ -200,7 +200,7 @@ class DemonlordSlayer(entity: BlazeEntity) :
                     )
                     thrownEntity = e
                     return@tickTimer
-                } else if (e.name.formattedText.matches(SlayerFeatures.totemRegex) && e.squaredDistanceTo(totemPos.toVec3()) < 9) {
+                } else if (totemPos?.let { e.name.formattedText.matches(SlayerFeatures.totemRegex) && e.squaredDistanceTo(it.toVec3()) < 9 } == true) {
                     totemEntity = e
                 }
             }

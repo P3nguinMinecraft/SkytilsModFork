@@ -23,7 +23,7 @@ setOf("skytils", "catlas").forEach {
         println("Converting .lang files to .json in $absolutePath")
         if (exists()) {
             listFiles { dir, name -> name.endsWith(".lang") }?.forEach { file ->
-                val jsonFile = File(file.parentFile, file.name.replace(".lang", ".json"))
+                val jsonFile = File(file.parentFile, file.name.replace(".lang", ".json").lowercase())
                 val lines = file.readLines()
                 val jsonContent = lines.joinToString(",\n") { line ->
                     val parts = line.split("=", limit = 2)

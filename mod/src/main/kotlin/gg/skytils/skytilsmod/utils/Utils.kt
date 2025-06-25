@@ -109,7 +109,8 @@ object Utils {
      * @author BiscuitDevelopment
      */
     fun playLoudSound(sound: String, pitch: Double) {
-        shouldBypassVolume = true
+        if (!Skytils.config.disableVolumeOverrides)
+            shouldBypassVolume = true
         val sound = SoundEvent.of(Identifier.of(sound))
         mc.player?.playSound(sound, 1f, pitch.toFloat())
         shouldBypassVolume = false
@@ -337,10 +338,7 @@ val gg.skytils.hypixel.types.player.Player.rank_prefix
         "MVP" -> "§b[MVP]"
         "MVP_PLUS" -> "§b[MVP${ChatColor.valueOf(plus_color)}+§b]"
         "MVP_PLUS_PLUS" -> "${ChatColor.valueOf(mvp_plus_plus_color)}[MVP${ChatColor.valueOf(plus_color)}++${ChatColor.valueOf(mvp_plus_plus_color)}]"
-        "HELPER" -> "§9[HELPER]"
-        "MODERATOR" -> "§2[MOD]"
-        "GAME_MASTER" -> "§2[GM]"
-        "ADMIN" -> "§c[ADMIN]"
+        "STAFF" -> "§c[§6ዞ§c]"
         "YOUTUBER" -> "§c[§fYOUTUBE§c]"
         else -> "§7"
     }

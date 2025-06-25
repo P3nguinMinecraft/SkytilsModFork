@@ -164,13 +164,13 @@ object CHWaypoints : EventSubscriber {
                             .append(
                                 Text.literal("§f${loc.displayName} ")
                                     .setStyle(
-                                        Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/skytilshollowwaypoint set $x $y $z ${loc.id}"))
+                                        Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/skytilshollowwaypoint set '${loc.id}' $x $y $z"))
                                             .withHoverEvent(HoverEvent.ShowText(Text.of("§eSet waypoint for ${loc.displayName}")))
                                     )
                             ).append(
                                 Text.literal("§e[Custom]")
                                     .setStyle(
-                                        Style.EMPTY.withClickEvent(ClickEvent.SuggestCommand("/skytilshollowwaypoint set $x $y $z n"))
+                                        Style.EMPTY.withClickEvent(ClickEvent.SuggestCommand("/skytilshollowwaypoint set 'name here' $x $y $z"))
                                             .withHoverEvent(HoverEvent.ShowText(Text.of("§eSet custom waypoint")))
                                     )
                             )
@@ -207,7 +207,7 @@ object CHWaypoints : EventSubscriber {
                 UChat.chat(
                     Text.literal("$prefix §eClick to set a death waypoint at ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z}")
                         .setStyle(
-                            Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/sthw set ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z} Last Death"))
+                            Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/sthw set 'Last Death' ${lastTPLoc!!.x} ${lastTPLoc!!.y} ${lastTPLoc!!.z}"))
                         )
                 )
             }
@@ -225,7 +225,7 @@ object CHWaypoints : EventSubscriber {
             message.append(
                 Text.literal("${loc.displayName.substring(0, 2)}[${loc.displayName}] ")
                     .setStyle(
-                        Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/sthw set $x $y $z ${loc.id}"))
+                        Style.EMPTY.withClickEvent(ClickEvent.RunCommand("/sthw set '${loc.id}' $x $y $z"))
                             .withHoverEvent(HoverEvent.ShowText(Text.literal("§eSet waypoint for ${loc.cleanName}")))
                     )
             )
@@ -233,7 +233,7 @@ object CHWaypoints : EventSubscriber {
         message.append(
             Text.literal("§e[Custom]")
                 .setStyle(
-                    Style.EMPTY.withClickEvent(ClickEvent.SuggestCommand("/sthw set $x $y $z Name"))
+                    Style.EMPTY.withClickEvent(ClickEvent.SuggestCommand("/sthw set 'Name' $x $y $z"))
                         .withHoverEvent(HoverEvent.ShowText(Text.literal("§eSet waypoint for custom location")))
                 )
         )
