@@ -20,16 +20,24 @@ package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.RenderItemHookKt;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(DrawContext.class)
 public abstract class MixinDrawContext {
+    @Shadow public abstract MatrixStack getMatrices();
+
     @Inject(method = "drawItem(Lnet/minecraft/item/ItemStack;II)V", at = @At("HEAD"))
     private void onDrawItemHead(ItemStack item, int x, int y, CallbackInfo ci) {
-        RenderItemHookKt.renderRarity(item, x, y, ci);
+        MatrixStack matrices = getMatrices();
+        Matrix4f positionMatrix = matrices.peek().getPositionMatrix();
+
+        RenderItemHookKt.renderRarity(item, (int) positionMatrix.m30() + x, (int) positionMatrix.m31() + y, ci);
     }
 }

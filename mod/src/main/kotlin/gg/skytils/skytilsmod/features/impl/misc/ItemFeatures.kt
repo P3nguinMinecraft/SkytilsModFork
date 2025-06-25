@@ -185,7 +185,9 @@ object ItemFeatures : EventSubscriber {
 
     fun onDrawSlot(event: GuiContainerPreDrawSlotEvent) {
         if (Utils.inSkyblock && Skytils.config.showItemRarity && event.slot.hasStack()) {
-            renderRarity(event.slot.stack, event.slot.x, event.slot.y)
+            val x = (event.gui as AccessorGuiContainer).guiLeft
+            val y = (event.gui as AccessorGuiContainer).guiTop
+            renderRarity(event.slot.stack, x + event.slot.x, y + event.slot.y)
         }
         if (event.container is GenericContainerScreenHandler) {
             val chestName = event.chestName

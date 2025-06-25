@@ -18,6 +18,7 @@
 package gg.skytils.skytilsmod.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.ChatColor
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
@@ -284,14 +285,8 @@ object RenderUtil {
             4 -> CUSTOMRARITY
             else -> RARITY
         }
-        RenderSystem.setShaderColor(
-            rarity.color.red / 255.0f,
-            rarity.color.green / 255.0f,
-            rarity.color.blue / 255.0f,
-            alpha
-        )
-        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR)
-        DrawHelper.drawTexture(matrixStack, buffer, texture, xPos.toDouble(), yPos.toDouble(), width = 16.0, height = 16.0)
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
+        DrawHelper.drawTexture(matrixStack, buffer, texture, xPos.toDouble(), yPos.toDouble(), width = 16.0, height = 16.0, color = rarity.color.withAlpha(alpha))
         buffer.build()?.draw(SRenderPipelines.guiTexturePipeline)
     }
 
@@ -519,7 +514,7 @@ object RenderUtil {
 
         val sr = UResolution
         val matrices = UMatrixStack.Compat.get()
-        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR)
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
 
         DrawHelper.drawTexture(
             matrices,

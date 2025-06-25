@@ -130,7 +130,7 @@ object ItemUtil {
      */
     fun getRarity(item: ItemStack?): ItemRarity =
         item?.let(::getItemLore)
-            ?.firstNotNullOf { line ->
+            ?.firstNotNullOfOrNull { line ->
                 RARITY_PATTERN.find(line)
                     ?.groups?.get("rarity")?.value
                     ?.stripControlCodes()
