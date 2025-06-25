@@ -20,7 +20,7 @@ plugins {
     id("gg.essential.multi-version.root")
 }
 
-version = "2.0.0-alpha.1"
+version = "2.0.0-alpha.2"
 
 preprocess {
     val forge10809 = createNode("1.8.9-forge", 10809, "mcp")
