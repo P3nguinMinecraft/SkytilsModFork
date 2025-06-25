@@ -27,20 +27,18 @@ import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
-import gg.skytils.skytilsmod.features.impl.funny.Funny
 import gg.skytils.skytilsmod.utils.RenderUtil.highlight
-import gg.skytils.skytilsmod.utils.Utils
-import gg.skytils.skytilsmod.utils.multAlpha
 import com.mojang.blaze3d.systems.RenderSystem
+import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UMinecraft
-import net.minecraft.block.Blocks
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import net.minecraft.block.StainedGlassPaneBlock
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.item.BlockItem
 import net.minecraft.screen.GenericContainerScreenHandler
-import net.minecraft.item.Item
 import org.lwjgl.opengl.GL11
+import java.awt.Color
 
 object ClickInOrderSolver : EventSubscriber {
 
@@ -73,13 +71,10 @@ object ClickInOrderSolver : EventSubscriber {
                 slotOrder[itemStack.count - 1] = i
             }
         }
-        if (slotOrder.size == 0) return
+        if (slotOrder.isEmpty()) return
         val firstSlot = slotOrder[neededClick]
         val secondSlot = slotOrder[neededClick + 1]
         val thirdSlot = slotOrder[neededClick + 2]
-        val lightingState = GL11.glIsEnabled(GL11.GL_LIGHTING)
-        // disable lighting
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
         if (firstSlot != null) {
             val slot = invSlots[firstSlot]
             if (slot != null) slot highlight Skytils.config.clickInOrderFirst
@@ -92,7 +87,6 @@ object ClickInOrderSolver : EventSubscriber {
             val slot = invSlots[thirdSlot]
             if (slot != null) slot highlight Skytils.config.clickInOrderThird
         }
-        if (lightingState) {} // enable lighting
     }
 
     fun onDrawSlotLow(event: GuiContainerPreDrawSlotEvent) {
@@ -105,25 +99,9 @@ object ClickInOrderSolver : EventSubscriber {
                 if (slot.hasStack() && slot.inventory !== mc.player?.inventory) {
                     val item = slot.stack
                     if ((item.item as? BlockItem)?.block is StainedGlassPaneBlock && item.damage == 14) {
-                        // disable lighting
-                        GlStateManager._disableDepthTest()
-                        GlStateManager._disableBlend()
-                        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-                        mc.textRenderer.draw(
-                            item.count.toString(),
-                            (slot.x + 9 - fr.getWidth(item.count.toString()) / 2).toFloat(),
-                            (slot.y + 4).toFloat(),
-                            16777215,
-                            false,
-                            UMatrixStack.Compat.get().peek().model,
-                            vertexConsumer,
-                            TextRenderer.TextLayerType.NORMAL,
-                            0,
-                            15728880
-                        )
-                        vertexConsumer.draw()
-                        // enable lighting
-                        GlStateManager._enableDepthTest()
+                        val matrixStack = UMatrixStack()
+                        DrawHelper.setupContainerScreenTransformations(matrixStack, aboveItems = true)
+                        UGraphics.drawString(matrixStack, item.count.toString(), slot.x + 9 - fr.getWidth(item.count.toString()) / 2f, slot.y + 4f, Color.WHITE.rgb, false)
                         event.cancelled = true
                     }
                 }

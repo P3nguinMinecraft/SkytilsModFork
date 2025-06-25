@@ -17,7 +17,6 @@
  */
 package gg.skytils.skytilsmod.features.impl.misc
 
-import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.skytils.event.EventSubscriber
@@ -33,6 +32,7 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import gg.essential.universal.UMinecraft
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
@@ -129,11 +129,9 @@ object MinionFeatures : EventSubscriber {
         if (!Utils.inSkyblock || item.count != 1 || item.toNbt(UMinecraft.getPlayer()!!.registryManager)?.asCompound()?.getOrNull()?.contains("SkytilsNoItemOverlay") == true) return
         val sbId = getSkyBlockItemID(item) ?: return
         if (Skytils.config.showMinionTier) {
-            val matrixStack = UMatrixStack.Compat.get()
+            val matrixStack = UMatrixStack()
+            DrawHelper.setupContainerScreenTransformations(matrixStack, aboveItems = true)
             val s = minionRegex.find(sbId)?.groups?.get("tier")?.value ?: return
-            // disable lighting
-            GlStateManager._disableDepthTest()
-            GlStateManager._disableBlend()
             UGraphics.drawString(
                 matrixStack,
                 s,
@@ -142,8 +140,6 @@ object MinionFeatures : EventSubscriber {
                 16777215,
                 true
             )
-            // enable lighting
-            GlStateManager._disableDepthTest()
         }
     }
 }

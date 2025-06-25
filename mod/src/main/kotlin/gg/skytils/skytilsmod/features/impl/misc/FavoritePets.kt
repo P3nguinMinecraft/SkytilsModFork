@@ -133,12 +133,10 @@ object FavoritePets : PersistentSave(File(Skytils.modDir, "favoritepets.json")),
         val item = event.slot.stack
         val petId = getPetIdFromItem(item)
         if (favorited.contains(petId)) {
-            val matrixStack = UMatrixStack.Compat.get()
+            val matrixStack = UMatrixStack()
             matrixStack.push()
             matrixStack.translate(0f, 0f, 2f)
-            matrixStack.runWithGlobalState {
-                event.slot highlight Skytils.config.favoritePetColor
-            }
+            event.slot highlight Skytils.config.favoritePetColor
             matrixStack.pop()
         }
     }

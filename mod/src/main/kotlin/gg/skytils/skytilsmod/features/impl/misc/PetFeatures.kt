@@ -84,12 +84,10 @@ object PetFeatures : EventSubscriber {
         if (Skytils.config.highlightActivePet && (SBInfo.lastOpenContainerName?.startsWith("Pets") == true) && event.slot.hasStack() && event.slot.id in 10..43) {
             val item = event.slot.stack
             if (getItemLore(item).any { line -> line.startsWith("§7§cClick to despawn") }) {
-                val matrixStack = UMatrixStack.Compat.get()
+                val matrixStack = UMatrixStack()
                 matrixStack.push()
                 matrixStack.translate(0f, 0f, 3f)
-                matrixStack.runWithGlobalState {
-                    event.slot highlight Skytils.config.activePetColor
-                }
+                event.slot highlight Skytils.config.activePetColor
                 matrixStack.pop()
             }
         }

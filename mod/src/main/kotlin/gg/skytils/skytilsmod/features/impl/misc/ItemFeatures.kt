@@ -17,7 +17,6 @@
  */
 package gg.skytils.skytilsmod.features.impl.misc
 
-import com.mojang.blaze3d.opengl.GlStateManager
 import gg.essential.elementa.unstable.layoutdsl.LayoutScope
 import gg.essential.elementa.unstable.layoutdsl.Modifier
 import gg.essential.elementa.unstable.layoutdsl.color
@@ -72,6 +71,7 @@ import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.multiplatform.textComponent
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import net.minecraft.entity.projectile.FishingBobberEntity
 import net.minecraft.block.Blocks
 import net.minecraft.client.font.TextRenderer
@@ -578,10 +578,10 @@ object ItemFeatures : EventSubscriber {
         val item = event.slot.stack ?: return
         if (!Utils.inSkyblock || item.count != 1 || item.toNbt(mc.player?.registryManager)?.asCompound()?.getOrNull()?.contains("SkytilsNoItemOverlay") == true) return
         val matrixStack = UMatrixStack()
+        DrawHelper.setupContainerScreenTransformations(matrixStack, aboveItems = true)
         var stackTip = ""
         val lore = getItemLore(item).takeIf { it.isNotEmpty() }
         getExtraAttributes(item)?.let { extraAttributes ->
-            val matrixStack = UMatrixStack()
             val itemId = getSkyBlockItemID(extraAttributes)
             if (Skytils.config.showPotionTier && extraAttributes.contains("potion_level")) {
                 stackTip = extraAttributes.getInt("potion_level").toString()
@@ -626,30 +626,11 @@ object ItemFeatures : EventSubscriber {
                                 }
                             }
                         }
-                        // disable lighting
-                        // disable depth
-                        GlStateManager._disableBlend()
-                        val matrixStack = UMatrixStack.Compat.get()
                         matrixStack.push()
                         matrixStack.translate(event.slot.x.toFloat(), event.slot.y.toFloat(), 1f)
                         matrixStack.scale(0.8, 0.8, 1.0)
-                        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-                        UMinecraft.getMinecraft().textRenderer.draw(
-                            prefix,
-                            0f,
-                            0f,
-                            Color.WHITE.rgb,
-                            false,
-                            matrixStack.peek().model,
-                            vertexConsumer,
-                            TextRenderer.TextLayerType.NORMAL,
-                            0,
-                            15728880
-                        )
-                        matrixStack.runWithGlobalState(vertexConsumer::draw)
+                        UGraphics.drawString(matrixStack, prefix, 0f, 0f, Color.WHITE.rgb, false)
                         matrixStack.pop()
-                        // enable lighting
-                        // enable depth
                     }
                     if (Skytils.config.showEnchantedBookTier) stackTip =
                         enchantments.getInt(name).toString()
@@ -688,29 +669,11 @@ object ItemFeatures : EventSubscriber {
                         else
                             it[0].uppercase()
                     }?.let { attribute ->
-                        UGraphics.disableLighting()
-                        UGraphics.disableDepth()
-                        UGraphics.disableBlend()
                         matrixStack.push()
                         matrixStack.translate(event.slot.x.toFloat(), event.slot.y.toFloat(), 1f)
                         matrixStack.scale(0.8, 0.8, 1.0)
-                        val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-                        UMinecraft.getMinecraft().textRenderer.draw(
-                            attribute,
-                            0f,
-                            0f,
-                            Color.WHITE.rgb,
-                            false,
-                            matrixStack.peek().model,
-                            vertexConsumer,
-                            TextRenderer.TextLayerType.NORMAL,
-                            0,
-                            15728880
-                        )
-                        matrixStack.runWithGlobalState(vertexConsumer::draw)
+                        UGraphics.drawString(matrixStack, attribute, 0f, 0f, Color.WHITE.rgb, false)
                         matrixStack.pop()
-                        UGraphics.enableLighting()
-                        UGraphics.enableDepth()
                     }
             }
             if (Skytils.config.showNYCakeYear && extraAttributes.contains("new_years_cake")) {
@@ -730,26 +693,7 @@ object ItemFeatures : EventSubscriber {
             }
         }
         if (stackTip.isNotEmpty()) {
-            // disable lighting
-            GlStateManager._disableDepthTest()
-            GlStateManager._disableBlend()
-
-            val vertexConsumer = UMinecraft.getMinecraft().bufferBuilders.entityVertexConsumers
-            UMinecraft.getMinecraft().textRenderer.draw(
-                stackTip,
-                0f,
-                0f,
-                Color.WHITE.rgb,
-                false,
-                matrixStack.peek().model,
-                vertexConsumer,
-                TextRenderer.TextLayerType.NORMAL,
-                0,
-                15728880
-            )
-            matrixStack.runWithGlobalState(vertexConsumer::draw)
-            // enable lighting
-            GlStateManager._enableDepthTest()
+            UGraphics.drawString(matrixStack, stackTip, 0f, 0f, Color.WHITE.rgb, false)
         }
     }
 

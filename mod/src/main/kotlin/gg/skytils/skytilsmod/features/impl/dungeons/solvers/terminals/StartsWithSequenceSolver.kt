@@ -104,7 +104,7 @@ object StartsWithSequenceSolver : EventSubscriber {
         if (!TerminalFeatures.isInPhase3()|| !Skytils.config.startsWithSequenceTerminalSolver) return
         if (event.container is GenericContainerScreenHandler && event.chestName.startsWith("What starts with:")) {
             val slot = event.slot
-            if (shouldClick.size > 0 && !shouldClick.contains(slot.id) && slot.inventory !== mc.player?.inventory) {
+            if (shouldClick.isNotEmpty() && !shouldClick.contains(slot.id) && slot.inventory !== mc.player?.inventory) {
                 event.cancelled = true
             }
         }

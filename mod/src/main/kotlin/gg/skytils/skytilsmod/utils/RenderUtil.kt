@@ -469,8 +469,10 @@ object RenderUtil {
     }
 
     infix fun Slot.highlight(color: Color) {
+        val matrices = UMatrixStack()
+        DrawHelper.setupContainerScreenTransformations(matrices)
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
-        writeRectCoords(UMatrixStack.Compat.get(), buffer, x.toDouble(), y.toDouble(), x + 16.0, y + 16.0, color)
+        writeRectCoords(matrices, buffer, x.toDouble(), y.toDouble(), x + 16.0, y + 16.0, color)
         buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
@@ -479,7 +481,8 @@ object RenderUtil {
         val f = max(0.0f, (255f - durability.toFloat()) / 255f)
         val color = Color.getHSBColor(f / 3.0f, 1.0f, 1.0f)
 
-        val matrices = UMatrixStack.Compat.get()
+        val matrices = UMatrixStack()
+        DrawHelper.setupContainerScreenTransformations(matrices, aboveItems = true)
         val x = xPos + 2.0
         val y = yPos + 13.0
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
