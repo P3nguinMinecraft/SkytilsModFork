@@ -23,6 +23,7 @@ import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils.mc
+import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.render.OverlayTexture
 import net.minecraft.item.ItemDisplayContext
@@ -60,6 +61,19 @@ object DrawHelper {
     fun setupCameraTransformations(matrices: UMatrixStack) {
         cameraRotation(matrices)
         cameraOffset(matrices)
+    }
+
+    /**
+     * Translates the matrices to the top left corner of the container screen.
+     * This is useful for rendering on slots.
+     * @param aboveItems If true, the Z-level will be set to render above items.
+     */
+    fun setupContainerScreenTransformations(matrices: UMatrixStack, aboveItems: Boolean = false) {
+        val screen = mc.currentScreen as? AccessorGuiContainer ?: error("Current screen does not implement AccessorGuiContainer")
+        matrices.translate(screen.guiLeft.toFloat(), screen.guiTop.toFloat(), 0f)
+        if (aboveItems) {
+            matrices.translate(0f, 0f, 100f + 150f + 1f)
+        }
     }
 
     /**
