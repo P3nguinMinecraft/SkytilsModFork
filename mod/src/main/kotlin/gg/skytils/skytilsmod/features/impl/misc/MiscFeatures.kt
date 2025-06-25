@@ -456,7 +456,7 @@ object MiscFeatures : EventSubscriber {
         val item = event.stack
         if (!Utils.inSkyblock || item.count != 1) return
         val player = mc.player ?: return
-        val itemNbt = event.stack.toNbt(player.registryManager).asCompound().getOrNull() ?: return
+        val itemNbt = event.stack.get(DataComponentTypes.CUSTOM_DATA)?.nbt ?: return
         if (itemNbt.contains("SkytilsNoItemOverlay")) return
         var stackTip = ""
 

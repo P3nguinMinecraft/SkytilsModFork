@@ -75,6 +75,7 @@ import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import net.minecraft.entity.projectile.FishingBobberEntity
 import net.minecraft.block.Blocks
 import net.minecraft.client.font.TextRenderer
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -578,7 +579,7 @@ object ItemFeatures : EventSubscriber {
 
     fun onRenderItemOverlayPost(event: GuiContainerPostDrawSlotEvent) {
         val item = event.slot.stack ?: return
-        if (!Utils.inSkyblock || item.count != 1 || item.toNbt(mc.player?.registryManager)?.asCompound()?.getOrNull()?.contains("SkytilsNoItemOverlay") == true) return
+        if (!Utils.inSkyblock || item.count != 1 || item.get(DataComponentTypes.CUSTOM_DATA)?.nbt?.contains("SkytilsNoItemOverlay") == true) return
         val matrixStack = UMatrixStack()
         DrawHelper.setupContainerScreenTransformations(matrixStack, aboveItems = true)
         var stackTip = ""

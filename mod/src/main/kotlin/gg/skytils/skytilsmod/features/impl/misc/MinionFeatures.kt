@@ -33,6 +33,7 @@ import gg.skytils.skytilsmod.utils.stripControlCodes
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import gg.essential.universal.UMinecraft
 import gg.skytils.skytilsmod.utils.rendering.DrawHelper
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Items
 import net.minecraft.screen.GenericContainerScreenHandler
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket
@@ -126,7 +127,7 @@ object MinionFeatures : EventSubscriber {
 
     fun onRenderItemOverlayPost(event: GuiContainerPostDrawSlotEvent) {
         val item = event.slot.stack ?: return
-        if (!Utils.inSkyblock || item.count != 1 || item.toNbt(UMinecraft.getPlayer()!!.registryManager)?.asCompound()?.getOrNull()?.contains("SkytilsNoItemOverlay") == true) return
+        if (!Utils.inSkyblock || item.count != 1 || item.get(DataComponentTypes.CUSTOM_DATA)?.nbt?.contains("SkytilsNoItemOverlay") == true) return
         val sbId = getSkyBlockItemID(item) ?: return
         if (Skytils.config.showMinionTier) {
             val matrixStack = UMatrixStack()
