@@ -46,19 +46,17 @@ object RenderUtils {
         bufferBuilder.pos(matrices, x, y, 0.0).color(color).endVertex()
     }
 
-    fun renderRect(x: Double, y: Double, w: Double, h: Double, color: Color) {
+    fun renderRect(matrices: UMatrixStack, x: Double, y: Double, w: Double, h: Double, color: Color) {
         if (color.alpha == 0) return
 
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
-        val matrices = UMatrixStack.Compat.get()
         addQuadVertices(buffer, matrices, x, y, w, h, color)
         buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
-    fun renderRectBorder(x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
+    fun renderRectBorder(matrices: UMatrixStack, x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
         if (color.alpha == 0) return
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR)
-        val matrices = UMatrixStack.Compat.get()
         addQuadVertices(buffer, matrices, x - thickness, y, thickness, h, color)
         addQuadVertices(buffer, matrices, x - thickness, y - thickness, w + thickness * 2, thickness, color)
         addQuadVertices(buffer, matrices, x + w, y, thickness, h, color)
@@ -66,9 +64,8 @@ object RenderUtils {
         buffer.build()?.drawAndClose(SRenderPipelines.guiPipeline)
     }
 
-    fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int) {
+    fun renderCenteredText(matrices: UMatrixStack, text: List<String>, x: Int, y: Int, color: Int) {
         if (text.isEmpty()) return
-        val matrices = UMatrixStack.Compat.get()
         matrices.push()
         matrices.translate(x.toFloat(), y.toFloat(), 0f)
         matrices.scale(CatlasConfig.textScale, CatlasConfig.textScale, 1f)
@@ -146,7 +143,7 @@ object RenderUtils {
                     else -> Color.BLACK
                 }
 
-                renderRect(-6.0, -6.0, 12.0, 12.0, borderColor)
+                renderRect(matrices, -6.0, -6.0, 12.0, 12.0, borderColor)
                 matrices.translate(0f, 0f, 0.1f)
 
                 matrices.push()

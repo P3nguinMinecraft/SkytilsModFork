@@ -104,6 +104,7 @@ object CatlasElement : UIContainer() {
                 when {
                     xEven && yEven -> if (tile is Room) {
                         RenderUtils.renderRect(
+                            matrices,
                             xOffset.toDouble(),
                             yOffset.toDouble(),
                             MapUtils.mapRoomSize.toDouble(),
@@ -114,6 +115,7 @@ object CatlasElement : UIContainer() {
 
                     !xEven && !yEven -> {
                         RenderUtils.renderRect(
+                            matrices,
                             xOffset.toDouble(),
                             yOffset.toDouble(),
                             (MapUtils.mapRoomSize + connectorSize).toDouble(),
@@ -123,7 +125,7 @@ object CatlasElement : UIContainer() {
                     }
 
                     else -> drawRoomConnector(
-                        xOffset, yOffset, connectorSize, tile is Door, !xEven, tile.color
+                        matrices, xOffset, yOffset, connectorSize, tile is Door, !xEven, tile.color
                     )
                 }
 
@@ -201,7 +203,7 @@ object CatlasElement : UIContainer() {
                     0f
                 )
                 matrices.scale(2f, 2f, 1f)
-                RenderUtils.renderCenteredText(listOf(secretText), 0, 0, color)
+                RenderUtils.renderCenteredText(matrices, listOf(secretText), 0, 0, color)
                 matrices.pop()
             } else if (CatlasConfig.mapCheckmark != 0) {
                 drawCheckmark(matrices, room, xOffsetCheck, yOffsetCheck, checkmarkSize)
@@ -221,6 +223,7 @@ object CatlasElement : UIContainer() {
             }
             // Offset + half of roomsize
             RenderUtils.renderCenteredText(
+                matrices,
                 name,
                 (xOffsetName + halfRoom).toInt(),
                 (yOffsetName + halfRoom).toInt(),
@@ -270,6 +273,7 @@ object CatlasElement : UIContainer() {
     }
 
     private fun drawRoomConnector(
+        matrices: UMatrixStack,
         x: Int,
         y: Int,
         doorWidth: Int,
@@ -285,6 +289,7 @@ object CatlasElement : UIContainer() {
             if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
         }
         RenderUtils.renderRect(
+            matrices,
             x1.toDouble(),
             y1.toDouble(),
             (if (vertical) doorWidth else width).toDouble(),
@@ -305,10 +310,11 @@ object CatlasElement : UIContainer() {
             profiler.push("border")
 
             RenderUtils.renderRect(
-                0.0, 0.0, 128.0, 128.0, CatlasConfig.mapBackground
+                matrixStack, 0.0, 0.0, 128.0, 128.0, CatlasConfig.mapBackground
             )
 
             RenderUtils.renderRectBorder(
+                matrixStack,
                 0.0,
                 0.0,
                 128.0,
