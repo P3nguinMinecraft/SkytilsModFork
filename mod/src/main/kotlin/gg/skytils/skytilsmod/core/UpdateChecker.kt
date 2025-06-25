@@ -23,11 +23,12 @@ import gg.skytils.event.EventPriority
 import gg.skytils.event.EventSubscriber
 import gg.skytils.event.impl.screen.ScreenOpenEvent
 import gg.skytils.event.register
+import gg.skytils.skytilsmod.Reference
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.client
 import gg.skytils.skytilsmod.gui.updater.RequestUpdateGui
 import gg.skytils.skytilsmod.gui.updater.UpdateGui
-import gg.skytils.skytilsmod.utils.GithubRelease
+import gg.skytils.skytilsmod.utils.ModrinthVersion
 import gg.skytils.skytilsmod.utils.Utils
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -36,10 +37,10 @@ import io.ktor.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.minecraft.client.gui.screen.TitleScreen
+import net.minecraft.MinecraftVersion
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.StandardCopyOption
@@ -54,9 +55,9 @@ import net.fabricmc.loader.api.Version
 object UpdateChecker : EventSubscriber {
     val updateGetter = UpdateGetter()
     val updateAsset
-        get() = updateGetter.updateObj!!.assets.first { it.name.endsWith(".jar") }
+        get() = updateGetter.updateObj!!.files.find { it.primary }
     val updateDownloadURL: String
-        get() = updateAsset.downloadUrl
+        get() = updateAsset!!.url
 
     val currentTag = Skytils.VERSION.substringBefore("-dev")
     val currentVersion = SkytilsVersion(currentTag)
@@ -129,7 +130,7 @@ object UpdateChecker : EventSubscriber {
                         val runtime = Utils.getJavaRuntime()
 
                         if (Platform.isMac()) {
-                            val sipStatus = Runtime.getRuntime().exec("csrutil status")
+                            val sipStatus = Runtime.getRuntime().exec(arrayOf("csrutil", "status"))
                             sipStatus.waitFor()
                             if (!sipStatus.inputStream.use { it.bufferedReader().readText() }
                                     .contains("System Integrity Protection status: disabled.")) {
@@ -201,25 +202,36 @@ object UpdateChecker : EventSubscriber {
 
     class UpdateGetter {
         @Volatile
-        var updateObj: GithubRelease? = null
+        var updateObj: ModrinthVersion? = null
 
         suspend fun run() {
             println("Checking for updates...")
-            val latestRelease = when (Skytils.config.updateChannel) {
-                2 -> client.get(
-                    "https://api.github.com/repos/Skytils/SkytilsMod/releases/latest"
-                ).body()
-
-                1 -> client.get(
-                    "https://api.github.com/repos/Skytils/SkytilsMod/releases"
-                ).body<List<GithubRelease>>().maxBy { SkytilsVersion(it.tagName.substringAfter("v")) }
-
+            val targetChannel = when (Skytils.config.updateChannel) {
+                3 -> "alpha"
+                2 -> "release"
+                1 -> "beta"
                 else -> return println("Update Channel set as none")
             }
-            val latestTag = latestRelease.tagName
-            val latestVersion = SkytilsVersion(latestTag.substringAfter("v"))
-            if (currentVersion < latestVersion || System.getProperty("skytils.dev.updateChecker") != null) {
+
+            val allVersions: List<ModrinthVersion> = client.get("https://api.modrinth.com/v2/project/${Reference.MODRINTH_ID}/version").body()
+
+            val allowedVersions = allVersions.filter { it.versionType >= targetChannel }
+
+            val validUpdateVersions = allowedVersions.filter { "fabric" in it.loaders && MinecraftVersion.CURRENT.name in it.gameVersions }
+
+            val latestRelease = validUpdateVersions.maxBy { Version.parse(it.versionNumber.substringAfter("v")) }
+            val latestVersion = Version.parse(latestRelease.versionNumber)
+
+            val currentVersion = Version.parse(Skytils.VERSION)
+
+            val isUpdateAvailable = currentVersion < latestVersion
+            if (isUpdateAvailable || System.getProperty("skytils.dev.updateChecker") != null) {
                 updateObj = latestRelease
+            } else {
+                val potentialMCVersionChange = allowedVersions.any { Version.parse(it.versionNumber) > currentVersion }
+                if (potentialMCVersionChange) {
+                    Notifications.push("Skytils Update Checker", "A new $targetChannel version of Skytils is available, but it may require a Minecraft version change. Please check the Modrinth page for more details.", 1f)
+                }
             }
         }
     }

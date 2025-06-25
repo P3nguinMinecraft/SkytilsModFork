@@ -249,7 +249,7 @@ object Config : Vigilant(
         type = PropertyType.SELECTOR, name = "Update Channel",
         description = "Choose what type of updates you get notified for.",
         category = "General", subcategory = "Updates",
-        options = ["None", "Pre-Release", "Release"],
+        options = ["None", "Beta (Pre-Release)", "Release", "Alpha (Experimental)"],
         i18nName = "skytils.config.general.updates.update_channel",
         i18nCategory = "skytils.config.general",
         i18nSubcategory = "skytils.config.general.updates"

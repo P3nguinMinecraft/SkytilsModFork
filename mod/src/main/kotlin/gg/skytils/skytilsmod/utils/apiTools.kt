@@ -190,3 +190,43 @@ fun Inventory.toMCItems() =
 fun UUID.nonDashedString(): String {
     return this.toString().replace("-", "")
 }
+
+@Serializable
+data class ModrinthVersion(
+    @SerialName("game_versions")
+    val gameVersions: Set<String>,
+    val loaders: Set<String>,
+    val id: String,
+    @SerialName("project_id")
+    val projectId: String,
+    @SerialName("author_id")
+    val authorId: String,
+    val featured: Boolean,
+    val name: String,
+    @SerialName("version_number")
+    val versionNumber: String,
+    val changelog: String,
+    @SerialName("date_published")
+    val datePublished: String,
+    val downloads: Int,
+    @SerialName("version_type")
+    val versionType: String,
+    val status: String,
+    val files: Set<ModrinthFile>,
+    // val dependencies: List<Dependency>
+)
+
+@Serializable
+data class ModrinthFile(
+    val hashes: ModrinthHashes,
+    val url: String,
+    val filename: String,
+    val primary: Boolean,
+    val size: Int
+)
+
+@Serializable
+data class ModrinthHashes(
+    val sha1: String,
+    val sha512: String
+)

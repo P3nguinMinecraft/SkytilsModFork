@@ -39,7 +39,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
 
     init {
         val updateObj = UpdateChecker.updateGetter.updateObj ?: error("Update object is null")
-        UIText("Skytils ${updateObj.tagName} is available!")
+        UIText("${updateObj.name} is available!")
             .constrain {
                 x = CenterConstraint()
                 y = RelativeConstraint(0.1f)
@@ -50,7 +50,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 y = SiblingConstraint()
             } childOf window
         val authorText =
-            UIText("Uploaded by: ${UpdateChecker.updateAsset.uploader.username}")
+            UIText("Uploaded by: ${updateObj.authorId}")
                 .constrain {
                     x = CenterConstraint()
                     y = SiblingConstraint()
@@ -62,7 +62,7 @@ class RequestUpdateGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
                 height = basicHeightConstraint { window.getHeight() - 90 - authorText.getBottom() }
                 width = RelativeConstraint(0.7f)
             } childOf window
-        MineMarkComponent(updateObj.body)
+        MineMarkComponent(updateObj.changelog)
             .constrain {
                 height = RelativeConstraint()
                 width = RelativeConstraint()

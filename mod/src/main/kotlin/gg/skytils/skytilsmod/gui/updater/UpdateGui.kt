@@ -33,6 +33,7 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.IO
 import gg.skytils.skytilsmod.core.UpdateChecker
 import gg.skytils.skytilsmod.gui.components.SimpleButton
+import gg.skytils.skytilsmod.utils.containsAny
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -133,11 +134,25 @@ class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiSc
     private fun doUpdate(restartNow: Boolean) {
         try {
             val directory = File(Skytils.modDir, "updates")
+            val updateObj = UpdateChecker.updateGetter.updateObj
+            if (updateObj == null) {
+                println("Update object is null, cannot proceed with update")
+                failed.set(true)
+                return
+            }
             val url = UpdateChecker.updateDownloadURL
-            val jarName = UpdateChecker.getJarNameFromUrl(url)
+            val jarName = UpdateChecker.updateAsset!!.filename
             IO.launch(CoroutineName("Skytils-update-downloader-thread")) {
                 val updateFile = downloadUpdate(url, directory)
-                val signFile = downloadUpdate("$url.asc", directory)
+                val modrinthSignFile = updateObj.files.find { it.filename.containsAny(".asc", ".sig") }
+                if (modrinthSignFile == null) {
+                    println("No signature file found for the update")
+                    failed.set(true)
+                    return@launch
+                } else {
+                    println("Signature file found: ${modrinthSignFile.filename}")
+                }
+                val signFile = downloadUpdate(modrinthSignFile.url, directory, modrinthSignFile.filename)
                 if (!failed.get()) {
                     if (updateFile != null && signFile != null) {
                         stage.set("Verifying signature")
@@ -184,7 +199,7 @@ class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiSc
         }
     }
 
-    private suspend fun downloadUpdate(urlString: String, directory: File): File? {
+    private suspend fun downloadUpdate(urlString: String, directory: File, fileName: String? = null): File? {
         try {
             val url = Url(urlString)
 
@@ -210,7 +225,7 @@ class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiSc
                 println("Couldn't create update file directory")
                 return null
             }
-            val fileSaved = File(directory, url.pathSegments.last().decodeURLPart())
+            val fileSaved = File(directory, fileName ?: url.pathSegments.last().decodeURLPart())
             val writeChannel = fileSaved.writeChannel()
             if (client?.currentScreen !== this@UpdateGui || st.bodyAsChannel().copyAndClose(writeChannel) == 0L) {
                 failed.set(true)

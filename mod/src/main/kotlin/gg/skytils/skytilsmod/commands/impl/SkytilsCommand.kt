@@ -293,7 +293,7 @@ object SkytilsCommand {
                 } else {
                     val message = textComponent(
                         "$prefix §7Update for version ${
-                            UpdateChecker.updateGetter.updateObj!!.tagName
+                            UpdateChecker.updateGetter.updateObj!!.versionNumber
                         } is available! ").append(
                             textComponent("§a[Update Now] ")
                                 .setClickRun("/skytils updateNow")

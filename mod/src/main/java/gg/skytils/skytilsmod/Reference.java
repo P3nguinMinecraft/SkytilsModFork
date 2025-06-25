@@ -41,6 +41,7 @@ public class Reference {
     @NotNull
     public static final String VERSION = getVersion();
     public static final String UNKNOWN_VERSION = "unknown";
+    public static final String MODRINTH_ID = "Uh4nvjor";
 
     private static String getVersion() {
         //#if MC>12000
