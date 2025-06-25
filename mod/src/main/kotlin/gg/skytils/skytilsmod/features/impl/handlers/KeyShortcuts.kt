@@ -45,12 +45,12 @@ object KeyShortcuts : EventSubscriber, PersistentSave(File(Skytils.modDir, "keys
     }
 
     fun onMouseInput(event: MouseInputEvent) {
-        if (!Utils.inSkyblock || shortcuts.isEmpty()) return
+        if (!Utils.inSkyblock || shortcuts.isEmpty() || mc.currentScreen != null) return
         handleInput(event.button - 100)
     }
 
     fun onKeyInput(event: KeyboardInputEvent) {
-        if (!Utils.inSkyblock || shortcuts.isEmpty()) return
+        if (!Utils.inSkyblock || shortcuts.isEmpty() || mc.currentScreen != null) return
         handleInput(event.keyCode)
     }
 
