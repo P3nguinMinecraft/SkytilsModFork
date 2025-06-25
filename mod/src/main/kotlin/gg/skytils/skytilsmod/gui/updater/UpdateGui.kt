@@ -52,6 +52,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProv
 import java.awt.Color
 import java.io.File
 import java.security.Security
+import java.util.zip.ZipFile
 
 class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiScale = 2) {
     companion object {
@@ -144,6 +145,7 @@ class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiSc
             val jarName = UpdateChecker.updateAsset!!.filename
             IO.launch(CoroutineName("Skytils-update-downloader-thread")) {
                 val updateFile = downloadUpdate(url, directory)
+                stage.set("Downloading signature")
                 val modrinthSignFile = updateObj.files.find { it.filename.containsAny(".asc", ".sig") }
                 if (modrinthSignFile == null) {
                     println("No signature file found for the update")
@@ -155,6 +157,13 @@ class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiSc
                 val signFile = downloadUpdate(modrinthSignFile.url, directory, modrinthSignFile.filename)
                 if (!failed.get()) {
                     if (updateFile != null && signFile != null) {
+                        var zip: ZipFile? = null
+                        val signFileInputStream = if (signFile.extension == "zip") {
+                            stage.set("Extracting signature")
+                            zip = ZipFile(signFile)
+                            val sigEntry = zip.entries().asSequence().first { it.name.endsWith(".asc") || it.name.endsWith(".sig") }
+                            zip.getInputStream(sigEntry)
+                        } else signFile.inputStream()
                         stage.set("Verifying signature")
                         val finger = JcaKeyFingerprintCalculator()
 
@@ -168,7 +177,8 @@ class UpdateGui(restartNow: Boolean) : WindowScreen(ElementaVersion.V2, newGuiSc
                             getKeyRingCollection("sychic")
                         )
 
-                        val sig = PGPUtil.getDecoderStream(signFile.inputStream()).use { (JcaPGPObjectFactory(it).nextObject() as PGPSignatureList).first() }
+                        val sig = PGPUtil.getDecoderStream(signFileInputStream).use { (JcaPGPObjectFactory(it).nextObject() as PGPSignatureList).first() }
+                        zip?.close()
                         val key = keys.firstNotNullOfOrNull { it.getPublicKey(sig.keyID) }
                         if (key != null) {
                             sig.init(JcaPGPContentVerifierBuilderProvider().setProvider(Security.getProvider("BC") ?: BouncyCastleProvider().also(Security::addProvider)), key)
