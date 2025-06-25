@@ -140,23 +140,31 @@ object Catlas : EventSubscriber {
         val matrices = UMatrixStack()
 
         matrices.push()
-        DrawHelper.setupCameraTransformations(matrices)
-        val linesBuffer = UBufferBuilder.create(UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR)
-        val trianglesBuffer = UBufferBuilder.create(UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
-        doors.forEach {
-            matrices.push()
-            matrices.translate(it.x.toDouble(), 0.0, it.z.toDouble())
-            DrawHelper.writeFilledCube(trianglesBuffer, matrices, doorShape, color.withAlpha(CatlasConfig.witherDoorFill))
-            DrawHelper.writeOutlineCube(
-                linesBuffer,
-                matrices,
-                doorShape,
-                color
-            )
-            matrices.pop()
+        matrices.runReplacingGlobalState {
+            DrawHelper.setupCameraTransformations(matrices)
+            val trianglesBuffer = UBufferBuilder.create(UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            doors.forEach {
+                matrices.push()
+                matrices.translate(it.x.toDouble(), 0.0, it.z.toDouble())
+                DrawHelper.writeFilledCube(trianglesBuffer, matrices, doorShape, color.withAlpha(CatlasConfig.witherDoorFill))
+                matrices.pop()
+            }
+            trianglesBuffer.build()?.drawAndClose(SRenderPipelines.noDepthBoxPipeline)
+
+            val linesBuffer = UBufferBuilder.create(UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR)
+            doors.forEach {
+                matrices.push()
+                matrices.translate(it.x.toDouble(), 0.0, it.z.toDouble())
+                DrawHelper.writeOutlineCube(
+                    linesBuffer,
+                    matrices,
+                    doorShape,
+                    color
+                )
+                matrices.pop()
+            }
+            linesBuffer.build()?.drawAndClose(SRenderPipelines.noDepthLinesPipeline)
         }
-        linesBuffer.build()?.drawAndClose(SRenderPipelines.noDepthLinesPipeline)
-        trianglesBuffer.build()?.drawAndClose(SRenderPipelines.noDepthBoxPipeline)
         matrices.pop()
     }
 
