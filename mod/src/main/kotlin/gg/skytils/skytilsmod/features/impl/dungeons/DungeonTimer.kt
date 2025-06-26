@@ -304,13 +304,13 @@ object DungeonTimer : EventSubscriber {
                     text({ "§7Wither Doors: ${witherDoorsState()}" })
                     text({ "§4Blood Open: ${bloodOpen()}s" })
                     ifNotNull(bloodOpenTimeState) {
-                        text({ "§cWatcher Clear: ${createTimeTextState(bloodOpenTimeState, bloodClearTimeState, stateOf(null))}" })
+                        text({ "§cWatcher Clear: ${createTimeTextState(bloodOpenTimeState, bloodClearTimeState, stateOf(null)).invoke()}" })
                     }
                     if_(State { bloodClearTimeState() != null } and State { !DungeonFeatures.dungeonFloorState().equals("E") }) {
-                        text({ "§dPortal: ${createTimeTextState(bloodClearTimeState, bossEntryTimeState)}s" })
+                        text({ "§dPortal: ${createTimeTextState(bloodClearTimeState, bossEntryTimeState).invoke()}s" })
                     }
                     ifNotNull(bossEntryTimeState) {
-                        text({ "§bBoss Clear: ${createTimeTextState(bossEntryTimeState, bossClearTimeState)}s" })
+                        text({ "§bBoss Clear: ${createTimeTextState(bossEntryTimeState, bossClearTimeState).invoke()}s" })
                     }
                 }
             }
