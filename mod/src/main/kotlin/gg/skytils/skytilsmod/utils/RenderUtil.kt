@@ -286,8 +286,9 @@ object RenderUtil {
             else -> RARITY
         }
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
-        DrawHelper.drawTexture(matrixStack, buffer, texture, xPos.toDouble(), yPos.toDouble(), width = 16.0, height = 16.0, color = rarity.color.withAlpha(alpha))
+        DrawHelper.drawTexture(matrixStack, buffer, texture, 0.0, 0.0, width = 16.0, height = 16.0, color = rarity.color.withAlpha(alpha))
         buffer.build()?.draw(SRenderPipelines.guiTexturePipeline)
+        matrixStack.pop()
     }
 
     private fun renderRarity(xPos: Int, yPos: Int, itemStack: ItemStack?) {
