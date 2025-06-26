@@ -21,7 +21,10 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.features.impl.misc.MiscFeatures
 import gg.skytils.skytilsmod.utils.Utils
+import net.minecraft.client.font.TextRenderer
+import net.minecraft.client.gui.DrawContext
 import net.minecraft.item.ItemStack
+import net.minecraft.text.Text
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args
 
 
@@ -31,12 +34,20 @@ fun alwaysShowItemHighlight(orig: Int): Int {
 
 fun modifyItemHighlightPosition(args: Args, highlightingItemStack: ItemStack) {
     if (Skytils.config.moveableItemNameHighlight.getUntracked() && Utils.inSkyblock) {
-        val fr = mc.textRenderer
-        val itemName = args.get<String>(0)
-        val element= MiscFeatures.ItemNameHighlightDummy
-        val x = element.component.getLeft() - fr.getWidth(itemName) / 2f
-        args.set(1, x)
-        args.set(2, element.component.getTop())
+        val element = MiscFeatures.ItemNameHighlightDummy
+        //#if MC==10809
+        //$$        val fr = mc.textRenderer
+        //$$        val itemName = args.get<String>(0)
+        //$$        val x = element.component.getLeft() - fr.getWidth(itemName) / 2f
+        //$$        args.set(1, x)
+        //$$        args.set(2, element.component.getTop())
+        //#else
+        val fr = args.get<TextRenderer>(0)
+        val itemName = args.get<Text>(1)
+        val newX = element.component.getLeft() - fr.getWidth(itemName) / 2f
+        args.set(2, newX.toInt())
+        args.set(3, element.component.getTop().toInt())
+        //#endif
     }
 }
 
