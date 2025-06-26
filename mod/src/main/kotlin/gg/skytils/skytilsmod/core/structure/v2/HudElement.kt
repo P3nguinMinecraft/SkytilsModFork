@@ -70,31 +70,31 @@ abstract class HudElement(
 
     open val toggleState = stateOf(true)
 
-    val component
-        get() = UIContainer()
-            .apply {
-                layout(Modifier.then(position).childBasedSize(2f)) {
-                    if_(toggleState) {
-                        render()
-                    }
+    val component by lazy {
+        UIContainer().apply {
+            layout(Modifier.then(position).childBasedSize(2f)) {
+                if_(toggleState) {
+                    render()
                 }
             }
+        }
+    }
 
-    val demoComponent
-        get() = UIBlock(Color.WHITE.withAlpha(40))
-            .apply {
-                layout(
-                    Modifier
-                        .then(demoPosition)
-                        .childBasedSize(2f)
-                        .hoverScope()
-                        .hoverColor(Color.WHITE.withAlpha(100))
-                ) {
-                    if_(toggleState) {
-                        demoRender()
-                    }
+    val demoComponent by lazy {
+        UIBlock(Color.WHITE.withAlpha(40)).apply {
+            layout(
+                Modifier
+                    .then(demoPosition)
+                    .childBasedSize(2f)
+                    .hoverScope()
+                    .hoverColor(Color.WHITE.withAlpha(100))
+            ) {
+                if_(toggleState) {
+                    demoRender()
                 }
             }
+        }
+    }
 
 
     abstract fun LayoutScope.render()
