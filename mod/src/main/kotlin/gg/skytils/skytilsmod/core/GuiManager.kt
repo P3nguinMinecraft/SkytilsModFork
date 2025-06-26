@@ -22,6 +22,8 @@ import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.WindowScreen
 import gg.essential.elementa.components.Window
 import gg.essential.elementa.dsl.pixels
+import gg.essential.elementa.unstable.state.v2.futureValues
+import gg.essential.elementa.unstable.state.v2.onChange
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.UResolution
@@ -61,6 +63,18 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
     private val takenSlots = sortedSetOf<Int>()
 
     fun registerElement(e: HudElement) {
+        if (e.name in elements) error("Element with name '${e.name}' already exists!")
+        val meta = elementMetadata[e.name]
+        meta?.x?.let(e.x::set)
+        meta?.y?.let(e.y::set)
+        e.x.onChange(hud) {
+            elementMetadata[e.name]?.x = it
+            markDirty<GuiManager>()
+        }
+        e.y.onChange(hud) {
+            elementMetadata[e.name]?.y = it
+            markDirty<GuiManager>()
+        }
         elements[e.name] = e
         hud.addChild(e.component)
         demoHud.window.addChild(e.demoComponent)
@@ -213,7 +227,7 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
     }
 
     @Serializable
-    data class GuiElementMetadata(val x: Float, val y: Float, val scale: Float = 1f, val textShadow: TextShadow = TextShadow.NORMAL)
+    data class GuiElementMetadata(var x: Float, var y: Float, var scale: Float = 1f, val textShadow: TextShadow = TextShadow.NORMAL)
 
     override fun setup() {
         register(::onRenderHUD, EventPriority.Highest)
