@@ -188,9 +188,10 @@ object DrawHelper {
         textureHeight: Double = height,
         color: Color = Color.WHITE
     ) {
+        UGraphics.bindTexture(0, sprite)
         val abstractTexture = textureManager.getTexture(sprite)
         abstractTexture.setFilter(false, false)
-        RenderSystem.setShaderTexture(0, abstractTexture.glTexture)
+        // RenderSystem.setShaderTexture(0, abstractTexture.glTexture)
         val x2 = x + width
         val y2 = y + height
         val u1 = u / textureWidth
