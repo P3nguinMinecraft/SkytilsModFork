@@ -66,7 +66,8 @@ public class MixinRendererLivingEntity
     @Inject(method = "render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/EntityRenderDispatcher;render(Lnet/minecraft/entity/Entity;DDDFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/EntityRenderer;)V"), cancellable = true)
     private void onRender(Entity entity, double x, double y, double z, float tickProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci, @Local EntityRenderer<T, S> renderer) {
     //#endif
-        if (!(entity instanceof LivingEntity)) return;
+        // the Ender Dragon is not a LivingEntityRenderer, despite being a LivingEntity
+        if (!(renderer instanceof LivingEntityRenderer<?,?,?>)) return;
         Entity viewEntity = MinecraftClient.getInstance().getCameraEntity();
         if (viewEntity == null) return;
         double renderX = entity.lastRenderX + (entity.getPos().x - entity.lastRenderX - viewEntity.getPos().x + viewEntity.lastRenderX) * tickProgress - viewEntity.lastRenderX;
