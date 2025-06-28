@@ -129,7 +129,7 @@ dependencies {
         exclude(module = "kotlinx-coroutines-core-jvm")
         exclude(module = "universalcraft-1.20.6-fabric")
     }
-    modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:406")
+    modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:415")
     relocated(implementation("gg.essential:elementa-unstable-layoutdsl:710") {
         excludeKotlin()
         exclude(module = "fabric-loader")
