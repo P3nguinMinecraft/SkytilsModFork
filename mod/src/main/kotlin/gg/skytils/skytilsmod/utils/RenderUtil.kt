@@ -18,6 +18,7 @@
 package gg.skytils.skytilsmod.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.textures.GpuTexture
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.ChatColor
 import gg.essential.universal.UGraphics
@@ -37,6 +38,7 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.render.block.entity.BeaconBlockEntityRenderer
+import net.minecraft.client.texture.GlTexture
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.Slot
@@ -285,9 +287,17 @@ object RenderUtil {
             4 -> CUSTOMRARITY
             else -> RARITY
         }
+        val color = rarity.color.withAlpha(alpha)
+        val tex = (mc.textureManager.getTexture(texture).glTexture as GlTexture)
+
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
-        DrawHelper.drawTexture(matrixStack, buffer, texture, 0.0, 0.0, width = 16.0, height = 16.0, color = rarity.color.withAlpha(alpha))
-        buffer.build()?.draw(SRenderPipelines.guiTexturePipeline)
+        buffer.pos(matrixStack, 0.0, 0.0, 0.0).tex(0.0, 0.0).color(color).endVertex()
+        buffer.pos(matrixStack, 16.0, 0.0, 0.0).tex(1.0, 0.0).color(color).endVertex()
+        buffer.pos(matrixStack, 16.0, 16.0, 0.0).tex(1.0, 1.0).color(color).endVertex()
+        buffer.pos(matrixStack, 0.0, 16.0, 0.0).tex(0.0, 1.0).color(color).endVertex()
+        buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline) {
+            texture(0, tex.glId)
+        }
         matrixStack.pop()
     }
 
@@ -295,14 +305,14 @@ object RenderUtil {
         if (itemStack == null) return
         val rarity = ItemUtil.getRarity(itemStack)
         if (rarity != ItemRarity.NONE) {
-            val alpha = Skytils.config.itemRarityOpacity
-            val matrixStack = UMatrixStack()
 
             if (Skytils.config.itemRarityShape < 5) {
                 renderRarity(xPos, yPos, rarity)
             } else {
                 renderRarity(xPos, yPos, rarity)
                 // TODO: Redo using shader to apply post processing instead of hacky stencil test
+//                val alpha = Skytils.config.itemRarityOpacity
+//                val matrixStack = UMatrixStack()
 //                matrixStack.push()
 //                // save the states
 //                val lightingEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING)
@@ -411,7 +421,6 @@ object RenderUtil {
     }
 
     fun drawCircle(matrixStack: UMatrixStack, x: Double, y: Double, z: Double, partialTicks: Float, radius: Double, edges: Int, r: Int, g: Int, b: Int, a: Int = 255) {
-        val ug = UGraphics.getFromTessellator()
         val angleDelta = Math.PI * 2 / edges
         RenderSystem.lineWidth(5f)
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.LINE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
