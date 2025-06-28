@@ -42,8 +42,8 @@ val PlayerListEntry.text: String
     //#else
     get() {
        return if (gameMode != GameMode.SPECTATOR)
-       displayName?.string ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).string
-       else displayName?.copy()?.formatted(Formatting.ITALIC)?.string ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).formatted(Formatting.ITALIC).string
+       displayName?.formattedText ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).formattedText
+       else displayName?.copy()?.formatted(Formatting.ITALIC)?.formattedText ?: Team.decorateName(scoreboardTeam, Text.literal(profile.name)).formatted(Formatting.ITALIC).formattedText
     }
     //#endif
 
