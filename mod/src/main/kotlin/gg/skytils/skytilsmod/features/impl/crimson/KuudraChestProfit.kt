@@ -43,6 +43,7 @@ import gg.essential.elementa.unstable.layoutdsl.column
 import gg.essential.elementa.unstable.layoutdsl.layout
 import gg.essential.elementa.unstable.state.v2.add
 import gg.essential.elementa.unstable.state.v2.clear
+import gg.essential.elementa.unstable.state.v2.combinators.map
 import gg.essential.elementa.unstable.state.v2.mutableSetState
 import gg.essential.elementa.unstable.state.v2.mutableStateOf
 import gg.essential.elementa.unstable.state.v2.toList
@@ -222,9 +223,11 @@ object KuudraChestProfit : EventSubscriber {
         override val toggleState = Skytils.config.kuudraChestProfit
 
         override fun LayoutScope.render() {
-            column {
-                KuudraChest.entries.forEach { chest ->
-                    text({ "${chest.displayText}§f: §${(if (chest.value() > 0) "a" else "c")}${NumberUtil.format(chest.value())}" })
+            if_(SBInfo.modeState.map { it == SkyblockIsland.KuudraHollow.mode }) {
+                column {
+                    KuudraChest.entries.forEach { chest ->
+                        text({ "${chest.displayText}§f: §${(if (chest.value() > 0) "a" else "c")}${NumberUtil.format(chest.value())}" })
+                    }
                 }
             }
         }
