@@ -139,6 +139,7 @@ object DungeonListener : EventSubscriber {
     fun onPacket(event: MainThreadPacketReceiveEvent<*>) {
         if (!Utils.inDungeons) return
         if (event.packet is GameMessageS2CPacket) {
+            if (!event.packet.overlay) return
             val text = event.packet.content?.formattedText ?: return
             secretsRegex.find(text)?.destructured?.also { (secrets, maxSecrets) ->
                 val sec = secrets.toInt()
@@ -260,9 +261,17 @@ object DungeonListener : EventSubscriber {
             val action = event.packet.actions
             val entries = event.packet.entries
 
-            if (PlayerListS2CPacket.Action.ADD_PLAYER !in action && PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME !in action) return
+            //#if MC==10809
+            //$$ if (PlayerListS2CPacket.Action.ADD_PLAYER !in action && PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME !in action) return
+            //#else
+            if (PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME !in action && PlayerListS2CPacket.Action.UPDATE_LISTED !in action) return
+            //#endif
 
             for (entry in entries) {
+                if (entry.profile == null && entry.displayName == null) {
+                    printDevMessage({ "player list entry with no profile or display name: $entry" }, "dungeonlistener")
+                    continue
+                }
                 val text = entry.text
                 if ('✦' in text || '✔' in text || '✖' in text) {
                     puzzleRegex.find(text)?.let { match ->
@@ -296,7 +305,7 @@ object DungeonListener : EventSubscriber {
                     continue
                 }
 
-                val old = (mc.networkHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profile?.id]
+                val old = (mc.networkHandler!! as AccessorNetHandlerPlayClient).uuidToPlayerInfo[entry.profileId]
                 if (old != null && action == setOf(PlayerListS2CPacket.Action.ADD_PLAYER)) {
                     printDevMessage({ "player ${entry.text} already exists in the list but was added" }, "dungeonlistener")
                 }
@@ -387,7 +396,7 @@ object DungeonListener : EventSubscriber {
                 }
             }
         } else if (event.packet is EntitiesDestroyS2CPacket) {
-            event.packet.entityIds.map(mc.world!!::getEntityById).filter { it is PlayerEntity }.forEach { entity ->
+            event.packet.entityIds.mapNotNull(mc.world!!::getEntityById).filter { it is PlayerEntity }.forEach { entity ->
                 team[entity?.name?.string]?.player = null
             }
         }
