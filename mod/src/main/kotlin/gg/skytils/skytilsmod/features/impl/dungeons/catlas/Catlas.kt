@@ -187,7 +187,7 @@ object Catlas : EventSubscriber {
                 //$$ if (guess.icons.any { it.value.typeId == 1.toByte() }) {
                 //#else
                 val guess = FilledMapItem.getMapState(event.packet.mapId, world) ?: return
-                if (guess.decorations.any { it.type == MapDecorationTypes.PLAYER }) {
+                if (guess.decorations.any { it.type == MapDecorationTypes.FRAME }) {
                 //#endif
                     DungeonInfo.guessMapData = guess
                 }
