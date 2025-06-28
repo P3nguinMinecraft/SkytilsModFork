@@ -128,9 +128,7 @@ object RenderUtil {
         height: Int = 16
     ) {
         if (texture == null) return
-        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR)
-        DrawHelper.drawTexture(UMatrixStack.Compat.get(), buffer, texture, x.toDouble(), y.toDouble(), width = width.toDouble(), height = height.toDouble())
-        buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
+        DrawHelper.drawTexture(UMatrixStack.UNIT, SRenderPipelines.guiTexturePipeline, texture, x.toDouble(), y.toDouble(), width = width.toDouble(), height = height.toDouble())
     }
 
     fun draw3DLine(
@@ -523,12 +521,11 @@ object RenderUtil {
         )
 
         val sr = UResolution
-        val matrices = UMatrixStack.Compat.get()
-        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
+        val matrices = UMatrixStack.UNIT
 
         DrawHelper.drawTexture(
             matrices,
-            buffer,
+            SRenderPipelines.vignettePipeline,
             vignetteTexPath,
             0.0,
             0.0,
@@ -538,8 +535,6 @@ object RenderUtil {
             sr.scaledHeight.toDouble(),
             color = newColor
         )
-
-        buffer.build()?.drawAndClose(SRenderPipelines.vignettePipeline)
     }
 
     /*

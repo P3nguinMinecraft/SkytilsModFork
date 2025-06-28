@@ -123,14 +123,12 @@ object RenderUtils {
 
             if (CatlasConfig.mapVanillaMarker && (player.isOurMarker || name == localName)) {
                 matrices.push()
-                val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
-                DrawHelper.drawTexture(matrices, buffer, mapIcons,
+                DrawHelper.drawTexture(matrices, SRenderPipelines.guiTexturePipeline, mapIcons,
                     -6.0, -6.0,
                     0.0, 0.0,
                     12.0, 12.0,
                     12.0, 12.0
                 )
-                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
                 matrices.pop()
             } else {
                 // Render box behind the player head
@@ -150,13 +148,10 @@ object RenderUtils {
                 val scale = 1f - CatlasConfig.playerBorderPercentage
                 matrices.scale(scale, scale, scale)
 
-                val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
-
-                DrawHelper.drawTexture(matrices, buffer, player.skin, -6.0, -6.0, 8.0, 8.0, 12.0, 12.0, 64.0, 64.0)
+                DrawHelper.drawTexture(matrices, SRenderPipelines.guiTexturePipeline, player.skin, -6.0, -6.0, 8.0, 8.0, 12.0, 12.0, 64.0, 64.0)
                 if (player.renderHat) {
-                    DrawHelper.drawTexture(matrices, buffer, player.skin, -6.0, -6.0, 40.0, 8.0, 12.0, 12.0, 64.0, 64.0)
+                    DrawHelper.drawTexture(matrices, SRenderPipelines.guiTexturePipeline, player.skin, -6.0, -6.0, 40.0, 8.0, 12.0, 12.0, 64.0, 64.0)
                 }
-                buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline)
                 matrices.pop()
             }
 

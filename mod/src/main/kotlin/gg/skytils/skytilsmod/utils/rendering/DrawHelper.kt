@@ -21,11 +21,13 @@ package gg.skytils.skytilsmod.utils.rendering
 import com.mojang.blaze3d.systems.RenderSystem
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
+import gg.essential.universal.render.URenderPipeline
 import gg.essential.universal.vertex.UBufferBuilder
 import gg.skytils.skytilsmod.Skytils.mc
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorGuiContainer
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.render.OverlayTexture
+import net.minecraft.client.texture.GlTexture
 import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Colors
@@ -171,12 +173,18 @@ object DrawHelper {
 
 
     /**
-     * Writes a texture quad to the buffer. Draw must still be called manually.
-     * Buffer must be created with [gg.essential.universal.UGraphics.DrawMode.QUADS]
+     * Creates and writes a textured quad to a buffer..
+     * @param sprite the [Identifier] of the texture to draw
+     * @param x the x position to draw the texture at
+     * @param y the y position to draw the texture at
+     * @param u the u coordinate of the texture (default is 0.0)
+     * @param v the v coordinate of the texture (default is 0.0)
+     * @param width the width of the texture
+     * @param height the height of the texture
      */
     fun drawTexture(
         matrices: UMatrixStack,
-        buffer: UBufferBuilder,
+        pipeline: URenderPipeline,
         sprite: Identifier,
         x: Double,
         y: Double,
@@ -188,10 +196,11 @@ object DrawHelper {
         textureHeight: Double = height,
         color: Color = Color.WHITE
     ) {
+        val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
         UGraphics.bindTexture(0, sprite)
-        val abstractTexture = textureManager.getTexture(sprite)
-        abstractTexture.setFilter(false, false)
-        // RenderSystem.setShaderTexture(0, abstractTexture.glTexture)
+        val texture = textureManager.getTexture(sprite)
+        texture.setFilter(false, false)
+        val glTexture = texture.glTexture as GlTexture
         val x2 = x + width
         val y2 = y + height
         val u1 = u / textureWidth
@@ -202,6 +211,9 @@ object DrawHelper {
         buffer.pos(matrices, x, y2, 0.0).tex(u1, v2).color(color).endVertex()
         buffer.pos(matrices, x2, y2, 0.0).tex(u2, v2).color(color).endVertex()
         buffer.pos(matrices, x2, y, 0.0).tex(u2, v1).color(color).endVertex()
+        buffer.build()?.drawAndClose(pipeline) {
+            texture(0, glTexture.glId)
+        }
     }
 
     /**
