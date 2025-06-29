@@ -18,6 +18,7 @@
 
 package gg.skytils.event
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 private typealias Handler<T> = suspend (T) -> Unit
@@ -40,7 +41,8 @@ enum class EventPriority {
     };
 
     @PublishedApi
-    internal val handlers = mutableMapOf<Class<out Event>, MutableList<Handler<*>>>()
+    internal val handlers: MutableMap<Class<out Event>, MutableList<Handler<*>>>
+        = ConcurrentHashMap<Class<out Event>, MutableList<Handler<*>>>()
     internal abstract val next: EventPriority?
 
     @PublishedApi

@@ -45,9 +45,12 @@ inline fun <reified T : Event> on(priority: EventPriority = EventPriority.Normal
 
 suspend inline fun <reified T : Event> await(priority: EventPriority = EventPriority.Normal) =
     suspendCancellableCoroutine { coroutine ->
-        var deregister = { true }
-        deregister = priority.subscribe<T> { event ->
-            coroutine.resume(event)
+        val deregister = priority.subscribe<T> { event ->
+            if (coroutine.isActive) {
+                coroutine.resume(event)
+            }
+        }
+        coroutine.invokeOnCancellation {
             deregister()
         }
     }
