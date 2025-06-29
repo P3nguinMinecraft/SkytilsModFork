@@ -261,11 +261,11 @@ object CatlasElement : UIContainer() {
         }
     }
 
-    private fun renderPlayerHeads() {
+    private fun renderPlayerHeads(matrices: UMatrixStack) {
         if (DungeonTimer.bossEntryTime != null) return
         DungeonListener.team.forEach { (name, teammate) ->
             if (!teammate.dead || teammate.mapPlayer.isOurMarker) {
-                RenderUtils.drawPlayerHead(name, teammate.mapPlayer)
+                RenderUtils.drawPlayerHead(matrices, name, teammate.mapPlayer)
             }
         }
     }
@@ -337,7 +337,7 @@ object CatlasElement : UIContainer() {
             profiler.swap("text")
             renderText(matrixStack)
             profiler.swap("heads")
-            renderPlayerHeads()
+            renderPlayerHeads(matrixStack)
             profiler.pop()
 
             if (CatlasConfig.mapRotate) {

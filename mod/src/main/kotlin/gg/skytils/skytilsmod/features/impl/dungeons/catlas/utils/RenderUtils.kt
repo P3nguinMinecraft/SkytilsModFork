@@ -90,8 +90,7 @@ object RenderUtils {
         matrices.pop()
     }
 
-    fun drawPlayerHead(name: String, player: DungeonMapPlayer) {
-        val matrices = UMatrixStack.Compat.get()
+    fun drawPlayerHead(matrices: UMatrixStack, name: String, player: DungeonMapPlayer) {
         try {
             matrices.push()
 
