@@ -67,7 +67,7 @@ public class MixinRendererLivingEntity
     private void onRender(Entity entity, double x, double y, double z, float tickProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci, @Local EntityRenderer<T, S> renderer) {
     //#endif
         // the Ender Dragon is not a LivingEntityRenderer, despite being a LivingEntity
-        if (!(renderer instanceof LivingEntityRenderer<?,?,?>)) return;
+        if (!(entity instanceof LivingEntity)) return;
         Entity viewEntity = MinecraftClient.getInstance().getCameraEntity();
         if (viewEntity == null) return;
         double renderX = entity.lastRenderX + (entity.getPos().x - entity.lastRenderX - viewEntity.getPos().x + viewEntity.lastRenderX) * tickProgress - viewEntity.lastRenderX;
@@ -91,7 +91,7 @@ public class MixinRendererLivingEntity
                     //#if MC<12100
                     //$$ (LivingEntityRenderer<T, M>) (Object) this,
                     //#else
-                    (LivingEntityRenderer<T, S, M>) renderer,
+                    renderer,
                     //#endif
                     //#endif
                     renderX, renderY, renderZ, tickProgress);

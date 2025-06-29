@@ -20,6 +20,7 @@ package gg.skytils.event.impl.render
 
 import gg.skytils.event.CancellableEvent
 import gg.skytils.event.Event
+import net.minecraft.client.render.entity.EntityRenderer
 import net.minecraft.client.render.entity.LivingEntityRenderer
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
@@ -53,7 +54,7 @@ class LivingEntityPreRenderEvent
         //#if MC<12100
         //$$ val renderer: LivingEntityRenderer<T, M>,
         //#else
-        val renderer: LivingEntityRenderer<T, S, M>,
+        val renderer: EntityRenderer<T, S>,
         //#endif
         //#endif
         val x: Double, val y: Double, val z: Double, val partialTicks: Float
