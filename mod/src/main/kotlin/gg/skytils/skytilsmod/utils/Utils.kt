@@ -212,12 +212,7 @@ object Utils {
     fun getKeyDisplayStringSafe(keyCode: Int): String =
         if (keyCode < 0) {
             "Button ${keyCode + 101}"
-        } else if (keyCode < 256) {
-            UKeyboard.getKeyName(keyCode) ?:
-                if (keyCode == 0) "None" else "Key $keyCode"
-        } else {
-            "%c".format((keyCode - 256).toChar()).uppercase()
-        }
+        } else UKeyboard.getKeyName(keyCode) ?: if (keyCode == 0) "None" else "Key $keyCode"
 }
 
 inline val Box.minVec: Vec3d

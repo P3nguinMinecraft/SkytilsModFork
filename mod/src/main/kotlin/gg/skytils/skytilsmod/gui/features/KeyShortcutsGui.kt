@@ -162,7 +162,7 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
                 if (modifiers != null) KeyShortcuts.Modifiers.fromUCraft(modifiers)
                 else KeyShortcuts.Modifiers.getPressed()
             when {
-                keyCode == 1 -> {
+                keyCode == UKeyboard.KEY_ESCAPE -> {
                     clickedButton!!.keyCode = 0
                     clickedButton!!.modifiers = emptyList()
                 }
@@ -173,7 +173,12 @@ class KeyShortcutsGui : WindowScreen(ElementaVersion.V2, newGuiScale = 2), Reope
                 }
 
                 typedChar.code > 0 -> {
-                    clickedButton!!.keyCode = typedChar.code + 256
+                    clickedButton!!.keyCode =
+                        //#if MC==10809
+                        typedChar.code + 256
+                        //#else
+                        typedChar.uppercaseChar().code
+                        //#endif
                     clickedButton!!.modifiers = extra
                 }
             }

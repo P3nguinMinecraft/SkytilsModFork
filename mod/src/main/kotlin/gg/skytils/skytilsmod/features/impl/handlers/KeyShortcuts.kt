@@ -57,7 +57,7 @@ object KeyShortcuts : EventSubscriber, PersistentSave(File(Skytils.modDir, "keys
     private fun handleInput(keyCode: Int) {
         val modifiers = Modifiers.getBitfield(Modifiers.getPressed())
         for (s in shortcuts) {
-            if (s.keyCode == 0 || !s.enabled) continue
+            if (s.keyCode == 0 || !s.enabled || s.keyCode == UKeyboard.KEY_NONE) continue
             if (s.keyCode == keyCode && s.modifiers == modifiers) {
                 if (s.message.startsWith("/") && runClientCommand(
                         s.message
