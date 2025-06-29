@@ -27,6 +27,7 @@ import gg.skytils.skytilsmod._event.MainThreadPacketReceiveEvent
 import gg.skytils.skytilsmod._event.PacketSendEvent
 import gg.skytils.skytilsmod.features.impl.trackers.Tracker
 import gg.skytils.skytilsmod.utils.*
+import gg.skytils.skytilsmod.utils.rendering.DrawHelper
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
@@ -75,67 +76,53 @@ object RelicWaypoints : Tracker("found_spiders_den_relics"), EventSubscriber {
         }
     }
 
+    fun drawRelicWaypoint(matrixStack: UMatrixStack, blockPos: BlockPos, color: Color, text: String, tickDelta: Float) {
+        val x = blockPos.x
+        val y = blockPos.y
+        val z = blockPos.z
+        val distSq = x * x + y * y + z * z
+        matrixStack.push()
+        DrawHelper.setupCameraTransformations(matrixStack)
+        matrixStack.translate(x.toFloat(), y.toFloat(), z.toFloat())
+        GlStateManager._disableDepthTest()
+        GlStateManager._disableCull()
+        RenderUtil.drawFilledBoundingBox(
+            matrixStack,
+            cube,
+            color,
+            1f
+        )
+        matrixStack.push()
+        matrixStack.translate(0f, 1f, 0f)
+        if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(
+            matrixStack,
+            color.rgb,
+            tickDelta
+        )
+        matrixStack.pop()
+        matrixStack.pop()
+        GlStateManager._disableDepthTest()
+        GlStateManager._disableCull()
+        RenderUtil.renderWaypointText(text, blockPos, tickDelta, matrixStack)
+        GlStateManager._enableDepthTest()
+        GlStateManager._enableCull()
+    }
+
+    private val cube = Box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0).expandBlock()
     fun onWorldRender(event: WorldDrawEvent) {
         if (!Utils.inSkyblock) return
         if (SBInfo.mode != SkyblockIsland.SpiderDen.mode) return
-        val (viewerX, viewerY, viewerZ) = RenderUtil.getViewerPos(event.partialTicks)
         val matrixStack = UMatrixStack()
 
         if (Skytils.config.relicWaypoints) {
             for (relic in relicLocations) {
                 if (foundRelics.contains(relic)) continue
-                val x = relic.x - viewerX
-                val y = relic.y - viewerY
-                val z = relic.z - viewerZ
-                val distSq = x * x + y * y + z * z
-                GlStateManager._disableDepthTest()
-                GlStateManager._disableCull()
-                RenderUtil.drawFilledBoundingBox(
-                    matrixStack,
-                    Box(x, y, z, x + 1, y + 1, z + 1),
-                    Color(114, 245, 82),
-                    1f
-                )
-                matrixStack.push()
-                matrixStack.translate(x, y+1, z)
-                if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(
-                    matrixStack,
-                    Color(114, 245, 82).rgb,
-                    event.partialTicks
-                )
-                matrixStack.pop()
-                RenderUtil.renderWaypointText("Relic", relic, event.partialTicks, matrixStack)
-                // disable lighting
-                GlStateManager._enableDepthTest()
-                GlStateManager._enableCull()
+                drawRelicWaypoint(matrixStack, relic, Color(114, 245, 82), "Relic", event.partialTicks)
             }
         }
         if (Skytils.config.rareRelicFinder) {
             for (relic in rareRelicLocations) {
-                val x = relic.x - viewerX
-                val y = relic.y - viewerY
-                val z = relic.z - viewerZ
-                val distSq = x * x + y * y + z * z
-                GlStateManager._disableDepthTest()
-                GlStateManager._disableCull()
-                RenderUtil.drawFilledBoundingBox(
-                    matrixStack,
-                    Box(x, y, z, x + 1, y + 1, z + 1),
-                    Color(152, 41, 222),
-                    1f
-                )
-                matrixStack.push()
-                matrixStack.translate(x, y+1, z)
-                if (distSq > 5 * 5) RenderUtil.renderBeaconBeam(
-                    matrixStack,
-                    Color(152, 41, 222).rgb,
-                    event.partialTicks
-                )
-                matrixStack.pop()
-                RenderUtil.renderWaypointText("Rare Relic", relic, event.partialTicks, matrixStack)
-                // disable lighting
-                GlStateManager._enableDepthTest()
-                GlStateManager._enableCull()
+                drawRelicWaypoint(matrixStack, relic, Color(152, 41, 222), "Rare Relic", event.partialTicks)
             }
         }
     }
