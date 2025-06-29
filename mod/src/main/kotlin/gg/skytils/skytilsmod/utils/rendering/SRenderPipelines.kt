@@ -39,6 +39,13 @@ object SRenderPipelines {
         depthTest = URenderPipeline.DepthTest.LessOrEqual
     }.build()
 
+    val rarityPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/rarity",
+        UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR
+    ).apply {
+        blendState = BlendState.ALPHA
+    }.build()
+
+
     val linesPipeline = URenderPipeline.builderWithDefaultShader("skytils:pipeline/lines",
         UGraphics.DrawMode.LINES, UGraphics.CommonVertexFormats.POSITION_COLOR
     ).apply {

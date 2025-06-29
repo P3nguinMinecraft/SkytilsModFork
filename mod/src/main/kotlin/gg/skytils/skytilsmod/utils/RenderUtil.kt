@@ -288,14 +288,16 @@ object RenderUtil {
         val color = rarity.color.withAlpha(alpha)
         val tex = (mc.textureManager.getTexture(texture).glTexture as GlTexture)
 
+        color.bindColor()
         val buffer = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
         buffer.pos(matrixStack, 0.0, 0.0, 0.0).tex(0.0, 0.0).color(color).endVertex()
         buffer.pos(matrixStack, 16.0, 0.0, 0.0).tex(1.0, 0.0).color(color).endVertex()
         buffer.pos(matrixStack, 16.0, 16.0, 0.0).tex(1.0, 1.0).color(color).endVertex()
         buffer.pos(matrixStack, 0.0, 16.0, 0.0).tex(0.0, 1.0).color(color).endVertex()
-        buffer.build()?.drawAndClose(SRenderPipelines.guiTexturePipeline) {
+        buffer.build()?.drawAndClose(SRenderPipelines.rarityPipeline) {
             texture(0, tex.glId)
         }
+        UGraphics.color4f(1f, 1f, 1f, 1f)
         matrixStack.pop()
     }
 
