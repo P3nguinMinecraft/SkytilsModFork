@@ -715,21 +715,22 @@ object DungeonFeatures : EventSubscriber {
     }
 
     object DungeonSecretDisplay : HudElement("Dungeon Secret Display", x = 0.05, y = 0.4) {
-        override val toggleState: State<Boolean>
-            get() = Skytils.config.dungeonSecretDisplay
+        override val toggleState: State<Boolean> = Skytils.config.dungeonSecretDisplay
 
         val secretsState = mutableStateOf(-1)
         val maxSecretsState = mutableStateOf(-1)
 
         override fun LayoutScope.render() {
-            text({ "Secrets${secretsState()}/${maxSecretsState()}"}, Modifier.color {
-                val percentage = secretsState()/maxSecretsState()
-                when {
-                    percentage < 0.5 -> Color.RED
-                    percentage < 0.75 -> Color.YELLOW
-                    else -> Color.GREEN
-                }
-            })
+            if_(SBInfo.dungeonsState) {
+                text({ "Secrets${secretsState()}/${maxSecretsState()}"}, Modifier.color {
+                    val percentage = secretsState()/maxSecretsState()
+                    when {
+                        percentage < 0.5 -> Color.RED
+                        percentage < 0.75 -> Color.YELLOW
+                        else -> Color.GREEN
+                    }
+                })
+            }
         }
 
         override fun LayoutScope.demoRender() {
