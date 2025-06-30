@@ -21,5 +21,5 @@ package gg.skytils.skytilsmod.mixins.extensions
 import net.minecraft.text.Text
 
 interface ExtensionVisibleChatLine {
-    var fullComponent: Text?
+    var skytilsFullComponent: Text?
 }

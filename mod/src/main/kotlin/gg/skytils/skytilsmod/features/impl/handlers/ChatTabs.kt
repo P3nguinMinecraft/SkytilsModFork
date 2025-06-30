@@ -72,10 +72,10 @@ object ChatTabs : EventSubscriber {
         // FIXME: Check if this value is accurate
         val style = event.packet.unsignedContent?.style ?: return
         style as ExtensionChatStyle
-        if (style.chatTabType == null) {
+        if (style.skytilsChatTabType == null) {
             val cc = event.packet.unsignedContent ?: return
             val formatted = cc.formattedText
-            style.chatTabType = ChatTab.entries.filter { it.isValid(cc, formatted) }.toTypedArray()
+            style.skytilsChatTabType = ChatTab.entries.filter { it.isValid(cc, formatted) }.toTypedArray()
         }
     }
 
@@ -89,11 +89,11 @@ object ChatTabs : EventSubscriber {
         if (!Utils.isOnHypixel || !Skytils.config.chatTabs) return true
         val style = component.style
         style as ExtensionChatStyle
-        if (style.chatTabType == null) {
-            style.chatTabType =
+        if (style.skytilsChatTabType == null) {
+            style.skytilsChatTabType =
                 ChatTab.entries.filter { it.isValid(component, component.formattedText) }.toTypedArray()
         }
-        return style.chatTabType!!.contains(selectedTab)
+        return style.skytilsChatTabType!!.contains(selectedTab)
     }
 
     fun onOpenGui(event: ScreenOpenEvent) {
@@ -128,16 +128,16 @@ object ChatTabs : EventSubscriber {
             if (event.button != 0 && event.button != 1) return
             val chatLine = hoveredChatLine ?: return
             if (event.button == 0) {
-                val component = (chatLine as ExtensionVisibleChatLine).fullComponent ?: chatLine.content.asText()
+                val component = (chatLine as ExtensionVisibleChatLine).skytilsFullComponent ?: chatLine.content.asText()
                 UDesktop.setClipboardString(component.formattedText)
                 printDevMessage("Copied formatted message to clipboard!", "chat")
             } else {
                 val component =
                     chat.chatLines.find {
-                        it.content.string == ((chatLine as ExtensionVisibleChatLine).fullComponent?.string
+                        it.content.string == ((chatLine as ExtensionVisibleChatLine).skytilsFullComponent?.string
                             ?: chatLine.content.string)
                     }?.content
-                        ?: ((chatLine as ExtensionVisibleChatLine).fullComponent
+                        ?: ((chatLine as ExtensionVisibleChatLine).skytilsFullComponent
                             ?: chatLine.content.asText())
 
                 printDevMessage("Copied serialized message to clipboard!", "chat")
@@ -151,7 +151,7 @@ object ChatTabs : EventSubscriber {
         } else if (Skytils.config.copyChat) {
             if (event.button != 0) return
             val chatLine = hoveredChatLine ?: return
-            val string = (if (UKeyboard.isCtrlKeyDown()) (chatLine as ExtensionVisibleChatLine).fullComponent?.string
+            val string = (if (UKeyboard.isCtrlKeyDown()) (chatLine as ExtensionVisibleChatLine).skytilsFullComponent?.string
                 ?: chatLine.content.string else if (UKeyboard.isShiftKeyDown()) chatLine.content.string else return).stripControlCodes()
             UDesktop.setClipboardString(string)
             Notifications

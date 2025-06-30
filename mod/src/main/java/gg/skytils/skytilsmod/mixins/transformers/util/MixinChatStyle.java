@@ -31,13 +31,13 @@ public abstract class MixinChatStyle implements ExtensionChatStyle {
 
     @Unique
     @Override
-    public ChatTabs.ChatTab[] getChatTabType() {
+    public ChatTabs.ChatTab[] getSkytilsChatTabType() {
         return chatTab;
     }
 
     @Unique
     @Override
-    public void setChatTabType(ChatTabs.ChatTab[] type) {
+    public void setSkytilsChatTabType(ChatTabs.ChatTab[] type) {
         chatTab = type;
     }
 }

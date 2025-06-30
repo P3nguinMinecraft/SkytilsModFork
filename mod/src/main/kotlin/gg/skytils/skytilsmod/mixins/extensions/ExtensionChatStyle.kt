@@ -21,5 +21,5 @@ package gg.skytils.skytilsmod.mixins.extensions
 import gg.skytils.skytilsmod.features.impl.handlers.ChatTabs
 
 interface ExtensionChatStyle {
-    var chatTabType: Array<ChatTabs.ChatTab>?
+    var skytilsChatTabType: Array<ChatTabs.ChatTab>?
 }

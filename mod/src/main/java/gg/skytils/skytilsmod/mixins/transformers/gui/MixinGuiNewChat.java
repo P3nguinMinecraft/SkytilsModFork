@@ -88,7 +88,7 @@ public abstract class MixinGuiNewChat {
     private ChatHudLine.Visible addVisibleMessage(int creationTick, OrderedText orderedText, MessageIndicator messageIndicator, boolean endOfEntry, Operation<ChatHudLine.Visible> original, @Local(argsOnly = true) ChatHudLine message) {
         ChatHudLine.Visible chatLine = original.call(creationTick, orderedText, messageIndicator, endOfEntry);
 
-        ((ExtensionVisibleChatLine) (Object) chatLine).setFullComponent(message.content());
+        ((ExtensionVisibleChatLine) (Object) chatLine).setSkytilsFullComponent(message.content());
 
         return chatLine;
     }

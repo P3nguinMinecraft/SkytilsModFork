@@ -29,16 +29,16 @@ import org.spongepowered.asm.mixin.Unique;
 public class MixinChatLine implements ExtensionVisibleChatLine {
 
     @Unique
-    private Text fullComponent = null;
+    private Text skytils$fullComponent = null;
 
     @NotNull
     @Override
-    public Text getFullComponent() {
-        return fullComponent;
+    public Text getSkytilsFullComponent() {
+        return skytils$fullComponent;
     }
 
     @Override
-    public void setFullComponent(@NotNull Text fullComponent) {
-        this.fullComponent = fullComponent;
+    public void setSkytilsFullComponent(@NotNull Text fullComponent) {
+        this.skytils$fullComponent = fullComponent;
     }
 }
