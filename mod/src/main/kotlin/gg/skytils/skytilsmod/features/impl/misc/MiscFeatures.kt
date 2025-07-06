@@ -104,6 +104,7 @@ object MiscFeatures : EventSubscriber {
     private val golemSpawnTimeState: MutableState<Instant?> = mutableStateOf(null)
     val playerInRangeCountState = mutableStateOf(0)
     val placedEyesState = mutableStateOf(0)
+    val dayState = mutableStateOf("Day -1")
     private var lastGLeaveCommand = 0L
     private var lastCoopAddCommand = 0L
     private val cheapCoins = setOf(
@@ -450,6 +451,9 @@ object MiscFeatures : EventSubscriber {
                 }
             }
         }
+
+        val day = mc.world?.timeOfDay?.div(24000) ?: 0
+        dayState.set("Day $day")
     }
 
     fun onRenderItemOverlayPost(event: ItemOverlayPostRenderEvent) {
@@ -589,10 +593,6 @@ object MiscFeatures : EventSubscriber {
     class WorldAgeHud : HudElement("World Age Display", 50f, 60f) {
         override val toggleState: State<Boolean> = Skytils.config.showWorldAgeState
         //TODO: Properly update state using mixin
-        val dayState: State<String> = State {
-            val day = mc.world?.realWorldTime?.div(24000)
-            "Day ${day}"
-        }
 
         val isUsingBaldTimeChanger = State {
             isTimechangerLoaded()
