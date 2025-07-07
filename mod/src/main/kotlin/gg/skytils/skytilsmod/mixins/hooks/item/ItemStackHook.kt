@@ -60,7 +60,7 @@ fun showEnchantmentGlint(stack: Any, cir: CallbackInfoReturnable<Boolean>) {
 }
 
 fun modifyDisplayName(displayName: Text): Text {
-    if (!Utils.inSkyblock || Skytils.config.starDisplayType == 0 || !displayName.contains(Text.literal(star))) return displayName
+    if (!Utils.inSkyblock || Skytils.config.starDisplayType == 0 || !displayName.string.contains(star)) return displayName
 
     try {
         val formattedText = displayName.formattedText
