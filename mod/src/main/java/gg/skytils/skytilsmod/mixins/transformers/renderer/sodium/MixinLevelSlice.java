@@ -19,17 +19,21 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer.sodium;
 
 import gg.skytils.skytilsmod.mixins.hooks.renderer.BlockRendererDispatcherHookKt;
-import net.caffeinemc.mods.sodium.client.world.LevelSlice;
 import net.minecraft.block.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(LevelSlice.class)
+@Pseudo
+@Mixin(targets = "net.caffeinemc.mods.sodium.client.world.LevelSlice")
 public class MixinLevelSlice {
     @Inject(method = "getBlockState(III)Lnet/minecraft/block/BlockState;", at = @At("RETURN"), cancellable = true)
     private void modifyBlockState(int blockX, int blockY, int blockZ, CallbackInfoReturnable<BlockState> cir){
-        cir.setReturnValue(BlockRendererDispatcherHookKt.modifyBlockState(blockX, blockY, blockZ));
+        BlockState state = BlockRendererDispatcherHookKt.modifyBlockState(blockX, blockY, blockZ);
+        if (!cir.getReturnValue().equals(state)){
+         cir.setReturnValue(state);
+        }
     }
 }
