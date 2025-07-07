@@ -24,9 +24,12 @@ import gg.skytils.skytilsmod.utils.SkyblockIsland
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.block.BlockRenderManager
 import net.minecraft.client.render.chunk.ChunkRendererRegion
 import net.minecraft.util.math.BlockPos
+
+private var client = MinecraftClient.getInstance()
 
 fun modifyBlockState(
     blockRenderManager: BlockRenderManager,
@@ -34,6 +37,16 @@ fun modifyBlockState(
     pos: BlockPos,
     original: BlockState
 ): BlockState {
+    return modifyBlockState(pos, original)
+}
+
+fun modifyBlockState(blockX: Int, blockY: Int, blockZ: Int): BlockState {
+    val pos = BlockPos(blockX, blockY, blockZ)
+    val original = client.world?.getBlockState(pos) ?: Blocks.AIR.defaultState
+    return modifyBlockState(pos, original)
+}
+
+private fun modifyBlockState(pos: BlockPos, original: BlockState): BlockState {
     if (!Utils.inSkyblock) return original
     var returnState = original
     if (SBInfo.mode == SkyblockIsland.DwarvenMines.mode) {
