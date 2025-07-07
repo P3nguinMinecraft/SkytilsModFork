@@ -82,11 +82,6 @@ public abstract class MixinEntityLivingBase extends Entity implements ExtensionE
     //#endif
     }
 
-    @Inject(method = "isBaby", at = @At("HEAD"), cancellable = true)
-    private void setChildState(CallbackInfoReturnable<Boolean> cir) {
-        hook.isChild(cir);
-    }
-
     @NotNull
     @Override
     public EntityLivingBaseHook getSkytilsHook() {

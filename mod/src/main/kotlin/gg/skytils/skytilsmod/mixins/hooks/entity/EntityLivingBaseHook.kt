@@ -43,16 +43,6 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
     var colorMultiplier: Color? = null
     var masterDragonType: WitherKingDragons? = null
 
-    val isBreefing by lazy {
-        entity.name.string == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(
-            100
-        ) < 3)
-    }
-
-    val isSmol by lazy {
-        Utils.inSkyblock && entity is PlayerEntity && (SuperSecretSettings.smolPeople || isBreefing)
-    }
-
     //#if MC>12000
     fun modifyPotionActive(statusEffect: StatusEffect, cir: CallbackInfoReturnable<Boolean>) {
         if (!Utils.inSkyblock) return
@@ -78,8 +68,4 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
     //$$     return !Skytils.config.hideDeathParticles || !Utils.inSkyblock || particleType != ParticleTypes.EXPLOSION
     //$$ }
     //#endif
-
-    fun isChild(cir: CallbackInfoReturnable<Boolean>) {
-        cir.returnValue = isSmol
-    }
 }
