@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+//#if MC>12000
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 import gg.skytils.skytilsmod.mixins.extensions.ExtensionPlayerEntityRenderer;
@@ -44,3 +44,4 @@ public class MixinPlayerEntityRenderer implements ExtensionPlayerEntityRenderer 
         return hook;
     }
 }
+//#endif

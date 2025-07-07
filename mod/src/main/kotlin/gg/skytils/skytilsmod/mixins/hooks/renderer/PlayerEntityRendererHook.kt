@@ -17,7 +17,7 @@
  */
 
 package gg.skytils.skytilsmod.mixins.hooks.renderer
-
+//#if MC>12000
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState
@@ -36,3 +36,4 @@ class PlayerEntityRendererHook {
         }
     }
 }
+//#endif
