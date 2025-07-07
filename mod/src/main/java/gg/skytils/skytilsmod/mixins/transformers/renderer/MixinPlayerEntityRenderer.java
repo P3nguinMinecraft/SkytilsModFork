@@ -18,7 +18,6 @@
 package gg.skytils.skytilsmod.mixins.transformers.renderer;
 
 //#if MC>12000
-import gg.skytils.skytilsmod.mixins.extensions.ExtensionPlayerEntityRenderer;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.PlayerEntityRendererHook;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
@@ -30,18 +29,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntityRenderer.class)
-public class MixinPlayerEntityRenderer implements ExtensionPlayerEntityRenderer {
+public class MixinPlayerEntityRenderer {
     private static final PlayerEntityRendererHook hook = new PlayerEntityRendererHook();
 
     @Inject(method = "scale(Lnet/minecraft/client/render/entity/state/PlayerEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At("HEAD"))
     private static void doScale(PlayerEntityRenderState playerEntityRenderState, MatrixStack matrixStack, CallbackInfo ci){
         hook.smol(playerEntityRenderState, matrixStack);
-    }
-
-    @NotNull
-    @Override
-    public PlayerEntityRendererHook getSkytilsHook() {
-        return hook;
     }
 }
 //#endif
