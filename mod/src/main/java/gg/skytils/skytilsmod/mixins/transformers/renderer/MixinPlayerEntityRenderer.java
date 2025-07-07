@@ -30,11 +30,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntityRenderer.class)
 public class MixinPlayerEntityRenderer {
-    private static final PlayerEntityRendererHook hook = new PlayerEntityRendererHook();
-
     @Inject(method = "scale(Lnet/minecraft/client/render/entity/state/PlayerEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At("HEAD"))
     private static void doScale(PlayerEntityRenderState playerEntityRenderState, MatrixStack matrixStack, CallbackInfo ci){
-        hook.smol(playerEntityRenderState, matrixStack);
+        if (PlayerEntityRendererHook.isSmol(playerEntityRenderState)){
+            matrixStack.scale(0.5f, 0.5f, 0.5f);
+        }
     }
 }
 //#endif

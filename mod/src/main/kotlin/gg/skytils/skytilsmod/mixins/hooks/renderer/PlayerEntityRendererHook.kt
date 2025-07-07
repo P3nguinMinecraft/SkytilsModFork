@@ -24,16 +24,14 @@ import net.minecraft.client.render.entity.state.PlayerEntityRenderState
 import net.minecraft.client.util.math.MatrixStack
 import kotlin.random.Random
 
-class PlayerEntityRendererHook {
+object PlayerEntityRendererHook {
     fun isBreefing(state: PlayerEntityRenderState): Boolean
         = state.name == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(
             100
         ) < 3)
 
-    fun smol(state: PlayerEntityRenderState, ms: MatrixStack) {
-        if (Utils.inSkyblock && (SuperSecretSettings.smolPeople || isBreefing(state))){
-            ms.scale(0.5f, 0.5f, 0.5f)
-        }
-    }
+    @JvmStatic
+    fun isSmol(state: PlayerEntityRenderState): Boolean
+        = Utils.inSkyblock && (SuperSecretSettings.smolPeople || isBreefing(state))
 }
 //#endif
