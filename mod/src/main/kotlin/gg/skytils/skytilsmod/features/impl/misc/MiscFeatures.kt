@@ -453,7 +453,7 @@ object MiscFeatures : EventSubscriber {
         }
 
         val day = mc.world?.timeOfDay?.div(24000)?.toInt() ?: -1
-        if (dayState.getUntracked() != day) dayState.set(day)
+        dayState.set(day)
     }
 
     fun onRenderItemOverlayPost(event: ItemOverlayPostRenderEvent) {
