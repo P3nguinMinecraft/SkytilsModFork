@@ -601,7 +601,7 @@ object MiscFeatures : EventSubscriber {
             if_(isUsingBaldTimeChanger) {
                 text("Incompatible Time Changer detected.")
             } `else` {
-                text("Day $dayState")
+                text({ "Day ${dayState()}" })
             }
         }
 
