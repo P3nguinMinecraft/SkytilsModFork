@@ -60,14 +60,7 @@ open class SkytilsMixinPlugin : IMixinConfigPlugin {
     override fun acceptTargets(myTargets: MutableSet<String>, otherTargets: Set<String>) {
     }
 
-    override fun getMixins(): List<String>? {
-        val mixins = mutableListOf<String>()
-        if (findSodium()) {
-            println("Sodium detected, loading Sodium mixins")
-            mixins.add("renderer.sodium.MixinLevelSlice") // add all sodium-specific mixin classes here
-        }
-        return mixins
-    }
+    override fun getMixins(): List<String>? = null
 
     override fun preApply(
         targetClassName: String,
@@ -83,14 +76,5 @@ open class SkytilsMixinPlugin : IMixinConfigPlugin {
         mixinClassName: String,
         mixinInfo: IMixinInfo?
     ) {
-    }
-
-    private fun findSodium(): Boolean {
-        return try {
-            Class.forName("net.caffeinemc.mods.sodium.client.SodiumClientMod")
-            true
-        } catch (e: ClassNotFoundException) {
-            false
-        }
     }
 }

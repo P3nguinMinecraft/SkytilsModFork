@@ -51,11 +51,6 @@ repositories {
         }
     }
     if (isLegacyFabric) maven("https://repo.legacyfabric.net/repository/legacyfabric/")
-    if (platform.isFabric && !isLegacyFabric) {
-        flatDir {
-            dirs("libs") // mod/versions/1.21.5-fabric/libs for sodium dependency
-        }
-    }
 }
 
 loom {
@@ -208,7 +203,6 @@ dependencies {
         include("org.incendo:cloud-fabric:2.0.0-beta.10")
         include(implementation("org.incendo:cloud-annotations:2.0.0")!!)
         modLocalRuntime("net.fabricmc:fabric-language-kotlin:1.13.3+kotlin.2.1.21")
-        modCompileOnly(":sodium-fabric-0.6.13+mc1.21.5")
     }
     annotationProcessor(
         include(implementation("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0") { excludeKotlin() })!!
