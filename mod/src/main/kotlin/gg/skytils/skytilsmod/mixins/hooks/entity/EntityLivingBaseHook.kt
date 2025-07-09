@@ -43,7 +43,8 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
     var colorMultiplier: Color? = null
     var masterDragonType: WitherKingDragons? = null
 
-    //#if MC==10809
+    //#if MC>12000
+    //#else
     //$$  val isBreefing by lazy {
     //$$      entity.name.string == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(
     //$$          100
@@ -81,7 +82,8 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
     //$$ }
     //#endif
 
-    //#if MC==10809
+    //#if MC>12000
+    //#else
     //$$fun isChild(cir: CallbackInfoReturnable<Boolean>) {
     //$$    cir.returnValue = isSmol
     //$$}

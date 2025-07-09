@@ -82,7 +82,8 @@ public abstract class MixinEntityLivingBase extends Entity implements ExtensionE
     //#endif
     }
 
-    //#if MC==10809
+    //#if MC>12000
+    //#else
     //$$ @Inject(method = "isBaby", at = @At("HEAD"), cancellable = true)
     //$$ private void setChildState(CallbackInfoReturnable<Boolean> cir) {
     //$$     hook.isChild(cir);
