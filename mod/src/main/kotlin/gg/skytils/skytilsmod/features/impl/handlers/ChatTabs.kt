@@ -79,11 +79,13 @@ object ChatTabs : EventSubscriber {
         }
     }
 
-    @JvmStatic
-    fun setBGColor(origColor: Int, line: ChatHudLine): Int {
-        if (line != hoveredChatLine) return origColor
-        return RenderUtil.mixColors(Color(origColor), Color.RED).rgb
-    }
+    //#if MC==10809
+    //$$ @JvmStatic
+    //$$ fun setBGColor(origColor: Int, line: ChatHudLine): Int {
+    //$$     if (line != hoveredChatLine) return origColor
+    //$$     return RenderUtil.mixColors(Color(origColor), Color.RED).rgb
+    //$$ }
+    //#endif
 
     fun shouldAllow(component: Text): Boolean {
         if (!Utils.isOnHypixel || !Skytils.config.chatTabs) return true
