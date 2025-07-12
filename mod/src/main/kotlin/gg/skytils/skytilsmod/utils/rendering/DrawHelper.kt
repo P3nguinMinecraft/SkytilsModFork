@@ -71,7 +71,7 @@ object DrawHelper {
      * @param aboveItems If true, the Z-level will be set to render above items.
      */
     fun setupContainerScreenTransformations(matrices: UMatrixStack, aboveItems: Boolean = false) {
-        val screen = mc.currentScreen as? AccessorGuiContainer ?: error("Current screen does not implement AccessorGuiContainer")
+        val screen = mc.currentScreen as? AccessorGuiContainer ?: return
         matrices.translate(screen.guiLeft.toFloat(), screen.guiTop.toFloat(), 0f)
         if (aboveItems) {
             matrices.translate(0f, 0f, 100f + 150f + 1f)
