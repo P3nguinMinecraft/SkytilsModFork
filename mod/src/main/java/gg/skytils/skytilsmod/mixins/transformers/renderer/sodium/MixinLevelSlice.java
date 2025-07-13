@@ -18,22 +18,22 @@
 
 package gg.skytils.skytilsmod.mixins.transformers.renderer.sodium;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import gg.skytils.skytilsmod.mixins.hooks.renderer.BlockRendererDispatcherHookKt;
 import net.minecraft.block.BlockState;
+import net.minecraft.util.math.BlockPos;
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Pseudo
 @Mixin(targets = "net.caffeinemc.mods.sodium.client.world.LevelSlice")
 public class MixinLevelSlice {
-    @Inject(method = "getBlockState(III)Lnet/minecraft/block/BlockState;", at = @At("RETURN"), cancellable = true)
-    private void modifyBlockState(int blockX, int blockY, int blockZ, CallbackInfoReturnable<BlockState> cir){
-        BlockState state = BlockRendererDispatcherHookKt.modifyBlockState(blockX, blockY, blockZ);
-        if (!cir.getReturnValue().equals(state)){
-         cir.setReturnValue(state);
-        }
+    @Dynamic
+    @ModifyReturnValue(method = "getBlockState(III)Lnet/minecraft/block/BlockState;", at = @At("RETURN"))
+    private BlockState modifyBlockState(BlockState original, @Local(argsOnly = true) int blockX, @Local(argsOnly = true) int blockY, @Local(argsOnly = true) int blockZ){
+        return BlockRendererDispatcherHookKt.modifyBlockState(new BlockPos(blockX, blockY, blockZ), original);
     }
 }
