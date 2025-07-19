@@ -635,8 +635,11 @@ object ItemFeatures : EventSubscriber {
                         UGraphics.drawString(matrixStack, prefix, 0f, 0f, Color.WHITE.rgb, false)
                         matrixStack.pop()
                     }
-                    if (Skytils.config.showEnchantedBookTier) stackTip =
-                        enchantments.getInt(name).toString()
+                    if (Skytils.config.showEnchantedBookTier) {
+                        enchantments.getInt(name).getOrNull()?.toString()?.let {
+                            stackTip = it
+                        }
+                    }
                 }
             } else if (Skytils.config.showHeadFloorNumber && item.item === Items.PLAYER_HEAD && headPattern.matches(
                     itemId ?: ""
