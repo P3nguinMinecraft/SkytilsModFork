@@ -123,9 +123,9 @@ object GuiManager : PersistentSave(File(Skytils.modDir, "guipositions.json")), E
         //#endif
         profiler.push("SkytilsHUD")
         profiler.push("Toasts")
-        gui.draw(UMatrixStack.Compat.get())
+        gui.draw(UMatrixStack())
         profiler.swap("Hud")
-        hud.draw(UMatrixStack.Compat.get())
+        hud.draw(UMatrixStack())
         profiler.swap("Titles")
         renderTitles()
         profiler.pop()
