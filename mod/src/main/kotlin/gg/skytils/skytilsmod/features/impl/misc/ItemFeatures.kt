@@ -72,6 +72,8 @@ import gg.skytils.skytilsmod.core.structure.v2.HudElement
 import gg.skytils.skytilsmod.gui.layout.text
 import gg.skytils.skytilsmod.utils.multiplatform.textComponent
 import gg.skytils.skytilsmod.utils.rendering.DrawHelper
+import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.block.Block
 import net.minecraft.entity.projectile.FishingBobberEntity
 import net.minecraft.block.Blocks
 import net.minecraft.client.font.TextRenderer
@@ -94,6 +96,7 @@ import net.minecraft.world.BlockStateRaycastContext
 import java.awt.Color
 import java.time.Instant
 import java.util.Optional
+import java.util.WeakHashMap
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.pow
@@ -566,14 +569,37 @@ object ItemFeatures : EventSubscriber {
                 "WEIRD_TUBA",
                 "WEIRDER_TUBA",
                 "PUMPKIN_LAUNCHER",
-                "FIRE_FREEZE_STAFF"
+                "FIRE_FREEZE_STAFF",
+                "GEMSTONE_GAUNTLET"
             ))
         ) {
             val block = mc.world?.getBlockState(event.pos) ?: return
-            // TODO: verify this works as intended
-            if (!block.block.javaClass.run { getMethod("onUse").declaringClass == this } || Utils.inDungeons && (block.block === Blocks.COAL_BLOCK || block.block === Blocks.RED_TERRACOTTA)) {
+            if (!isInteractable(block.block)) {
                 event.cancelled = true
             }
+        }
+    }
+
+    // In Yarn mappings, this is AbstractBlock#onUse
+    private val onUseMethodName = FabricLoader.getInstance().mappingResolver.mapMethodName(
+        "intermediary",
+        "net.minecraft.class_4970",
+        "method_55766",
+        "(Lnet/minecraft/class_2680;Lnet/minecraft/class_1937;Lnet/minecraft/class_2338;Lnet/minecraft/class_1657;Lnet/minecraft/class_3965;)Lnet/minecraft/class_1269;"
+    )
+
+    private val interactableBlockCache = WeakHashMap<Class<out Block>, Boolean>()
+
+    private fun isInteractable(block: Block): Boolean {
+        if (Utils.inDungeons && (block === Blocks.COAL_BLOCK || block === Blocks.RED_TERRACOTTA)) {
+            return true
+        }
+
+        val clazz = block.javaClass
+
+        // If the block has its own onUse method that overrides the one in AbstractBlock, it is interactable
+        return interactableBlockCache.getOrPut(clazz) {
+            clazz.declaredMethods.any { it.name == onUseMethodName }
         }
     }
 
