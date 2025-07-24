@@ -587,7 +587,9 @@ object ItemFeatures : EventSubscriber {
         getExtraAttributes(item)?.let { extraAttributes ->
             val itemId = getSkyBlockItemID(extraAttributes)
             if (Skytils.config.showPotionTier && extraAttributes.contains("potion_level")) {
-                stackTip = extraAttributes.getInt("potion_level").toString()
+                extraAttributes.getInt("potion_level").getOrNull()?.toString()?.let {
+                    stackTip = it
+                }
             } else if (Skytils.config.showAttributeShardLevel && itemId == "ATTRIBUTE_SHARD") {
                 extraAttributes.getCompound("attributes").getOrNull()?.takeUnless {
                     it.isEmpty
