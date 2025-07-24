@@ -129,6 +129,9 @@ dependencies {
         exclude(module = "kotlinx-coroutines-core-jvm")
         exclude(module = "universalcraft-1.20.6-fabric")
     }
+    include(implementation("gg.essential:vigilance:312") {
+        isTransitive = false
+    })
     modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:415")
     relocated(implementation("gg.essential:elementa-unstable-layoutdsl:710") {
         excludeKotlin()
