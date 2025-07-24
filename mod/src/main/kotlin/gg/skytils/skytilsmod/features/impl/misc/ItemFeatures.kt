@@ -624,7 +624,9 @@ object ItemFeatures : EventSubscriber {
                     If they ever add the ability to combine attributes on shards, this will need to be updated to:
                     stackTip = it.keySet.maxOf { s -> it.getInteger(s) }.toString()
                     */
-                    stackTip = it.getInt(it.keys.first()).toString()
+                    it.getInt(it.keys.first()).getOrNull()?.toString()?.let {
+                        stackTip = it
+                    }
                 }
             } else if ((Skytils.config.showEnchantedBookTier || Skytils.config.showEnchantedBookAbbreviation) && itemId == "ENCHANTED_BOOK") {
                 extraAttributes.getCompound("enchantments").getOrNull()?.takeIf {
