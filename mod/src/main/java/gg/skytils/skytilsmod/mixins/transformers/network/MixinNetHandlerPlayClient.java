@@ -74,43 +74,39 @@ public abstract class MixinNetHandlerPlayClient implements ClientPlayPacketListe
         for (Direction dir : Direction.Type.HORIZONTAL) {
             BlockPos neighborPos = packet.getPos().offset(dir);
             BlockState neighborState = client.world.getBlockState(neighborPos);
-            if (neighborState.getBlock() instanceof net.minecraft.block.PaneBlock) {
+            if (neighborState.getBlock() instanceof PaneBlock) {
                 client.world.setBlockState(neighborPos, updateState(neighborPos, neighborState));
             }
         }
     }
 
     private BlockState updateState(BlockPos pos, BlockState state){
-        int count = 0;
+        int validConnect = 0;
         if (state.get(PaneBlock.NORTH)){
-            count++;
             if (client.world.getBlockState(pos.north()).isAir()){
-                count--;
                 state = state.with(PaneBlock.NORTH, false);
             }
+            else validConnect++;
         }
         if (state.get(PaneBlock.EAST)){
-            count++;
-            if (client.world.getBlockState(pos.east()).isAir()){
-                count--;
+            if (client.world.getBlockState(pos.east()).isAir()) {
                 state = state.with(PaneBlock.EAST, false);
             }
+            else validConnect++;
         }
         if (state.get(PaneBlock.SOUTH)){
-            count++;
             if (client.world.getBlockState(pos.south()).isAir()){
-                count--;
                 state = state.with(PaneBlock.SOUTH, false);
             }
+            else validConnect++;
         }
         if (state.get(PaneBlock.WEST)){
-            count++;
             if (client.world.getBlockState(pos.west()).isAir()){
-                count--;
                 state = state.with(PaneBlock.WEST, false);
             }
+            else validConnect++;
         }
-        if (count == 0){
+        if (validConnect == 0){
             state = state.with(PaneBlock.NORTH, true)
                     .with(PaneBlock.EAST, true)
                     .with(PaneBlock.SOUTH, true)
