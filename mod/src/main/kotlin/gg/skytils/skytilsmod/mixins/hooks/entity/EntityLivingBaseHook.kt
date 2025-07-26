@@ -17,24 +17,21 @@
  */
 package gg.skytils.skytilsmod.mixins.hooks.entity
 
+//#if MC>12000
 import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.features.impl.dungeons.WitherKingDragons
+import gg.skytils.skytilsmod.mixins.transformers.renderer.MixinPlayerEntityRenderer
 import gg.skytils.skytilsmod.utils.SuperSecretSettings
 import gg.skytils.skytilsmod.utils.Utils
+import gg.skytils.skytilsmod.utils.Utils.inSkyblock
 import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState
 import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.effect.StatusEffect
-import net.minecraft.particle.ParticleType
-import net.minecraft.potion.Potions
-import net.minecraft.world.World
+import net.minecraft.entity.effect.StatusEffects
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import java.awt.Color
 import kotlin.random.Random
-
-//#if MC>12000
-import net.minecraft.entity.effect.StatusEffects
-import net.minecraft.particle.ParticleTypes
 
 //#endif
 
@@ -45,15 +42,11 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
 
     //#if MC>12000
     //#else
-    //$$  val isBreefing by lazy {
-    //$$      entity.name.string == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(
-    //$$          100
-    //$$      ) < 3)
-    //$$  }
-    //$$
-    //$$  val isSmol by lazy {
-    //$$      Utils.inSkyblock && entity is PlayerEntity && (SuperSecretSettings.smolPeople || isBreefing)
-    //$$  }
+    //$$fun isSmol(): Boolean {
+    //$$    val isBreefing =
+    //$$        entity.name.string == "Breefing" && (SuperSecretSettings.breefingDog || Random.nextInt(100) < 3)
+    //$$    return Utils.inSkyblock && (SuperSecretSettings.smolPeople || isBreefing)
+    //$$}
     //#endif
 
     //#if MC>12000
@@ -85,7 +78,7 @@ class EntityLivingBaseHook(val entity: LivingEntity) {
     //#if MC>12000
     //#else
     //$$fun isChild(cir: CallbackInfoReturnable<Boolean>) {
-    //$$    cir.returnValue = isSmol
+    //$$    cir.returnValue = isSmol()
     //$$}
     //#endif
 }
