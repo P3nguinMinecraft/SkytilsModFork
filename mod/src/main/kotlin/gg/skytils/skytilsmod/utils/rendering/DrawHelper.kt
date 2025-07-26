@@ -55,7 +55,7 @@ object DrawHelper {
      */
     fun cameraRotation(matrices: UMatrixStack) {
         //#if MC>12000
-        matrices.multiply(mc.gameRenderer.camera.rotation.conjugate(Quaternionf()).mul(70f/mc.options.fov.value.coerceAtLeast(1))
+        matrices.multiply(mc.gameRenderer.camera.rotation.conjugate(Quaternionf()).mul(70f/mc.options.fov.value.coerceAtLeast(1)))
         //#else
         //$$matrices.multiply(mc.gameRenderer.camera.rotation.conjugate(Quaternionf()))
         //#endif
