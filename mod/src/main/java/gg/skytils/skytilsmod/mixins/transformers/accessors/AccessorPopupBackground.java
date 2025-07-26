@@ -1,6 +1,6 @@
 /*
  * Skytils - Hypixel Skyblock Quality of Life Mod
- * Copyright (C) 2020-2024 Skytils
+ * Copyright (C) 2020-2025 Skytils
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,18 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-plugins {
-    kotlin("jvm") apply false
-    id("gg.essential.multi-version.root")
-}
 
-version = "2.0.0-alpha.4"
+package gg.skytils.skytilsmod.mixins.transformers.accessors;
 
-preprocess {
-    val forge10809 = createNode("1.8.9-forge", 10809, "mcp")
-    val fabric10809 = createNode("1.8.9-fabric", 10809, "yarn")
-    val fabric12105 = createNode("1.21.5-fabric", 12105, "yarn")
+import net.minecraft.client.gui.screen.PopupScreen;
+import net.minecraft.client.gui.screen.Screen;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
-    fabric12105.link(fabric10809, file("versions/1.21.5-1.8.9.txt"))
-    fabric10809.link(forge10809, file("versions/fabric-forge.txt"))
+@Mixin(PopupScreen.class)
+public interface AccessorPopupBackground {
+    @Accessor("backgroundScreen")
+    Screen getUnderlyingScreen();
 }

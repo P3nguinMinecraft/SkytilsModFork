@@ -51,6 +51,17 @@ repositories {
         }
     }
     if (isLegacyFabric) maven("https://repo.legacyfabric.net/repository/legacyfabric/")
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = uri("https://api.modrinth.com/maven")
+            }
+        }
+        filter {
+            includeGroup("maven.modrinth")
+        }
+    }
 }
 
 loom {
@@ -129,6 +140,9 @@ dependencies {
         exclude(module = "kotlinx-coroutines-core-jvm")
         exclude(module = "universalcraft-1.20.6-fabric")
     }
+    include(implementation("gg.essential:vigilance:312") {
+        isTransitive = false
+    })
     modCompileOnly("gg.essential:universalcraft-${if (!isLegacyFabric) platform.toString() else "${platform.mcVersionStr}-forge"}:415")
     relocated(implementation("gg.essential:elementa-unstable-layoutdsl:710") {
         excludeKotlin()
@@ -216,6 +230,7 @@ dependencies {
         relocated(include(implementation("net.hypixel:mod-api-forge-tweaker:1.0.1.2")!!)!!)
     } else {
         compileOnly("net.hypixel:mod-api:1.0.1")
+        include(modImplementation("maven.modrinth:hypixel-mod-api:1.0.1+build.1+mc1.21")!!)
     }
 
     val mixinExtrasVersion = "0.5.0-rc.2"
