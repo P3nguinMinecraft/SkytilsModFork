@@ -1882,7 +1882,7 @@ object Config : Vigilant(
     //# if MC>=10900
     @Property(
         type = PropertyType.SWITCH, name = "Glass Pane Desync Fix",
-        description = "Fixes glass pane connection desync in modern versions.",
+        description = "Fixes glass pane shape desync in modern versions.",
         category = "Mining", subcategory = "Quality of Life",
         i18nName = "skytils.config.mining.quality_of_life.glass_pane_desync_fix",
         i18nCategory = "skytils.config.mining",
