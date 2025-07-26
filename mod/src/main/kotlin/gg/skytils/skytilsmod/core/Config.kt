@@ -1879,6 +1879,18 @@ object Config : Vigilant(
     )
     var showKuudraLowestBinPrice = false
 
+    //# if MC>=10900
+    @Property(
+        type = PropertyType.SWITCH, name = "Glass Pane Desync Fix",
+        description = "Fixes glass pane connection desync in modern versions.",
+        category = "Mining", subcategory = "Quality of Life",
+        i18nName = "skytils.config.mining.quality_of_life.glass_pane_desync_fix",
+        i18nCategory = "skytils.config.mining",
+        i18nSubcategory = "skytils.config.mining.quality_of_life"
+    )
+    var glassPaneDesync = false
+    //# endif
+
     @Property(
         type = PropertyType.SWITCH, name = "Dark Mode Mist",
         description = "Replaces colors in The Mist with darker variants.",
