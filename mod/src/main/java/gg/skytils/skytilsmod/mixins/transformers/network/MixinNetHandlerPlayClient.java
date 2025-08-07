@@ -24,6 +24,7 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -80,6 +81,7 @@ public abstract class MixinNetHandlerPlayClient implements ClientPlayPacketListe
         }
     }
 
+    @Unique
     private BlockState updateState(BlockPos pos, BlockState state){
         int validConnect = 0;
         if (state.get(PaneBlock.NORTH)){
