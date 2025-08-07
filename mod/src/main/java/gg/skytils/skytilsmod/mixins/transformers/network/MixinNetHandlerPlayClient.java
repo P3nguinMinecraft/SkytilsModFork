@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//# if MC>=10900
+//# if MC>12000
 import gg.skytils.skytilsmod.Skytils;
 import net.minecraft.block.PaneBlock;
 import net.minecraft.client.MinecraftClient;
@@ -63,7 +63,7 @@ public abstract class MixinNetHandlerPlayClient implements ClientPlayPacketListe
         }
     }
 
-    //# if MC>=10900
+    //# if MC>12000
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
     @Inject(method = "onBlockUpdate", at = @At("TAIL"))
