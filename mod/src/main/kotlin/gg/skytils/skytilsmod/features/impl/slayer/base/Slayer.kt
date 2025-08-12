@@ -94,6 +94,16 @@ open class Slayer<T : LivingEntity>(
                             potentialNameEntities.add(nearby as ArmorStandEntity)
                         }
                     }
+                    nearby.displayName?.formattedText?.contains(name) == true -> {
+                        printDevMessage(
+                            { "EXTRA: expected tier $currentTier, hp $expectedHealth - spawned hp ${entity.baseMaxHealth.toInt()}" },
+                            "slayer"
+                        )
+                        if (expectedHealth == entity.baseMaxHealth.toInt()) {
+                            printDevMessage({ "hp matched" }, "slayer")
+                            potentialNameEntities.add(nearby as ArmorStandEntity)
+                        }
+                    }
 
                     nearby.displayName?.formattedText?.matches(SlayerFeatures.timerRegex) == true -> {
                         printDevMessage({ "timer regex matched" }, "slayer")
