@@ -43,7 +43,9 @@ import gg.skytils.skytilsmod.features.impl.handlers.PotionEffectTimers
 import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
 import gg.skytils.skytilsmod.features.impl.slayer.base.ThrowingSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.BloodfiendSlayer
+import gg.skytils.skytilsmod.features.impl.slayer.impl.BroodfatherSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.DemonlordSlayer
+import gg.skytils.skytilsmod.features.impl.slayer.impl.PackmasterSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.RevenantSlayer
 import gg.skytils.skytilsmod.features.impl.slayer.impl.SeraphSlayer
 import gg.skytils.skytilsmod.utils.*
@@ -81,6 +83,7 @@ import kotlin.math.floor
 object SlayerFeatures : EventSubscriber, CoroutineScope {
     override val coroutineContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher() + SupervisorJob()
 
+    // TODO: fix name of minis ???
     private val ZOMBIE_MINIBOSSES = arrayOf(
         "§cRevenant Sycophant",
         "§cRevenant Champion",
@@ -88,7 +91,13 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         "§cAtoned Champion",
         "§4Atoned Revenant"
     )
-    private val SPIDER_MINIBOSSES = arrayOf("§cTarantula Vermin", "§cTarantula Beast", "§4Mutant Tarantula")
+
+    // TODO: add t5 spooder minis
+    private val SPIDER_MINIBOSSES = arrayOf(
+        "§cTarantula Vermin",
+        "§cTarantula Beast",
+        "§4Mutant Tarantula"
+    )
     private val WOLF_MINIBOSSES = arrayOf("§cPack Enforcer", "§cSven Follower", "§4Sven Alpha")
     private val ENDERMAN_MINIBOSSES = arrayOf("Voidling Devotee", "Voidling Radical", "Voidcrazed Maniac")
     private val BLAZE_MINIBOSSES = arrayOf("Flare Demon", "Kindleheart Demon", "Burningsoul Demon")
@@ -117,8 +126,8 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         slayer = try {
             when (entity) {
                 is ZombieEntity -> RevenantSlayer(entity)
-                is SpiderEntity -> Slayer(entity, "Tarantula Broodfather", "§5☠ §4Tarantula Broodfather")
-                is WolfEntity -> Slayer(entity, "Sven Packmaster", "§c☠ §fSven Packmaster")
+                is SpiderEntity -> BroodfatherSlayer(entity)
+                is WolfEntity -> PackmasterSlayer(entity)
                 is EndermanEntity -> SeraphSlayer(entity)
                 is BlazeEntity -> DemonlordSlayer(entity)
                 is OtherClientPlayerEntity -> {

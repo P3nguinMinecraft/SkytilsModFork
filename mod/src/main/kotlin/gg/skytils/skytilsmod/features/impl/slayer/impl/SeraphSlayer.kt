@@ -41,6 +41,7 @@ import net.minecraft.util.math.Box
 import kotlin.math.abs
 
 class SeraphSlayer(entity: EndermanEntity) :
+// TODO: fix names
     ThrowingSlayer<EndermanEntity>(entity, "Voidgloom Seraph", "§c☠ §bVoidgloom Seraph") {
     val nukekebiSkulls = mutableListOf<ArmorStandEntity>()
     var yangGlyphAdrenalineStressCount = -1L

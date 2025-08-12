@@ -24,6 +24,7 @@ import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
 import net.minecraft.client.network.OtherClientPlayerEntity
 
 class BloodfiendSlayer(entity: OtherClientPlayerEntity) :
+// TODO: fix names
     Slayer<OtherClientPlayerEntity>(entity, "Riftstalker Bloodfiend", "§c☠ §4Bloodfiend") {
 
     var lastHadTwinclaws = false
