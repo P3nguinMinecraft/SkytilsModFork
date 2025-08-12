@@ -33,8 +33,7 @@ import net.minecraft.registry.tag.BlockTags
 import net.minecraft.util.math.BlockPos
 
 class RevenantSlayer(entity: ZombieEntity) :
-// TODO: fix names
-    Slayer<ZombieEntity>(entity, "Revenant Horror", "§c☠ §bRevenant Horror", "§c☠ §fAtoned Horror") {
+    Slayer<ZombieEntity>(entity, "Revenant Horror", "§2༕ §c☠ §bRevenant Horror", "§2༕ §c☠ §fAtoned Horror") {
 
     override fun set() {
         rev5PingTask.start()

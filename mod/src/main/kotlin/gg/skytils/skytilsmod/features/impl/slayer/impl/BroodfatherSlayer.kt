@@ -22,6 +22,5 @@ import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
 import net.minecraft.entity.mob.SpiderEntity
 
 class BroodfatherSlayer(entity: SpiderEntity) :
-// TODO: fix names
-    Slayer<SpiderEntity>(entity, "Tarantula Broodfather", "§5☠ §4Tarantula Broodfather"){
+    Slayer<SpiderEntity>(entity, "Tarantula Broodfather", "§4Ж §5☠ §4Tarantula Broodfather"){
 }

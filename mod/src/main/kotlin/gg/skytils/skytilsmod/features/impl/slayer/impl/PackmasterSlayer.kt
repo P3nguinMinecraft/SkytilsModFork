@@ -22,6 +22,5 @@ import gg.skytils.skytilsmod.features.impl.slayer.base.Slayer
 import net.minecraft.entity.passive.WolfEntity
 
 class PackmasterSlayer(entity: WolfEntity) :
-// TODO: fix names
-    Slayer<WolfEntity>(entity, "Sven Packmaster", "§c☠ §fSven Packmaster") {
+    Slayer<WolfEntity>(entity, "Sven Packmaster", "§a☮ §c☠ §fSven Packmaster") {
 }

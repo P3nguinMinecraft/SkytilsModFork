@@ -83,7 +83,7 @@ import kotlin.math.floor
 object SlayerFeatures : EventSubscriber, CoroutineScope {
     override val coroutineContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher() + SupervisorJob()
 
-    // TODO: fix name of minis ???
+    // TODO: include formatting and mob types for all?
     private val ZOMBIE_MINIBOSSES = arrayOf(
         "§cRevenant Sycophant",
         "§cRevenant Champion",
@@ -92,11 +92,12 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         "§4Atoned Revenant"
     )
 
-    // TODO: add t5 spooder minis
     private val SPIDER_MINIBOSSES = arrayOf(
         "§cTarantula Vermin",
         "§cTarantula Beast",
-        "§4Mutant Tarantula"
+        "§4Mutant Tarantula",
+        "§4Ж §cPrimordial Jockey",
+        "§4Ж §4Primordial Viscount"
     )
     private val WOLF_MINIBOSSES = arrayOf("§cPack Enforcer", "§cSven Follower", "§4Sven Alpha")
     private val ENDERMAN_MINIBOSSES = arrayOf("Voidling Devotee", "Voidling Radical", "Voidcrazed Maniac")
