@@ -34,7 +34,7 @@ import java.io.Writer
 
 object EnchantNames : EventSubscriber, PersistentSave(File(Skytils.modDir, "enchantnames.json")) {
     private val enchantRegex =
-        Regex("(?<color>(?:§[0-9a-fzl]){1,2})(?<enchant> ?[\\w ]+[\\w \\-]*?)(?<level> [IVXLCDM0-9]{1,3})(?<suffix>§[9d], )?")
+        Regex("(?<color>(?:§[0-9a-fzlr]){1,2})(?<enchant> ?[\\w ]+[\\w \\-]*?)(?<level> [IVXLCDM0-9]{1,3})(?<suffix>§[9d], )?")
     val replacements = hashMapOf<String, String>()
 
     override fun setup() {
@@ -42,35 +42,33 @@ object EnchantNames : EventSubscriber, PersistentSave(File(Skytils.modDir, "ench
     }
 
     fun onTooltip(event: ItemTooltipEvent) {
-        event.tooltip.replaceAll {
-            var line = it.formattedText
-            enchantRegex.findAll(
-                line
-            ).forEach { result ->
+        if (replacements.isEmpty()) return
+        event.tooltip.replaceAll { line ->
+            val lineText = line.formattedText
+            val matches = enchantRegex.findAll(lineText)
+            if (matches.count() == 0) return@replaceAll line
+            matches.fold(lineText) { current, result ->
                 val color = result.groups["color"]!!.value
                 val enchant = result.groups["enchant"]!!.value
+                if (replacements[enchant] == null) return@fold current
                 val level = result.groups["level"]!!.value
                 val suffix = result.groups["suffix"]?.value ?: ""
                 if (DevTools.getToggle("enchantNames")) {
                     println(enchant)
                     println(result.groups)
                 }
-                line = line.replace(
+                current.replace(
                     result.value,
                     buildString {
                         append(color)
                         if (DevTools.getToggle("enchantNames")) append("{")
-                        if (replacements[enchant] != null)
-                            append("§o${enchant.replaceEnchantNames()}")
-                        else
-                            append(enchant)
+                        append("§o${enchant.replaceEnchantNames()}")
                         append(level)
                         if (DevTools.getToggle("enchantNames")) append("}")
                         append(suffix)
                     }
                 )
-            }
-            textComponent(line)
+            }.let(::textComponent)
         }
     }
 
