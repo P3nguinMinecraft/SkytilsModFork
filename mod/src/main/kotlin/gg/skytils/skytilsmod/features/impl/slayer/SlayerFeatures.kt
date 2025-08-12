@@ -265,8 +265,15 @@ object SlayerFeatures : EventSubscriber, CoroutineScope {
         if (event.entity is ArmorStandEntity) {
             val entity = event.entity as ArmorStandEntity
             if (!entity.hasCustomName()) return
-            val name = entity.displayName?.string ?: return
-            if (Skytils.config.slayerBossHitbox && name.endsWith("§c❤") && !name.endsWith("§e0§c❤") && !mc.entityRenderDispatcher.shouldRenderHitboxes()) {
+            //#if MC>12000
+            val name = entity.displayName?.formattedText ?: return
+            //#else
+            //$$val name = entity.displayName?.string ?: return
+            //#endif
+            // TODO: does &r also appear in 1.8? inconsistency between 1.8 displayName.string and 1.21 displayName.formattedText
+            // this is for 1.21 + render is very broken
+            // in 1.21 all nametags start and end with &r, i cant compile 1.8 so idk
+            if (Skytils.config.slayerBossHitbox && name.endsWith("§c❤§r") && !name.endsWith("§e0§c❤§r") && !mc.entityRenderDispatcher.shouldRenderHitboxes()) {
                 val (x, y, z) = RenderUtil.fixRenderPos(event.x, event.y, event.z)
                 if (ZOMBIE_MINIBOSSES.any { name.contains(it) } || BLAZE_MINIBOSSES.any { name.contains(it) }) {
                     drawOutlinedBoundingBox(
